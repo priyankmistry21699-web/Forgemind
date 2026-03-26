@@ -1,0 +1,165 @@
+# ============================================================
+# ForgeMind — Docker Compose (Development)
+# ============================================================
+#
+# Usage:
+#   docker compose up -d              # Start all services
+#   docker compose up -d postgres redis minio  # Infra only
+#   docker compose logs -f api        # Tail API logs
+#   docker compose down               # Stop all services
+#
+# Ports:
+#   API     → http://localhost:8000  (Swagger: /docs)
+#   Web     → http://localhost:3000
+#   Postgres → localhost:5432
+#   Redis    → localhost:6379
+#   MinIO    → http://localhost:9000  (Console: :9001)
+#
+# ============================================================
+
+services:
+  # ---- Infrastructure ----
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: forgemind-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-forgemind}
+      POSTGRES_USER: ${POSTGRES_USER:-forgemind}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-forgemind}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: forgemind-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: forgemind-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  # ---- Application ----
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: forgemind-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      DEBUG: ${DEBUG:-true}
+      SECRET_KEY: ${SECRET_KEY:-change-me-to-a-random-secret}
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-forgemind}
+      POSTGRES_USER: ${POSTGRES_USER:-forgemind}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-forgemind}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/${POSTGRES_DB:-forgemind}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./apps/api:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: forgemind-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:8000}
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # ---- Worker ----
+
+  worker:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: forgemind-worker
+    restart: unless-stopped
+    command: ["python", "-m", "worker.main"]
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      DEBUG: ${DEBUG:-true}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-forgemind}
+      POSTGRES_USER: ${POSTGRES_USER:-forgemind}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-forgemind}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/${POSTGRES_DB:-forgemind}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_URL: redis://redis:6379/0
+      WORKER_POLL_INTERVAL: ${WORKER_POLL_INTERVAL:-5}
+      WORKER_MAX_TASKS_PER_CYCLE: ${WORKER_MAX_TASKS_PER_CYCLE:-3}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+    volumes:
+      - ./apps/api:/app
+      - ./apps/worker:/app/worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:

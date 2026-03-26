@@ -1,0 +1,50 @@
+from contextlib import asynccontextmanager
+from collections.abc import AsyncGenerator
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.core.config import settings
+from app.api.router import api_router
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+    # Startup — seed default agents
+    from app.db.session import async_session_factory
+    from app.services.agent_service import seed_default_agents
+
+    async with async_session_factory() as session:
+        await seed_default_agents(session)
+        await session.commit()
+
+    yield
+    # Shutdown — dispose DB engine
+    from app.db.session import engine
+
+    await engine.dispose()
+
+
+def create_app() -> FastAPI:
+    app = FastAPI(
+        title=settings.project_name,
+        version=settings.version,
+        debug=settings.debug,
+        lifespan=lifespan,
+    )
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origin_list,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # Mount routers
+    app.include_router(api_router)
+
+    return app
+
+
+app = create_app()
