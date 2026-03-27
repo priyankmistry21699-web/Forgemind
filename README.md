@@ -38,29 +38,42 @@ _Turn high-level goals into complete, verifiable software systems — with human
 
 ForgeMind is an **operator-centered AI execution platform** that dynamically assembles specialized AI agents to plan, build, review, and test software projects — with human approval at every critical step.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    OPERATOR (You)                                │
-│  "Build me a REST API for a task management system using       │
-│   FastAPI with PostgreSQL and Redis caching"                    │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                 🔥 FORGEMIND PLATFORM                            │
-│                                                                 │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
-│  │ 📋 Plan  │→ │ 🏗️ Build │→ │ 🔍 Review│→ │ 🧪 Test  │       │
-│  │ (AI)     │  │ (AI)     │  │ (AI)     │  │ (AI)     │       │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘       │
-│       │              │              │              │             │
-│       ▼              ▼              ▼              ▼             │
-│  [✅ Approve]  [📄 Artifact]  [✅ Approve]  [📄 Artifact]      │
-│                                                                 │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │  Adaptive Orchestrator • Memory • Agent Composition     │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    A["🧑‍💻 OPERATOR\n<i>'Build me a REST API for task management\nusing FastAPI with PostgreSQL & Redis'</i>"] --> B
+
+    subgraph B["🔥 FORGEMIND PLATFORM"]
+        direction TB
+        subgraph agents[" "]
+            direction LR
+            P["📋 Plan\n<b>AI Agent</b>"] --> C["🏗️ Build\n<b>AI Agent</b>"]
+            C --> R["🔍 Review\n<b>AI Agent</b>"]
+            R --> T["🧪 Test\n<b>AI Agent</b>"]
+        end
+        subgraph gates[" "]
+            direction LR
+            G1["✅ Approval"] ~~~ G2["📄 Artifact"] ~~~ G3["✅ Approval"] ~~~ G4["📄 Artifact"]
+        end
+        subgraph intelligence["🧠 Intelligence Layer"]
+            direction LR
+            AO["Adaptive\nOrchestrator"] ~~~ MEM["Execution\nMemory"] ~~~ COMP["Agent\nComposition"]
+        end
+        agents --> gates --> intelligence
+    end
+
+    style A fill:#1e3a5f,stroke:#4a90d9,color:#ffffff,stroke-width:2px
+    style B fill:#0d1117,stroke:#8b5cf6,color:#ffffff,stroke-width:2px
+    style P fill:#dc2626,stroke:#ef4444,color:#ffffff
+    style C fill:#2563eb,stroke:#3b82f6,color:#ffffff
+    style R fill:#7c3aed,stroke:#8b5cf6,color:#ffffff
+    style T fill:#059669,stroke:#10b981,color:#ffffff
+    style G1 fill:#16a34a,stroke:#22c55e,color:#ffffff
+    style G2 fill:#64748b,stroke:#94a3b8,color:#ffffff
+    style G3 fill:#16a34a,stroke:#22c55e,color:#ffffff
+    style G4 fill:#64748b,stroke:#94a3b8,color:#ffffff
+    style AO fill:#ea580c,stroke:#f97316,color:#ffffff
+    style MEM fill:#0891b2,stroke:#06b6d4,color:#ffffff
+    style COMP fill:#7c3aed,stroke:#a78bfa,color:#ffffff
 ```
 
 **What makes it different:**
@@ -121,188 +134,265 @@ ForgeMind is an **operator-centered AI execution platform** that dynamically ass
 
 ### System Architecture
 
-```
-                        ┌──────────────────────────────┐
-                        │      🌐 Next.js 15 Frontend  │
-                        │    (React 19 + TypeScript 5)  │
-                        │         Port 3000             │
-                        └──────────┬───────────────────┘
-                                   │ HTTP/REST
-                                   ▼
-                        ┌──────────────────────────────┐
-                        │     ⚡ FastAPI Backend        │
-                        │    (Python 3.12 + async)     │
-                        │         Port 8000             │
-                        │                               │
-                        │  ┌─────────────────────────┐ │
-                        │  │     16 API Routes        │ │
-                        │  │  health │ projects       │ │
-                        │  │  planner│ planner_results │ │
-                        │  │  tasks  │ runs           │ │
-                        │  │  artifacts│ agents       │ │
-                        │  │  approvals│ events       │ │
-                        │  │  chat   │ composition    │ │
-                        │  │  connectors│ memory      │ │
-                        │  └─────────────────────────┘ │
-                        │                               │
-                        │  ┌─────────────────────────┐ │
-                        │  │     14 Services          │ │
-                        │  │  project │ planner       │ │
-                        │  │  task    │ run           │ │
-                        │  │  artifact│ agent         │ │
-                        │  │  approval│ event         │ │
-                        │  │  execution│ chat         │ │
-                        │  │  composition│ connector  │ │
-                        │  │  run_memory│ adaptive    │ │
-                        │  └─────────────────────────┘ │
-                        └──┬──────────┬────────────────┘
-                           │          │
-            ┌──────────────┤          ├──────────────┐
-            ▼              ▼          ▼              ▼
-     ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
-     │ 🐘 Postgres│ │ 🔴 Redis │ │ 📦 MinIO │ │ 🤖 LLM   │
-     │   16      │ │    7     │ │ (S3)     │ │ (LiteLLM)│
-     │           │ │          │ │          │ │          │
-     │ 10 tables │ │  cache   │ │  object  │ │ GPT-4o   │
-     │ 8 migr.  │ │  queues  │ │  storage │ │ Claude   │
-     └──────────┘  └──────────┘  └──────────┘  │ Gemini   │
-                                                │ Ollama   │
-                                                └──────────┘
-            ┌──────────────────────────────┐
-            │   🔧 Background Worker       │
-            │                              │
-            │  ┌────────────────────────┐  │
-            │  │  Adaptive Orchestrator │  │
-            │  │  • Priority scheduling │  │
-            │  │  • Auto-retry (2x)     │  │
-            │  │  • Rejection handling  │  │
-            │  └────────────────────────┘  │
-            │                              │
-            │  ┌────────────────────────┐  │
-            │  │  Agent Dispatch        │  │
-            │  │  🏗️ Architect Agent    │  │
-            │  │  💻 Coder Agent        │  │
-            │  │  🔍 Reviewer Agent     │  │
-            │  │  🧪 Tester Agent       │  │
-            │  └────────────────────────┘  │
-            │                              │
-            │  ┌────────────────────────┐  │
-            │  │  Handoff Context       │  │
-            │  │  Upstream artifacts →  │  │
-            │  │  Agent system prompt   │  │
-            │  └────────────────────────┘  │
-            └──────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Frontend["🌐 FRONTEND · Port 3000"]
+        NX["<b>Next.js 15</b>\nReact 19 · TypeScript 5 · Tailwind 4"]
+    end
+
+    subgraph Backend["⚡ BACKEND · Port 8000"]
+        FA["<b>FastAPI</b> — Python 3.12 · Async"]
+        subgraph Routes["📡 16 API Routes"]
+            direction LR
+            R1["health · projects\nplanner · planner_results"] ~~~ R2["tasks · runs\nartifacts · agents"]
+            R3["approvals · events\nchat · composition"] ~~~ R4["connectors · memory"]
+        end
+        subgraph Svcs["⚙️ 14 Services"]
+            direction LR
+            S1["project · planner\ntask · run · artifact"] ~~~ S2["agent · approval · event\nexecution · chat"]
+            S3["composition · connector\nrun_memory · adaptive"]
+        end
+    end
+
+    subgraph Worker["🔧 BACKGROUND WORKER"]
+        AO["<b>Adaptive Orchestrator</b>\n• Priority scheduling\n• Auto-retry 2x\n• Rejection handling"]
+        subgraph AgentPool["🤖 Agent Dispatch"]
+            direction LR
+            AG1["🏗️ Architect"] ~~~ AG2["💻 Coder"]
+            AG3["🔍 Reviewer"] ~~~ AG4["🧪 Tester"]
+        end
+        HC["<b>Handoff Context</b>\nUpstream artifacts → Agent prompt"]
+    end
+
+    subgraph Infra["🗄️ INFRASTRUCTURE"]
+        direction LR
+        PG["🐘 <b>PostgreSQL 16</b>\n10 tables · 8 migrations"]
+        RD["🔴 <b>Redis 7</b>\nCache · Queues"]
+        MN["📦 <b>MinIO</b>\nS3 Object Storage"]
+        LLM["🤖 <b>LiteLLM</b>\nGPT-4o · Claude\nGemini · Ollama"]
+    end
+
+    Frontend -->|"HTTP / REST"| Backend
+    Backend --> Worker
+    Backend --> Infra
+    Worker --> Infra
+
+    style Frontend fill:#0c4a6e,stroke:#0ea5e9,color:#fff,stroke-width:2px
+    style Backend fill:#1e1b4b,stroke:#818cf8,color:#fff,stroke-width:2px
+    style Worker fill:#14532d,stroke:#4ade80,color:#fff,stroke-width:2px
+    style Infra fill:#451a03,stroke:#f59e0b,color:#fff,stroke-width:2px
+    style NX fill:#0ea5e9,stroke:#38bdf8,color:#fff
+    style FA fill:#009688,stroke:#4db6ac,color:#fff
+    style AO fill:#ea580c,stroke:#fb923c,color:#fff
+    style HC fill:#365314,stroke:#84cc16,color:#fff
+    style PG fill:#1d4ed8,stroke:#3b82f6,color:#fff
+    style RD fill:#dc2626,stroke:#ef4444,color:#fff
+    style MN fill:#be185d,stroke:#ec4899,color:#fff
+    style LLM fill:#7c3aed,stroke:#a78bfa,color:#fff
+    style AG1 fill:#2563eb,stroke:#60a5fa,color:#fff
+    style AG2 fill:#2563eb,stroke:#60a5fa,color:#fff
+    style AG3 fill:#7c3aed,stroke:#a78bfa,color:#fff
+    style AG4 fill:#059669,stroke:#34d399,color:#fff
 ```
 
 ### Data Model
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                      DATABASE SCHEMA (10 tables)                 │
-│                                                                  │
-│  ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌──────────────┐ │
-│  │  users  │    │projects │───▶│  runs   │───▶│    tasks     │ │
-│  │         │    │         │    │         │    │              │ │
-│  │ id      │    │ id      │    │ id      │    │ id           │ │
-│  │ email   │    │ name    │    │ run_num │    │ title        │ │
-│  │ name    │    │ desc    │    │ status  │    │ task_type    │ │
-│  └─────────┘    │ stack   │    │ trigger │    │ status       │ │
-│                 └─────────┘    └─────────┘    │ depends_on[] │ │
-│                                               │ order_index  │ │
-│  ┌──────────────┐  ┌──────────────┐          │ agent_slug   │ │
-│  │  artifacts   │  │  approvals   │          └──────────────┘ │
-│  │              │  │              │                            │
-│  │ id           │  │ id           │  ┌──────────────┐         │
-│  │ title        │  │ title        │  │   events     │         │
-│  │ content      │  │ status       │  │              │         │
-│  │ artifact_type│  │ decided_by   │  │ event_type   │         │
-│  │ version      │  │ comment      │  │ summary      │         │
-│  └──────────────┘  └──────────────┘  │ agent_slug   │         │
-│                                      └──────────────┘         │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │
-│  │planner_result│  │   agents     │  │ connectors   │        │
-│  │              │  │              │  │              │        │
-│  │ plan JSON    │  │ slug         │  │ slug         │        │
-│  │ phases       │  │ capabilities │  │ type         │        │
-│  │ architecture │  │ task_types[] │  │ capabilities │        │
-│  └──────────────┘  └──────────────┘  └──────────────┘        │
-└──────────────────────────────────────────────────────────────────┘
+```mermaid
+erDiagram
+    USERS {
+        uuid id PK
+        string email
+        string name
+    }
+    PROJECTS {
+        uuid id PK
+        string name
+        string description
+        json stack
+    }
+    RUNS {
+        uuid id PK
+        int run_number
+        string status
+        string trigger
+    }
+    TASKS {
+        uuid id PK
+        string title
+        string task_type
+        string status
+        uuid_array depends_on
+        int order_index
+        string agent_slug
+    }
+    ARTIFACTS {
+        uuid id PK
+        string title
+        text content
+        string artifact_type
+        int version
+    }
+    APPROVAL_REQUESTS {
+        uuid id PK
+        string title
+        string status
+        string decided_by
+        text comment
+    }
+    EXECUTION_EVENTS {
+        uuid id PK
+        string event_type
+        string summary
+        string agent_slug
+    }
+    PLANNER_RESULTS {
+        uuid id PK
+        json plan
+        json phases
+        json architecture
+    }
+    AGENTS {
+        uuid id PK
+        string slug
+        json capabilities
+        string_array task_types
+    }
+    CONNECTORS {
+        uuid id PK
+        string slug
+        string type
+        json capabilities
+    }
+
+    PROJECTS ||--o{ RUNS : "has many"
+    PROJECTS ||--o{ PLANNER_RESULTS : "generates"
+    RUNS ||--o{ TASKS : "contains"
+    TASKS ||--o{ ARTIFACTS : "produces"
+    TASKS ||--o{ APPROVAL_REQUESTS : "may require"
+    RUNS ||--o{ EXECUTION_EVENTS : "logs"
+    AGENTS ||--o{ TASKS : "executes"
 ```
 
 ### Execution Flow
 
-```
-┌──────────┐     ┌──────────┐     ┌──────────────┐     ┌────────────┐
-│  Prompt  │────▶│ Planner  │────▶│  Task DAG    │────▶│   Worker   │
-│  Intake  │     │ Service  │     │  Generation  │     │   Loop     │
-└──────────┘     └──────────┘     └──────────────┘     └─────┬──────┘
-                                                             │
-                    ┌────────────────────────────────────────┘
-                    ▼
-        ┌───────────────────────┐
-        │  Adaptive Orchestrator │
-        │                       │
-        │  1. Handle rejections │ ◀── Approval rejected?
-        │  2. Auto-retry fails  │ ◀── Task failed?
-        │  3. Select next tasks │ ◀── Priority scoring
-        └───────────┬───────────┘
-                    │
-                    ▼
-        ┌───────────────────────┐
-        │  Composition Service  │
-        │                       │
-        │  agent_hint → score → │
-        │  capability match     │
-        └───────────┬───────────┘
-                    │
-                    ▼
-        ┌───────────────────────┐     ┌───────────────┐
-        │  Agent Execution      │────▶│   Artifact    │
-        │                       │     │   Created     │
-        │  build_handoff_context│     └───────┬───────┘
-        │  + LLM generation     │             │
-        └───────────────────────┘             ▼
-                                    ┌───────────────────┐
-                                    │  Approval Gate?   │
-                                    │  (arch/review)    │
-                                    └───────────────────┘
-                                              │
-                                     ┌────────┴────────┐
-                                     ▼                 ▼
-                               ✅ Approved       ❌ Rejected
-                               → Promote         → Requeue
-                                 downstream        for rework
+```mermaid
+flowchart TD
+    A["📝 <b>Prompt Intake</b>\nNatural language goal"] --> B["🧠 <b>Planner Service</b>\nLLM-powered planning"]
+    B --> C["📊 <b>Task DAG Generation</b>\nDependency graph"]
+    C --> D["⚡ <b>Worker Loop</b>\nPolling cycle"]
+
+    D --> E["🎯 <b>Adaptive Orchestrator</b>"]
+
+    E --> E1["1️⃣ Handle Rejections\n<i>Approval rejected?</i>"]
+    E --> E2["2️⃣ Auto-retry Failures\n<i>Task failed? max 2</i>"]
+    E --> E3["3️⃣ Select Next Tasks\n<i>Priority scoring</i>"]
+
+    E3 --> F["🤖 <b>Composition Service</b>\nagent_hint → score → capability match"]
+    F --> G["🔧 <b>Agent Execution</b>\nbuild_handoff_context + LLM generation"]
+    G --> H["📄 <b>Artifact Created</b>"]
+
+    H --> I{"🔒 <b>Approval Gate?</b>\narchitecture / review"}
+    I -->|"✅ Approved"| J["⬆️ Promote downstream"]
+    I -->|"❌ Rejected"| K["🔄 Requeue for rework"]
+    I -->|"No gate"| J
+
+    K --> E1
+
+    style A fill:#0ea5e9,stroke:#38bdf8,color:#fff
+    style B fill:#8b5cf6,stroke:#a78bfa,color:#fff
+    style C fill:#6366f1,stroke:#818cf8,color:#fff
+    style D fill:#ea580c,stroke:#fb923c,color:#fff
+    style E fill:#dc2626,stroke:#ef4444,color:#fff
+    style E1 fill:#d97706,stroke:#fbbf24,color:#fff
+    style E2 fill:#d97706,stroke:#fbbf24,color:#fff
+    style E3 fill:#d97706,stroke:#fbbf24,color:#fff
+    style F fill:#2563eb,stroke:#3b82f6,color:#fff
+    style G fill:#7c3aed,stroke:#8b5cf6,color:#fff
+    style H fill:#059669,stroke:#10b981,color:#fff
+    style I fill:#b45309,stroke:#f59e0b,color:#fff
+    style J fill:#16a34a,stroke:#4ade80,color:#fff
+    style K fill:#dc2626,stroke:#f87171,color:#fff
 ```
 
 ### Task State Machine
 
-```
-                    ┌─────────┐
-                    │ PENDING │
-                    └────┬────┘
-                         │
-              ┌──────────┴──────────┐
-              ▼                     ▼
-        ┌──────────┐          ┌─────────┐
-        │  BLOCKED │          │  READY  │◀──────────────┐
-        └────┬─────┘          └────┬────┘               │
-             │                     │                    │
-             │ deps satisfied      │                    │
-             └──────────┬──────────┘                    │
-                        ▼                               │
-                  ┌──────────┐                          │
-                  │ RUNNING  │                          │
-                  └────┬─────┘                          │
-                       │                                │
-            ┌──────────┴──────────┐                     │
-            ▼                     ▼                     │
-      ┌───────────┐         ┌──────────┐               │
-      │ COMPLETED │         │  FAILED  │──── retry ────┘
-      └───────────┘         └──────────┘
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING
 
-      ┌──────────┐
-      │ SKIPPED  │  ◀── cancel (from READY or RUNNING)
-      └──────────┘
+    PENDING --> BLOCKED : has unmet dependencies
+    PENDING --> READY : no dependencies
+
+    BLOCKED --> READY : dependencies satisfied
+
+    READY --> RUNNING : worker picks up task
+    READY --> SKIPPED : operator cancels
+
+    RUNNING --> COMPLETED : agent succeeds
+    RUNNING --> FAILED : agent error
+    RUNNING --> SKIPPED : operator cancels
+
+    FAILED --> READY : auto-retry (max 2)
+
+    classDef pending fill:#f59e0b,color:#000,stroke:#d97706
+    classDef blocked fill:#6b7280,color:#fff,stroke:#4b5563
+    classDef ready fill:#3b82f6,color:#fff,stroke:#2563eb
+    classDef running fill:#8b5cf6,color:#fff,stroke:#7c3aed
+    classDef completed fill:#10b981,color:#fff,stroke:#059669
+    classDef failed fill:#ef4444,color:#fff,stroke:#dc2626
+    classDef skipped fill:#64748b,color:#fff,stroke:#475569
+
+    class PENDING pending
+    class BLOCKED blocked
+    class READY ready
+    class RUNNING running
+    class COMPLETED completed
+    class FAILED failed
+    class SKIPPED skipped
+```
+
+### Agent Capability Scoring
+
+```mermaid
+flowchart LR
+    subgraph Input["\uD83D\uDCE5 Task Input"]
+        TT["task_type\nagent_hint"]
+    end
+
+    subgraph Scoring["\uD83C\uDFAF Composition Service"]
+        direction TB
+        H{"agent_hint\nprovided?"}
+        H -->|Yes| Direct["Direct\nAssignment"]
+        H -->|No| Score["Capability\nScoring"]
+        Score --> W1["60% task_type\nmatch"]
+        Score --> W2["40% capability\noverlap"]
+        W1 --> Best["Highest\nScore Wins"]
+        W2 --> Best
+    end
+
+    subgraph Agents["\uD83E\uDD16 Agent Pool"]
+        direction TB
+        AR["\uD83C\uDFD7\uFE0F Architect\n<i>system_design\napi_design</i>"]
+        CO["\uD83D\uDCBB Coder\n<i>code_generation\nfrontend · backend</i>"]
+        RV["\uD83D\uDD0D Reviewer\n<i>code_review\nsecurity_review</i>"]
+        TE["\uD83E\uDDEA Tester\n<i>unit_testing\nintegration_testing</i>"]
+    end
+
+    Input --> Scoring --> Agents
+
+    style Input fill:#0c4a6e,stroke:#0ea5e9,color:#fff,stroke-width:2px
+    style Scoring fill:#1e1b4b,stroke:#818cf8,color:#fff,stroke-width:2px
+    style Agents fill:#14532d,stroke:#4ade80,color:#fff,stroke-width:2px
+    style H fill:#d97706,stroke:#f59e0b,color:#fff
+    style Direct fill:#16a34a,stroke:#4ade80,color:#fff
+    style Score fill:#7c3aed,stroke:#a78bfa,color:#fff
+    style W1 fill:#2563eb,stroke:#60a5fa,color:#fff
+    style W2 fill:#2563eb,stroke:#60a5fa,color:#fff
+    style Best fill:#059669,stroke:#34d399,color:#fff
+    style AR fill:#2563eb,stroke:#60a5fa,color:#fff
+    style CO fill:#0891b2,stroke:#22d3ee,color:#fff
+    style RV fill:#7c3aed,stroke:#a78bfa,color:#fff
+    style TE fill:#059669,stroke:#34d399,color:#fff
 ```
 
 ---
@@ -443,8 +533,8 @@ forgemind/
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/vishva-mahadevan/forgemind.git
-cd forgemind
+git clone https://github.com/priyankmistry21699-web/Forgemind.git
+cd Forgemind
 
 # 2. Copy environment file
 cp .env.example .env
@@ -782,97 +872,30 @@ make test
 
 <div align="center">
 
-**Built with ❤️ by [Vishva](https://github.com/vishva-mahadevan)**
+**Built with ❤️ by [Priyank Mistry](https://github.com/priyankmistry21699-web)**
 
 _ForgeMind v0.3.0 — 42 tasks completed across 8 milestones_
 
 </div>
-│   └── ...
-│
-├── .env.example          # Environment variable template
-├── docker-compose.yml    # Local development services
-├── Makefile              # Developer commands
-└── README.md             # This file
-```
 
 ---
 
-## Core Differentiators
-
-| #   | Feature                       | Description                                                                    |
-| --- | ----------------------------- | ------------------------------------------------------------------------------ |
-| 1   | **Goal-to-System Synthesis**  | Describe an idea → get architecture, connectors, code, tests, docs, deployment |
-| 2   | **Dynamic Agent Composition** | Assembles the right AI team per project, not a fixed pipeline                  |
-| 3   | **Connector Intelligence**    | OAuth setup wizard, token vault, rotation alerts, connection testing           |
-| 4   | **ForgeMind Local**           | Local repo inspection, file import, build/test execution on your machine       |
-| 5   | **Trust Layer**               | Replay, risk scores, evidence views, approval gates for every action           |
-| 6   | **Drift Detection**           | Tracks intended architecture vs. actual state, alerts on divergence            |
-
----
-
-## Tech Stack (Summary)
-
-| Layer           | Technology                                                            |
-| --------------- | --------------------------------------------------------------------- |
-| Frontend        | Next.js 15, TypeScript, Tailwind CSS, shadcn/ui, Zustand, React Query |
-| Backend         | FastAPI (Python 3.12), Pydantic v2, SQLAlchemy 2.0, Celery 5          |
-| Database        | PostgreSQL 16, Redis 7, MinIO (artifact storage)                      |
-| Auth            | Clerk + custom RBAC                                                   |
-| LLM Gateway     | LiteLLM (OpenAI, Anthropic, Google, Ollama, etc.)                     |
-| Agent Framework | LangChain / LangGraph                                                 |
-| Real-time       | Socket.IO                                                             |
-| DevOps          | Docker, Docker Compose, GitHub Actions                                |
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.12+
-- Node.js 20+
-- Docker & Docker Compose
-- PostgreSQL 16 / Redis 7 (or use Docker Compose)
-
-### Quick Start
-
-```bash
-# 1. Clone the repo
-git clone <repo-url> forgemind && cd forgemind
-
-# 2. Copy environment variables
-cp .env.example .env
-
-# 3. Start everything via Docker Compose
-docker compose up -d
-
-# API  → http://localhost:8000  (Swagger: http://localhost:8000/docs)
-# Web  → http://localhost:3000
-# MinIO Console → http://localhost:9001
-```
-
-### Alternative: Run services individually
-
-```bash
-# Start only infrastructure (Postgres, Redis, MinIO)
-make docker-up
-
-# Run API locally (requires Python 3.12+)
-make install-api
-make dev-api
-
-# Run Web locally (requires Node.js 20+)
-make install-web
-make dev-web
-```
-
-See individual `apps/*/README.md` and `packages/*/README.md` for details.
-
----
-
-## Development Workflow
+## 🔄 Development Workflow
 
 This project uses a **ChatGPT (architect) + VS Code Copilot (builder)** collaboration model:
+
+```mermaid
+flowchart LR
+    A["🧠 <b>Architect</b>\nChatGPT"] -->|"defines task spec"| B["📋 <b>Task Board</b>\ndocs/agent-handoffs/"]
+    B -->|"picks up task"| C["🤖 <b>Builder</b>\nVS Code Copilot"]
+    C -->|"logs response"| D["📝 <b>Response</b>\ndocs/responses/"]
+    D -->|"reviews & iterates"| A
+
+    style A fill:#8b5cf6,stroke:#a78bfa,color:#fff
+    style B fill:#0ea5e9,stroke:#38bdf8,color:#fff
+    style C fill:#059669,stroke:#34d399,color:#fff
+    style D fill:#ea580c,stroke:#fb923c,color:#fff
+```
 
 1. Tasks are defined as handoff specs in `docs/agent-handoffs/`
 2. The implementation agent executes each task
@@ -883,6 +906,6 @@ See [docs/agent-handoffs/TASKS.md](docs/agent-handoffs/TASKS.md) for the current
 
 ---
 
-## License
+## 📜 License
 
 Proprietary — All rights reserved.
