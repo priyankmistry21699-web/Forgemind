@@ -14,6 +14,13 @@ from app.api.routes.chat import router as chat_router
 from app.api.routes.composition import router as composition_router
 from app.api.routes.connectors import router as connectors_router
 from app.api.routes.memory import router as memory_router
+from app.api.routes.credential_vault import router as vault_router
+from app.api.routes.retry import router as retry_router
+from app.api.routes.run_lifecycle import router as lifecycle_router
+from app.api.routes.costs import router as costs_router
+from app.api.routes.governance import router as governance_router
+from app.api.routes.audit import router as audit_router
+from app.api.routes.trust import router as trust_router
 
 api_router = APIRouter()
 
@@ -58,3 +65,24 @@ api_router.include_router(connectors_router, tags=["connectors"])
 
 # Execution memory
 api_router.include_router(memory_router, tags=["memory"])
+
+# Credential vault
+api_router.include_router(vault_router, tags=["vault"])
+
+# Adaptive retry
+api_router.include_router(retry_router, tags=["retry"])
+
+# Run lifecycle & health (FM-046)
+api_router.include_router(lifecycle_router, tags=["lifecycle"])
+
+# Cost tracking (FM-047)
+api_router.include_router(costs_router, tags=["costs"])
+
+# Governance policies (FM-048)
+api_router.include_router(governance_router, tags=["governance"])
+
+# Audit trail export (FM-049)
+api_router.include_router(audit_router, tags=["audit"])
+
+# Trust scoring & risk (FM-050)
+api_router.include_router(trust_router, tags=["trust"])

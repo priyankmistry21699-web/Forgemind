@@ -70,6 +70,13 @@ class Task(Base):
     )
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # FM-043: Adaptive retry/revision support
+    retry_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    max_retries: Mapped[int] = mapped_column(Integer, default=3, nullable=False)
+    retry_policy: Mapped[str] = mapped_column(
+        String(50), default="standard", nullable=False
+    )  # standard, aggressive, conservative, no_retry
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

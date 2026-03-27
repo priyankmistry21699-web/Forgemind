@@ -179,7 +179,7 @@ async def fail_task(
     task.error_message = error_message
     await db.flush()
 
-    # Emit failure event
+    # Emit failure event with retry context
     from app.models.run import Run
     from sqlalchemy import select as sel_fail
 
@@ -193,7 +193,12 @@ async def fail_task(
         run_id=task.run_id,
         task_id=task.id,
         agent_slug=task.assigned_agent_slug,
-        metadata={"error_message": error_message},
+        metadata={
+            "error_message": error_message,
+            "retry_count": task.retry_count,
+            "max_retries": task.max_retries,
+            "retry_policy": task.retry_policy,
+        },
     )
 
     await db.refresh(task)
@@ -204,7 +209,7 @@ async def retry_task(
     db: AsyncSession,
     task_id: uuid.UUID,
 ) -> Task:
-    """Retry a FAILED task by resetting it to READY."""
+    """Retry a FAILED task by resetting it to READY. Increments retry_count."""
     task = await task_service.get_task(db, task_id)
 
     if task.status != TaskStatus.FAILED:
@@ -213,6 +218,7 @@ async def retry_task(
             detail=f"Task is {task.status.value}, only FAILED tasks can be retried",
         )
 
+    task.retry_count += 1
     task.status = TaskStatus.READY
     task.error_message = None
     task.assigned_agent_slug = None
@@ -227,11 +233,15 @@ async def retry_task(
     await event_service.emit_event(
         db,
         event_type=EventType.TASK_CLAIMED,
-        summary=f"Task '{task.title}' retried — reset to READY",
+        summary=f"Task '{task.title}' retried — reset to READY (attempt {task.retry_count})",
         project_id=run_obj.project_id,
         run_id=task.run_id,
         task_id=task.id,
-        metadata={"action": "retry"},
+        metadata={
+            "action": "retry",
+            "retry_count": task.retry_count,
+            "max_retries": task.max_retries,
+        },
     )
 
     await db.refresh(task)

@@ -1,0 +1,283 @@
+{
+  "chatbot_evals": [
+    {
+      "id": "chat-001",
+      "category": "blocker_detection",
+      "input": {
+        "message": "What's blocking this run?"
+      },
+      "context": {
+        "task_summary": {"total": 5, "status_counts": {"completed": 2, "blocked": 2, "running": 1}},
+        "failure_context": [],
+        "approval_summary": {"total": 1, "status_counts": {"pending": 1}},
+        "progress": 0.4
+      },
+      "expected_properties": {
+        "mentions_blocked_tasks": true,
+        "mentions_pending_approvals": true,
+        "tone": "factual",
+        "max_length": 500
+      }
+    },
+    {
+      "id": "chat-002",
+      "category": "failure_explanation",
+      "input": {
+        "message": "Why did the implementation task fail?"
+      },
+      "context": {
+        "task_summary": {"total": 5, "status_counts": {"completed": 3, "failed": 1, "ready": 1}},
+        "failure_context": [
+          {"task_id": "abc-123", "title": "Implement API endpoints", "task_type": "implementation", "error_message": "ModuleNotFoundError: No module named 'redis'", "agent": "coder-agent"}
+        ],
+        "progress": 0.6
+      },
+      "expected_properties": {
+        "mentions_error": true,
+        "mentions_task_name": true,
+        "suggests_fix": true,
+        "tone": "factual"
+      }
+    },
+    {
+      "id": "chat-003",
+      "category": "retry_guidance",
+      "input": {
+        "message": "Can I retry the failed tasks?"
+      },
+      "context": {
+        "task_summary": {"total": 5, "status_counts": {"completed": 3, "failed": 2}},
+        "failure_context": [
+          {"task_id": "t1", "title": "Deploy service", "task_type": "deployment", "error_message": "Connection timeout", "agent": "deploy-agent"},
+          {"task_id": "t2", "title": "Run tests", "task_type": "testing", "error_message": "Test assertion failed", "agent": "test-agent"}
+        ],
+        "retry_status": {
+          "failed_tasks": [
+            {"task_id": "t1", "retry_count": 0, "max_retries": 1, "can_retry": true},
+            {"task_id": "t2", "retry_count": 5, "max_retries": 5, "can_retry": false}
+          ]
+        }
+      },
+      "expected_properties": {
+        "distinguishes_retryable": true,
+        "mentions_exhausted": true,
+        "suggests_revision": true,
+        "tone": "factual"
+      }
+    },
+    {
+      "id": "chat-004",
+      "category": "next_step_suggestion",
+      "input": {
+        "message": "What should I do next?"
+      },
+      "context": {
+        "task_summary": {"total": 8, "status_counts": {"completed": 4, "ready": 2, "blocked": 1, "failed": 1}},
+        "approval_summary": {"total": 1, "status_counts": {"pending": 1}},
+        "failure_context": [{"task_id": "t1", "title": "Review code", "error_message": "Timeout"}],
+        "progress": 0.5
+      },
+      "expected_properties": {
+        "provides_actionable_steps": true,
+        "prioritizes_approvals": true,
+        "mentions_ready_tasks": true,
+        "tone": "helpful"
+      }
+    },
+    {
+      "id": "chat-005",
+      "category": "connector_status",
+      "input": {
+        "message": "Are all the connectors ready?"
+      },
+      "context": {
+        "connector_readiness": {
+          "total": 4,
+          "ready_count": 2,
+          "missing_count": 1,
+          "blocked_count": 1,
+          "all_required_ready": false,
+          "links": [
+            {"connector_name": "GitHub", "readiness": "ready", "priority": "required"},
+            {"connector_name": "PostgreSQL", "readiness": "ready", "priority": "required"},
+            {"connector_name": "Docker", "readiness": "missing", "priority": "required"},
+            {"connector_name": "Slack", "readiness": "blocked", "priority": "optional"}
+          ]
+        }
+      },
+      "expected_properties": {
+        "lists_connector_statuses": true,
+        "highlights_missing_required": true,
+        "mentions_blocked": true,
+        "tone": "factual"
+      }
+    },
+    {
+      "id": "chat-006",
+      "category": "status_overview",
+      "input": {
+        "message": "Give me a status overview"
+      },
+      "context": {
+        "task_summary": {"total": 10, "status_counts": {"completed": 7, "running": 2, "ready": 1}},
+        "artifact_summary": {"total": 5, "type_counts": {"architecture": 1, "implementation": 3, "test_report": 1}},
+        "approval_summary": {"total": 2, "status_counts": {"approved": 2}},
+        "progress": 0.7
+      },
+      "expected_properties": {
+        "includes_progress_percentage": true,
+        "includes_task_breakdown": true,
+        "includes_artifact_count": true,
+        "tone": "factual"
+      }
+    }
+  ],
+  "connector_evals": [
+    {
+      "id": "conn-001",
+      "category": "recommendation_accuracy",
+      "input": {
+        "recommended_stack": {"language": "Python", "framework": "FastAPI", "database": "PostgreSQL"},
+        "project_description": "REST API with PostgreSQL and Redis caching"
+      },
+      "expected_properties": {
+        "includes_postgresql": true,
+        "includes_redis": true,
+        "postgresql_priority": "required",
+        "redis_priority": "recommended"
+      }
+    },
+    {
+      "id": "conn-002",
+      "category": "recommendation_accuracy",
+      "input": {
+        "recommended_stack": {"language": "JavaScript", "framework": "Next.js"},
+        "project_description": "Web application with Docker deployment and GitHub CI/CD"
+      },
+      "expected_properties": {
+        "includes_docker": true,
+        "includes_github": true,
+        "docker_priority": "required",
+        "github_priority": "required"
+      }
+    },
+    {
+      "id": "conn-003",
+      "category": "microservice_detection",
+      "input": {
+        "recommended_stack": {"architecture": "microservice"},
+        "project_description": "Microservice architecture with inter-service communication"
+      },
+      "expected_properties": {
+        "includes_docker": true,
+        "includes_redis": true,
+        "docker_priority": "required"
+      }
+    }
+  ],
+  "retry_evals": [
+    {
+      "id": "retry-001",
+      "category": "policy_selection",
+      "input": {
+        "task_type": "testing"
+      },
+      "expected_properties": {
+        "policy": "aggressive",
+        "max_retries": 5
+      }
+    },
+    {
+      "id": "retry-002",
+      "category": "policy_selection",
+      "input": {
+        "task_type": "architecture"
+      },
+      "expected_properties": {
+        "policy": "conservative",
+        "max_retries": 1
+      }
+    },
+    {
+      "id": "retry-003",
+      "category": "policy_selection",
+      "input": {
+        "task_type": "implementation"
+      },
+      "expected_properties": {
+        "policy": "standard",
+        "max_retries": 3
+      }
+    },
+    {
+      "id": "retry-004",
+      "category": "exhaustion_handling",
+      "input": {
+        "task_status": "failed",
+        "retry_count": 3,
+        "max_retries": 3,
+        "retry_policy": "standard"
+      },
+      "expected_properties": {
+        "can_retry": false,
+        "suggested_action": "escalate"
+      }
+    },
+    {
+      "id": "retry-005",
+      "category": "no_retry_policy",
+      "input": {
+        "task_status": "failed",
+        "retry_count": 0,
+        "max_retries": 0,
+        "retry_policy": "no_retry"
+      },
+      "expected_properties": {
+        "can_retry": false,
+        "suggested_action": "create_revision_task"
+      }
+    }
+  ],
+  "topic_detection_evals": [
+    {
+      "id": "topic-001",
+      "input": "What's blocking the deployment?",
+      "expected_topics": ["blocker"]
+    },
+    {
+      "id": "topic-002",
+      "input": "Why did the tests fail?",
+      "expected_topics": ["failure"]
+    },
+    {
+      "id": "topic-003",
+      "input": "Can I retry the failed task again?",
+      "expected_topics": ["retry", "failure"]
+    },
+    {
+      "id": "topic-004",
+      "input": "Are the connectors and credentials set up?",
+      "expected_topics": ["connector"]
+    },
+    {
+      "id": "topic-005",
+      "input": "What should I do next?",
+      "expected_topics": ["next_step"]
+    },
+    {
+      "id": "topic-006",
+      "input": "Show me the run progress and summary",
+      "expected_topics": ["status"]
+    },
+    {
+      "id": "topic-007",
+      "input": "Are there any pending approvals to review?",
+      "expected_topics": ["approval"]
+    },
+    {
+      "id": "topic-008",
+      "input": "What artifacts have been produced so far?",
+      "expected_topics": ["artifact"]
+    }
+  ]
+}

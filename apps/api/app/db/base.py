@@ -20,3 +20,8 @@ from app.models.agent import Agent  # noqa: F401
 from app.models.approval_request import ApprovalRequest  # noqa: F401
 from app.models.execution_event import ExecutionEvent  # noqa: F401
 from app.models.connector import Connector  # noqa: F401
+from app.models.project_connector_link import ProjectConnectorLink  # noqa: F401
+from app.models.credential_vault import CredentialVault  # noqa: F401
+from app.models.cost_record import CostRecord  # noqa: F401
+from app.models.governance_policy import GovernancePolicy  # noqa: F401
+from app.models.trust_score import TrustScore  # noqa: F401

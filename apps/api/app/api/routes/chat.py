@@ -16,6 +16,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     reply: str
+    topics: list[str]
 
 
 @router.post("/runs/{run_id}/chat", response_model=ChatResponse)
@@ -25,5 +26,6 @@ async def chat_about_run(
     db: AsyncSession = Depends(get_db),
 ) -> ChatResponse:
     """Ask the execution chatbot a question about a specific run."""
+    topics = chat_service.detect_topics(data.message)
     reply = await chat_service.chat_about_run(db, run_id, data.message)
-    return ChatResponse(reply=reply)
+    return ChatResponse(reply=reply, topics=topics)

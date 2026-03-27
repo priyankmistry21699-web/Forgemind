@@ -1924,3 +1924,63 @@ cd ../../docker
 *This document is the single source of truth for ForgeMind v2. Update as you complete phases and make decisions.*
 
 *Last updated: 2026-03-26*
+
+---
+
+## Implementation Milestones — Detailed Task Tracker
+
+### Completed Milestones (FM-001 to FM-045)
+
+| ID | Title | Status |
+|----|-------|--------|
+| FM-001 to FM-008 | Foundation, Project CRUD, Task DAG, Run System | ✅ Complete |
+| FM-009 to FM-016 | Planner, Agents, Approvals, Events, Artifacts | ✅ Complete |
+| FM-017 to FM-024 | Execution Service, Chat, Composition, Connectors | ✅ Complete |
+| FM-025 to FM-032 | Memory, Schemas, Health, Full Test Suite (105 tests) | ✅ Complete |
+| FM-033 to FM-040 | Mermaid Diagrams, Documentation, Integration Tests | ✅ Complete |
+| FM-041 | Connector Readiness States | ✅ Complete |
+| FM-042 | Credential Vault Abstraction | ✅ Complete |
+| FM-043 | Adaptive Retry / Revision Loop v2 | ✅ Complete |
+| FM-044 | Execution Chatbot v2 (topic detection, connector/retry awareness) | ✅ Complete |
+| FM-045 | Execution Quality Eval Suite (23 benchmark evals) | ✅ Complete |
+
+### Pre-release Infrastructure (Implemented ahead of roadmap)
+
+Features built as foundational infrastructure before the updated FM-046–FM-050 scope was defined:
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| Run Lifecycle Manager | Health checks, auto-complete, auto-fail, stuck detection | ✅ Complete |
+| Cost & Token Tracking | Per-call LLM cost recording, model breakdown, budget visibility | ✅ Complete |
+| Governance Policy Engine | Configurable approval policies replacing hardcoded gates | ✅ Complete |
+| Audit Trail Export | JSON/CSV event export with compliance metadata | ✅ Complete |
+| Trust Scoring & Risk Assessment | Heuristic trust/risk scoring for tasks and runs | ✅ Complete |
+
+**Current test suite: 174 tests (all passing)**
+
+### Updated FM-046 to FM-050 Roadmap (Active)
+
+| ID | Title | Status |
+|----|-------|--------|
+| FM-046 | Run Replay and Execution Trace Inspection | 🔲 Not started |
+| FM-047A | Multi-Agent Council Decision Engine | 🔲 Not started |
+| FM-047 | Policy-Based Approval Rules | 🔲 Not started |
+| FM-048 | Multi-Run Memory and Project Knowledge Base | 🔲 Not started |
+| FM-049 | External Repo / Workspace Execution Integration | 🔲 Not started |
+| FM-050 | Production Readiness and Platform Hardening Pass | 🔲 Not started |
+
+#### Recommended sequence
+1. **FM-046** — Run Replay and Execution Trace Inspection
+2. **FM-047A** — Multi-Agent Council Decision Engine
+3. **FM-047** — Policy-Based Approval Rules
+4. **FM-048** — Multi-Run Memory and Project Knowledge Base
+5. **FM-049** — External Repo / Workspace Execution Integration
+6. **FM-050** — Production Readiness and Platform Hardening Pass
+
+#### Why this order
+- **FM-046 first**: Council decisions, policy approvals, and replay all benefit from stronger trace visibility.
+- **FM-047A next**: The council engine depends on events, chat context, retry context, and execution visibility — all now available.
+- **FM-047 after**: Once councils exist, approval policy can become smarter (auto-approve, require approval, require council + approval).
+- **FM-048 next**: Project-level memory becomes much more useful after councils and policy logic exist.
+- **FM-049 then**: External repo/workspace execution should happen only after internal decision/control systems are stronger.
+- **FM-050 last**: Production hardening pass consolidates everything.

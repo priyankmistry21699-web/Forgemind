@@ -182,3 +182,232 @@ async def get_project_connector_requirements(
         )
 
     return recs
+
+
+# ---------------------------------------------------------------------------
+# FM-041: Connector readiness states — per-project link management
+# ---------------------------------------------------------------------------
+
+from app.models.project_connector_link import (
+    ProjectConnectorLink,
+    ConnectorReadiness,
+    ConnectorPriority,
+)
+
+
+async def link_connector_to_project(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+    connector_slug: str,
+    priority: ConnectorPriority = ConnectorPriority.RECOMMENDED,
+    config_snapshot: dict | None = None,
+) -> ProjectConnectorLink:
+    """Create or update a project-connector link."""
+    connector = await get_connector_by_slug(db, connector_slug)
+    if connector is None:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Connector '{connector_slug}' not found",
+        )
+
+    # Check for existing link
+    result = await db.execute(
+        select(ProjectConnectorLink).where(
+            ProjectConnectorLink.project_id == project_id,
+            ProjectConnectorLink.connector_id == connector.id,
+        )
+    )
+    existing = result.scalar_one_or_none()
+    if existing:
+        existing.priority = priority
+        if config_snapshot is not None:
+            existing.config_snapshot = config_snapshot
+        await db.flush()
+        await db.refresh(existing)
+        return existing
+
+    # Determine initial readiness based on connector status
+    initial_readiness = ConnectorReadiness.MISSING
+    if connector.status == ConnectorStatus.CONFIGURED:
+        initial_readiness = ConnectorReadiness.CONFIGURED
+
+    link = ProjectConnectorLink(
+        project_id=project_id,
+        connector_id=connector.id,
+        priority=priority,
+        readiness=initial_readiness,
+        config_snapshot=config_snapshot,
+    )
+    db.add(link)
+    await db.flush()
+    await db.refresh(link)
+    return link
+
+
+async def get_project_readiness(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+) -> dict[str, Any]:
+    """Get readiness summary for all connectors linked to a project."""
+    result = await db.execute(
+        select(ProjectConnectorLink)
+        .where(ProjectConnectorLink.project_id == project_id)
+        .order_by(ProjectConnectorLink.created_at)
+    )
+    links = list(result.scalars().all())
+
+    items: list[dict[str, Any]] = []
+    counts = {"ready": 0, "configured": 0, "blocked": 0, "missing": 0}
+
+    for link in links:
+        # Fetch connector for slug/name
+        conn_result = await db.execute(
+            select(Connector).where(Connector.id == link.connector_id)
+        )
+        connector = conn_result.scalar_one_or_none()
+
+        item = {
+            "id": link.id,
+            "project_id": link.project_id,
+            "connector_id": link.connector_id,
+            "connector_slug": connector.slug if connector else "unknown",
+            "connector_name": connector.name if connector else "Unknown",
+            "priority": link.priority,
+            "readiness": link.readiness,
+            "config_snapshot": link.config_snapshot,
+            "blocker_reason": link.blocker_reason,
+            "created_at": link.created_at,
+            "updated_at": link.updated_at,
+        }
+        items.append(item)
+        counts[link.readiness.value] = counts.get(link.readiness.value, 0) + 1
+
+    # Check if all required connectors are ready
+    required_links = [l for l in links if l.priority == ConnectorPriority.REQUIRED]
+    all_required_ready = all(
+        l.readiness == ConnectorReadiness.READY for l in required_links
+    ) if required_links else True
+
+    return {
+        "links": items,
+        "total": len(links),
+        "ready_count": counts["ready"],
+        "configured_count": counts["configured"],
+        "blocked_count": counts["blocked"],
+        "missing_count": counts["missing"],
+        "all_required_ready": all_required_ready,
+    }
+
+
+async def update_connector_readiness(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+    connector_slug: str,
+    readiness: ConnectorReadiness,
+    blocker_reason: str | None = None,
+    config_snapshot: dict | None = None,
+) -> ProjectConnectorLink:
+    """Update the readiness state of a project-connector link."""
+    connector = await get_connector_by_slug(db, connector_slug)
+    if connector is None:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Connector '{connector_slug}' not found",
+        )
+
+    result = await db.execute(
+        select(ProjectConnectorLink).where(
+            ProjectConnectorLink.project_id == project_id,
+            ProjectConnectorLink.connector_id == connector.id,
+        )
+    )
+    link = result.scalar_one_or_none()
+    if link is None:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No link found for connector '{connector_slug}' in this project",
+        )
+
+    link.readiness = readiness
+    if blocker_reason is not None:
+        link.blocker_reason = blocker_reason
+    if readiness != ConnectorReadiness.BLOCKED:
+        link.blocker_reason = None
+    if config_snapshot is not None:
+        link.config_snapshot = config_snapshot
+    await db.flush()
+    await db.refresh(link)
+    return link
+
+
+async def get_run_connector_blockers(
+    db: AsyncSession,
+    run_id: uuid.UUID,
+) -> list[dict[str, Any]]:
+    """Get connectors that are blocking a run from proceeding."""
+    from app.models.run import Run
+
+    run_result = await db.execute(select(Run).where(Run.id == run_id))
+    run = run_result.scalar_one_or_none()
+    if run is None:
+        return []
+
+    result = await db.execute(
+        select(ProjectConnectorLink)
+        .where(ProjectConnectorLink.project_id == run.project_id)
+        .where(
+            ProjectConnectorLink.readiness.in_([
+                ConnectorReadiness.MISSING,
+                ConnectorReadiness.BLOCKED,
+            ])
+        )
+    )
+    blocking_links = list(result.scalars().all())
+
+    blockers: list[dict[str, Any]] = []
+    for link in blocking_links:
+        conn_result = await db.execute(
+            select(Connector).where(Connector.id == link.connector_id)
+        )
+        connector = conn_result.scalar_one_or_none()
+        blockers.append({
+            "connector_slug": connector.slug if connector else "unknown",
+            "connector_name": connector.name if connector else "Unknown",
+            "priority": link.priority.value,
+            "readiness": link.readiness.value,
+            "blocker_reason": link.blocker_reason,
+        })
+
+    return blockers
+
+
+async def auto_link_connectors_for_project(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+    recommended_stack: dict[str, str] | None,
+    project_description: str | None,
+) -> list[ProjectConnectorLink]:
+    """Auto-link recommended connectors to a project based on stack analysis."""
+    recs = recommend_connectors(recommended_stack, project_description)
+    links: list[ProjectConnectorLink] = []
+
+    for rec in recs:
+        priority_map = {
+            "required": ConnectorPriority.REQUIRED,
+            "recommended": ConnectorPriority.RECOMMENDED,
+            "optional": ConnectorPriority.OPTIONAL,
+        }
+        priority = priority_map.get(rec["priority"], ConnectorPriority.RECOMMENDED)
+
+        try:
+            link = await link_connector_to_project(
+                db, project_id, rec["slug"], priority=priority
+            )
+            links.append(link)
+        except Exception:
+            logger.warning("Failed to auto-link connector %s", rec["slug"])
+
+    return links
