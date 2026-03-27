@@ -77,6 +77,33 @@
 - FM-039 Execution memory and contextual reasoning
 - FM-040 Adaptive execution loop v1
 
+### Milestone 9 — Connector & Retry Intelligence (FM-041 to FM-045)
+
+- FM-041 Connector readiness states (ProjectConnectorLink model, 4 readiness states)
+- FM-042 Credential vault abstraction (CredentialVault model, env-key secrets)
+- FM-043 Adaptive retry / revision loop v2 (retry_count/max_retries on Task)
+- FM-044 Execution chatbot v2 (topic detection, connector/retry awareness)
+- FM-045 Execution quality eval suite (23 benchmark evals)
+
+### Pre-release Infrastructure
+
+- Run lifecycle manager (health checks, auto-complete, auto-fail, stuck detection)
+- Cost & token tracking (CostRecord model, per-call usage, model breakdown)
+- Governance policy engine (GovernancePolicy model, configurable approval rules)
+- Audit trail export (JSON/CSV export with compliance metadata)
+- Trust scoring & risk assessment (TrustScore model, heuristic scoring)
+
+## Backlog
+
+### FM-046 to FM-050 — Advanced Platform Features
+
+- FM-046 Run Replay and Execution Trace Inspection
+- FM-047A Multi-Agent Council Decision Engine
+- FM-047 Policy-Based Approval Rules
+- FM-048 Multi-Run Memory and Project Knowledge Base
+- FM-049 External Repo / Workspace Execution Integration
+- FM-050 Production Readiness and Platform Hardening Pass
+
 ## Blocked
 
 - (none)

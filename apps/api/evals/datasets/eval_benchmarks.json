@@ -7,9 +7,12 @@
         "message": "What's blocking this run?"
       },
       "context": {
-        "task_summary": {"total": 5, "status_counts": {"completed": 2, "blocked": 2, "running": 1}},
+        "task_summary": {
+          "total": 5,
+          "status_counts": { "completed": 2, "blocked": 2, "running": 1 }
+        },
         "failure_context": [],
-        "approval_summary": {"total": 1, "status_counts": {"pending": 1}},
+        "approval_summary": { "total": 1, "status_counts": { "pending": 1 } },
         "progress": 0.4
       },
       "expected_properties": {
@@ -26,9 +29,18 @@
         "message": "Why did the implementation task fail?"
       },
       "context": {
-        "task_summary": {"total": 5, "status_counts": {"completed": 3, "failed": 1, "ready": 1}},
+        "task_summary": {
+          "total": 5,
+          "status_counts": { "completed": 3, "failed": 1, "ready": 1 }
+        },
         "failure_context": [
-          {"task_id": "abc-123", "title": "Implement API endpoints", "task_type": "implementation", "error_message": "ModuleNotFoundError: No module named 'redis'", "agent": "coder-agent"}
+          {
+            "task_id": "abc-123",
+            "title": "Implement API endpoints",
+            "task_type": "implementation",
+            "error_message": "ModuleNotFoundError: No module named 'redis'",
+            "agent": "coder-agent"
+          }
         ],
         "progress": 0.6
       },
@@ -46,15 +58,40 @@
         "message": "Can I retry the failed tasks?"
       },
       "context": {
-        "task_summary": {"total": 5, "status_counts": {"completed": 3, "failed": 2}},
+        "task_summary": {
+          "total": 5,
+          "status_counts": { "completed": 3, "failed": 2 }
+        },
         "failure_context": [
-          {"task_id": "t1", "title": "Deploy service", "task_type": "deployment", "error_message": "Connection timeout", "agent": "deploy-agent"},
-          {"task_id": "t2", "title": "Run tests", "task_type": "testing", "error_message": "Test assertion failed", "agent": "test-agent"}
+          {
+            "task_id": "t1",
+            "title": "Deploy service",
+            "task_type": "deployment",
+            "error_message": "Connection timeout",
+            "agent": "deploy-agent"
+          },
+          {
+            "task_id": "t2",
+            "title": "Run tests",
+            "task_type": "testing",
+            "error_message": "Test assertion failed",
+            "agent": "test-agent"
+          }
         ],
         "retry_status": {
           "failed_tasks": [
-            {"task_id": "t1", "retry_count": 0, "max_retries": 1, "can_retry": true},
-            {"task_id": "t2", "retry_count": 5, "max_retries": 5, "can_retry": false}
+            {
+              "task_id": "t1",
+              "retry_count": 0,
+              "max_retries": 1,
+              "can_retry": true
+            },
+            {
+              "task_id": "t2",
+              "retry_count": 5,
+              "max_retries": 5,
+              "can_retry": false
+            }
           ]
         }
       },
@@ -72,9 +109,23 @@
         "message": "What should I do next?"
       },
       "context": {
-        "task_summary": {"total": 8, "status_counts": {"completed": 4, "ready": 2, "blocked": 1, "failed": 1}},
-        "approval_summary": {"total": 1, "status_counts": {"pending": 1}},
-        "failure_context": [{"task_id": "t1", "title": "Review code", "error_message": "Timeout"}],
+        "task_summary": {
+          "total": 8,
+          "status_counts": {
+            "completed": 4,
+            "ready": 2,
+            "blocked": 1,
+            "failed": 1
+          }
+        },
+        "approval_summary": { "total": 1, "status_counts": { "pending": 1 } },
+        "failure_context": [
+          {
+            "task_id": "t1",
+            "title": "Review code",
+            "error_message": "Timeout"
+          }
+        ],
         "progress": 0.5
       },
       "expected_properties": {
@@ -98,10 +149,26 @@
           "blocked_count": 1,
           "all_required_ready": false,
           "links": [
-            {"connector_name": "GitHub", "readiness": "ready", "priority": "required"},
-            {"connector_name": "PostgreSQL", "readiness": "ready", "priority": "required"},
-            {"connector_name": "Docker", "readiness": "missing", "priority": "required"},
-            {"connector_name": "Slack", "readiness": "blocked", "priority": "optional"}
+            {
+              "connector_name": "GitHub",
+              "readiness": "ready",
+              "priority": "required"
+            },
+            {
+              "connector_name": "PostgreSQL",
+              "readiness": "ready",
+              "priority": "required"
+            },
+            {
+              "connector_name": "Docker",
+              "readiness": "missing",
+              "priority": "required"
+            },
+            {
+              "connector_name": "Slack",
+              "readiness": "blocked",
+              "priority": "optional"
+            }
           ]
         }
       },
@@ -119,9 +186,19 @@
         "message": "Give me a status overview"
       },
       "context": {
-        "task_summary": {"total": 10, "status_counts": {"completed": 7, "running": 2, "ready": 1}},
-        "artifact_summary": {"total": 5, "type_counts": {"architecture": 1, "implementation": 3, "test_report": 1}},
-        "approval_summary": {"total": 2, "status_counts": {"approved": 2}},
+        "task_summary": {
+          "total": 10,
+          "status_counts": { "completed": 7, "running": 2, "ready": 1 }
+        },
+        "artifact_summary": {
+          "total": 5,
+          "type_counts": {
+            "architecture": 1,
+            "implementation": 3,
+            "test_report": 1
+          }
+        },
+        "approval_summary": { "total": 2, "status_counts": { "approved": 2 } },
         "progress": 0.7
       },
       "expected_properties": {
@@ -137,7 +214,11 @@
       "id": "conn-001",
       "category": "recommendation_accuracy",
       "input": {
-        "recommended_stack": {"language": "Python", "framework": "FastAPI", "database": "PostgreSQL"},
+        "recommended_stack": {
+          "language": "Python",
+          "framework": "FastAPI",
+          "database": "PostgreSQL"
+        },
         "project_description": "REST API with PostgreSQL and Redis caching"
       },
       "expected_properties": {
@@ -151,7 +232,10 @@
       "id": "conn-002",
       "category": "recommendation_accuracy",
       "input": {
-        "recommended_stack": {"language": "JavaScript", "framework": "Next.js"},
+        "recommended_stack": {
+          "language": "JavaScript",
+          "framework": "Next.js"
+        },
         "project_description": "Web application with Docker deployment and GitHub CI/CD"
       },
       "expected_properties": {
@@ -165,7 +249,7 @@
       "id": "conn-003",
       "category": "microservice_detection",
       "input": {
-        "recommended_stack": {"architecture": "microservice"},
+        "recommended_stack": { "architecture": "microservice" },
         "project_description": "Microservice architecture with inter-service communication"
       },
       "expected_properties": {

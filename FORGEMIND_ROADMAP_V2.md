@@ -30,6 +30,7 @@ ForgeMind is **not** just another multi-agent coding tool. It is a **goal-to-sys
 ## 1. Product Philosophy & Positioning
 
 ### What ForgeMind Is NOT
+
 - Not just an AI coding agent
 - Not just a multi-agent task executor
 - Not just a code generation tool
@@ -39,19 +40,19 @@ ForgeMind is **not** just another multi-agent coding tool. It is a **goal-to-sys
 
 > **An AI software systems orchestration and delivery platform.**
 
-| Aspect | Typical Agent Systems | ForgeMind |
-|--------|----------------------|-----------|
-| Main focus | Autonomous code execution | **Goal-to-system synthesis** |
-| Planning depth | Task execution oriented | **Architecture + roadmap + task graph** |
-| Connector handling | User-heavy manual setup | **Connector intelligence + setup wizard** |
-| Secrets/tokens | Basic config, burden on user | **Token vault + permission-aware setup** |
-| Local machine | Limited or none | **ForgeMind Local companion** |
-| Trust/audit | May vary | **Replay, risk scoring, evidence, approvals** |
-| Long-term health | Limited | **Drift detection + scorecards** |
-| Agent composition | Fixed prebuilt agent teams | **Dynamic agent team generation per project** |
-| Self-improvement | Raw autonomy | **Governed self-improving workflows** |
-| Enterprise appeal | Autonomy | **Autonomy + governance + traceability** |
-| Product scope | Coding agent system | **Autonomous engineering platform** |
+| Aspect             | Typical Agent Systems        | ForgeMind                                     |
+| ------------------ | ---------------------------- | --------------------------------------------- |
+| Main focus         | Autonomous code execution    | **Goal-to-system synthesis**                  |
+| Planning depth     | Task execution oriented      | **Architecture + roadmap + task graph**       |
+| Connector handling | User-heavy manual setup      | **Connector intelligence + setup wizard**     |
+| Secrets/tokens     | Basic config, burden on user | **Token vault + permission-aware setup**      |
+| Local machine      | Limited or none              | **ForgeMind Local companion**                 |
+| Trust/audit        | May vary                     | **Replay, risk scoring, evidence, approvals** |
+| Long-term health   | Limited                      | **Drift detection + scorecards**              |
+| Agent composition  | Fixed prebuilt agent teams   | **Dynamic agent team generation per project** |
+| Self-improvement   | Raw autonomy                 | **Governed self-improving workflows**         |
+| Enterprise appeal  | Autonomy                     | **Autonomy + governance + traceability**      |
+| Product scope      | Coding agent system          | **Autonomous engineering platform**           |
 
 ### The One-Line Pitch
 
@@ -64,21 +65,27 @@ ForgeMind is **not** just another multi-agent coding tool. It is a **goal-to-sys
 These are the features that make ForgeMind fundamentally different from any existing agent platform:
 
 ### D1. Goal-to-System Synthesis
-User says *"Build a YouTube automation pipeline"* → ForgeMind infers system type, chooses stack, selects connectors, generates architecture, creates roadmap, scaffolds the project, and monitors it. It's an **autonomous systems architect + builder**, not just a code agent.
+
+User says _"Build a YouTube automation pipeline"_ → ForgeMind infers system type, chooses stack, selects connectors, generates architecture, creates roadmap, scaffolds the project, and monitors it. It's an **autonomous systems architect + builder**, not just a code agent.
 
 ### D2. Connector Intelligence + Token Vaulting
+
 Most systems leave users stuck with client IDs, OAuth scopes, token refresh headaches, and env var chaos. ForgeMind provides a connector registry, setup wizard, callback URI generation, scope guidance, encrypted token vault, connection testing, expiry/rotation alerts, and full audit trail.
 
 ### D3. ForgeMind Local (OS/Workspace Companion)
+
 A lightweight local agent that provides scoped folder access, local command execution with approvals, repo inspection, file import, environment analysis, local build/test execution, and hybrid local-cloud workflows. Makes the platform feel real and usable.
 
 ### D4. Trust Layer (Approval + Replay + Audit)
-Every agent action has: a decision explanation, evidence view, risk score, confidence score, replayable run, audit log, and approval gate. Users can always answer: *Why did it do this? Can I trust it? What changed? How do I reproduce it?*
+
+Every agent action has: a decision explanation, evidence view, risk score, confidence score, replayable run, audit log, and approval gate. Users can always answer: _Why did it do this? Can I trust it? What changed? How do I reproduce it?_
 
 ### D5. Architecture Compliance + Drift Detection
+
 ForgeMind tracks intended architecture vs. actual codebase vs. actual deployment vs. docs/runbooks. It detects drift, inconsistencies, missing security controls, and missing backup implementations. It's a **guardian of project health**, not just a generator.
 
 ### D6. Dynamic Agent Composition
+
 Instead of running every project through the same fixed agent pipeline, ForgeMind analyzes the task, identifies required capabilities, and dynamically assembles the optimal agent team. A RAG app gets different agents than a CI/CD pipeline. The system creates the right team for every job.
 
 ---
@@ -87,54 +94,61 @@ Instead of running every project through the same fixed agent pipeline, ForgeMin
 
 ### Core Platform Features
 
-| Feature | Description |
-|---------|-------------|
-| **Goal-to-System Builder** | Describe your idea → get architecture, connectors, code, tests, docs, deployment |
-| **Dynamic Agent Teams** | ForgeMind builds the right AI workforce per project (not fixed pipelines) |
-| **Connector Vault** | OAuth setup wizard, token vault, rotation alerts, connection testing |
-| **ForgeMind Local** | Local repo inspection, file import, build/test execution, environment analysis |
-| **Architecture Engine** | Auto-generated architecture docs with Mermaid diagrams + drift detection |
-| **Project Planner** | Natural language → full PRD, task breakdown, DAG visualization |
-| **Auto-Coder** | Agents write code following your style guide, patterns, and conventions |
-| **Code Reviewer** | Every piece of code is reviewed by an AI reviewer before merge |
-| **Test Generator** | Automatic unit/integration/e2e test generation + sandboxed execution |
-| **Doc Writer** | API docs, README, architecture docs auto-generated and kept in sync |
-| **Deploy Manager** | One-click CI/CD pipeline generation and deployment configs |
-| **Bug Fixer** | Paste an error → agent diagnoses, fixes, tests, and creates a PR |
-| **Refactor Agent** | Highlight code → agent refactors with safety checks and tests |
-| **Security Scanner** | Continuous OWASP-aware security scanning + secrets detection |
-| **Trust Dashboard** | Risk scores, confidence scores, decision explanations, evidence views |
-| **Replay System** | Replay any agent run with the same inputs to verify output |
-| **Approval Gates** | Nothing ships without your approval. Full control at every step |
-| **Audit Trail** | Every agent action logged — who, what, when, why, and which prompt |
-| **Drift Scorecards** | Architecture compliance scores, codebase health, deployment state |
-| **Multi-LLM Support** | OpenAI, Anthropic, Google, Ollama, or any OpenAI-compatible provider |
-| **Real-Time Dashboard** | Watch agents work in real-time with live logs and progress |
-| **Cost Tracking** | Per-agent, per-task, per-project token usage and cost breakdown |
-| **Team Collaboration** | Invite team members, assign roles, share projects |
-| **Self-Improving Workflows** | Templates, decomposition, and recommendations improve over time (governed) |
+| Feature                      | Description                                                                      |
+| ---------------------------- | -------------------------------------------------------------------------------- |
+| **Goal-to-System Builder**   | Describe your idea → get architecture, connectors, code, tests, docs, deployment |
+| **Dynamic Agent Teams**      | ForgeMind builds the right AI workforce per project (not fixed pipelines)        |
+| **Connector Vault**          | OAuth setup wizard, token vault, rotation alerts, connection testing             |
+| **ForgeMind Local**          | Local repo inspection, file import, build/test execution, environment analysis   |
+| **Architecture Engine**      | Auto-generated architecture docs with Mermaid diagrams + drift detection         |
+| **Project Planner**          | Natural language → full PRD, task breakdown, DAG visualization                   |
+| **Auto-Coder**               | Agents write code following your style guide, patterns, and conventions          |
+| **Code Reviewer**            | Every piece of code is reviewed by an AI reviewer before merge                   |
+| **Test Generator**           | Automatic unit/integration/e2e test generation + sandboxed execution             |
+| **Doc Writer**               | API docs, README, architecture docs auto-generated and kept in sync              |
+| **Deploy Manager**           | One-click CI/CD pipeline generation and deployment configs                       |
+| **Bug Fixer**                | Paste an error → agent diagnoses, fixes, tests, and creates a PR                 |
+| **Refactor Agent**           | Highlight code → agent refactors with safety checks and tests                    |
+| **Security Scanner**         | Continuous OWASP-aware security scanning + secrets detection                     |
+| **Trust Dashboard**          | Risk scores, confidence scores, decision explanations, evidence views            |
+| **Replay System**            | Replay any agent run with the same inputs to verify output                       |
+| **Approval Gates**           | Nothing ships without your approval. Full control at every step                  |
+| **Audit Trail**              | Every agent action logged — who, what, when, why, and which prompt               |
+| **Drift Scorecards**         | Architecture compliance scores, codebase health, deployment state                |
+| **Multi-LLM Support**        | OpenAI, Anthropic, Google, Ollama, or any OpenAI-compatible provider             |
+| **Real-Time Dashboard**      | Watch agents work in real-time with live logs and progress                       |
+| **Cost Tracking**            | Per-agent, per-task, per-project token usage and cost breakdown                  |
+| **Team Collaboration**       | Invite team members, assign roles, share projects                                |
+| **Self-Improving Workflows** | Templates, decomposition, and recommendations improve over time (governed)       |
 
 ---
 
 ## 4. Core Concepts
 
 ### Agent
+
 A specialized autonomous worker with a defined role, tools, and boundaries. Each agent has a **contract** specifying capabilities, restrictions, tools, input/output schema, retry policy, and timeout.
 
 ### Agent Composition Engine
+
 The intelligence layer that inspects project intent, classifies project type, identifies required capabilities, instantiates the right agents from templates, and decides parallel vs sequential execution — all within budget and policy bounds.
 
 ### Orchestrator
+
 The brain that receives a user request, delegates to the Agent Composition Engine for team assembly, manages the task DAG, handles agent-to-agent handoffs, manages failures/retries, and enforces governance.
 
 ### Connector
+
 An external service integration (API, OAuth provider, database, cloud service). Each connector has a registry entry with: setup instructions, required scopes, token storage, refresh logic, health check, and audit trail.
 
 ### Token Vault
+
 Encrypted storage for all external service credentials (API keys, OAuth tokens, secrets). Supports rotation alerts, expiry tracking, scoped access (which agents can use which tokens), and never exposes raw secrets in logs or UI.
 
 ### Governance
+
 Human-defined rules controlling agent behavior:
+
 - Approval gates (which actions need human sign-off)
 - Budget limits (max tokens/cost per task)
 - Tool restrictions (which agents can access which tools)
@@ -142,15 +156,19 @@ Human-defined rules controlling agent behavior:
 - Policy boundaries for self-improvement (what can/cannot change automatically)
 
 ### Artifact
+
 Any output an agent produces: code files, docs, test files, configs, PRDs, diagrams, architecture docs. All artifacts are **versioned** with full diff history.
 
 ### Drift
+
 The delta between intended state (architecture doc, deployment plan) and actual state (codebase, running infra, documentation). ForgeMind tracks drift continuously and alerts when it exceeds thresholds.
 
 ### Trust Score
+
 A per-action metric combining: confidence level (how sure the agent is), risk level (potential impact), evidence quality (what data informed the decision), and historical accuracy (past performance on similar tasks).
 
 ### Session
+
 A workspace context persisting across agent interactions. Contains project state, conversation history, file tree, active tasks, and connector states.
 
 ---
@@ -158,85 +176,93 @@ A workspace context persisting across agent interactions. Contains project state
 ## 5. Updated Tech Stack
 
 ### Frontend
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **Next.js 15** (App Router) | Web framework | Server components, streaming, API routes |
-| **TypeScript 5.x** | Type safety | Catch errors at compile time |
-| **Tailwind CSS 4** | Styling | Utility-first, fast iteration |
-| **shadcn/ui** | Component library | Accessible, customizable, no lock-in |
-| **Zustand** | State management | Simple, fast, no boilerplate |
-| **React Query (TanStack Query v5)** | Server state | Caching, background refetch, optimistic updates |
-| **Socket.IO Client** | Real-time updates | Live agent progress, logs streaming |
-| **Monaco Editor** | Code editor | VS Code-quality code editing in browser |
-| **Mermaid.js** | Diagrams | Render architecture/flow diagrams from agent output |
-| **React Flow** | DAG visualization | Visualize task dependency graphs + agent composition |
-| **Recharts** | Analytics charts | Cost tracking, drift scores, performance dashboards |
+
+| Technology                          | Purpose           | Why                                                  |
+| ----------------------------------- | ----------------- | ---------------------------------------------------- |
+| **Next.js 15** (App Router)         | Web framework     | Server components, streaming, API routes             |
+| **TypeScript 5.x**                  | Type safety       | Catch errors at compile time                         |
+| **Tailwind CSS 4**                  | Styling           | Utility-first, fast iteration                        |
+| **shadcn/ui**                       | Component library | Accessible, customizable, no lock-in                 |
+| **Zustand**                         | State management  | Simple, fast, no boilerplate                         |
+| **React Query (TanStack Query v5)** | Server state      | Caching, background refetch, optimistic updates      |
+| **Socket.IO Client**                | Real-time updates | Live agent progress, logs streaming                  |
+| **Monaco Editor**                   | Code editor       | VS Code-quality code editing in browser              |
+| **Mermaid.js**                      | Diagrams          | Render architecture/flow diagrams from agent output  |
+| **React Flow**                      | DAG visualization | Visualize task dependency graphs + agent composition |
+| **Recharts**                        | Analytics charts  | Cost tracking, drift scores, performance dashboards  |
 
 ### Backend
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **FastAPI** (Python 3.12) | API framework | Async, fast, auto-docs, type-safe |
-| **Pydantic v2** | Data validation | Schema validation, serialization |
-| **SQLAlchemy 2.0** + **Alembic** | ORM + Migrations | Async ORM, reliable schema migrations |
-| **Celery 5** + **Redis** | Task queue | Distributed async task execution |
-| **Socket.IO (python-socketio)** | WebSocket server | Real-time agent status broadcasting |
-| **LiteLLM** | LLM gateway | Unified API for 100+ LLM providers |
-| **LangChain / LangGraph** | Agent framework | Agent orchestration, tool calling, chains |
-| **Jinja2** | Prompt templates | Version-controlled prompt rendering |
-| **cryptography (Fernet)** | Secret encryption | Encrypt connector tokens + API keys at rest |
-| **httpx** | HTTP client | Async connector health checks + OAuth flows |
+
+| Technology                       | Purpose           | Why                                         |
+| -------------------------------- | ----------------- | ------------------------------------------- |
+| **FastAPI** (Python 3.12)        | API framework     | Async, fast, auto-docs, type-safe           |
+| **Pydantic v2**                  | Data validation   | Schema validation, serialization            |
+| **SQLAlchemy 2.0** + **Alembic** | ORM + Migrations  | Async ORM, reliable schema migrations       |
+| **Celery 5** + **Redis**         | Task queue        | Distributed async task execution            |
+| **Socket.IO (python-socketio)**  | WebSocket server  | Real-time agent status broadcasting         |
+| **LiteLLM**                      | LLM gateway       | Unified API for 100+ LLM providers          |
+| **LangChain / LangGraph**        | Agent framework   | Agent orchestration, tool calling, chains   |
+| **Jinja2**                       | Prompt templates  | Version-controlled prompt rendering         |
+| **cryptography (Fernet)**        | Secret encryption | Encrypt connector tokens + API keys at rest |
+| **httpx**                        | HTTP client       | Async connector health checks + OAuth flows |
 
 ### ForgeMind Local (Desktop Companion)
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **Python CLI** (Click/Typer) | Local agent | Lightweight, cross-platform |
-| **WebSocket client** | Cloud sync | Real-time communication with ForgeMind cloud |
-| **watchdog** | File watcher | Detect local file changes |
-| **subprocess** | Command runner | Execute local build/test commands (with approval) |
-| **Docker SDK** | Container management | Run sandboxed local tasks |
+
+| Technology                   | Purpose              | Why                                               |
+| ---------------------------- | -------------------- | ------------------------------------------------- |
+| **Python CLI** (Click/Typer) | Local agent          | Lightweight, cross-platform                       |
+| **WebSocket client**         | Cloud sync           | Real-time communication with ForgeMind cloud      |
+| **watchdog**                 | File watcher         | Detect local file changes                         |
+| **subprocess**               | Command runner       | Execute local build/test commands (with approval) |
+| **Docker SDK**               | Container management | Run sandboxed local tasks                         |
 
 ### Database & Storage
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **PostgreSQL 16** | Primary database | JSONB for flexible data, robust, mature |
-| **Redis 7** | Cache + Queue broker | Session cache, Celery broker, rate limiting |
-| **MinIO** (or S3/R2) | File/artifact storage | Store generated code, docs, artifacts |
-| **Alembic** | DB migrations | Version-controlled schema changes |
+
+| Technology           | Purpose               | Why                                         |
+| -------------------- | --------------------- | ------------------------------------------- |
+| **PostgreSQL 16**    | Primary database      | JSONB for flexible data, robust, mature     |
+| **Redis 7**          | Cache + Queue broker  | Session cache, Celery broker, rate limiting |
+| **MinIO** (or S3/R2) | File/artifact storage | Store generated code, docs, artifacts       |
+| **Alembic**          | DB migrations         | Version-controlled schema changes           |
 
 ### Auth & Security
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **Clerk** | Authentication | Social login, MFA, user management, free tier |
-| **CASL / custom RBAC** | Authorization | Fine-grained permission control |
-| **python-jose** | JWT handling | Verify Clerk JWTs on backend |
-| **bcrypt** | Secret hashing | Hash API keys at rest |
-| **cryptography** | Token vault | AES-256-GCM encryption for connector secrets |
-| **Vault** (optional, later) | Secret management | Rotate and manage secrets centrally |
+
+| Technology                  | Purpose           | Why                                           |
+| --------------------------- | ----------------- | --------------------------------------------- |
+| **Clerk**                   | Authentication    | Social login, MFA, user management, free tier |
+| **CASL / custom RBAC**      | Authorization     | Fine-grained permission control               |
+| **python-jose**             | JWT handling      | Verify Clerk JWTs on backend                  |
+| **bcrypt**                  | Secret hashing    | Hash API keys at rest                         |
+| **cryptography**            | Token vault       | AES-256-GCM encryption for connector secrets  |
+| **Vault** (optional, later) | Secret management | Rotate and manage secrets centrally           |
 
 ### DevOps & Infrastructure
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **Docker** + **Docker Compose** | Containerization | Consistent local + prod environments |
-| **GitHub Actions** | CI/CD | Automated testing, linting, deployment |
-| **Nginx** (or Caddy) | Reverse proxy | SSL termination, routing |
-| **Railway / Fly.io / AWS ECS** | Hosting | Easy deployment with scaling |
+
+| Technology                      | Purpose          | Why                                    |
+| ------------------------------- | ---------------- | -------------------------------------- |
+| **Docker** + **Docker Compose** | Containerization | Consistent local + prod environments   |
+| **GitHub Actions**              | CI/CD            | Automated testing, linting, deployment |
+| **Nginx** (or Caddy)            | Reverse proxy    | SSL termination, routing               |
+| **Railway / Fly.io / AWS ECS**  | Hosting          | Easy deployment with scaling           |
 
 ### Monitoring & Observability
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **Prometheus** + **Grafana** | Metrics & dashboards | Agent performance, system health, drift scores |
-| **Structured logging** (structlog) | Logging | JSON logs, correlation IDs |
-| **Sentry** | Error tracking | Catch and alert on exceptions |
-| **OpenTelemetry** | Distributed tracing | Trace requests across services |
+
+| Technology                         | Purpose              | Why                                            |
+| ---------------------------------- | -------------------- | ---------------------------------------------- |
+| **Prometheus** + **Grafana**       | Metrics & dashboards | Agent performance, system health, drift scores |
+| **Structured logging** (structlog) | Logging              | JSON logs, correlation IDs                     |
+| **Sentry**                         | Error tracking       | Catch and alert on exceptions                  |
+| **OpenTelemetry**                  | Distributed tracing  | Trace requests across services                 |
 
 ### Testing
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **pytest** + **pytest-asyncio** | Backend tests | Async test support |
-| **Vitest** + **Testing Library** | Frontend tests | Fast, modern, React-friendly |
-| **Playwright** | E2E tests | Cross-browser, reliable |
-| **Factory Boy** | Test fixtures | Generate test data easily |
-| **Testcontainers** | Integration tests | Spin up real DB/Redis in tests |
+
+| Technology                       | Purpose           | Why                            |
+| -------------------------------- | ----------------- | ------------------------------ |
+| **pytest** + **pytest-asyncio**  | Backend tests     | Async test support             |
+| **Vitest** + **Testing Library** | Frontend tests    | Fast, modern, React-friendly   |
+| **Playwright**                   | E2E tests         | Cross-browser, reliable        |
+| **Factory Boy**                  | Test fixtures     | Generate test data easily      |
+| **Testcontainers**               | Integration tests | Spin up real DB/Redis in tests |
 
 ---
 
@@ -339,6 +365,7 @@ A workspace context persisting across agent interactions. Contains project state
 ## 7. Feature List (Complete)
 
 ### 7.1 Goal-to-System Synthesis
+
 - [ ] Natural language project description → full system plan
 - [ ] Auto-infer system type (web app, RAG app, pipeline, SaaS, CLI, etc.)
 - [ ] Auto-select tech stack based on requirements
@@ -351,6 +378,7 @@ A workspace context persisting across agent interactions. Contains project state
 - [ ] Import existing codebase for analysis + improvement
 
 ### 7.2 Dynamic Agent Composition
+
 - [ ] **Project Classifier** — classify project type from user intent
 - [ ] **Capability Registry** — what each agent type can do
 - [ ] **Agent Template Registry** — templates with prompts, tools, models, limits
@@ -363,6 +391,7 @@ A workspace context persisting across agent interactions. Contains project state
 - [ ] Agent marketplace (community-shared agent templates)
 
 ### 7.3 Connector Intelligence + Token Vault
+
 - [ ] **Connector Registry** — catalog of supported integrations (GitHub, Google, Stripe, etc.)
 - [ ] **Setup Wizard** — step-by-step guided connector setup
 - [ ] **Callback URI Generator** — auto-generate OAuth redirect URIs
@@ -376,6 +405,7 @@ A workspace context persisting across agent interactions. Contains project state
 - [ ] **Audit Trail** — log every connector usage (who, when, which agent)
 
 ### 7.4 ForgeMind Local (Desktop Companion)
+
 - [ ] Lightweight CLI agent (Python/Click)
 - [ ] Scoped folder access (user grants access to specific directories)
 - [ ] Local file import to cloud projects
@@ -388,6 +418,7 @@ A workspace context persisting across agent interactions. Contains project state
 - [ ] Sandboxed execution via local Docker
 
 ### 7.5 Trust Layer
+
 - [ ] **Decision Explanation** — why the agent made each choice
 - [ ] **Evidence View** — what data/context informed the decision
 - [ ] **Risk Score** — per-action impact assessment (low/medium/high/critical)
@@ -400,6 +431,7 @@ A workspace context persisting across agent interactions. Contains project state
 - [ ] **Rollback Support** — revert any agent action to previous state
 
 ### 7.6 Architecture Compliance + Drift Detection
+
 - [ ] **Intended Architecture Tracker** — store the planned architecture (from Planner)
 - [ ] **Codebase Analyzer** — extract actual architecture from code
 - [ ] **Deployment State Tracker** — what's actually deployed where
@@ -412,6 +444,7 @@ A workspace context persisting across agent interactions. Contains project state
 - [ ] **Drift Resolution Agent** — suggest fixes when drift detected
 
 ### 7.7 Verification-First Execution
+
 - [ ] Every code change triggers: tests, linting, type checks
 - [ ] Security scans on every generated code (OWASP Top 10)
 - [ ] Secrets detection (API keys, passwords in code)
@@ -423,6 +456,7 @@ A workspace context persisting across agent interactions. Contains project state
 - [ ] Test result visualization with pass/fail breakdown
 
 ### 7.8 Governed Self-Improvement
+
 - [ ] Template optimization — improve agent templates based on success rates
 - [ ] Task decomposition learning — better breakdowns over time
 - [ ] Retry logic improvement — learn which retry strategies work
@@ -436,6 +470,7 @@ A workspace context persisting across agent interactions. Contains project state
   - Modify security configurations
 
 ### 7.9 Core Agent Features
+
 - [ ] Planner Agent — PRD, architecture, task decomposition
 - [ ] Architect Agent — system design, component diagrams, tech selection
 - [ ] Coder Agent (Backend) — server-side code generation
@@ -452,6 +487,7 @@ A workspace context persisting across agent interactions. Contains project state
 - [ ] Monitoring Agent — health checks, alerting config, dashboard generation
 
 ### 7.10 Orchestration & Governance
+
 - [ ] DAG-based task scheduling with dependency resolution
 - [ ] Human approval gates (configurable per action type)
 - [ ] Budget limits per agent, per task, per project
@@ -466,6 +502,7 @@ A workspace context persisting across agent interactions. Contains project state
 - [ ] Dead letter queue for permanently failed tasks
 
 ### 7.11 Real-Time Features
+
 - [ ] Live agent activity stream (Socket.IO)
 - [ ] Real-time log viewer per agent
 - [ ] Task progress indicators
@@ -474,6 +511,7 @@ A workspace context persisting across agent interactions. Contains project state
 - [ ] Live drift score updates
 
 ### 7.12 Code & Artifact Management
+
 - [ ] In-browser code editor (Monaco)
 - [ ] Artifact versioning (every generated file has history)
 - [ ] Diff viewer (compare artifact versions)
@@ -482,6 +520,7 @@ A workspace context persisting across agent interactions. Contains project state
 - [ ] Prompt versioning (track which prompt version produced which output)
 
 ### 7.13 LLM & Cost Management
+
 - [ ] Multi-provider support via LiteLLM
 - [ ] Per-request cost tracking
 - [ ] Per-agent cost breakdown
@@ -492,6 +531,7 @@ A workspace context persisting across agent interactions. Contains project state
 - [ ] Model comparison (cost vs quality metrics)
 
 ### 7.14 User & Team
+
 - [ ] User registration/login (Clerk)
 - [ ] Social login (Google, GitHub)
 - [ ] Team workspaces
@@ -501,6 +541,7 @@ A workspace context persisting across agent interactions. Contains project state
 - [ ] API key management (encrypted at rest)
 
 ### 7.15 Audit & Compliance
+
 - [ ] Full audit log (every agent action with timestamp, input, output, prompt)
 - [ ] Prompt audit trail (which prompt version was used)
 - [ ] Connector usage audit (which agent used which secret, when)
@@ -509,6 +550,7 @@ A workspace context persisting across agent interactions. Contains project state
 - [ ] GDPR-friendly data deletion
 
 ### 7.16 Integrations (Later Phases)
+
 - [ ] GitHub / GitLab integration
 - [ ] Slack notifications
 - [ ] VS Code extension
@@ -853,14 +895,14 @@ fallback_model: "gpt-4o"
 
 ### Dynamic Agent Examples by Project Type
 
-| Project Type | Agents Assembled |
-|-------------|-----------------|
-| **YouTube Automation Pipeline** | Planner, Workflow Architect, Connector Agent, Scheduler Agent, Media Pipeline Agent, Upload Agent, Monitoring Agent, Docs Agent |
-| **RAPTOR RAG System** | Planner, AI Architect, Retrieval Agent, Vector DB Agent, Data Pipeline Agent, Backend Agent, Frontend Agent, Security Agent, Evaluation Agent |
-| **SaaS with Auth + Billing** | Planner, Architect, Backend Agent, Frontend Agent, Auth Agent, Billing/Connector Agent, DevOps Agent, Tester, Security Agent, Docs Agent |
-| **CI/CD + Infra Automation** | Planner, DevOps Agent, Cloud Agent, Security Agent, Secrets Agent, Monitoring Agent, Cost Agent |
-| **Bug Fix Request** | Debugger Agent, Tester Agent, Reviewer Agent |
-| **Code Refactor** | Refactor Agent, Tester Agent, Reviewer Agent, Docs Agent |
+| Project Type                    | Agents Assembled                                                                                                                              |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **YouTube Automation Pipeline** | Planner, Workflow Architect, Connector Agent, Scheduler Agent, Media Pipeline Agent, Upload Agent, Monitoring Agent, Docs Agent               |
+| **RAPTOR RAG System**           | Planner, AI Architect, Retrieval Agent, Vector DB Agent, Data Pipeline Agent, Backend Agent, Frontend Agent, Security Agent, Evaluation Agent |
+| **SaaS with Auth + Billing**    | Planner, Architect, Backend Agent, Frontend Agent, Auth Agent, Billing/Connector Agent, DevOps Agent, Tester, Security Agent, Docs Agent      |
+| **CI/CD + Infra Automation**    | Planner, DevOps Agent, Cloud Agent, Security Agent, Secrets Agent, Monitoring Agent, Cost Agent                                               |
+| **Bug Fix Request**             | Debugger Agent, Tester Agent, Reviewer Agent                                                                                                  |
+| **Code Refactor**               | Refactor Agent, Tester Agent, Reviewer Agent, Docs Agent                                                                                      |
 
 ### Hierarchical Agent Spawning (Advanced)
 
@@ -876,27 +918,27 @@ Main Architect Agent
 └── requests → Infra Specialist (approved)
 ```
 
-**Rule**: Agents can *request* more agents. The orchestrator decides whether to create them based on budget, policy, and necessity. No infinite self-spawn.
+**Rule**: Agents can _request_ more agents. The orchestrator decides whether to create them based on budget, policy, and necessity. No infinite self-spawn.
 
 ### Full Agent Roster (Templates)
 
-| Agent | Role | Model Tier | Tools | Approval |
-|-------|------|-----------|-------|----------|
-| **Planner** | PRD, goals, requirements | High (Claude Sonnet/GPT-4o) | web_search, file_read | Yes — for plan |
-| **Architect** | System design, component diagrams | High | file_read, diagram_gen | Yes — for architecture |
-| **Backend Coder** | Server code, APIs, DB models | High | file_read, file_write, lint, typecheck | Yes — for merge |
-| **Frontend Coder** | UI code, components, styling | High | file_read, file_write, lint | Yes — for merge |
-| **Connector** | OAuth setup, API wiring, token management | High | connector_registry, token_vault, http_call | Yes — always |
-| **Reviewer** | Code review, quality checks | High | file_read, search, run_tests | No — advisory |
-| **Tester** | Generate & run tests | Medium (GPT-4o-mini) | file_read, file_write, run_tests | No |
-| **Documenter** | Docs, README, API docs | Medium | file_read, file_write | No |
-| **Debugger** | Error diagnosis, bug fixes | High | file_read, file_write, run_tests, read_logs | Yes — for fix |
-| **Refactor** | Code improvement, optimization | High | file_read, file_write, run_tests, lint | Yes — for changes |
-| **Security** | Vulnerability scanning, secrets detection | High | file_read, search, security_scan | No — advisory |
-| **DevOps** | CI/CD, Docker, deployment configs | Medium | file_read, file_write, run_commands | Yes — always |
-| **Researcher** | Find solutions, reference code | Low (GPT-4o-mini) | web_search, read_docs | No |
-| **Monitoring** | Health checks, alerting, dashboards | Medium | file_read, file_write | No |
-| **Drift Detector** | Architecture compliance checking | Medium | file_read, search, compare | No — advisory |
+| Agent              | Role                                      | Model Tier                  | Tools                                       | Approval               |
+| ------------------ | ----------------------------------------- | --------------------------- | ------------------------------------------- | ---------------------- |
+| **Planner**        | PRD, goals, requirements                  | High (Claude Sonnet/GPT-4o) | web_search, file_read                       | Yes — for plan         |
+| **Architect**      | System design, component diagrams         | High                        | file_read, diagram_gen                      | Yes — for architecture |
+| **Backend Coder**  | Server code, APIs, DB models              | High                        | file_read, file_write, lint, typecheck      | Yes — for merge        |
+| **Frontend Coder** | UI code, components, styling              | High                        | file_read, file_write, lint                 | Yes — for merge        |
+| **Connector**      | OAuth setup, API wiring, token management | High                        | connector_registry, token_vault, http_call  | Yes — always           |
+| **Reviewer**       | Code review, quality checks               | High                        | file_read, search, run_tests                | No — advisory          |
+| **Tester**         | Generate & run tests                      | Medium (GPT-4o-mini)        | file_read, file_write, run_tests            | No                     |
+| **Documenter**     | Docs, README, API docs                    | Medium                      | file_read, file_write                       | No                     |
+| **Debugger**       | Error diagnosis, bug fixes                | High                        | file_read, file_write, run_tests, read_logs | Yes — for fix          |
+| **Refactor**       | Code improvement, optimization            | High                        | file_read, file_write, run_tests, lint      | Yes — for changes      |
+| **Security**       | Vulnerability scanning, secrets detection | High                        | file_read, search, security_scan            | No — advisory          |
+| **DevOps**         | CI/CD, Docker, deployment configs         | Medium                      | file_read, file_write, run_commands         | Yes — always           |
+| **Researcher**     | Find solutions, reference code            | Low (GPT-4o-mini)           | web_search, read_docs                       | No                     |
+| **Monitoring**     | Health checks, alerting, dashboards       | Medium                      | file_read, file_write                       | No                     |
+| **Drift Detector** | Architecture compliance checking          | Medium                      | file_read, search, compare                  | No — advisory          |
 
 ---
 
@@ -909,6 +951,7 @@ Main Architect Agent
 **Goal**: Monorepo, dev environment, CI pipeline, base configs.
 
 #### Tasks
+
 - [ ] Initialize monorepo structure
   ```
   forgemind/
@@ -940,6 +983,7 @@ Main Architect Agent
 - [ ] Set up **pre-commit hooks** (ruff, black, eslint, prettier)
 
 #### Deliverables
+
 - `docker compose up` starts everything
 - API at `/health` → `{ "status": "ok" }`
 - Frontend at `localhost:3000`
@@ -952,6 +996,7 @@ Main Architect Agent
 **Goal**: Users can sign up, log in, RBAC works. All DB tables created.
 
 #### Tasks
+
 - [ ] Integrate **Clerk** (frontend + backend JWT verification)
 - [ ] Create ALL database tables (core + v2 tables from Schema section)
 - [ ] Write Alembic migrations
@@ -969,6 +1014,7 @@ Main Architect Agent
 - [ ] Seed database with Factory Boy
 
 #### Deliverables
+
 - Users sign up with Google/GitHub/email
 - JWT auth on all protected routes
 - Dashboard layout with user info
@@ -981,6 +1027,7 @@ Main Architect Agent
 **Goal**: Users create projects, DAG engine schedules work, orchestrator core runs.
 
 #### Tasks
+
 - [ ] Build **Project CRUD** API (create, list, get, update, archive)
 - [ ] Build **Task Engine**:
   - Task CRUD with DAG structure
@@ -1002,6 +1049,7 @@ Main Architect Agent
   - Task status indicators
 
 #### Deliverables
+
 - User creates project → sees it on dashboard
 - Tasks with dependencies work
 - Celery processes tasks
@@ -1014,11 +1062,13 @@ Main Architect Agent
 **Goal**: First working agent. User describes idea → gets PRD + architecture + task breakdown. Project type is auto-classified.
 
 #### Tasks
+
 - [ ] Integrate **LiteLLM** as LLM gateway:
   - Configure providers (OpenAI, Anthropic, Ollama)
   - Model routing per agent, token counting, cost calc
   - Streaming support
 - [ ] Build **Agent Base Class**:
+
   ```python
   class BaseAgent:
       agent_type: str
@@ -1036,6 +1086,7 @@ Main Architect Agent
       def assess_risk(self) -> RiskScore           # NEW: trust layer
       def assess_confidence(self) -> float         # NEW: trust layer
   ```
+
 - [ ] Build **Project Classifier**:
   - Input: user prompt (natural language)
   - Output: project_type, required_capabilities, suggested_stack
@@ -1056,6 +1107,7 @@ Main Architect Agent
   - Real-time progress indicator
 
 #### Deliverables
+
 - "Build a RAPTOR RAG app" → classified as `rag_app`
 - Planner generates full PRD + architecture + DAG
 - Streaming output to UI
@@ -1070,6 +1122,7 @@ Main Architect Agent
 This is ForgeMind's **core innovation**.
 
 #### Tasks
+
 - [ ] Build **Capability Registry**:
   - Seed with capabilities: planning, architecture, backend_api, frontend_ui, retrieval_pipeline, oauth_setup, security_review, testing, documentation, devops, monitoring, etc.
   - CRUD API for capabilities
@@ -1099,6 +1152,7 @@ This is ForgeMind's **core innovation**.
   - "Why these agents?" explanation
 
 #### Deliverables
+
 - "Build a SaaS with auth and billing" → system creates: Planner, Architect, Backend Coder, Frontend Coder, Auth Agent, Billing Connector Agent, DevOps, Tester, Security, Docs
 - Different projects get different agent teams
 - User sees which agents were assembled and why
@@ -1111,6 +1165,7 @@ This is ForgeMind's **core innovation**.
 **Goal**: ForgeMind's strongest practical differentiator — make integrations painless.
 
 #### Tasks
+
 - [ ] Build **Connector Registry** (seed with 20+ common connectors):
   - GitHub, GitLab, Google (Sheets, Drive, Gmail, Calendar)
   - Stripe, Slack, Discord, Twitter/X, YouTube
@@ -1157,6 +1212,7 @@ This is ForgeMind's **core innovation**.
   - Export audit data
 
 #### Deliverables
+
 - User clicks "Add GitHub" → gets guided setup → connection verified in 60 seconds
 - Connector Agent wires GitHub into generated CI/CD pipeline
 - Token vault encrypted, audited, with rotation alerts
@@ -1169,6 +1225,7 @@ This is ForgeMind's **core innovation**.
 **Goal**: Code generation with verification-first execution. Every code change is tested, linted, type-checked, and security-scanned.
 
 #### Tasks
+
 - [ ] Build **Backend Coder Agent**:
   - Generates server code, APIs, DB models
   - Uses architecture ref from Planner/Architect
@@ -1202,6 +1259,7 @@ This is ForgeMind's **core innovation**.
   - If verification fails → Coder fixes → re-verify
 
 #### Deliverables
+
 - Tasks → code generated → automatically verified (lint + types + tests + security)
 - Reviewer comments on code
 - User approves/rejects with full evidence
@@ -1214,6 +1272,7 @@ This is ForgeMind's **core innovation**.
 **Goal**: Full trust infrastructure. Every decision is explainable, scoreable, and replayable.
 
 #### Tasks
+
 - [ ] Build **Trust Engine**:
   - Risk score calculation per action (based on action type, scope, cost)
   - Confidence score per agent output (from LLM's self-assessment + heuristics)
@@ -1242,6 +1301,7 @@ This is ForgeMind's **core innovation**.
   - Auto-approve if risk=low AND confidence>90% AND cost<threshold
 
 #### Deliverables
+
 - Every agent action shows: "Why did it do this?" + risk + confidence
 - User can replay any action to verify
 - Rollback any change with audit trail
@@ -1254,6 +1314,7 @@ This is ForgeMind's **core innovation**.
 **Goal**: ForgeMind becomes a guardian of project health, not just a generator.
 
 #### Tasks
+
 - [ ] Build **Architecture Snapshot Service**:
   - Store intended architecture (from Planner/Architect Agent)
   - Extract actual architecture from codebase (static analysis)
@@ -1287,6 +1348,7 @@ This is ForgeMind's **core innovation**.
   - Score trend charts over time
 
 #### Deliverables
+
 - Project dashboard shows architecture compliance score
 - Drift alert when code doesn't match intended architecture
 - "Your docs are 3 weeks behind code" warning
@@ -1299,6 +1361,7 @@ This is ForgeMind's **core innovation**.
 **Goal**: Lightweight local agent for real-world developer workflow integration.
 
 #### Tasks
+
 - [ ] Build **ForgeMind Local CLI** (Python + Click/Typer):
   - `forgemind-local init` — connect to ForgeMind cloud project
   - `forgemind-local scan` — analyze local environment
@@ -1338,6 +1401,7 @@ This is ForgeMind's **core innovation**.
   - Sync status indicators
 
 #### Deliverables
+
 - `pip install forgemind-local` → connect to cloud project
 - `forgemind-local scan` → shows Python 3.12, Node 20, Docker available
 - `forgemind-local exec "pytest"` → prompts user approval → runs → reports
@@ -1350,6 +1414,7 @@ This is ForgeMind's **core innovation**.
 **Goal**: Auto-generated tests, sandboxed execution, intelligent debugging.
 
 #### Tasks
+
 - [ ] Build **Tester Agent** (enhanced):
   - Generate unit, integration, e2e tests
   - Analyze code paths and edge cases
@@ -1372,6 +1437,7 @@ This is ForgeMind's **core innovation**.
 - [ ] Wire up: Coder → Verification → Tester → (if fail) → Debugger → re-test
 
 #### Deliverables
+
 - Every code change gets auto-generated tests
 - Tests run in sandboxed containers
 - Debugger Agent fixes failures with evidence
@@ -1384,6 +1450,7 @@ This is ForgeMind's **core innovation**.
 **Goal**: Auto-docs, security scanning, and full cost visibility.
 
 #### Tasks
+
 - [ ] Build **Documenter Agent** (enhanced):
   - Auto-generate README, API docs, architecture docs
   - Mermaid diagrams from code analysis
@@ -1412,6 +1479,7 @@ This is ForgeMind's **core innovation**.
   - Powerful models for complex tasks
 
 #### Deliverables
+
 - Auto-docs kept in sync with code
 - Security scan on every change
 - Full cost visibility and budget enforcement
@@ -1423,6 +1491,7 @@ This is ForgeMind's **core innovation**.
 **Goal**: ForgeMind gets smarter over time — but safely.
 
 #### Tasks
+
 - [ ] Build **Template Optimizer**:
   - Track agent success rates per template
   - Suggest prompt improvements based on outcomes
@@ -1449,6 +1518,7 @@ This is ForgeMind's **core innovation**.
   - Performance delta charts
 
 #### Deliverables
+
 - Agent templates improve based on success data
 - Task decomposition gets better project by project
 - "ForgeMind learned that X works better for RAG projects"
@@ -1461,12 +1531,14 @@ This is ForgeMind's **core innovation**.
 **Goal**: Multi-user workspaces, roles, notifications, audit UI.
 
 #### Tasks
+
 - [ ] Build **Team System**: create, invite, roles (Owner, Admin, Member, Viewer)
 - [ ] Build **Activity Feed**: real-time team actions, filter, comment
 - [ ] Build **Notification System**: in-app + email (approvals, failures, budget, drift)
 - [ ] Build **Audit Log Viewer**: searchable, filterable, exportable (CSV/JSON)
 
 #### Deliverables
+
 - Teams collaborate on projects
 - Real-time activity feed
 - Full audit trail in UI
@@ -1478,11 +1550,13 @@ This is ForgeMind's **core innovation**.
 **Goal**: CI/CD pipeline generation, deployment configs, Git workflow.
 
 #### Tasks
+
 - [ ] Build **DevOps Agent**: Dockerfile, docker-compose, GitHub Actions, Nginx/Caddy, Railway/Fly.io configs, K8s manifests
 - [ ] Build **Git Integration**: connect repos, create branches/commits/PRs, webhook listener, PR auto-description
 - [ ] Build frontend: Git settings, deployment config UI, pipeline viz, deploy with approval
 
 #### Deliverables
+
 - Agent generates deployment configs
 - One-click PR creation
 - Pipeline visualization
@@ -1494,6 +1568,7 @@ This is ForgeMind's **core innovation**.
 **Goal**: Custom agents, CLI, VS Code extension, webhooks, UX polish.
 
 #### Tasks
+
 - [ ] **Custom Agent Builder** UI — create, save, share agent templates
 - [ ] **Agent Marketplace** — community-shared agent templates
 - [ ] **CLI Tool** (`forgemind-cli`) — init, plan, run, status, logs
@@ -1503,6 +1578,7 @@ This is ForgeMind's **core innovation**.
 - [ ] **UX Polish** — onboarding tour, empty states, error boundaries, loading skeletons, dark/light theme, responsive
 
 #### Deliverables
+
 - Custom agent creation + marketplace
 - CLI for terminal-first workflow
 - Polished, production-ready UI
@@ -1514,6 +1590,7 @@ This is ForgeMind's **core innovation**.
 **Goal**: Production-ready. Secure. Monitored. Documented. Launched.
 
 #### Tasks
+
 - [ ] **Monitoring**: Prometheus + Grafana, Sentry, OpenTelemetry, health checks
 - [ ] **Security Hardening**: audit all endpoints, CORS, rate limiting, input sanitization, CSP headers, API key rotation
 - [ ] **Reliability**: database backups, Redis persistence, graceful Celery shutdown, dead letter queue, connection pooling
@@ -1523,6 +1600,7 @@ This is ForgeMind's **core innovation**.
 - [ ] **Beta Launch**: invite 50 beta users, collect feedback
 
 #### Deliverables
+
 - Production infrastructure live
 - Monitoring dashboards
 - Security audit passed
@@ -1532,37 +1610,37 @@ This is ForgeMind's **core innovation**.
 
 ## Summary Timeline
 
-| Phase | Duration | Key Milestone |
-|-------|----------|---------------|
-| **Phase 0** — Foundation | Week 1–2 | Dev environment running |
-| **Phase 1** — Auth & Users | Week 3–4 | Users can sign up and log in |
-| **Phase 2** — Projects & Tasks | Week 5–7 | Task DAG engine working |
-| **Phase 3** — LLM + Planner + Classifier | Week 8–11 | First agent + project classification |
-| **Phase 4** — Dynamic Agent Composition | Week 12–14 | **Core innovation: dynamic teams** |
-| **Phase 5** — Connector Intelligence | Week 15–18 | **Key differentiator: token vault + setup wizard** |
-| **Phase 6** — Coder + Verification | Week 19–22 | Code gen + verification-first pipeline |
-| **Phase 7** — Trust Layer + Replay | Week 23–25 | **Differentiator: explainable AI trust** |
-| **Phase 8** — Architecture + Drift | Week 26–28 | **Differentiator: project health guardian** |
-| **Phase 9** — ForgeMind Local | Week 29–31 | **Differentiator: desktop companion** |
-| **Phase 10** — Testing + Debug | Week 32–33 | Auto-testing + debugging |
-| **Phase 11** — Docs + Security + Cost | Week 34–36 | Full cost visibility + scanning |
-| **Phase 12** — Self-Improvement | Week 37–38 | **Governed self-evolving workflows** |
-| **Phase 13** — Teams | Week 39–40 | Multi-user collaboration |
-| **Phase 14** — DevOps + Git | Week 41–43 | CI/CD + deployment |
-| **Phase 15** — Advanced + Polish | Week 44–48 | Custom agents, CLI, marketplace, UX |
-| **Phase 16** — Production + Launch | Week 49–52 | Security, monitoring, beta launch |
+| Phase                                    | Duration   | Key Milestone                                      |
+| ---------------------------------------- | ---------- | -------------------------------------------------- |
+| **Phase 0** — Foundation                 | Week 1–2   | Dev environment running                            |
+| **Phase 1** — Auth & Users               | Week 3–4   | Users can sign up and log in                       |
+| **Phase 2** — Projects & Tasks           | Week 5–7   | Task DAG engine working                            |
+| **Phase 3** — LLM + Planner + Classifier | Week 8–11  | First agent + project classification               |
+| **Phase 4** — Dynamic Agent Composition  | Week 12–14 | **Core innovation: dynamic teams**                 |
+| **Phase 5** — Connector Intelligence     | Week 15–18 | **Key differentiator: token vault + setup wizard** |
+| **Phase 6** — Coder + Verification       | Week 19–22 | Code gen + verification-first pipeline             |
+| **Phase 7** — Trust Layer + Replay       | Week 23–25 | **Differentiator: explainable AI trust**           |
+| **Phase 8** — Architecture + Drift       | Week 26–28 | **Differentiator: project health guardian**        |
+| **Phase 9** — ForgeMind Local            | Week 29–31 | **Differentiator: desktop companion**              |
+| **Phase 10** — Testing + Debug           | Week 32–33 | Auto-testing + debugging                           |
+| **Phase 11** — Docs + Security + Cost    | Week 34–36 | Full cost visibility + scanning                    |
+| **Phase 12** — Self-Improvement          | Week 37–38 | **Governed self-evolving workflows**               |
+| **Phase 13** — Teams                     | Week 39–40 | Multi-user collaboration                           |
+| **Phase 14** — DevOps + Git              | Week 41–43 | CI/CD + deployment                                 |
+| **Phase 15** — Advanced + Polish         | Week 44–48 | Custom agents, CLI, marketplace, UX                |
+| **Phase 16** — Production + Launch       | Week 49–52 | Security, monitoring, beta launch                  |
 
 ### Milestones
 
-| Milestone | Phase | What You Can Demo |
-|-----------|-------|-------------------|
-| **Internal Alpha** | After Phase 3 (Week 11) | "Describe project → get PRD + architecture" |
-| **Core Innovation Demo** | After Phase 4 (Week 14) | "Dynamic agent teams assembled per project" |
-| **Connector Demo** | After Phase 5 (Week 18) | "Add GitHub in 60 seconds, fully wired" |
-| **End-to-End Demo** | After Phase 6 (Week 22) | "Idea → code → verified → reviewed → approved" |
-| **Trust Demo** | After Phase 7 (Week 25) | "Explain, replay, rollback any AI action" |
-| **MVP Launch** | After Phase 8 (Week 28) | Full platform with 6 differentiators working |
-| **Beta Launch** | After Phase 16 (Week 52) | Production-ready with teams, polish, monitoring |
+| Milestone                | Phase                    | What You Can Demo                               |
+| ------------------------ | ------------------------ | ----------------------------------------------- |
+| **Internal Alpha**       | After Phase 3 (Week 11)  | "Describe project → get PRD + architecture"     |
+| **Core Innovation Demo** | After Phase 4 (Week 14)  | "Dynamic agent teams assembled per project"     |
+| **Connector Demo**       | After Phase 5 (Week 18)  | "Add GitHub in 60 seconds, fully wired"         |
+| **End-to-End Demo**      | After Phase 6 (Week 22)  | "Idea → code → verified → reviewed → approved"  |
+| **Trust Demo**           | After Phase 7 (Week 25)  | "Explain, replay, rollback any AI action"       |
+| **MVP Launch**           | After Phase 8 (Week 28)  | Full platform with 6 differentiators working    |
+| **Beta Launch**          | After Phase 16 (Week 52) | Production-ready with teams, polish, monitoring |
 
 > **MVP (Phases 0–8): ~28 weeks (7 months)** — all 6 core differentiators working.
 >
@@ -1573,9 +1651,11 @@ This is ForgeMind's **core innovation**.
 ## 11. API Design
 
 ### Authentication
+
 All endpoints require `Authorization: Bearer <jwt>` or `X-API-Key: <key>`.
 
 ### Base URL
+
 ```
 Production:  https://api.forgemind.dev/v1
 Development: http://localhost:8000/v1
@@ -1683,6 +1763,7 @@ WS     /ws/local/:client_id                  # ForgeMind Local connection
 ```
 
 ### Standard Response Format
+
 ```json
 {
   "data": { ... },
@@ -1694,6 +1775,7 @@ WS     /ws/local/:client_id                  # ForgeMind Local connection
 ```
 
 ### Error Format
+
 ```json
 {
   "error": {
@@ -1713,18 +1795,21 @@ WS     /ws/local/:client_id                  # ForgeMind Local connection
 ## 12. Security Model
 
 ### Authentication Flow
+
 ```
 User → Clerk (login) → JWT → Frontend stores token
 Frontend → API request with JWT → FastAPI middleware verifies → Route handler
 ```
 
 ### API Key Flow
+
 ```
 User creates key → Backend generates random key → Hash with bcrypt → Store hash
 User sends X-API-Key → Backend hashes → Compare with stored → Authorize
 ```
 
 ### Token Vault Security
+
 ```
 Connector token → Encrypt with AES-256-GCM → Store encrypted BYTEA in PostgreSQL
 Agent needs token → Orchestrator verifies scope → Decrypt in memory → Pass to agent
@@ -1732,6 +1817,7 @@ Token NEVER: logged, returned in API response, stored in plaintext, visible in U
 ```
 
 ### ForgeMind Local Security
+
 ```
 Local CLI → Authenticates with API key → Scoped to user's projects
 Folder access → User explicitly grants per-directory
@@ -1740,28 +1826,30 @@ Data transfer → TLS encrypted WebSocket
 ```
 
 ### Encryption
+
 - **At rest**: API keys hashed (bcrypt), connector tokens encrypted (AES-256-GCM), LLM keys encrypted
 - **In transit**: TLS 1.3 everywhere
 - **Secrets**: Never logged, never returned in API responses (only key prefix)
 
 ### RBAC Matrix
 
-| Action | Owner | Admin | Member | Viewer |
-|--------|-------|-------|--------|--------|
-| Create project | ✅ | ✅ | ✅ | ❌ |
-| Delete project | ✅ | ✅ | ❌ | ❌ |
-| Run agents | ✅ | ✅ | ✅ | ❌ |
-| Approve changes | ✅ | ✅ | ❌ | ❌ |
-| Manage connectors | ✅ | ✅ | ❌ | ❌ |
-| View projects | ✅ | ✅ | ✅ | ✅ |
-| Manage team | ✅ | ✅ | ❌ | ❌ |
-| Manage billing | ✅ | ❌ | ❌ | ❌ |
-| View audit logs | ✅ | ✅ | ✅ | ✅ |
-| Export data | ✅ | ✅ | ❌ | ❌ |
-| ForgeMind Local | ✅ | ✅ | ✅ | ❌ |
-| Self-improvement revert | ✅ | ✅ | ❌ | ❌ |
+| Action                  | Owner | Admin | Member | Viewer |
+| ----------------------- | ----- | ----- | ------ | ------ |
+| Create project          | ✅    | ✅    | ✅     | ❌     |
+| Delete project          | ✅    | ✅    | ❌     | ❌     |
+| Run agents              | ✅    | ✅    | ✅     | ❌     |
+| Approve changes         | ✅    | ✅    | ❌     | ❌     |
+| Manage connectors       | ✅    | ✅    | ❌     | ❌     |
+| View projects           | ✅    | ✅    | ✅     | ✅     |
+| Manage team             | ✅    | ✅    | ❌     | ❌     |
+| Manage billing          | ✅    | ❌    | ❌     | ❌     |
+| View audit logs         | ✅    | ✅    | ✅     | ✅     |
+| Export data             | ✅    | ✅    | ❌     | ❌     |
+| ForgeMind Local         | ✅    | ✅    | ✅     | ❌     |
+| Self-improvement revert | ✅    | ✅    | ❌     | ❌     |
 
 ### Rate Limiting
+
 - Per-user: 100 requests/min (API), 20 requests/min (LLM calls)
 - Per-agent: Configurable per agent template
 - Per-connector: Respects external API rate limits
@@ -1772,6 +1860,7 @@ Data transfer → TLS encrypted WebSocket
 ## 13. Testing Strategy
 
 ### Test Pyramid
+
 ```
          ╱╲
         ╱ E2E ╲           ~15 tests  (Playwright)
@@ -1783,6 +1872,7 @@ Data transfer → TLS encrypted WebSocket
 ```
 
 ### Backend Testing
+
 - **Unit**: Every service, every agent's I/O validation, every connector handler
 - **Integration**: API endpoints with real PostgreSQL/Redis (Testcontainers)
 - **Agent tests**: Mock LLM responses, verify prompt construction + output parsing
@@ -1791,20 +1881,22 @@ Data transfer → TLS encrypted WebSocket
 - **Trust tests**: Risk score calculation, replay determinism
 
 ### Frontend Testing
+
 - **Unit**: Components, state management, connector wizard steps
 - **Integration**: Page-level with mocked API
 - **E2E**: Sign up → create project → add connector → run agents → approve → view drifts
 
 ### CI Pipeline
+
 ```yaml
 on: pull_request
 jobs:
-  lint:           ruff + eslint + prettier
-  type-check:     mypy + tsc
-  test-backend:   pytest --cov (Testcontainers)
-  test-frontend:  vitest --coverage
-  e2e:            playwright (on merge to main)
-  security:       pip-audit + npm audit + secrets scan
+  lint: ruff + eslint + prettier
+  type-check: mypy + tsc
+  test-backend: pytest --cov (Testcontainers)
+  test-frontend: vitest --coverage
+  e2e: playwright (on merge to main)
+  security: pip-audit + npm audit + secrets scan
 ```
 
 ---
@@ -1812,6 +1904,7 @@ jobs:
 ## 14. Deployment Strategy
 
 ### Local Dev
+
 ```bash
 docker compose up -d     # Start everything
 make dev                 # Or use Makefile
@@ -1822,22 +1915,23 @@ make seed                # Seed test data
 
 ### Recommended Hosting (Budget Start)
 
-| Service | Provider | Cost |
-|---------|----------|------|
-| API + Workers | Railway or Fly.io | ~$10-20/mo |
-| Frontend | Vercel (free tier) | $0 |
-| PostgreSQL | Neon or Supabase (free tier) | $0-10/mo |
-| Redis | Upstash (free tier) | $0 |
-| File Storage | Cloudflare R2 (free tier) | $0 |
-| Auth | Clerk (free, 10k MAU) | $0 |
-| Monitoring | Grafana Cloud (free tier) | $0 |
-| **Total** | | **~$10-30/mo** |
+| Service       | Provider                     | Cost           |
+| ------------- | ---------------------------- | -------------- |
+| API + Workers | Railway or Fly.io            | ~$10-20/mo     |
+| Frontend      | Vercel (free tier)           | $0             |
+| PostgreSQL    | Neon or Supabase (free tier) | $0-10/mo       |
+| Redis         | Upstash (free tier)          | $0             |
+| File Storage  | Cloudflare R2 (free tier)    | $0             |
+| Auth          | Clerk (free, 10k MAU)        | $0             |
+| Monitoring    | Grafana Cloud (free tier)    | $0             |
+| **Total**     |                              | **~$10-30/mo** |
 
 ---
 
 ## 15. Monitoring & Observability
 
 ### Key Metrics
+
 - **API**: Request rate, latency (p50/p95/p99), error rate
 - **Agents**: Execution time, success rate, tokens used, cost, trust scores
 - **Connectors**: Health status, token expiry countdown, usage frequency
@@ -1847,21 +1941,22 @@ make seed                # Seed test data
 
 ### Alerting
 
-| Alert | Condition | Severity |
-|-------|-----------|----------|
-| High error rate | > 5% 5xx in 5min | Critical |
-| Agent stuck | No heartbeat for 5min | Warning |
-| Queue depth | > 100 pending | Warning |
-| Budget exceeded | Project spend > limit | Critical |
-| Connector expired | Token expires in < 24hr | Warning |
-| Drift threshold | Score drops below 70 | Warning |
-| DB connections | > 80% pool used | Warning |
+| Alert             | Condition               | Severity |
+| ----------------- | ----------------------- | -------- |
+| High error rate   | > 5% 5xx in 5min        | Critical |
+| Agent stuck       | No heartbeat for 5min   | Warning  |
+| Queue depth       | > 100 pending           | Warning  |
+| Budget exceeded   | Project spend > limit   | Critical |
+| Connector expired | Token expires in < 24hr | Warning  |
+| Drift threshold   | Score drops below 70    | Warning  |
+| DB connections    | > 80% pool used         | Warning  |
 
 ---
 
 ## 16. Competitive Positioning
 
 ### The One-Liner
+
 > **ForgeMind is a secure autonomous engineering platform that turns high-level goals into complete working systems with connectors, architecture, verification, deployment, and monitoring.**
 
 ### Top 10 Differentiators (for README / Landing Page)
@@ -1880,12 +1975,15 @@ make seed                # Seed test data
 ### How to Explain ForgeMind
 
 **To developers:**
+
 > "It's like having a full engineering team of AI agents that plans your project, writes code, sets up integrations, tests everything, and keeps your architecture healthy — all with your approval at every step."
 
 **To investors:**
+
 > "ForgeMind is an autonomous engineering platform. Users describe what they want to build, and ForgeMind creates the architecture, assembles a custom AI team, generates verified code, sets up all integrations, and monitors project health over time. Think GitHub Copilot meets Terraform meets a project manager."
 
 **To enterprises:**
+
 > "ForgeMind provides governed, auditable, AI-powered software delivery with full traceability, approval gates, encrypted secret management, and architecture compliance monitoring."
 
 ---
@@ -1921,9 +2019,9 @@ cd ../../docker
 
 ---
 
-*This document is the single source of truth for ForgeMind v2. Update as you complete phases and make decisions.*
+_This document is the single source of truth for ForgeMind v2. Update as you complete phases and make decisions._
 
-*Last updated: 2026-03-26*
+_Last updated: 2026-03-26_
 
 ---
 
@@ -1931,45 +2029,46 @@ cd ../../docker
 
 ### Completed Milestones (FM-001 to FM-045)
 
-| ID | Title | Status |
-|----|-------|--------|
-| FM-001 to FM-008 | Foundation, Project CRUD, Task DAG, Run System | ✅ Complete |
-| FM-009 to FM-016 | Planner, Agents, Approvals, Events, Artifacts | ✅ Complete |
-| FM-017 to FM-024 | Execution Service, Chat, Composition, Connectors | ✅ Complete |
-| FM-025 to FM-032 | Memory, Schemas, Health, Full Test Suite (105 tests) | ✅ Complete |
-| FM-033 to FM-040 | Mermaid Diagrams, Documentation, Integration Tests | ✅ Complete |
-| FM-041 | Connector Readiness States | ✅ Complete |
-| FM-042 | Credential Vault Abstraction | ✅ Complete |
-| FM-043 | Adaptive Retry / Revision Loop v2 | ✅ Complete |
-| FM-044 | Execution Chatbot v2 (topic detection, connector/retry awareness) | ✅ Complete |
-| FM-045 | Execution Quality Eval Suite (23 benchmark evals) | ✅ Complete |
+| ID               | Title                                                             | Status      |
+| ---------------- | ----------------------------------------------------------------- | ----------- |
+| FM-001 to FM-008 | Foundation, Project CRUD, Task DAG, Run System                    | ✅ Complete |
+| FM-009 to FM-016 | Planner, Agents, Approvals, Events, Artifacts                     | ✅ Complete |
+| FM-017 to FM-024 | Execution Service, Chat, Composition, Connectors                  | ✅ Complete |
+| FM-025 to FM-032 | Memory, Schemas, Health, Full Test Suite (105 tests)              | ✅ Complete |
+| FM-033 to FM-040 | Mermaid Diagrams, Documentation, Integration Tests                | ✅ Complete |
+| FM-041           | Connector Readiness States                                        | ✅ Complete |
+| FM-042           | Credential Vault Abstraction                                      | ✅ Complete |
+| FM-043           | Adaptive Retry / Revision Loop v2                                 | ✅ Complete |
+| FM-044           | Execution Chatbot v2 (topic detection, connector/retry awareness) | ✅ Complete |
+| FM-045           | Execution Quality Eval Suite (23 benchmark evals)                 | ✅ Complete |
 
 ### Pre-release Infrastructure (Implemented ahead of roadmap)
 
 Features built as foundational infrastructure before the updated FM-046–FM-050 scope was defined:
 
-| Feature | Description | Status |
-|---------|-------------|--------|
-| Run Lifecycle Manager | Health checks, auto-complete, auto-fail, stuck detection | ✅ Complete |
-| Cost & Token Tracking | Per-call LLM cost recording, model breakdown, budget visibility | ✅ Complete |
-| Governance Policy Engine | Configurable approval policies replacing hardcoded gates | ✅ Complete |
-| Audit Trail Export | JSON/CSV event export with compliance metadata | ✅ Complete |
-| Trust Scoring & Risk Assessment | Heuristic trust/risk scoring for tasks and runs | ✅ Complete |
+| Feature                         | Description                                                     | Status      |
+| ------------------------------- | --------------------------------------------------------------- | ----------- |
+| Run Lifecycle Manager           | Health checks, auto-complete, auto-fail, stuck detection        | ✅ Complete |
+| Cost & Token Tracking           | Per-call LLM cost recording, model breakdown, budget visibility | ✅ Complete |
+| Governance Policy Engine        | Configurable approval policies replacing hardcoded gates        | ✅ Complete |
+| Audit Trail Export              | JSON/CSV event export with compliance metadata                  | ✅ Complete |
+| Trust Scoring & Risk Assessment | Heuristic trust/risk scoring for tasks and runs                 | ✅ Complete |
 
 **Current test suite: 174 tests (all passing)**
 
 ### Updated FM-046 to FM-050 Roadmap (Active)
 
-| ID | Title | Status |
-|----|-------|--------|
-| FM-046 | Run Replay and Execution Trace Inspection | 🔲 Not started |
-| FM-047A | Multi-Agent Council Decision Engine | 🔲 Not started |
-| FM-047 | Policy-Based Approval Rules | 🔲 Not started |
-| FM-048 | Multi-Run Memory and Project Knowledge Base | 🔲 Not started |
-| FM-049 | External Repo / Workspace Execution Integration | 🔲 Not started |
-| FM-050 | Production Readiness and Platform Hardening Pass | 🔲 Not started |
+| ID      | Title                                            | Status         |
+| ------- | ------------------------------------------------ | -------------- |
+| FM-046  | Run Replay and Execution Trace Inspection        | 🔲 Not started |
+| FM-047A | Multi-Agent Council Decision Engine              | 🔲 Not started |
+| FM-047  | Policy-Based Approval Rules                      | 🔲 Not started |
+| FM-048  | Multi-Run Memory and Project Knowledge Base      | 🔲 Not started |
+| FM-049  | External Repo / Workspace Execution Integration  | 🔲 Not started |
+| FM-050  | Production Readiness and Platform Hardening Pass | 🔲 Not started |
 
 #### Recommended sequence
+
 1. **FM-046** — Run Replay and Execution Trace Inspection
 2. **FM-047A** — Multi-Agent Council Decision Engine
 3. **FM-047** — Policy-Based Approval Rules
@@ -1978,6 +2077,7 @@ Features built as foundational infrastructure before the updated FM-046–FM-050
 6. **FM-050** — Production Readiness and Platform Hardening Pass
 
 #### Why this order
+
 - **FM-046 first**: Council decisions, policy approvals, and replay all benefit from stronger trace visibility.
 - **FM-047A next**: The council engine depends on events, chat context, retry context, and execution visibility — all now available.
 - **FM-047 after**: Once councils exist, approval policy can become smarter (auto-approve, require approval, require council + approval).

@@ -1,14 +1,14 @@
 # ForgeMind — Milestone Summary
 
-> Last updated: 2026-03-27 (after FM-040 completion)
+> Last updated: 2026-03-26 (after FM-045 + pre-release infrastructure completion)
 
 ---
 
 ## Current State
 
-**ForgeMind is an operator-centered AI execution platform with the start of dynamic multi-agent behavior.**
+**ForgeMind is an operator-centered AI execution platform with adaptive multi-agent orchestration, governance, cost tracking, and trust scoring.**
 
-It can plan software projects, execute tasks via specialized agents with capability-based composition, surface execution artifacts, require human approval for critical steps, and adapt execution based on failures and feedback. The system has an execution memory layer for rich contextual reasoning, auto-retry with agent re-routing, and connector-aware orchestration foundations.
+It can plan software projects, execute tasks via specialized agents with capability-based composition, surface execution artifacts, require human approval for critical steps, and adapt execution based on failures and feedback. The system has an execution memory layer for rich contextual reasoning, auto-retry with agent re-routing, connector-aware orchestration, credential vault management, configurable governance policies, LLM cost tracking, audit export, and heuristic trust/risk scoring.
 
 ---
 
@@ -96,8 +96,10 @@ It can plan software projects, execute tasks via specialized agents with capabil
 | **6 — Controlled Execution & Observability** | FM-026 to FM-030            | Approval workflow, event log, run view, approval inbox, UX polish      |
 | **7 — Operator Control & Interaction**       | FM-031 to FM-035            | Artifact detail, retry/cancel, chatbot, handoff refinement, UX polish  |
 | **8 — Adaptive Multi-Agent Foundations**     | FM-036 to FM-040            | Composition, handoff, connectors, execution memory, adaptive loop      |
+| **9 — Connector & Retry Intelligence**       | FM-041 to FM-045            | Connector readiness, credential vault, retry v2, chatbot v2, eval suite |
+| **Pre-release Infrastructure**               | (5 features)                | Run lifecycle, cost tracking, governance, audit export, trust scoring  |
 
-**Total tasks completed: 42** (FM-001 through FM-040 including FM-010A, FM-015A, and FM-020A)
+**Total tasks completed: 47** (FM-001 through FM-045 including FM-010A, FM-015A, FM-020A, plus 5 pre-release infrastructure features)
 
 ---
 
@@ -149,6 +151,51 @@ ForgeMind now adds:
 5. **Operator UX polish** — clickable stat cards, consistent breadcrumbs on all pages, section count labels on run/project detail, sidebar active-state for nested routes, artifacts and approvals on project detail page, version bump to v0.3.0
 
 > **ForgeMind is now an operator-centered AI execution platform with interactive control and a chat-powered assistant.**
+
+---
+
+## Connector & Retry Intelligence (post FM-045)
+
+ForgeMind now adds:
+
+1. **Connector readiness states (FM-041)** — ProjectConnectorLink model with 4 readiness states (MISSING, CONFIGURED, BLOCKED, READY); per-project connector tracking with priority levels and blocker reasons
+2. **Credential vault abstraction (FM-042)** — CredentialVault model storing secret metadata via env-key references (no plaintext secrets in DB); status tracking (ACTIVE, EXPIRED, MISSING, REVOKED); scopes and expiry management
+3. **Adaptive retry/revision loop v2 (FM-043)** — retry_count and max_retries columns on Task model; adaptive_retry_service with delay calculation and agent re-routing; retry policy API
+4. **Execution chatbot v2 (FM-044)** — topic detection (connector, retry, next-step awareness); enhanced context builders for connector status and retry history; multi-topic support in chat responses
+5. **Execution quality eval suite (FM-045)** — 23 benchmark evaluations across 4 categories (planner output quality, task orchestration correctness, agent assignment accuracy, schema validation); eval_benchmarks.json with test data
+
+> **ForgeMind now has intelligent connector management, secure credential handling, and a quality evaluation framework.**
+
+---
+
+## Pre-release Infrastructure
+
+Features built as foundational infrastructure before the updated FM-046–FM-050 scope was defined:
+
+1. **Run Lifecycle Manager** — health checks (HEALTHY, DEGRADED, STUCK, CRITICAL), auto-complete when all tasks terminal, auto-fail on unrecoverable failures, bulk run health scanning; `/lifecycle` API endpoints
+2. **Cost & Token Tracking** — per-call LLM cost recording with model-specific rates, run/project cost summaries, model breakdown aggregation; CostRecord model; `/costs` API endpoints
+3. **Governance Policy Engine** — configurable approval policies replacing hardcoded gates; 5 trigger types (TASK_TYPE, COST_THRESHOLD, ARTIFACT_TYPE, AGENT_ACTION, CUSTOM); 4 action types (REQUIRE_APPROVAL, AUTO_APPROVE, BLOCK, NOTIFY); GovernancePolicy model; `/governance` API endpoints
+4. **Audit Trail Export** — JSON and CSV event export with compliance metadata; configurable filters (project, run, event_type, date range); audit summary with event type breakdown; `/audit` API endpoints
+5. **Trust Scoring & Risk Assessment** — heuristic trust/risk scoring for tasks and runs; weighted factor analysis (status, retry burden, agent assignment, errors); 4 risk levels (LOW, MEDIUM, HIGH, CRITICAL); TrustScore model; `/trust` API endpoints
+
+**Database additions:** 3 new migrations (0012–0014), 3 new models (CostRecord, GovernancePolicy, TrustScore)
+**Test additions:** 46 new tests in `test_fm046_050.py`
+**Total test suite: 174 tests (all passing)**
+
+> **ForgeMind now has production-grade observability with cost tracking, governance, compliance auditing, and risk assessment.**
+
+---
+
+## Next Up: FM-046 to FM-050 (Active Roadmap)
+
+| ID | Feature | Status |
+|----|---------|--------|
+| FM-046 | Run Replay and Execution Trace Inspection | Not started |
+| FM-047A | Multi-Agent Council Decision Engine | Not started |
+| FM-047 | Policy-Based Approval Rules | Not started |
+| FM-048 | Multi-Run Memory and Project Knowledge Base | Not started |
+| FM-049 | External Repo / Workspace Execution Integration | Not started |
+| FM-050 | Production Readiness and Platform Hardening Pass | Not started |
 
 ---
 
