@@ -1,14 +1,14 @@
 # ForgeMind — Milestone Summary
 
-> Last updated: 2026-03-26 (after FM-045 + pre-release infrastructure completion)
+> Last updated: 2026-03-27 (after FM-050 — all 50 tasks complete across 10 milestones)
 
 ---
 
 ## Current State
 
-**ForgeMind is an operator-centered AI execution platform with adaptive multi-agent orchestration, governance, cost tracking, and trust scoring.**
+**ForgeMind is an operator-centered AI execution platform with adaptive multi-agent orchestration, governance, cost tracking, trust scoring, execution replay, council decision-making, cross-run knowledge, external repo integration, and production hardening.**
 
-It can plan software projects, execute tasks via specialized agents with capability-based composition, surface execution artifacts, require human approval for critical steps, and adapt execution based on failures and feedback. The system has an execution memory layer for rich contextual reasoning, auto-retry with agent re-routing, connector-aware orchestration, credential vault management, configurable governance policies, LLM cost tracking, audit export, and heuristic trust/risk scoring.
+It can plan software projects, execute tasks via specialized agents with capability-based composition, surface execution artifacts, require human approval for critical steps, and adapt execution based on failures and feedback. The system has an execution memory layer for rich contextual reasoning, auto-retry with agent re-routing, connector-aware orchestration, credential vault management, configurable governance policies, LLM cost tracking, audit export, heuristic trust/risk scoring, deterministic execution replay, multi-agent council decisions, project-level knowledge bases, external repository connections, and production-grade security middleware.
 
 ---
 
@@ -98,8 +98,9 @@ It can plan software projects, execute tasks via specialized agents with capabil
 | **8 — Adaptive Multi-Agent Foundations**     | FM-036 to FM-040            | Composition, handoff, connectors, execution memory, adaptive loop       |
 | **9 — Connector & Retry Intelligence**       | FM-041 to FM-045            | Connector readiness, credential vault, retry v2, chatbot v2, eval suite |
 | **Pre-release Infrastructure**               | (5 features)                | Run lifecycle, cost tracking, governance, audit export, trust scoring   |
+| **10 — Platform Intelligence & Hardening**   | FM-046 to FM-050            | Replay, council, knowledge, repos, production hardening                |
 
-**Total tasks completed: 47** (FM-001 through FM-045 including FM-010A, FM-015A, FM-020A, plus 5 pre-release infrastructure features)
+**Total tasks completed: 50** (FM-001 through FM-050 including FM-010A, FM-015A, FM-020A, plus 5 pre-release infrastructure features)
 
 ---
 
@@ -186,16 +187,35 @@ Features built as foundational infrastructure before the updated FM-046–FM-050
 
 ---
 
-## Next Up: FM-046 to FM-050 (Active Roadmap)
+## Platform Intelligence & Hardening (post FM-050)
+
+ForgeMind now adds:
+
+1. **Run Replay & Execution Trace (FM-046)** — ReplaySnapshot model capturing every agent execution step with deterministic SHA-256 hashing; replay past executions and compare original vs. replay outputs side-by-side; full execution trace retrieval per run
+2. **Multi-Agent Council Decision Engine (FM-047A)** — CouncilSession/CouncilVote models; 4 decision methods (consensus, majority, supermajority, weighted voting); automatic deadlock detection and human escalation; collaborative agent decision-making for complex architectural choices
+3. **Policy-Based Approval Rules (FM-047)** — Enhanced governance with 5 policy trigger types (TASK_TYPE, COST_THRESHOLD, ARTIFACT_TYPE, AGENT_ACTION, CUSTOM); custom JSON rules engine with and/or logic and comparison operators; council integration via `evaluate_approval_with_council()`
+4. **Multi-Run Memory & Project Knowledge Base (FM-048)** — ProjectKnowledge model with 7 knowledge types (pattern, decision, lesson_learned, dependency, best_practice, architecture, constraint); auto-extraction from completed/failed tasks and planner results; knowledge context injection into agent prompts for smarter cross-run decisions
+5. **External Repo Integration (FM-049)** — RepoConnection model supporting GitHub, GitLab, Bitbucket, and local providers; health checking and sync operations per connection; multi-repo support per project
+6. **Production Hardening (FM-050)** — JWT authentication via python-jose with dev-mode stub fallback; per-IP token bucket rate limiting (100 req/60s); request logging middleware with timing and unique X-Request-ID headers; global error handlers for consistent JSON error responses
+
+**Database additions:** 4 new migrations (0015–0018), 5 new models (ReplaySnapshot, CouncilSession, CouncilVote, ProjectKnowledge, RepoConnection)
+**Test additions:** 34 new tests in `test_fm046_050_v2.py`
+**Total test suite: 185 tests (all passing)**
+
+> **ForgeMind is now a complete, production-hardened AI execution platform with 50 features across 10 milestones.**
+
+---
+
+## Next Up: FM-046 to FM-050 — ✅ COMPLETE
 
 | ID      | Feature                                          | Status      |
 | ------- | ------------------------------------------------ | ----------- |
-| FM-046  | Run Replay and Execution Trace Inspection        | Not started |
-| FM-047A | Multi-Agent Council Decision Engine              | Not started |
-| FM-047  | Policy-Based Approval Rules                      | Not started |
-| FM-048  | Multi-Run Memory and Project Knowledge Base      | Not started |
-| FM-049  | External Repo / Workspace Execution Integration  | Not started |
-| FM-050  | Production Readiness and Platform Hardening Pass | Not started |
+| FM-046  | Run Replay and Execution Trace Inspection        | ✅ Complete |
+| FM-047A | Multi-Agent Council Decision Engine              | ✅ Complete |
+| FM-047  | Policy-Based Approval Rules                      | ✅ Complete |
+| FM-048  | Multi-Run Memory and Project Knowledge Base      | ✅ Complete |
+| FM-049  | External Repo / Workspace Execution Integration  | ✅ Complete |
+| FM-050  | Production Readiness and Platform Hardening Pass | ✅ Complete |
 
 ---
 

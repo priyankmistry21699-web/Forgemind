@@ -128,6 +128,38 @@ flowchart TD
 - Context-aware using execution memory service
 - Stub fallback when LLM is unavailable
 
+### 🔄 Run Replay & Execution Trace
+
+- Capture deterministic snapshots of every agent execution step
+- Replay past executions with SHA-256 hash comparison
+- Full execution trace inspection per run
+- Side-by-side diff of original vs replay outputs
+
+### 🏛️ Multi-Agent Council Engine
+
+- Collaborative agent decision-making for complex architectural choices
+- 4 decision methods: consensus, majority, supermajority, weighted voting
+- Automatic deadlock detection and human escalation
+
+### 🧠 Project Knowledge Base
+
+- Auto-extract patterns, lessons learned, and constraints from completed runs
+- Cross-run memory with relevance scoring
+- Knowledge context injection into agent prompts for smarter decisions
+
+### 🔗 External Repo Integration
+
+- Connect GitHub, GitLab, Bitbucket, or local repositories to projects
+- Health checking and sync operations per connection
+- Multi-repo support per project
+
+### 🛡️ Production Hardening
+
+- JWT authentication with dev-mode stub fallback
+- Per-IP token bucket rate limiting (100 req/60s)
+- Request logging with timing and unique request IDs
+- Global error handlers for consistent JSON error responses
+
 ---
 
 ## 🏗️ Architecture
@@ -142,15 +174,21 @@ flowchart TB
 
     subgraph Backend["⚡ BACKEND · Port 8000"]
         FA["<b>FastAPI</b> — Python 3.12 · Async"]
-        subgraph Routes["📡 16 API Routes"]
+        subgraph Routes["📡 26 API Routes"]
             direction LR
             R1["health · projects\nplanner · planner_results"] ~~~ R2["tasks · runs\nartifacts · agents"]
-            R3["approvals · events\nchat · composition"] ~~~ R4["connectors · memory"]
+            R3["approvals · events\nchat · composition"] ~~~ R4["connectors · memory\ngovernance · trust"]
+            R5["replay · council\nknowledge · repos"] ~~~ R6["costs · audit\nlifecycle · vault"]
         end
-        subgraph Svcs["⚙️ 14 Services"]
+        subgraph Svcs["⚙️ 24 Services"]
             direction LR
             S1["project · planner\ntask · run · artifact"] ~~~ S2["agent · approval · event\nexecution · chat"]
-            S3["composition · connector\nrun_memory · adaptive"]
+            S3["composition · connector\nrun_memory · adaptive"] ~~~ S4["replay · council\nknowledge · repo"]
+            S5["governance · trust\ncost · audit · retry"]
+        end
+        subgraph Middleware["🛡️ Production Middleware"]
+            direction LR
+            MW1["JWT Auth"] ~~~ MW2["Rate Limiter"] ~~~ MW3["Request Logger"] ~~~ MW4["Error Handler"]
         end
     end
 
@@ -166,7 +204,7 @@ flowchart TB
 
     subgraph Infra["🗄️ INFRASTRUCTURE"]
         direction LR
-        PG["🐘 <b>PostgreSQL 16</b>\n10 tables · 8 migrations"]
+        PG["🐘 <b>PostgreSQL 16</b>\n20 tables · 18 migrations"]
         RD["🔴 <b>Redis 7</b>\nCache · Queues"]
         MN["📦 <b>MinIO</b>\nS3 Object Storage"]
         LLM["🤖 <b>LiteLLM</b>\nGPT-4o · Claude\nGemini · Ollama"]
@@ -193,6 +231,10 @@ flowchart TB
     style AG2 fill:#2563eb,stroke:#60a5fa,color:#fff
     style AG3 fill:#7c3aed,stroke:#a78bfa,color:#fff
     style AG4 fill:#059669,stroke:#34d399,color:#fff
+    style MW1 fill:#d97706,stroke:#fbbf24,color:#fff
+    style MW2 fill:#d97706,stroke:#fbbf24,color:#fff
+    style MW3 fill:#d97706,stroke:#fbbf24,color:#fff
+    style MW4 fill:#d97706,stroke:#fbbf24,color:#fff
 ```
 
 ### Data Model
@@ -263,14 +305,58 @@ erDiagram
         string type
         json capabilities
     }
+    REPLAY_SNAPSHOTS {
+        uuid id PK
+        uuid task_id FK
+        uuid run_id FK
+        string agent_slug
+        json input_snapshot
+        json output_snapshot
+        string replay_hash
+    }
+    COUNCIL_SESSIONS {
+        uuid id PK
+        uuid project_id FK
+        string topic
+        string status
+        string decision_method
+        string final_decision
+    }
+    COUNCIL_VOTES {
+        uuid id PK
+        uuid session_id FK
+        string agent_slug
+        string decision
+        float confidence
+    }
+    PROJECT_KNOWLEDGE {
+        uuid id PK
+        uuid project_id FK
+        string knowledge_type
+        string title
+        text content
+        float relevance_score
+    }
+    REPO_CONNECTIONS {
+        uuid id PK
+        uuid project_id FK
+        string provider
+        string repo_url
+        string status
+    }
 
     PROJECTS ||--o{ RUNS : "has many"
     PROJECTS ||--o{ PLANNER_RESULTS : "generates"
+    PROJECTS ||--o{ PROJECT_KNOWLEDGE : "accumulates"
+    PROJECTS ||--o{ REPO_CONNECTIONS : "links to"
+    PROJECTS ||--o{ COUNCIL_SESSIONS : "convenes"
     RUNS ||--o{ TASKS : "contains"
+    RUNS ||--o{ REPLAY_SNAPSHOTS : "traces"
     TASKS ||--o{ ARTIFACTS : "produces"
     TASKS ||--o{ APPROVAL_REQUESTS : "may require"
     RUNS ||--o{ EXECUTION_EVENTS : "logs"
     AGENTS ||--o{ TASKS : "executes"
+    COUNCIL_SESSIONS ||--o{ COUNCIL_VOTES : "collects"
 ```
 
 ### Execution Flow
@@ -414,7 +500,8 @@ flowchart LR
 | 📦 **Storage**        | MinIO                | Latest      | S3-compatible object storage      |
 | 🔄 **Migrations**     | Alembic              | 1.14+       | Database versioning               |
 | 🤖 **LLM Gateway**    | LiteLLM              | 1.50+       | Multi-provider LLM abstraction    |
-| 🐳 **Infrastructure** | Docker Compose       | —           | 6-service local stack             |
+| �️ **Auth**            | python-jose (JWT)    | —           | Production JWT authentication     |
+| �🐳 **Infrastructure** | Docker Compose       | —           | 6-service local stack             |
 
 ---
 
@@ -436,37 +523,56 @@ forgemind/
 │   │   ├── app/
 │   │   │   ├── main.py            #    App entry + lifespan
 │   │   │   ├── api/
-│   │   │   │   ├── router.py      #    16 route mounts
-│   │   │   │   └── routes/        #    Route handlers (15 files)
+│   │   │   │   ├── router.py      #    26 route mounts
+│   │   │   │   └── routes/        #    Route handlers (25 files)
 │   │   │   │       ├── health.py, projects.py, planner.py
 │   │   │   │       ├── planner_results.py, tasks.py, runs.py
 │   │   │   │       ├── artifacts.py, agents.py, approvals.py
 │   │   │   │       ├── events.py, chat.py, composition.py
 │   │   │   │       ├── connectors.py, memory.py
+│   │   │   │       ├── credential_vault.py, retry.py
+│   │   │   │       ├── run_lifecycle.py, costs.py
+│   │   │   │       ├── governance.py, audit.py, trust.py
+│   │   │   │       ├── replay.py, council.py
+│   │   │   │       ├── knowledge.py, repos.py
 │   │   │   │       └── __init__.py
-│   │   │   ├── core/              #    Config, auth, LLM integration
+│   │   │   ├── core/              #    Config, auth, middleware
 │   │   │   │   ├── config.py      #    Settings (env-based)
-│   │   │   │   ├── auth_stub.py   #    Auth placeholder
+│   │   │   │   ├── auth_stub.py   #    Auth placeholder (dev)
+│   │   │   │   ├── auth.py        #    JWT authentication (prod)
+│   │   │   │   ├── rate_limit.py  #    Token bucket rate limiter
+│   │   │   │   ├── logging_middleware.py # Request logging
+│   │   │   │   ├── error_handlers.py    # Global error handlers
 │   │   │   │   └── llm.py         #    LiteLLM wrapper
 │   │   │   ├── db/                #    Database setup
-│   │   │   │   ├── base.py        #    Model imports (metadata)
+│   │   │   │   ├── base.py        #    Model imports (20 models)
 │   │   │   │   ├── base_class.py  #    SQLAlchemy declarative base
 │   │   │   │   └── session.py     #    Async session factory
-│   │   │   ├── models/            #    SQLAlchemy models (10)
+│   │   │   ├── models/            #    SQLAlchemy models (20)
 │   │   │   │   ├── user.py, project.py, run.py, task.py
 │   │   │   │   ├── planner_result.py, artifact.py, agent.py
 │   │   │   │   ├── approval_request.py, execution_event.py
-│   │   │   │   └── connector.py
-│   │   │   ├── schemas/           #    Pydantic schemas (11 files)
-│   │   │   └── services/          #    Business logic (14 services)
+│   │   │   │   ├── connector.py, credential_vault.py
+│   │   │   │   ├── cost_record.py, governance_policy.py
+│   │   │   │   ├── trust_score.py, replay_snapshot.py
+│   │   │   │   ├── council.py, project_knowledge.py
+│   │   │   │   └── repo_connection.py
+│   │   │   ├── schemas/           #    Pydantic schemas (17 files)
+│   │   │   └── services/          #    Business logic (24 services)
 │   │   │       ├── project_service.py, planner_service.py
 │   │   │       ├── task_service.py, artifact_service.py
 │   │   │       ├── agent_service.py, approval_service.py
 │   │   │       ├── event_service.py, execution_service.py
 │   │   │       ├── chat_service.py, composition_service.py
 │   │   │       ├── connector_service.py, run_memory_service.py
-│   │   │       └── adaptive_orchestrator.py
-│   │   └── alembic/versions/      #    8 migration files
+│   │   │       ├── adaptive_orchestrator.py
+│   │   │       ├── credential_vault_service.py, adaptive_retry_service.py
+│   │   │       ├── run_lifecycle_service.py, cost_tracking_service.py
+│   │   │       ├── governance_service.py, audit_export_service.py
+│   │   │       ├── trust_scoring_service.py, replay_service.py
+│   │   │       ├── council_service.py, knowledge_service.py
+│   │   │       └── repo_service.py
+│   │   └── alembic/versions/      #    18 migration files
 │   │
 │   ├── web/                       # 🌐 Next.js 15 Frontend
 │   │   ├── package.json           #    Node dependencies
@@ -682,6 +788,44 @@ Base URL: `http://localhost:8000`
 | `GET`  | `/runs/{id}/memory/failures` | Failure analysis      |
 | `GET`  | `/runs/{id}/memory/context`  | Text context for chat |
 
+### Replay & Council
+
+| Method | Path                               | Description               |
+| ------ | ---------------------------------- | ------------------------- |
+| `GET`  | `/runs/{id}/trace`                 | Execution trace           |
+| `GET`  | `/tasks/{id}/snapshots`            | Task snapshots            |
+| `POST` | `/replay/snapshots`                | Capture snapshot          |
+| `POST` | `/replay/snapshots/{id}/replay`    | Replay execution          |
+| `GET`  | `/replay/compare`                  | Compare original/replay   |
+| `POST` | `/council/sessions`                | Convene council           |
+| `POST` | `/council/sessions/{id}/vote`      | Cast agent vote           |
+| `POST` | `/council/sessions/{id}/resolve`   | Resolve decision          |
+
+### Knowledge & Repos
+
+| Method   | Path                                     | Description           |
+| -------- | ---------------------------------------- | --------------------- |
+| `POST`   | `/projects/{id}/knowledge`               | Create knowledge      |
+| `GET`    | `/projects/{id}/knowledge`               | List knowledge        |
+| `POST`   | `/runs/{id}/extract-knowledge`           | Auto-extract          |
+| `GET`    | `/projects/{id}/knowledge/context`       | Knowledge context     |
+| `POST`   | `/projects/{id}/repos`                   | Connect repo          |
+| `GET`    | `/projects/{id}/repos`                   | List connections      |
+| `POST`   | `/repos/{id}/health`                     | Health check          |
+| `POST`   | `/repos/{id}/sync`                       | Sync repo             |
+
+### Governance & Trust
+
+| Method | Path                              | Description               |
+| ------ | --------------------------------- | ------------------------- |
+| `POST` | `/governance/policies`            | Create policy             |
+| `GET`  | `/governance/evaluate/task`       | Evaluate approval         |
+| `GET`  | `/governance/evaluate/with-council` | Evaluate with council   |
+| `POST` | `/trust/tasks/{id}/assess`        | Assess task trust         |
+| `GET`  | `/trust/runs/{id}/risk-summary`   | Run risk summary          |
+| `GET`  | `/audit/export/json`              | Export audit log          |
+| `GET`  | `/costs/runs/{id}/summary`        | Cost summary              |
+
 ### Agent Registry
 
 | Method | Path             | Description            |
@@ -711,16 +855,26 @@ alembic downgrade -1
 
 ### Migration History
 
-| #    | Migration                    | Description                        |
-| ---- | ---------------------------- | ---------------------------------- |
-| 0001 | `initial_schema`             | users, projects, runs, tasks       |
-| 0002 | `add_planner_results`        | planner_results table              |
-| 0003 | `add_artifacts`              | artifacts table                    |
-| 0004 | `add_agents`                 | agents table + seed data           |
-| 0005 | `add_task_execution_columns` | agent_slug, error_message on tasks |
-| 0006 | `add_approval_requests`      | approval_requests table            |
-| 0007 | `add_execution_events`       | execution_events table             |
-| 0008 | `add_connectors`             | connectors table                   |
+| #    | Migration                    | Description                                  |
+| ---- | ---------------------------- | -------------------------------------------- |
+| 0001 | `initial_schema`             | users, projects, runs, tasks                 |
+| 0002 | `add_planner_results`        | planner_results table                        |
+| 0003 | `add_artifacts`              | artifacts table                              |
+| 0004 | `add_agents`                 | agents table + seed data                     |
+| 0005 | `add_task_execution_columns` | agent_slug, error_message on tasks           |
+| 0006 | `add_approval_requests`      | approval_requests table                      |
+| 0007 | `add_execution_events`       | execution_events table                       |
+| 0008 | `add_connectors`             | connectors table                             |
+| 0009 | `add_connector_readiness`    | project_connector_links table                |
+| 0010 | `add_credential_vault`       | credential_vault table                       |
+| 0011 | `add_retry_columns`          | +max_retries, +retry_count on tasks          |
+| 0012 | `add_cost_tracking`          | cost_records table                           |
+| 0013 | `add_governance_policies`    | governance_policies table                    |
+| 0014 | `add_trust_scores`           | trust_scores table                           |
+| 0015 | `add_replay_snapshots`       | replay_snapshots table                       |
+| 0016 | `add_council_tables`         | council_sessions + council_votes tables      |
+| 0017 | `add_project_knowledge`      | project_knowledge table                      |
+| 0018 | `add_repo_connections`       | repo_connections table                       |
 
 ### Code Quality
 
@@ -755,7 +909,7 @@ make test
 
 ## 📊 Milestone Progress
 
-### Completed: 8 Milestones — 42 Tasks ✅
+### Completed: 10 Milestones — 50 Tasks ✅
 
 | #   | Milestone                                | Tasks                      | Status      |
 | --- | ---------------------------------------- | -------------------------- | ----------- |
@@ -767,6 +921,8 @@ make test
 | 6   | **Controlled Execution & Observability** | FM-026 → FM-030            | ✅ Complete |
 | 7   | **Operator Control & Interaction**       | FM-031 → FM-035            | ✅ Complete |
 | 8   | **Adaptive Multi-Agent Foundations**     | FM-036 → FM-040            | ✅ Complete |
+| 9   | **Pre-Release Infrastructure**           | FM-041 → FM-045            | ✅ Complete |
+| 10  | **Platform Intelligence & Hardening**    | FM-046 → FM-050            | ✅ Complete |
 
 <details>
 <summary><strong>Milestone 1 — Platform Foundation</strong></summary>
@@ -851,6 +1007,27 @@ make test
 - FM-040: Adaptive execution loop v1
 </details>
 
+<details>
+<summary><strong>Milestone 9 — Pre-Release Infrastructure</strong></summary>
+
+- FM-041: Connector readiness tracking & project-connector links
+- FM-042: Credential vault with encrypted secret references
+- FM-043: Adaptive retry with agent re-routing (max 2)
+- FM-044: Run lifecycle management & health scanning
+- FM-045: Cost tracking, governance policies, audit export, trust scoring, quality evals
+</details>
+
+<details>
+<summary><strong>Milestone 10 — Platform Intelligence & Hardening</strong></summary>
+
+- FM-046: Run Replay & Execution Trace Inspection — snapshot capture, deterministic hashing, replay comparison
+- FM-047A: Multi-Agent Council Decision Engine — consensus/majority/supermajority/weighted voting
+- FM-047: Policy-Based Approval Rules — multi-trigger evaluation (cost, agent, artifact, custom rules)
+- FM-048: Multi-Run Memory & Project Knowledge Base — auto-extraction, knowledge context for agents
+- FM-049: External Repo / Workspace Integration — GitHub/GitLab/Bitbucket/local connections
+- FM-050: Production Hardening — JWT auth, rate limiting, request logging, global error handlers
+</details>
+
 ---
 
 ## 🧩 Technical Decisions
@@ -874,7 +1051,7 @@ make test
 
 **Built with ❤️ by [Priyank Mistry](https://github.com/priyankmistry21699-web)**
 
-_ForgeMind v0.3.0 — 42 tasks completed across 8 milestones_
+_ForgeMind v1.0.0 — 50 tasks completed across 10 milestones · 185 tests passing_
 
 </div>
 

@@ -1,6 +1,6 @@
 # ForgeMind — System Architecture
 
-> Last updated: 2026-03-26 (after FM-045 + pre-release infrastructure completion)
+> Last updated: 2026-03-27 (after FM-050 — all features complete)
 
 ---
 
@@ -79,11 +79,11 @@ ForgeMind is an **operator-centered AI execution platform** that dynamically ass
 | Async       | pytest-asyncio               | Async test support             |
 | HTTP Client | httpx (AsyncClient)          | API integration tests          |
 | Test DB     | aiosqlite (in-memory SQLite) | Fast isolated test database    |
-| Total Tests | **174** (all passing)        | 105 core + 23 evals + 46 infra |
+| Total Tests | **185** (all passing)        | 105 core + 23 evals + 46 infra + 34 FM-046–050 |
 
 ---
 
-## Database Models (15 Total)
+## Database Models (20 Total)
 
 All models defined in `apps/api/app/models/` and registered in `apps/api/app/db/base.py`.
 
@@ -123,6 +123,25 @@ All models defined in `apps/api/app/models/` and registered in `apps/api/app/db/
 │ capabilities │ readiness(enum)    │ env_key(uniq) │ tokens, USD  │
 │ config(JSON) │ project→,connect→  │ connector→    │ project/run→ │
 └──────────────┴────────────────────┴──────────────┴──────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│              INTELLIGENCE & REPLAY (FM-046–050)                  │
+├────────────────┬───────────────┬────────────────┬───────────────┤
+│ReplaySnapshot │CouncilSession │CouncilVote     │ProjectKnowl- │
+│(replay_       │(council_      │(council_votes) │  edge         │
+│ snapshots)    │ sessions)     │ session_id→    │(project_     │
+│ task/run/     │ project_id→   │ agent_slug,    │ knowledge)   │
+│ agent_slug,   │ topic,method  │ decision,conf  │ type, title, │
+│ replay_hash   │ final_decision│ weight         │ relevance    │
+└────────────────┴───────────────┴────────────────┴───────────────┘
+┌─────────────────────────────────┐
+│    EXTERNAL INTEGRATIONS           │
+├─────────────────────────────────┤
+│  RepoConnection                    │
+│  (repo_connections)                │
+│  project_id→, provider,            │
+│  repo_url, status,                 │
+│  default_branch, last_synced_at    │
+└─────────────────────────────────┘
 ```
 
 ### Model Details
@@ -144,6 +163,11 @@ All models defined in `apps/api/app/models/` and registered in `apps/api/app/db/
 | 13  | **CostRecord**           | `cost_records`            | id(UUID), model_name, prompt_tokens, completion_tokens, total_tokens, cost_usd, caller                                      | N:1 → Project/Run/Task                          |
 | 14  | **GovernancePolicy**     | `governance_policies`     | id(UUID), name, trigger(5 types), action(4 types), rules(JSON), project_id(FK), enabled, priority                           | —                                               |
 | 15  | **TrustScore**           | `trust_scores`            | id(UUID), entity_type(3 types), entity_id, trust_score(0-1), confidence, risk_level(4 levels), factors(JSON)                | —                                               |
+| 16  | **ReplaySnapshot**       | `replay_snapshots`        | id(UUID), task_id(FK), run_id(FK), project_id(FK), agent_slug, input/output_snapshot(JSON), replay_hash(SHA256), is_replay  | N:1 → Task/Run/Project, self-ref original       |
+| 17  | **CouncilSession**       | `council_sessions`        | id(UUID), project_id(FK), topic, status(5 states), decision_method(4 types), final_decision, decision_metadata(JSON)        | N:1 → Project, 1:N → CouncilVotes               |
+| 18  | **CouncilVote**          | `council_votes`           | id(UUID), session_id(FK), agent_slug, decision(4 types), reasoning, confidence(0-1), weight(float)                          | N:1 → CouncilSession                             |
+| 19  | **ProjectKnowledge**     | `project_knowledge`       | id(UUID), project_id(FK), knowledge_type(7 types), title, content, tags(JSON), relevance_score, usage_count                 | N:1 → Project                                    |
+| 20  | **RepoConnection**       | `repo_connections`        | id(UUID), project_id(FK), provider(4 types), repo_url, repo_name, status(4 states), default_branch, last_synced_at          | N:1 → Project                                    |
 
 ### Status Enums
 
@@ -160,10 +184,16 @@ All models defined in `apps/api/app/models/` and registered in `apps/api/app/db/
 | GovernancePolicy trigger | TASK_TYPE, COST_THRESHOLD, ARTIFACT_TYPE, AGENT_ACTION, CUSTOM |
 | GovernancePolicy action  | REQUIRE_APPROVAL, AUTO_APPROVE, BLOCK, NOTIFY                  |
 | TrustScore risk_level    | LOW, MEDIUM, HIGH, CRITICAL                                    |
+| CouncilSession status    | CONVENED, DELIBERATING, DECIDED, DEADLOCKED, ESCALATED         |
+| CouncilSession method    | CONSENSUS, MAJORITY, SUPERMAJORITY, WEIGHTED                   |
+| CouncilVote decision     | APPROVE, REJECT, ABSTAIN, MODIFY                               |
+| ProjectKnowledge type    | PATTERN, DECISION, LESSON_LEARNED, DEPENDENCY, BEST_PRACTICE, ARCHITECTURE, CONSTRAINT |
+| RepoConnection provider  | GITHUB, GITLAB, BITBUCKET, LOCAL                               |
+| RepoConnection status    | CONNECTED, DISCONNECTED, ERROR, PENDING                        |
 
 ---
 
-## API Routes (22 Routers)
+## API Routes (26 Routers)
 
 All routers registered in `apps/api/app/api/router.py` and mounted via `app.include_router(api_router)` in `main.py`.
 
@@ -192,6 +222,10 @@ All routers registered in `apps/api/app/api/router.py` and mounted via `app.incl
 | 19  | `governance.py`       | `/governance`       | `POST /governance/policies`, `GET /governance/policies`, `GET /governance/policies/{id}`, `PATCH ...`, `DELETE ...`                                                                 | governance  |
 | 20  | `audit.py`            | `/audit`            | `GET /audit/export/json`, `GET /audit/export/csv`, `GET /audit/summary`                                                                                                             | audit       |
 | 21  | `trust.py`            | `/trust`            | `POST /trust/tasks/{id}/assess`, `POST /trust/runs/{id}/assess`, `GET /trust/runs/{id}/risk-summary`, `GET /trust/scores`, `GET /trust/{type}/{id}`                                 | trust       |
+| 22  | `replay.py`           | `/`                 | `GET /runs/{id}/trace`, `GET /tasks/{id}/snapshots`, `POST /replay/snapshots`, `GET /replay/snapshots/{id}`, `POST /replay/snapshots/{id}/replay`, `GET /replay/compare`             | replay      |
+| 23  | `council.py`          | `/council`          | `POST /council/sessions`, `GET /council/sessions`, `GET /council/sessions/{id}`, `POST .../vote`, `POST .../resolve`, `POST .../escalate`                                           | council     |
+| 24  | `knowledge.py`        | `/`                 | `POST /projects/{id}/knowledge`, `GET /projects/{id}/knowledge`, `GET /knowledge/{id}`, `DELETE /knowledge/{id}`, `POST /runs/{id}/extract-knowledge`, `GET .../knowledge/context`   | knowledge   |
+| 25  | `repos.py`            | `/`                 | `POST /projects/{id}/repos`, `GET /projects/{id}/repos`, `GET /repos/{id}`, `PATCH /repos/{id}`, `DELETE /repos/{id}`, `POST /repos/{id}/health`, `POST /repos/{id}/sync`            | repos       |
 
 ---
 
@@ -217,7 +251,7 @@ All business logic lives in `apps/api/app/services/`. Routes are thin — they d
 | `run_memory_service.py`    | get_summary, get_failures, build_context           | Cached run context for chat/agents   |
 | `adaptive_orchestrator.py` | —                                                  | DAG scheduling + failure handling    |
 
-### Advanced Services (FM-041–050 Infrastructure)
+### Advanced Services (FM-041–045 Infrastructure)
 
 | Service                       | Key Functions                                     | Purpose                           |
 | ----------------------------- | ------------------------------------------------- | --------------------------------- |
@@ -225,9 +259,18 @@ All business logic lives in `apps/api/app/services/`. Routes are thin — they d
 | `adaptive_retry_service.py`   | should_retry, get_delay, plan_reroute             | Smart retry with agent re-routing |
 | `run_lifecycle_service.py`    | get_health, auto_complete, auto_fail, scan        | Run health + stuck detection      |
 | `cost_tracking_service.py`    | record_usage, estimate_cost, summaries, breakdown | Per-call LLM cost tracking        |
-| `governance_service.py`       | CRUD policies, evaluate_policies                  | Configurable approval rules       |
+| `governance_service.py`       | CRUD policies, evaluate_policies, custom rules    | Configurable approval rules       |
 | `audit_export_service.py`     | export_json, export_csv, summary                  | Compliance-ready audit export     |
 | `trust_scoring_service.py`    | assess_task, assess_run, risk_summary             | Heuristic trust/risk scoring      |
+
+### Intelligence & Hardening Services (FM-046–050)
+
+| Service                  | Key Functions                                                    | Purpose                               |
+| ------------------------ | ---------------------------------------------------------------- | ------------------------------------- |
+| `replay_service.py`      | capture_snapshot, get_execution_trace, replay, compare           | Deterministic execution replay        |
+| `council_service.py`     | convene, cast_vote, resolve (4 methods), escalate                | Multi-agent council decisions          |
+| `knowledge_service.py`   | create, extract_from_run, get_context, list, delete              | Cross-run project knowledge base      |
+| `repo_service.py`        | CRUD connections, check_health, sync                             | External repo integration             |
 
 ---
 
@@ -250,10 +293,14 @@ All request/response models in `apps/api/app/schemas/`.
 | `cost.py`            | CostRecordRead, CostRecordList                                                                                   | Cost tracking DTOs         |
 | `governance.py`      | GovernancePolicyRead/List/Create/Update                                                                          | Governance DTOs            |
 | `trust.py`           | TrustScoreRead, TrustScoreList                                                                                   | Trust score DTOs           |
+| `replay.py`          | ReplaySnapshotRead/Create/List, ReplayRequest, ReplayCompare, ExecutionTrace                                     | Replay & trace DTOs        |
+| `council.py`         | CouncilSessionRead/List, ConveneCouncilRequest, CastVoteRequest, CouncilVoteRead, CouncilDecisionResult          | Council decision DTOs       |
+| `knowledge.py`       | ProjectKnowledgeRead/Create/List, KnowledgeExtractionResult, KnowledgeContext                                    | Knowledge base DTOs         |
+| `repo.py`            | RepoConnectionRead/Create/Update/List, RepoBranchInfo, RepoSyncResult                                            | Repo integration DTOs       |
 
 ---
 
-## Database Migrations (14 Total)
+## Database Migrations (18 Total)
 
 All migrations in `apps/api/alembic/versions/` using Alembic.
 
@@ -273,6 +320,10 @@ All migrations in `apps/api/alembic/versions/` using Alembic.
 | 12  | 0012     | Cost tracking                | cost_records table                                               |
 | 13  | 0013     | Governance policies          | governance_policies table                                        |
 | 14  | 0014     | Trust scores                 | trust_scores table                                               |
+| 15  | 0015     | Replay snapshots (FM-046)    | replay_snapshots table                                           |
+| 16  | 0016     | Council tables (FM-047A)     | council_sessions + council_votes tables                          |
+| 17  | 0017     | Project knowledge (FM-048)   | project_knowledge table                                          |
+| 18  | 0018     | Repo connections (FM-049)    | repo_connections table                                           |
 
 ---
 
@@ -282,8 +333,11 @@ All migrations in `apps/api/alembic/versions/` using Alembic.
 
 ```
 FastAPI app created
+  → register_error_handlers() — global HTTP/validation/unhandled error handlers
   → CORS middleware added (allow_origins from settings)
-  → All 22 routers mounted via api_router
+  → RateLimitMiddleware added (100 req/60s per IP, production only)
+  → RequestLoggingMiddleware added (timing + X-Request-ID headers)
+  → All 26 routers mounted via api_router
   → Lifespan startup:
       → seed_default_agents() — creates 5 core agents
         (Planner, Architect, Coder, Reviewer, Tester)
@@ -382,6 +436,7 @@ Settings defined in `apps/api/app/core/config.py` via Pydantic `BaseSettings`:
 | `test_memory.py`      | Execution memory        | Summaries, failure analysis                          |
 | `test_schemas.py`     | Pydantic schemas        | Validation                                           |
 | `test_fm046_050.py`   | Infrastructure features | Lifecycle, cost, governance, audit, trust (46 tests) |
+| `test_fm046_050_v2.py`| FM-046–050 new features | Replay, council, knowledge, repos, hardening (34 tests) |
 
 ### Evaluation Tests (`apps/api/evals/`)
 
@@ -392,12 +447,13 @@ Settings defined in `apps/api/app/core/config.py` via Pydantic `BaseSettings`:
 
 ### Test Counts
 
-| Category                          | Tests   |
-| --------------------------------- | ------- |
-| Core tests (FM-001–040)           | 105     |
-| Quality evals (FM-045)            | 23      |
-| Infrastructure tests (FM-046–050) | 46      |
-| **Total**                         | **174** |
+| Category                           | Tests   |
+| ---------------------------------- | ------- |
+| Core tests (FM-001–040)            | 105     |
+| Quality evals (FM-045)             | 23      |
+| Infrastructure tests (pre-release) | 23      |
+| FM-046–050 feature tests           | 34      |
+| **Total**                          | **185** |
 
 ---
 
@@ -409,20 +465,26 @@ forgemind/
 │   ├── api/                          # FastAPI backend
 │   │   ├── app/
 │   │   │   ├── api/
-│   │   │   │   ├── router.py         # Main router (22 routers)
-│   │   │   │   └── routes/           # Route handlers (22 files)
+│   │   │   │   ├── router.py         # Main router (26 routers)
+│   │   │   │   └── routes/           # Route handlers (25 files)
 │   │   │   ├── core/
-│   │   │   │   └── config.py         # Settings (Pydantic BaseSettings)
+│   │   │   │   ├── config.py         # Settings (Pydantic BaseSettings)
+│   │   │   │   ├── auth.py           # JWT authentication (prod)
+│   │   │   │   ├── auth_stub.py      # Auth stub (dev fallback)
+│   │   │   │   ├── rate_limit.py     # Token bucket rate limiter
+│   │   │   │   ├── logging_middleware.py # Request logging + timing
+│   │   │   │   ├── error_handlers.py # Global error handlers
+│   │   │   │   └── llm.py            # LiteLLM wrapper
 │   │   │   ├── db/
-│   │   │   │   ├── base.py           # Model registry (15 models)
+│   │   │   │   ├── base.py           # Model registry (20 models)
 │   │   │   │   └── session.py        # Async engine + session factory
-│   │   │   ├── models/               # SQLAlchemy models (15 files)
-│   │   │   ├── schemas/              # Pydantic schemas (13 files)
-│   │   │   ├── services/             # Business logic (20+ files)
+│   │   │   ├── models/               # SQLAlchemy models (20 files)
+│   │   │   ├── schemas/              # Pydantic schemas (17 files)
+│   │   │   ├── services/             # Business logic (24 services)
 │   │   │   └── main.py              # FastAPI app factory
 │   │   ├── alembic/
-│   │   │   └── versions/             # 14 migrations
-│   │   ├── tests/                    # 128 tests (15 files)
+│   │   │   └── versions/             # 18 migrations
+│   │   ├── tests/                    # 162 tests (16 files)
 │   │   ├── evals/                    # 23 eval tests
 │   │   ├── alembic.ini
 │   │   └── requirements.txt
@@ -446,17 +508,20 @@ forgemind/
 
 ## Security Architecture
 
-| Area             | Implementation                                     |
-| ---------------- | -------------------------------------------------- |
-| Authentication   | Clerk (JWT via `get_current_user_id()` dependency) |
-| Authorization    | Owner-based (extensible to RBAC)                   |
-| Secret Storage   | Env-key references (no plaintext secrets in DB)    |
-| CORS             | Configurable allowed origins                       |
-| Input Validation | Pydantic model validation on all inputs            |
-| State Machine    | Task transitions validated in service layer        |
-| Audit            | Append-only ExecutionEvent table                   |
-| Governance       | Configurable policies (approve/block/notify)       |
-| Trust            | Heuristic scoring per task/run/artifact            |
+| Area             | Implementation                                                                    |
+| ---------------- | --------------------------------------------------------------------------------- |
+| Authentication   | JWT via python-jose (`get_current_user_id()` dependency); dev-mode stub fallback  |
+| Authorization    | Owner-based (extensible to RBAC)                                                  |
+| Rate Limiting    | Token bucket per IP (100 req/60s default, production only)                        |
+| Request Logging  | Middleware with timing, unique X-Request-ID headers per request                   |
+| Error Handling   | Global handlers for HTTP, validation, and unhandled exceptions (consistent JSON)  |
+| Secret Storage   | Env-key references (no plaintext secrets in DB)                                   |
+| CORS             | Configurable allowed origins                                                      |
+| Input Validation | Pydantic model validation on all inputs                                           |
+| State Machine    | Task transitions validated in service layer                                       |
+| Audit            | Append-only ExecutionEvent table                                                  |
+| Governance       | Configurable policies with 5 triggers and 4 actions, custom JSON rules engine     |
+| Trust            | Heuristic scoring per task/run/artifact                                           |
 
 ---
 
@@ -478,17 +543,19 @@ forgemind/
 
 ---
 
-## Upcoming (FM-046 to FM-050)
+## Completed: Platform Intelligence & Hardening (FM-046–050)
 
-| ID      | Feature                             | Description                                            |
-| ------- | ----------------------------------- | ------------------------------------------------------ |
-| FM-046  | Run Replay & Trace Inspection       | Step-by-step execution replay with trace visualization |
-| FM-047A | Multi-Agent Council Engine          | Collaborative agent decision-making for complex tasks  |
-| FM-047  | Policy-Based Approval Rules         | Smart approval routing with council integration        |
-| FM-048  | Multi-Run Memory & Knowledge Base   | Cross-run learning and project-level knowledge         |
-| FM-049  | External Repo/Workspace Integration | Local file system and Git repository access            |
-| FM-050  | Production Hardening Pass           | Rate limiting, error recovery, monitoring, deployment  |
+| ID      | Feature                             | Description                                                                            | Status      |
+| ------- | ----------------------------------- | -------------------------------------------------------------------------------------- | ----------- |
+| FM-046  | Run Replay & Trace Inspection       | Snapshot capture, deterministic SHA-256 hashing, replay, side-by-side diff comparison  | ✅ Complete |
+| FM-047A | Multi-Agent Council Engine          | 4 decision methods (consensus/majority/supermajority/weighted), deadlock escalation     | ✅ Complete |
+| FM-047  | Policy-Based Approval Rules         | Multi-trigger evaluation, custom JSON rules engine, council integration                | ✅ Complete |
+| FM-048  | Multi-Run Memory & Knowledge Base   | Auto-extraction from runs, 7 knowledge types, relevance scoring, context injection     | ✅ Complete |
+| FM-049  | External Repo/Workspace Integration | GitHub/GitLab/Bitbucket/local providers, health checks, sync operations                | ✅ Complete |
+| FM-050  | Production Hardening Pass           | JWT auth, token bucket rate limiter, request logging, global error handlers             | ✅ Complete |
+
+> **All 50 tasks across 10 milestones are complete. 185 tests passing.**
 
 ---
 
-_This document reflects the architecture as of commit `5977b93` on `main`._
+_This document reflects the architecture as of the latest commit on `main` (all features complete)._
