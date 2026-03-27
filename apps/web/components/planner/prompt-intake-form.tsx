@@ -40,8 +40,22 @@ export function PromptIntakeForm({
   }
 
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6">
-      <h3 className="mb-1 text-sm font-semibold">Plan from Prompt</h3>
+    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6">
+      <h3 className="mb-1 text-sm font-semibold flex items-center gap-2">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="text-[var(--color-accent)]"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        Plan from Prompt
+      </h3>
       <p className="mb-4 text-xs text-[var(--color-text-muted)]">
         Describe what you want to build and the planner will create a project
         with tasks.

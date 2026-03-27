@@ -22,9 +22,11 @@ interface EventTimelineSectionProps {
 export function EventTimelineSection({ events }: EventTimelineSectionProps) {
   if (events.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-[var(--color-border)] py-6 text-center">
-        <p className="text-sm text-[var(--color-text-muted)]">
-          No events recorded yet
+      <div className="rounded-xl border border-dashed border-[var(--color-border-subtle)] bg-[var(--color-bg-card)]/50 py-10 text-center">
+        <div className="mb-3 text-2xl">\u23F3</div>
+        <p className="text-sm font-medium">No events recorded yet</p>
+        <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+          Events will appear here as agents work.
         </p>
       </div>
     );

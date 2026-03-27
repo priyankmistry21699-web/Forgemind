@@ -6,6 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.api.router import api_router
+from app.core.rate_limit import RateLimitMiddleware
+from app.core.logging_middleware import RequestLoggingMiddleware
+from app.core.error_handlers import register_error_handlers
 
 
 @asynccontextmanager
@@ -33,6 +36,10 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    # Global error handlers (FM-050)
+    register_error_handlers(app)
+
+    # Middleware stack (order matters: last added = first executed)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
@@ -40,6 +47,13 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # Rate limiting (FM-050) — only in non-debug mode
+    if not settings.debug:
+        app.add_middleware(RateLimitMiddleware, rate_limit=100, window_seconds=60)
+
+    # Request logging (FM-050)
+    app.add_middleware(RequestLoggingMiddleware)
 
     # Mount routers
     app.include_router(api_router)

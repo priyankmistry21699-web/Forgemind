@@ -36,34 +36,50 @@ export function ProjectCard({ project }: { project: Project }) {
   return (
     <Link
       href={`/dashboard/projects/${project.id}`}
-      className="block rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4 transition-colors hover:border-[var(--color-accent)]/40"
+      className="group block rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5 transition-all hover:border-[var(--color-accent)]/30 hover:bg-[var(--color-bg-card-hover)] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-sm font-semibold">{project.name}</h3>
+          <h3 className="truncate text-sm font-semibold group-hover:text-[var(--color-accent)]">
+            {project.name}
+          </h3>
           {project.description && (
-            <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[var(--color-text-muted)]">
+            <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-[var(--color-text-muted)]">
               {project.description}
             </p>
           )}
         </div>
         <StatusBadge status={project.status} />
       </div>
-      <p className="mt-3 text-[11px] text-[var(--color-text-muted)]">
-        Created {timeAgo(project.created_at)}
-      </p>
+      <div className="mt-4 flex items-center gap-2 border-t border-[var(--color-border)]/50 pt-3">
+        <svg
+          width="11"
+          height="11"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="text-[var(--color-text-dim)]"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+        <p className="text-[11px] text-[var(--color-text-dim)]">
+          Created {timeAgo(project.created_at)}
+        </p>
+      </div>
     </Link>
   );
 }
 
 export function ProjectListEmpty() {
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-[var(--color-border)] py-12">
-      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-bg-secondary)] text-lg">
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--color-border-subtle)] bg-[var(--color-bg-card)]/50 py-16">
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-accent)]/10 text-2xl">
         📁
       </div>
-      <p className="text-sm font-medium">No projects yet</p>
-      <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+      <p className="text-sm font-semibold">No projects yet</p>
+      <p className="mt-1.5 text-xs text-[var(--color-text-muted)]">
         Create your first project to get started.
       </p>
     </div>

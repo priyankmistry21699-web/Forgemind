@@ -166,27 +166,27 @@ export default function ProjectDetailPage() {
 
       {/* Project metadata */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-dim)]">
             Status
           </p>
-          <p className="mt-1 text-sm font-semibold capitalize">
+          <p className="mt-1.5 text-sm font-semibold capitalize">
             {project.status}
           </p>
         </div>
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-dim)]">
             Created
           </p>
-          <p className="mt-1 text-sm font-semibold">
+          <p className="mt-1.5 text-sm font-semibold">
             {formatDate(project.created_at)}
           </p>
         </div>
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-dim)]">
             Last Updated
           </p>
-          <p className="mt-1 text-sm font-semibold">
+          <p className="mt-1.5 text-sm font-semibold">
             {formatDate(project.updated_at)}
           </p>
         </div>
@@ -197,7 +197,7 @@ export default function ProjectDetailPage() {
         <h2 className="mb-3 text-sm font-semibold">Latest Run</h2>
         {latestRun ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4">
+            <div className="flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <Link
@@ -220,11 +220,10 @@ export default function ProjectDetailPage() {
             <RunTaskList runId={latestRun.id} />
           </div>
         ) : (
-          <div className="rounded-lg border border-dashed border-[var(--color-border)] py-8 text-center">
-            <p className="text-sm text-[var(--color-text-muted)]">
-              No runs yet
-            </p>
-            <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+          <div className="rounded-xl border border-dashed border-[var(--color-border-subtle)] bg-[var(--color-bg-card)]/50 py-10 text-center">
+            <div className="mb-3 text-2xl">🚀</div>
+            <p className="text-sm font-medium">No runs yet</p>
+            <p className="mt-1.5 text-xs text-[var(--color-text-muted)]">
               Submit a planning prompt from the dashboard to create the first
               run.
             </p>

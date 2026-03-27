@@ -39,8 +39,22 @@ export function ProjectCreateForm({
   }
 
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6">
-      <h3 className="mb-4 text-sm font-semibold">New Project</h3>
+    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6">
+      <h3 className="mb-4 text-sm font-semibold flex items-center gap-2">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="text-[var(--color-accent)]"
+        >
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        New Project
+      </h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
@@ -57,7 +71,7 @@ export function ProjectCreateForm({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. My Awesome App"
-            className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]/50 focus:border-[var(--color-accent)] focus:outline-none"
+            className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2.5 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]/50 focus:border-[var(--color-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]/30 transition-colors"
           />
         </div>
 
@@ -75,7 +89,7 @@ export function ProjectCreateForm({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Brief description of the project (optional)"
-            className="w-full resize-none rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]/50 focus:border-[var(--color-accent)] focus:outline-none"
+            className="w-full resize-none rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2.5 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]/50 focus:border-[var(--color-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]/30 transition-colors"
           />
         </div>
 
@@ -85,15 +99,15 @@ export function ProjectCreateForm({
           <button
             type="submit"
             disabled={submitting || !name.trim()}
-            className="rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white shadow-md shadow-[var(--color-accent)]/20 transition-all hover:bg-[var(--color-accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {submitting ? "Creating…" : "Create Project"}
+            {submitting ? "Creating\u2026" : "Create Project"}
           </button>
           <button
             type="button"
             onClick={onCancel}
             disabled={submitting}
-            className="rounded-md border border-[var(--color-border)] px-4 py-2 text-sm text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-text-muted)] disabled:opacity-50"
+            className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-border-subtle)] hover:text-[var(--color-text)] disabled:opacity-50"
           >
             Cancel
           </button>

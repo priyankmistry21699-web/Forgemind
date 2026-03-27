@@ -71,14 +71,14 @@ export default function ApprovalsPage() {
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-1 rounded-lg bg-[var(--color-bg-secondary)] p-1">
+      <div className="flex gap-1 rounded-xl bg-[var(--color-bg-secondary)] p-1">
         {(["all", "pending", "resolved"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setFilter(tab)}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+            className={`rounded-lg px-4 py-2 text-xs font-medium capitalize transition-all ${
               filter === tab
-                ? "bg-[var(--color-bg-card)] text-[var(--color-text)]"
+                ? "bg-[var(--color-bg-card)] text-[var(--color-text)] shadow-sm"
                 : "text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
             }`}
           >

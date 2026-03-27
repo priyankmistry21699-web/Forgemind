@@ -10,7 +10,7 @@ export function PlanningResultCard({
   onDismiss,
 }: PlanningResultCardProps) {
   return (
-    <div className="rounded-lg border border-emerald-900/50 bg-emerald-950/20 p-4">
+    <div className="rounded-xl border border-emerald-900/50 bg-emerald-950/20 p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-emerald-400">

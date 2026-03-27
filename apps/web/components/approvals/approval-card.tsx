@@ -68,7 +68,7 @@ export function ApprovalCard({ approval, onDecided }: ApprovalCardProps) {
 
   return (
     <div
-      className={`rounded-lg border p-4 ${
+      className={`rounded-xl border p-5 transition-all ${
         isPending
           ? "border-amber-800/50 bg-amber-950/20"
           : "border-[var(--color-border)] bg-[var(--color-bg-card)]"
@@ -120,16 +120,16 @@ export function ApprovalCard({ approval, onDecided }: ApprovalCardProps) {
             <button
               onClick={() => handleDecide("approved")}
               disabled={deciding}
-              className="rounded-md bg-green-700 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-green-600 disabled:opacity-50"
+              className="rounded-lg bg-green-700 px-4 py-2 text-xs font-medium text-white shadow-sm transition-all hover:bg-green-600 hover:-translate-y-0.5 disabled:opacity-50"
             >
-              {deciding ? "..." : "Approve"}
+              {deciding ? "..." : "\u2713 Approve"}
             </button>
             <button
               onClick={() => handleDecide("rejected")}
               disabled={deciding}
-              className="rounded-md bg-red-700 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+              className="rounded-lg bg-red-700 px-4 py-2 text-xs font-medium text-white shadow-sm transition-all hover:bg-red-600 hover:-translate-y-0.5 disabled:opacity-50"
             >
-              {deciding ? "..." : "Reject"}
+              {deciding ? "..." : "\u2717 Reject"}
             </button>
           </div>
           {error && <p className="text-xs text-red-400">{error}</p>}

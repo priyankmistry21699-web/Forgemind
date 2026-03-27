@@ -31,9 +31,11 @@ interface ArtifactListSectionProps {
 export function ArtifactListSection({ artifacts }: ArtifactListSectionProps) {
   if (artifacts.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-[var(--color-border)] py-6 text-center">
-        <p className="text-sm text-[var(--color-text-muted)]">
-          No artifacts produced yet
+      <div className="rounded-xl border border-dashed border-[var(--color-border-subtle)] bg-[var(--color-bg-card)]/50 py-10 text-center">
+        <div className="mb-3 text-2xl">\uD83D\uDCC4</div>
+        <p className="text-sm font-medium">No artifacts produced yet</p>
+        <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+          Artifacts will appear here as tasks complete.
         </p>
       </div>
     );
@@ -44,7 +46,7 @@ export function ArtifactListSection({ artifacts }: ArtifactListSectionProps) {
       {artifacts.map((artifact) => (
         <div
           key={artifact.id}
-          className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4"
+          className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5 transition-all hover:border-[var(--color-border-subtle)] hover:bg-[var(--color-bg-card-hover)]"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">

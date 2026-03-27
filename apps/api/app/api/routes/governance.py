@@ -111,17 +111,41 @@ async def delete_policy(
 async def evaluate_task_approval(
     task_type: str = Query(...),
     project_id: uuid.UUID = Query(...),
+    cost_usd: float | None = Query(None),
+    agent_slug: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
-    """Evaluate whether a task type requires approval under current policies."""
+    """Evaluate whether a task type requires approval under current policies.
+
+    FM-047: Enhanced with cost threshold, agent, and custom rule support.
+    """
     action = await governance_service.evaluate_task_approval(
-        db, task_type=task_type, project_id=project_id
+        db, task_type=task_type, project_id=project_id,
+        cost_usd=cost_usd, agent_slug=agent_slug,
     )
     return {
         "task_type": task_type,
         "project_id": str(project_id),
         "action": action.value,
     }
+
+
+@router.get("/evaluate/with-council")
+async def evaluate_with_council(
+    task_type: str = Query(...),
+    project_id: uuid.UUID = Query(...),
+    cost_usd: float | None = Query(None),
+    agent_slug: str | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Evaluate approval with council recommendation.
+
+    FM-047: Returns whether council review is recommended alongside the action.
+    """
+    return await governance_service.evaluate_approval_with_council(
+        db, task_type=task_type, project_id=project_id,
+        cost_usd=cost_usd, agent_slug=agent_slug,
+    )
 
 
 @router.post("/seed-defaults")

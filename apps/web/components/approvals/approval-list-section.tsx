@@ -36,9 +36,11 @@ interface ApprovalListSectionProps {
 export function ApprovalListSection({ approvals }: ApprovalListSectionProps) {
   if (approvals.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-[var(--color-border)] py-6 text-center">
-        <p className="text-sm text-[var(--color-text-muted)]">
-          No approval requests
+      <div className="rounded-xl border border-dashed border-[var(--color-border-subtle)] bg-[var(--color-bg-card)]/50 py-10 text-center">
+        <div className="mb-3 text-2xl">\u2705</div>
+        <p className="text-sm font-medium">No approval requests</p>
+        <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+          All caught up!
         </p>
       </div>
     );

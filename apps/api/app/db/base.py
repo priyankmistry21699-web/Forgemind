@@ -25,3 +25,7 @@ from app.models.credential_vault import CredentialVault  # noqa: F401
 from app.models.cost_record import CostRecord  # noqa: F401
 from app.models.governance_policy import GovernancePolicy  # noqa: F401
 from app.models.trust_score import TrustScore  # noqa: F401
+from app.models.replay_snapshot import ReplaySnapshot  # noqa: F401
+from app.models.council import CouncilSession, CouncilVote  # noqa: F401
+from app.models.project_knowledge import ProjectKnowledge  # noqa: F401
+from app.models.repo_connection import RepoConnection  # noqa: F401

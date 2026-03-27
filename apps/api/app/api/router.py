@@ -21,6 +21,10 @@ from app.api.routes.costs import router as costs_router
 from app.api.routes.governance import router as governance_router
 from app.api.routes.audit import router as audit_router
 from app.api.routes.trust import router as trust_router
+from app.api.routes.replay import router as replay_router
+from app.api.routes.council import router as council_router
+from app.api.routes.knowledge import router as knowledge_router
+from app.api.routes.repos import router as repos_router
 
 api_router = APIRouter()
 
@@ -86,3 +90,15 @@ api_router.include_router(audit_router, tags=["audit"])
 
 # Trust scoring & risk (FM-050)
 api_router.include_router(trust_router, tags=["trust"])
+
+# Replay & trace inspection (FM-046)
+api_router.include_router(replay_router, tags=["replay"])
+
+# Council decision engine (FM-047A)
+api_router.include_router(council_router, tags=["council"])
+
+# Knowledge base (FM-048)
+api_router.include_router(knowledge_router, tags=["knowledge"])
+
+# Repo connections (FM-049)
+api_router.include_router(repos_router, tags=["repos"])

@@ -86,18 +86,18 @@ It can plan software projects, execute tasks via specialized agents with capabil
 
 ## Completed Milestones
 
-| Milestone                                    | Tasks                       | Focus                                                                  |
-| -------------------------------------------- | --------------------------- | ---------------------------------------------------------------------- |
-| **1 — Platform Foundation**                  | FM-001 to FM-005            | Monorepo, FastAPI, Next.js, Docker, DB setup                           |
-| **2 — Backend Core**                         | FM-006 to FM-011 (+FM-010A) | Models, migrations, CRUD, task DAG, orchestration                      |
-| **3 — Frontend MVP**                         | FM-012 to FM-015A           | Dashboard, forms, task display, validation                             |
-| **4 — AI Planning Intelligence**             | FM-016 to FM-020A           | Detail page, planner persistence, LiteLLM, real planning, quality gate |
-| **5 — Execution Foundations**                | FM-021 to FM-025            | Artifacts, agent registry, execution service, worker, fixed agents     |
-| **6 — Controlled Execution & Observability** | FM-026 to FM-030            | Approval workflow, event log, run view, approval inbox, UX polish      |
-| **7 — Operator Control & Interaction**       | FM-031 to FM-035            | Artifact detail, retry/cancel, chatbot, handoff refinement, UX polish  |
-| **8 — Adaptive Multi-Agent Foundations**     | FM-036 to FM-040            | Composition, handoff, connectors, execution memory, adaptive loop      |
+| Milestone                                    | Tasks                       | Focus                                                                   |
+| -------------------------------------------- | --------------------------- | ----------------------------------------------------------------------- |
+| **1 — Platform Foundation**                  | FM-001 to FM-005            | Monorepo, FastAPI, Next.js, Docker, DB setup                            |
+| **2 — Backend Core**                         | FM-006 to FM-011 (+FM-010A) | Models, migrations, CRUD, task DAG, orchestration                       |
+| **3 — Frontend MVP**                         | FM-012 to FM-015A           | Dashboard, forms, task display, validation                              |
+| **4 — AI Planning Intelligence**             | FM-016 to FM-020A           | Detail page, planner persistence, LiteLLM, real planning, quality gate  |
+| **5 — Execution Foundations**                | FM-021 to FM-025            | Artifacts, agent registry, execution service, worker, fixed agents      |
+| **6 — Controlled Execution & Observability** | FM-026 to FM-030            | Approval workflow, event log, run view, approval inbox, UX polish       |
+| **7 — Operator Control & Interaction**       | FM-031 to FM-035            | Artifact detail, retry/cancel, chatbot, handoff refinement, UX polish   |
+| **8 — Adaptive Multi-Agent Foundations**     | FM-036 to FM-040            | Composition, handoff, connectors, execution memory, adaptive loop       |
 | **9 — Connector & Retry Intelligence**       | FM-041 to FM-045            | Connector readiness, credential vault, retry v2, chatbot v2, eval suite |
-| **Pre-release Infrastructure**               | (5 features)                | Run lifecycle, cost tracking, governance, audit export, trust scoring  |
+| **Pre-release Infrastructure**               | (5 features)                | Run lifecycle, cost tracking, governance, audit export, trust scoring   |
 
 **Total tasks completed: 47** (FM-001 through FM-045 including FM-010A, FM-015A, FM-020A, plus 5 pre-release infrastructure features)
 
@@ -188,14 +188,14 @@ Features built as foundational infrastructure before the updated FM-046–FM-050
 
 ## Next Up: FM-046 to FM-050 (Active Roadmap)
 
-| ID | Feature | Status |
-|----|---------|--------|
-| FM-046 | Run Replay and Execution Trace Inspection | Not started |
-| FM-047A | Multi-Agent Council Decision Engine | Not started |
-| FM-047 | Policy-Based Approval Rules | Not started |
-| FM-048 | Multi-Run Memory and Project Knowledge Base | Not started |
-| FM-049 | External Repo / Workspace Execution Integration | Not started |
-| FM-050 | Production Readiness and Platform Hardening Pass | Not started |
+| ID      | Feature                                          | Status      |
+| ------- | ------------------------------------------------ | ----------- |
+| FM-046  | Run Replay and Execution Trace Inspection        | Not started |
+| FM-047A | Multi-Agent Council Decision Engine              | Not started |
+| FM-047  | Policy-Based Approval Rules                      | Not started |
+| FM-048  | Multi-Run Memory and Project Knowledge Base      | Not started |
+| FM-049  | External Repo / Workspace Execution Integration  | Not started |
+| FM-050  | Production Readiness and Platform Hardening Pass | Not started |
 
 ---
 

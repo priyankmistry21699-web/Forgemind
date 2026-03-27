@@ -123,8 +123,19 @@ async def evaluate_task_approval(
     *,
     task_type: str,
     project_id: uuid.UUID,
+    run_id: uuid.UUID | None = None,
+    cost_usd: float | None = None,
+    agent_slug: str | None = None,
+    artifact_type: str | None = None,
 ) -> PolicyAction:
     """Evaluate policies to determine if a task type requires approval.
+
+    FM-047: Enhanced evaluation with multi-trigger support:
+    - TASK_TYPE: matches task type against policy rules
+    - COST_THRESHOLD: matches when run cost exceeds threshold
+    - ARTIFACT_TYPE: matches artifact type
+    - AGENT_ACTION: matches specific agent slug
+    - CUSTOM: matches custom JSON conditions
 
     Returns the action from the highest-priority matching policy,
     or AUTO_APPROVE if no policy matches.
@@ -132,20 +143,150 @@ async def evaluate_task_approval(
     policies = await list_policies(db, project_id=project_id)
 
     for policy in policies:
-        if policy.trigger == PolicyTrigger.TASK_TYPE:
-            rules = policy.rules or {}
-            task_types = rules.get("task_types", [])
-            if task_type in task_types:
-                logger.info(
-                    "Policy '%s' matched task_type '%s' -> %s",
-                    policy.name,
-                    task_type,
-                    policy.action.value,
-                )
-                return policy.action
+        if _policy_matches(policy, task_type=task_type, cost_usd=cost_usd,
+                           agent_slug=agent_slug, artifact_type=artifact_type):
+            logger.info(
+                "Policy '%s' (trigger=%s) matched -> %s",
+                policy.name,
+                policy.trigger.value,
+                policy.action.value,
+            )
+            return policy.action
 
     # No matching policy — default to auto-approve
     return PolicyAction.AUTO_APPROVE
+
+
+def _policy_matches(
+    policy: GovernancePolicy,
+    *,
+    task_type: str | None = None,
+    cost_usd: float | None = None,
+    agent_slug: str | None = None,
+    artifact_type: str | None = None,
+) -> bool:
+    """Check if a policy matches the given context."""
+    rules = policy.rules or {}
+
+    if policy.trigger == PolicyTrigger.TASK_TYPE:
+        task_types = rules.get("task_types", [])
+        return task_type in task_types
+
+    elif policy.trigger == PolicyTrigger.COST_THRESHOLD:
+        threshold = rules.get("threshold_usd", 0.0)
+        return cost_usd is not None and cost_usd > threshold
+
+    elif policy.trigger == PolicyTrigger.ARTIFACT_TYPE:
+        artifact_types = rules.get("artifact_types", [])
+        return artifact_type in artifact_types
+
+    elif policy.trigger == PolicyTrigger.AGENT_ACTION:
+        agent_slugs = rules.get("agent_slugs", [])
+        return agent_slug in agent_slugs
+
+    elif policy.trigger == PolicyTrigger.CUSTOM:
+        # Custom conditions evaluated from rules JSON
+        return _evaluate_custom_rules(rules, task_type=task_type,
+                                      cost_usd=cost_usd, agent_slug=agent_slug)
+
+    return False
+
+
+def _evaluate_custom_rules(
+    rules: dict,
+    *,
+    task_type: str | None = None,
+    cost_usd: float | None = None,
+    agent_slug: str | None = None,
+) -> bool:
+    """Evaluate custom rule conditions.
+
+    Supports simple condition objects:
+    {
+        "conditions": [
+            {"field": "task_type", "op": "in", "value": ["architecture"]},
+            {"field": "cost_usd", "op": "gt", "value": 1.0}
+        ],
+        "logic": "and"  // or "or"
+    }
+    """
+    conditions = rules.get("conditions", [])
+    logic = rules.get("logic", "and")
+
+    if not conditions:
+        return False
+
+    context = {
+        "task_type": task_type,
+        "cost_usd": cost_usd,
+        "agent_slug": agent_slug,
+    }
+
+    results = []
+    for cond in conditions:
+        field = cond.get("field", "")
+        op = cond.get("op", "eq")
+        value = cond.get("value")
+        field_val = context.get(field)
+
+        if op == "eq":
+            results.append(field_val == value)
+        elif op == "ne":
+            results.append(field_val != value)
+        elif op == "in":
+            results.append(field_val in (value or []))
+        elif op == "gt" and field_val is not None:
+            results.append(field_val > value)
+        elif op == "lt" and field_val is not None:
+            results.append(field_val < value)
+        elif op == "gte" and field_val is not None:
+            results.append(field_val >= value)
+        elif op == "lte" and field_val is not None:
+            results.append(field_val <= value)
+        else:
+            results.append(False)
+
+    if logic == "or":
+        return any(results)
+    return all(results)
+
+
+async def evaluate_approval_with_council(
+    db: AsyncSession,
+    *,
+    task_type: str,
+    project_id: uuid.UUID,
+    run_id: uuid.UUID | None = None,
+    cost_usd: float | None = None,
+    agent_slug: str | None = None,
+) -> dict:
+    """Enhanced approval evaluation that considers council decisions.
+
+    FM-047: Returns action with explanation and whether council is needed.
+    """
+    action = await evaluate_task_approval(
+        db,
+        task_type=task_type,
+        project_id=project_id,
+        run_id=run_id,
+        cost_usd=cost_usd,
+        agent_slug=agent_slug,
+    )
+
+    needs_council = False
+    # If action is REQUIRE_APPROVAL and there are cost concerns, suggest council
+    if action == PolicyAction.REQUIRE_APPROVAL and cost_usd is not None and cost_usd > 0.5:
+        needs_council = True
+
+    return {
+        "action": action.value,
+        "needs_council": needs_council,
+        "task_type": task_type,
+        "project_id": str(project_id),
+        "explanation": f"Policy evaluation: {action.value}"
+                       + (" (council recommended)" if needs_council else ""),
+    }
+
 
 
 async def evaluate_cost_threshold(
