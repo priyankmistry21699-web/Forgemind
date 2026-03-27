@@ -141,7 +141,10 @@ def recommend_connectors(
     """
     search_text = ""
     if recommended_stack:
-        search_text += " ".join(recommended_stack.values()).lower()
+        if isinstance(recommended_stack, dict):
+            search_text += " ".join(recommended_stack.values()).lower()
+        elif isinstance(recommended_stack, list):
+            search_text += " ".join(str(v) for v in recommended_stack).lower()
     if project_description:
         search_text += " " + project_description.lower()
 
