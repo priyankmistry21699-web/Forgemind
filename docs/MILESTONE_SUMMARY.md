@@ -1,14 +1,14 @@
 # ForgeMind — Milestone Summary
 
-> Last updated: 2026-03-27 (after FM-050 — all 50 tasks complete across 10 milestones)
+> Last updated: 2026-03-28 (after FM-069 — all 69 tasks complete across 12 milestones)
 
 ---
 
 ## Current State
 
-**ForgeMind is an operator-centered AI execution platform with adaptive multi-agent orchestration, governance, cost tracking, trust scoring, execution replay, council decision-making, cross-run knowledge, external repo integration, and production hardening.**
+**ForgeMind is an operator-centered AI execution platform with adaptive multi-agent orchestration, governance, cost tracking, trust scoring, execution replay, council decision-making, cross-run knowledge, external repo integration, production hardening, team collaboration, real-time streaming, and code operations.**
 
-It can plan software projects, execute tasks via specialized agents with capability-based composition, surface execution artifacts, require human approval for critical steps, and adapt execution based on failures and feedback. The system has an execution memory layer for rich contextual reasoning, auto-retry with agent re-routing, connector-aware orchestration, credential vault management, configurable governance policies, LLM cost tracking, audit export, heuristic trust/risk scoring, deterministic execution replay, multi-agent council decisions, project-level knowledge bases, external repository connections, and production-grade security middleware.
+It can plan software projects, execute tasks via specialized agents with capability-based composition, surface execution artifacts, require human approval for critical steps, and adapt execution based on failures and feedback. The system has an execution memory layer for rich contextual reasoning, auto-retry with agent re-routing, connector-aware orchestration, credential vault management, configurable governance policies, LLM cost tracking, audit export, heuristic trust/risk scoring, deterministic execution replay, multi-agent council decisions, project-level knowledge bases, external repository connections, production-grade security middleware, workspace-based multi-tenancy with RBAC memberships, notification engine with delivery configs, escalation rules, activity feeds with user presence, and a full code operations pipeline (patch proposals, change reviews, branch strategies, PR drafts, repo action approvals, and sandbox execution).
 
 ---
 
@@ -206,7 +206,51 @@ ForgeMind now adds:
 
 ---
 
-## Next Up: FM-046 to FM-050 — ✅ COMPLETE
+## Team Collaboration & Real-Time (post FM-060)
+
+ForgeMind now adds:
+
+1. **Workspace model & multi-tenant shell (FM-051)** — Workspace entity with name, slug (unique), description, status (active/suspended/archived), owner, settings JSON; full CRUD API
+2. **Workspace member roles (FM-052)** — WorkspaceMember with 5 roles (owner/admin/operator/reviewer/viewer); unique constraint per workspace+user
+3. **Project-level member & permissions (FM-053)** — ProjectMember with 4 roles (lead/operator/reviewer/viewer) + is_approver/is_reviewer flags; per-project RBAC
+4. **SSE streaming foundation (FM-054)** — Server-Sent Events heartbeat endpoint at /stream/events for real-time update infrastructure
+5. **In-app notification engine (FM-055)** — Notification model with 12 notification types, 4 priority levels (low/normal/high/urgent); mark individual or all notifications as read; unread count
+6. **Notification delivery config (FM-056)** — Per-user delivery channel configuration (slack/email/webhook) with active/paused/disabled status management
+7. **Escalation rule engine (FM-057)** — EscalationRule with 6 trigger types, 5 action types, cooldown_minutes, JSON rules; EscalationEvent logging for audit
+8. **Activity feed & audit extension (FM-058)** — ActivityFeedEntry with 15 activity types, project/workspace scoping, actor tracking, resource linking, metadata JSON
+9. **User presence tracking (FM-059)** — UserPresence with status, current resource type/id, last_seen_at; upsert semantics for efficient updates
+
+**Database additions:** 1 new migration (0019), 9 new models (Workspace, WorkspaceMember, ProjectMember, Notification, NotificationDeliveryConfig, EscalationRule, EscalationEvent, ActivityFeedEntry, UserPresence)
+**Test additions:** 50 new tests across 6 test files (workspaces, members, streaming, notifications, escalation, activity)
+**Total test suite: 235 tests… continued below**
+
+> **ForgeMind now has workspace-based multi-tenancy, real-time streaming, notifications, escalation, and activity tracking.**
+
+---
+
+## Repository & Code Execution (post FM-069)
+
+ForgeMind now adds:
+
+1. **Code mapping model (FM-061)** — CodeMapping linking project artifacts to file paths with language detection and metadata JSON
+2. **Patch proposal model (FM-062)** — PatchProposal with diff_content, target_branch, 6 statuses (draft/pending_review/approved/rejected/merged/abandoned), rationale tracking
+3. **Change review workflow (FM-063)** — ChangeReview with 3 decisions (approved/changes_requested/commented) linked to patches; reviewer tracking with comments
+4. **Branch strategy configuration (FM-064)** — BranchStrategy with base_branch, branch_pattern, pr_target_branch, auto_create_branch flag, config JSON per project
+5. **PR draft composer (FM-065)** — PRDraft with 5 statuses (draft/ready/submitted/merged/closed), reviewers/checklist/linked_artifacts JSON, source/target branch tracking
+6. **Repo action approval gate (FM-066)** — RepoActionApproval with 5 action types (push/merge/deploy/release/delete_branch), decision workflow with context tracking
+7. **Sandbox execution engine (FM-067)** — SandboxExecution with command, environment JSON, timeout_seconds, 5 statuses (pending/running/completed/failed/timed_out), stdout/stderr/exit_code/duration_ms capture
+8. **Code ops REST API (FM-068)** — Full REST endpoints for all 7 code operations models (~20 endpoints)
+9. **Code ops integration tests (FM-069)** — Comprehensive test coverage for all code operations (17 tests)
+
+**Database additions:** Migration 0019 (shared with Milestone 11), 7 new models (CodeMapping, PatchProposal, ChangeReview, BranchStrategy, PRDraft, RepoActionApproval, SandboxExecution)
+**Test additions:** 17 new tests in test_code_ops.py
+**Total test suite: 252 tests (all passing)**
+
+> **ForgeMind now has a complete code operations pipeline from mapping to sandbox execution with 69 features across 12 milestones.**
+
+---
+
+## FM-046 to FM-050 — ✅ COMPLETE
 
 | ID      | Feature                                          | Status      |
 | ------- | ------------------------------------------------ | ----------- |
@@ -216,6 +260,34 @@ ForgeMind now adds:
 | FM-048  | Multi-Run Memory and Project Knowledge Base      | ✅ Complete |
 | FM-049  | External Repo / Workspace Execution Integration  | ✅ Complete |
 | FM-050  | Production Readiness and Platform Hardening Pass | ✅ Complete |
+
+## FM-051 to FM-059 — ✅ COMPLETE
+
+| ID      | Feature                              | Status      |
+| ------- | ------------------------------------ | ----------- |
+| FM-051  | Workspace Model & Multi-Tenant Shell | ✅ Complete |
+| FM-052  | Workspace Member Roles               | ✅ Complete |
+| FM-053  | Project-Level Member & Permissions   | ✅ Complete |
+| FM-054  | SSE Streaming Foundation             | ✅ Complete |
+| FM-055  | In-App Notification Engine           | ✅ Complete |
+| FM-056  | Notification Delivery Config         | ✅ Complete |
+| FM-057  | Escalation Rule Engine               | ✅ Complete |
+| FM-058  | Activity Feed & Audit Extension      | ✅ Complete |
+| FM-059  | User Presence Tracking               | ✅ Complete |
+
+## FM-061 to FM-069 — ✅ COMPLETE
+
+| ID      | Feature                              | Status      |
+| ------- | ------------------------------------ | ----------- |
+| FM-061  | Code Mapping Model                   | ✅ Complete |
+| FM-062  | Patch Proposal Model                 | ✅ Complete |
+| FM-063  | Change Review Workflow               | ✅ Complete |
+| FM-064  | Branch Strategy Configuration        | ✅ Complete |
+| FM-065  | PR Draft Composer                    | ✅ Complete |
+| FM-066  | Repo Action Approval Gate            | ✅ Complete |
+| FM-067  | Sandbox Execution Engine             | ✅ Complete |
+| FM-068  | Code Ops REST API                    | ✅ Complete |
+| FM-069  | Code Ops Integration Tests           | ✅ Complete |
 
 ---
 

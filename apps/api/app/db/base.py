@@ -29,3 +29,12 @@ from app.models.replay_snapshot import ReplaySnapshot  # noqa: F401
 from app.models.council import CouncilSession, CouncilVote  # noqa: F401
 from app.models.project_knowledge import ProjectKnowledge  # noqa: F401
 from app.models.repo_connection import RepoConnection  # noqa: F401
+from app.models.workspace import Workspace  # noqa: F401
+from app.models.membership import WorkspaceMember, ProjectMember  # noqa: F401
+from app.models.notification import Notification, NotificationDeliveryConfig  # noqa: F401
+from app.models.escalation import EscalationRule, EscalationEvent  # noqa: F401
+from app.models.activity import ActivityFeedEntry, UserPresence  # noqa: F401
+from app.models.code_ops import (  # noqa: F401
+    CodeMapping, PatchProposal, ChangeReview, BranchStrategy,
+    PRDraft, RepoActionApproval, SandboxExecution,
+)

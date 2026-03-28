@@ -1,6 +1,6 @@
 # ForgeMind — System Architecture
 
-> Last updated: 2026-03-27 (after FM-050 — all features complete)
+> Last updated: 2026-03-28 (after FM-069 — all features complete)
 
 ---
 
@@ -297,10 +297,16 @@ All request/response models in `apps/api/app/schemas/`.
 | `council.py`         | CouncilSessionRead/List, ConveneCouncilRequest, CastVoteRequest, CouncilVoteRead, CouncilDecisionResult          | Council decision DTOs       |
 | `knowledge.py`       | ProjectKnowledgeRead/Create/List, KnowledgeExtractionResult, KnowledgeContext                                    | Knowledge base DTOs         |
 | `repo.py`            | RepoConnectionRead/Create/Update/List, RepoBranchInfo, RepoSyncResult                                            | Repo integration DTOs       |
+| `workspace.py`       | WorkspaceCreate/Update/Read/List                                                                                  | Workspace DTOs              |
+| `membership.py`      | WorkspaceMemberCreate/Update/Read/List, ProjectMemberCreate/Update/Read/List                                      | Membership DTOs             |
+| `notification.py`    | NotificationCreate/Read/List, DeliveryConfigCreate/Read/List                                                      | Notification DTOs           |
+| `escalation.py`      | EscalationRuleCreate/Update/Read/List, EscalationEventRead/List                                                   | Escalation DTOs             |
+| `activity.py`        | ActivityFeedEntryCreate/Read, ActivityFeedList, PresenceUpdate/Read/List                                          | Activity & presence DTOs    |
+| `code_ops.py`        | CodeMapping/PatchProposal/ChangeReview/BranchStrategy/PRDraft/RepoActionApproval/SandboxExecution CRUD schemas    | Code operations DTOs        |
 
 ---
 
-## Database Migrations (18 Total)
+## Database Migrations (19 Total)
 
 All migrations in `apps/api/alembic/versions/` using Alembic.
 
@@ -324,6 +330,7 @@ All migrations in `apps/api/alembic/versions/` using Alembic.
 | 16  | 0016     | Council tables (FM-047A)     | council_sessions + council_votes tables                          |
 | 17  | 0017     | Project knowledge (FM-048)   | project_knowledge table                                          |
 | 18  | 0018     | Repo connections (FM-049)    | repo_connections table                                           |
+| 19  | 0019     | Collaboration + code ops     | workspaces, workspace_members, project_members, notifications, notification_delivery_configs, escalation_rules, escalation_events, activity_feed_entries, user_presences, code_mappings, patch_proposals, change_reviews, branch_strategies, pr_drafts, repo_action_approvals, sandbox_executions |
 
 ---
 
@@ -337,7 +344,7 @@ FastAPI app created
   → CORS middleware added (allow_origins from settings)
   → RateLimitMiddleware added (100 req/60s per IP, production only)
   → RequestLoggingMiddleware added (timing + X-Request-ID headers)
-  → All 26 routers mounted via api_router
+  → All 34 routers mounted via api_router
   → Lifespan startup:
       → seed_default_agents() — creates 5 core agents
         (Planner, Architect, Coder, Reviewer, Tester)
@@ -437,6 +444,13 @@ Settings defined in `apps/api/app/core/config.py` via Pydantic `BaseSettings`:
 | `test_schemas.py`     | Pydantic schemas        | Validation                                           |
 | `test_fm046_050.py`   | Infrastructure features | Lifecycle, cost, governance, audit, trust (46 tests) |
 | `test_fm046_050_v2.py`| FM-046–050 new features | Replay, council, knowledge, repos, hardening (34 tests) |
+| `test_workspaces.py`  | Workspace CRUD          | Create, list, get, update, delete workspaces             |
+| `test_members.py`     | Membership management   | Workspace + project member CRUD                          |
+| `test_streaming.py`   | SSE streaming           | Event generator output + route registration              |
+| `test_notifications.py`| Notification system     | Create, list, mark read, delivery config                 |
+| `test_escalation.py`  | Escalation engine       | Rules CRUD + escalation events                           |
+| `test_activity.py`    | Activity & presence     | Activity feed + user presence upsert                     |
+| `test_code_ops.py`    | Code operations         | Mappings, patches, reviews, branches, PRs, approvals, sandbox |
 
 ### Evaluation Tests (`apps/api/evals/`)
 
@@ -453,7 +467,8 @@ Settings defined in `apps/api/app/core/config.py` via Pydantic `BaseSettings`:
 | Quality evals (FM-045)             | 23      |
 | Infrastructure tests (pre-release) | 23      |
 | FM-046–050 feature tests           | 34      |
-| **Total**                          | **185** |
+| FM-051–069 feature tests           | 67      |
+| **Total**                          | **252** |
 
 ---
 
@@ -465,8 +480,8 @@ forgemind/
 │   ├── api/                          # FastAPI backend
 │   │   ├── app/
 │   │   │   ├── api/
-│   │   │   │   ├── router.py         # Main router (26 routers)
-│   │   │   │   └── routes/           # Route handlers (25 files)
+│   │   │   │   ├── router.py         # Main router (34 routers)
+│   │   │   │   └── routes/           # Route handlers (32 files)
 │   │   │   ├── core/
 │   │   │   │   ├── config.py         # Settings (Pydantic BaseSettings)
 │   │   │   │   ├── auth.py           # JWT authentication (prod)
@@ -476,15 +491,15 @@ forgemind/
 │   │   │   │   ├── error_handlers.py # Global error handlers
 │   │   │   │   └── llm.py            # LiteLLM wrapper
 │   │   │   ├── db/
-│   │   │   │   ├── base.py           # Model registry (20 models)
+│   │   │   │   ├── base.py           # Model registry (36 models)
 │   │   │   │   └── session.py        # Async engine + session factory
-│   │   │   ├── models/               # SQLAlchemy models (20 files)
-│   │   │   ├── schemas/              # Pydantic schemas (17 files)
-│   │   │   ├── services/             # Business logic (24 services)
+│   │   │   ├── models/               # SQLAlchemy models (26 files)
+│   │   │   ├── schemas/              # Pydantic schemas (23 files)
+│   │   │   ├── services/             # Business logic (30 services)
 │   │   │   └── main.py              # FastAPI app factory
 │   │   ├── alembic/
-│   │   │   └── versions/             # 18 migrations
-│   │   ├── tests/                    # 162 tests (16 files)
+│   │   │   └── versions/             # 19 migrations
+│   │   ├── tests/                    # 252 tests (23 files)
 │   │   ├── evals/                    # 23 eval tests
 │   │   ├── alembic.ini
 │   │   └── requirements.txt
@@ -555,6 +570,40 @@ forgemind/
 | FM-050  | Production Hardening Pass           | JWT auth, token bucket rate limiter, request logging, global error handlers             | ✅ Complete |
 
 > **All 50 tasks across 10 milestones are complete. 185 tests passing.**
+
+---
+
+## Completed: Team Collaboration & Real-Time (FM-051–060)
+
+| ID      | Feature                              | Description                                                                                | Status      |
+| ------- | ------------------------------------ | ------------------------------------------------------------------------------------------ | ----------- |
+| FM-051  | Workspace Model & Multi-Tenant Shell | Workspace entity with slug, status, owner, settings JSON; CRUD API                        | ✅ Complete |
+| FM-052  | Workspace Member Roles               | WorkspaceMember with 5 roles (owner/admin/operator/reviewer/viewer); unique constraints    | ✅ Complete |
+| FM-053  | Project-Level Member & Permissions   | ProjectMember with 4 roles + is_approver/is_reviewer flags; per-project RBAC               | ✅ Complete |
+| FM-054  | SSE Streaming Foundation             | Server-Sent Events heartbeat endpoint for real-time updates                                | ✅ Complete |
+| FM-055  | In-App Notification Engine           | Notification model with 12 types, 4 priority levels; mark read/read-all                   | ✅ Complete |
+| FM-056  | Notification Delivery Config         | Per-user delivery channel config (slack/email/webhook) with status management              | ✅ Complete |
+| FM-057  | Escalation Rule Engine               | Configurable escalation rules with 6 triggers, 5 actions, cooldown; event logging          | ✅ Complete |
+| FM-058  | Activity Feed & Audit Extension      | ActivityFeedEntry with 15 activity types, project/workspace scoping, resource linking      | ✅ Complete |
+| FM-059  | User Presence Tracking               | UserPresence model with status, current resource tracking, last_seen; upsert semantics     | ✅ Complete |
+
+---
+
+## Completed: Repository & Code Execution (FM-061–069)
+
+| ID      | Feature                              | Description                                                                                | Status      |
+| ------- | ------------------------------------ | ------------------------------------------------------------------------------------------ | ----------- |
+| FM-061  | Code Mapping Model                   | CodeMapping linking artifacts to file paths with language detection and metadata            | ✅ Complete |
+| FM-062  | Patch Proposal Model                 | PatchProposal with diff content, target branch, 6 statuses, rationale tracking             | ✅ Complete |
+| FM-063  | Change Review Workflow               | ChangeReview with 3 decisions (approved/changes_requested/commented) linked to patches      | ✅ Complete |
+| FM-064  | Branch Strategy Configuration        | BranchStrategy with base/pattern/PR target, auto-create flag, config JSON per project      | ✅ Complete |
+| FM-065  | PR Draft Composer                    | PRDraft with 5 statuses, reviewer/checklist/linked artifact JSON, source/target branches   | ✅ Complete |
+| FM-066  | Repo Action Approval Gate            | RepoActionApproval with 5 action types, decision workflow, context tracking                | ✅ Complete |
+| FM-067  | Sandbox Execution Engine             | SandboxExecution with command, environment, timeout, 5 statuses, stdout/stderr/exit_code   | ✅ Complete |
+| FM-068  | Code Ops REST API                    | Full REST API for all code operations models (~20 endpoints)                               | ✅ Complete |
+| FM-069  | Code Ops Integration Tests           | Comprehensive test coverage for all code operations (17 tests)                             | ✅ Complete |
+
+> **All 69 tasks across 12 milestones are complete. 252 tests passing.**
 
 ---
 

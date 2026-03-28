@@ -25,6 +25,13 @@ from app.api.routes.replay import router as replay_router
 from app.api.routes.council import router as council_router
 from app.api.routes.knowledge import router as knowledge_router
 from app.api.routes.repos import router as repos_router
+from app.api.routes.workspaces import router as workspaces_router
+from app.api.routes.members import router as members_router
+from app.api.routes.streaming import router as streaming_router
+from app.api.routes.notifications import router as notifications_router
+from app.api.routes.escalation import router as escalation_router
+from app.api.routes.activity import router as activity_router
+from app.api.routes.code_ops import router as code_ops_router
 
 api_router = APIRouter()
 
@@ -102,3 +109,24 @@ api_router.include_router(knowledge_router, tags=["knowledge"])
 
 # Repo connections (FM-049)
 api_router.include_router(repos_router, tags=["repos"])
+
+# Workspaces (FM-051)
+api_router.include_router(workspaces_router, tags=["workspaces"])
+
+# Members (FM-052/053)
+api_router.include_router(members_router, tags=["members"])
+
+# SSE streaming (FM-054)
+api_router.include_router(streaming_router, tags=["streaming"])
+
+# Notifications (FM-055/056)
+api_router.include_router(notifications_router, tags=["notifications"])
+
+# Escalation (FM-057)
+api_router.include_router(escalation_router, tags=["escalation"])
+
+# Activity & Presence (FM-058/059)
+api_router.include_router(activity_router, tags=["activity"])
+
+# Code operations (FM-061–069)
+api_router.include_router(code_ops_router, tags=["code-ops"])

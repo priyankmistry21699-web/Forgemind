@@ -834,6 +834,80 @@ Base URL: `http://localhost:8000`
 | `GET`  | `/agents/{slug}` | Get agent by slug      |
 | `GET`  | `/events`        | List execution events  |
 
+### Workspaces & Membership
+
+| Method   | Path                                     | Description               |
+| -------- | ---------------------------------------- | ------------------------- |
+| `POST`   | `/workspaces`                            | Create workspace          |
+| `GET`    | `/workspaces`                            | List workspaces           |
+| `GET`    | `/workspaces/{id}`                       | Get workspace             |
+| `PATCH`  | `/workspaces/{id}`                       | Update workspace          |
+| `DELETE` | `/workspaces/{id}`                       | Delete workspace          |
+| `POST`   | `/workspaces/{id}/members`               | Add workspace member      |
+| `GET`    | `/workspaces/{id}/members`               | List workspace members    |
+| `PATCH`  | `/workspaces/{id}/members/{user_id}`     | Update member role        |
+| `DELETE` | `/workspaces/{id}/members/{user_id}`     | Remove workspace member   |
+| `POST`   | `/projects/{id}/members`                 | Add project member        |
+| `GET`    | `/projects/{id}/members`                 | List project members      |
+| `PATCH`  | `/projects/{id}/members/{user_id}`       | Update project member     |
+| `DELETE` | `/projects/{id}/members/{user_id}`       | Remove project member     |
+
+### Notifications & Streaming
+
+| Method | Path                              | Description               |
+| ------ | --------------------------------- | ------------------------- |
+| `GET`  | `/stream/events`                  | SSE event stream          |
+| `POST` | `/notifications`                  | Create notification       |
+| `GET`  | `/notifications`                  | List notifications        |
+| `POST` | `/notifications/{id}/read`        | Mark notification read    |
+| `POST` | `/notifications/read-all`         | Mark all read             |
+| `POST` | `/notifications/delivery`         | Create delivery config    |
+| `GET`  | `/notifications/delivery`         | List delivery configs     |
+
+### Escalation & Activity
+
+| Method   | Path                                         | Description            |
+| -------- | -------------------------------------------- | ---------------------- |
+| `POST`   | `/projects/{id}/escalation/rules`            | Create escalation rule |
+| `GET`    | `/projects/{id}/escalation/rules`            | List escalation rules  |
+| `GET`    | `/escalation/rules/{id}`                     | Get escalation rule    |
+| `PATCH`  | `/escalation/rules/{id}`                     | Update escalation rule |
+| `DELETE` | `/escalation/rules/{id}`                     | Delete escalation rule |
+| `GET`    | `/projects/{id}/escalation/events`           | List escalation events |
+| `POST`   | `/activity`                                  | Create activity entry  |
+| `GET`    | `/activity`                                  | List activity feed     |
+| `PUT`    | `/presence`                                  | Update presence        |
+| `GET`    | `/presence`                                  | List all presence      |
+| `GET`    | `/presence/{user_id}`                        | Get user presence      |
+
+### Code Operations
+
+| Method   | Path                                     | Description               |
+| -------- | ---------------------------------------- | ------------------------- |
+| `POST`   | `/projects/{id}/code-mappings`           | Create code mapping       |
+| `GET`    | `/projects/{id}/code-mappings`           | List code mappings        |
+| `DELETE` | `/code-mappings/{id}`                    | Delete code mapping       |
+| `POST`   | `/projects/{id}/patches`                 | Create patch proposal     |
+| `GET`    | `/projects/{id}/patches`                 | List patch proposals      |
+| `GET`    | `/patches/{id}`                          | Get patch proposal        |
+| `PATCH`  | `/patches/{id}`                          | Update patch proposal     |
+| `POST`   | `/patches/{id}/reviews`                  | Create change review      |
+| `GET`    | `/patches/{id}/reviews`                  | List change reviews       |
+| `POST`   | `/projects/{id}/branch-strategy`         | Create branch strategy    |
+| `GET`    | `/projects/{id}/branch-strategies`       | List branch strategies    |
+| `PATCH`  | `/branch-strategies/{id}`                | Update branch strategy    |
+| `POST`   | `/projects/{id}/pr-drafts`               | Create PR draft           |
+| `GET`    | `/projects/{id}/pr-drafts`               | List PR drafts            |
+| `GET`    | `/pr-drafts/{id}`                        | Get PR draft              |
+| `PATCH`  | `/pr-drafts/{id}`                        | Update PR draft           |
+| `POST`   | `/projects/{id}/repo-approvals`          | Create repo approval      |
+| `GET`    | `/projects/{id}/repo-approvals`          | List repo approvals       |
+| `PATCH`  | `/repo-approvals/{id}/decide`            | Decide repo approval      |
+| `POST`   | `/projects/{id}/sandbox`                 | Create sandbox execution  |
+| `GET`    | `/projects/{id}/sandbox`                 | List sandbox executions   |
+| `GET`    | `/sandbox/{id}`                          | Get sandbox execution     |
+| `POST`   | `/sandbox/{id}/complete`                 | Complete sandbox execution|
+
 > Full interactive docs at `http://localhost:8000/docs` (Swagger UI)
 
 ---
@@ -875,6 +949,7 @@ alembic downgrade -1
 | 0016 | `add_council_tables`         | council_sessions + council_votes tables      |
 | 0017 | `add_project_knowledge`      | project_knowledge table                      |
 | 0018 | `add_repo_connections`       | repo_connections table                       |
+| 0019 | `add_collaboration_and_code_ops` | workspaces, workspace_members, project_members, notifications, notification_delivery_configs, escalation_rules, escalation_events, activity_feed_entries, user_presences, code_mappings, patch_proposals, change_reviews, branch_strategies, pr_drafts, repo_action_approvals, sandbox_executions |
 
 ### Code Quality
 
@@ -909,7 +984,7 @@ make test
 
 ## 📊 Milestone Progress
 
-### Completed: 10 Milestones — 50 Tasks ✅
+### Completed: 12 Milestones — 69 Tasks ✅
 
 | #   | Milestone                                | Tasks                      | Status      |
 | --- | ---------------------------------------- | -------------------------- | ----------- |
@@ -923,6 +998,8 @@ make test
 | 8   | **Adaptive Multi-Agent Foundations**     | FM-036 → FM-040            | ✅ Complete |
 | 9   | **Pre-Release Infrastructure**           | FM-041 → FM-045            | ✅ Complete |
 | 10  | **Platform Intelligence & Hardening**    | FM-046 → FM-050            | ✅ Complete |
+| 11  | **Team Collaboration & Real-Time**       | FM-051 → FM-059            | ✅ Complete |
+| 12  | **Repository & Code Execution**          | FM-061 → FM-069            | ✅ Complete |
 
 <details>
 <summary><strong>Milestone 1 — Platform Foundation</strong></summary>
@@ -1028,6 +1105,34 @@ make test
 - FM-050: Production Hardening — JWT auth, rate limiting, request logging, global error handlers
 </details>
 
+<details>
+<summary><strong>Milestone 11 — Team Collaboration & Real-Time</strong></summary>
+
+- FM-051: Workspace model & multi-tenant shell
+- FM-052: Workspace member roles
+- FM-053: Project-level member & permissions
+- FM-054: SSE streaming foundation
+- FM-055: In-app notification engine
+- FM-056: Notification delivery config
+- FM-057: Escalation rule engine
+- FM-058: Activity feed & audit extension
+- FM-059: User presence tracking
+</details>
+
+<details>
+<summary><strong>Milestone 12 — Repository & Code Execution</strong></summary>
+
+- FM-061: Code mapping model
+- FM-062: Patch proposal model
+- FM-063: Change review workflow
+- FM-064: Branch strategy configuration
+- FM-065: PR draft composer
+- FM-066: Repo action approval gate
+- FM-067: Sandbox execution engine
+- FM-068: Code ops REST API
+- FM-069: Code ops integration tests
+</details>
+
 ---
 
 ## 🧩 Technical Decisions
@@ -1051,7 +1156,7 @@ make test
 
 **Built with ❤️ by [Priyank Mistry](https://github.com/priyankmistry21699-web)**
 
-_ForgeMind v1.0.0 — 50 tasks completed across 10 milestones · 185 tests passing_
+_ForgeMind v1.0.0 — 69 tasks completed across 12 milestones · 252 tests passing_
 
 </div>
 
