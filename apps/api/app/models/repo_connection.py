@@ -2,6 +2,8 @@
 
 FM-049: Stores repository connections (GitHub, GitLab, etc.) for
 project-level code execution, PR creation, and workspace access.
+FM-061: Extended with richer sync metadata, branch targets, and linked paths.
+FM-066: Added branch_mode and target_branch_template for branch strategy.
 """
 
 import enum
@@ -29,6 +31,19 @@ class RepoConnectionStatus(str, enum.Enum):
     PENDING = "pending"
 
 
+class SyncStatus(str, enum.Enum):
+    IDLE = "idle"
+    SYNCING = "syncing"
+    SUCCESS = "success"
+    FAILED = "failed"
+
+
+class BranchMode(str, enum.Enum):
+    DIRECT = "direct"
+    FEATURE_BRANCH = "feature_branch"
+    REVIEW_BRANCH = "review_branch"
+
+
 class RepoConnection(Base):
     __tablename__ = "repo_connections"
 
@@ -51,6 +66,28 @@ class RepoConnection(Base):
     repo_name: Mapped[str] = mapped_column(String(200), nullable=False)
     default_branch: Mapped[str] = mapped_column(
         String(100), default="main", nullable=False
+    )
+
+    # FM-061: Extended branch / sync metadata
+    base_branch: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    target_branch: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    linked_paths: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    last_sync_status: Mapped[SyncStatus | None] = mapped_column(
+        Enum(SyncStatus, name="sync_status"), nullable=True
+    )
+    last_sync_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    last_synced_commit: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    provider_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+    # FM-066: Branch strategy
+    branch_mode: Mapped[BranchMode | None] = mapped_column(
+        Enum(BranchMode, name="branch_mode"), nullable=True
+    )
+    target_branch_template: Mapped[str | None] = mapped_column(
+        String(200), nullable=True
+    )
+    last_generated_branch: Mapped[str | None] = mapped_column(
+        String(200), nullable=True
     )
 
     # Connection status

@@ -4,7 +4,8 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from app.models.code_ops import (
-    PatchStatus, ReviewDecision, PRDraftStatus,
+    PatchStatus, PatchFormat, ReadinessState,
+    ReviewDecision, PRDraftStatus,
     RepoActionType, SandboxStatus,
 )
 
@@ -35,7 +36,7 @@ class CodeMappingList(BaseModel):
     total: int
 
 
-# ── Patch Proposals (FM-062) ─────────────────────────────────────
+# ── Patch Proposals (FM-062/064) ─────────────────────────────────
 
 class PatchProposalCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=500)
@@ -43,6 +44,12 @@ class PatchProposalCreate(BaseModel):
     diff_content: str
     target_branch: str = "main"
     rationale: str | None = None
+    # FM-064
+    target_files: list[str] | None = None
+    patch_format: PatchFormat | None = None
+    proposed_by_agent: str | None = None
+    readiness_state: ReadinessState | None = None
+    linked_artifact_ids: list[str] | None = None
 
 
 class PatchProposalUpdate(BaseModel):
@@ -52,6 +59,11 @@ class PatchProposalUpdate(BaseModel):
     target_branch: str | None = None
     status: PatchStatus | None = None
     rationale: str | None = None
+    # FM-064
+    target_files: list[str] | None = None
+    patch_format: PatchFormat | None = None
+    readiness_state: ReadinessState | None = None
+    linked_artifact_ids: list[str] | None = None
 
 
 class PatchProposalRead(BaseModel):
@@ -64,6 +76,13 @@ class PatchProposalRead(BaseModel):
     status: PatchStatus
     rationale: str | None
     created_by: uuid.UUID | None
+    # FM-064
+    target_files: list | None
+    patch_format: PatchFormat | None
+    proposed_by_agent: str | None
+    readiness_state: ReadinessState | None
+    linked_artifact_ids: list | None
+
     created_at: datetime
     updated_at: datetime
 
@@ -75,11 +94,16 @@ class PatchProposalList(BaseModel):
     total: int
 
 
-# ── Change Reviews (FM-063/066) ──────────────────────────────────
+# ── Change Reviews (FM-063/065/066) ──────────────────────────────
 
 class ChangeReviewCreate(BaseModel):
     decision: ReviewDecision
     comment: str | None = None
+    # FM-065: file-level annotations
+    file_path: str | None = None
+    line_start: int | None = None
+    line_end: int | None = None
+    suggestion: str | None = None
 
 
 class ChangeReviewRead(BaseModel):
@@ -88,6 +112,12 @@ class ChangeReviewRead(BaseModel):
     reviewer_id: uuid.UUID
     decision: ReviewDecision
     comment: str | None
+    # FM-065
+    file_path: str | None
+    line_start: int | None
+    line_end: int | None
+    suggestion: str | None
+
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -98,7 +128,7 @@ class ChangeReviewList(BaseModel):
     total: int
 
 
-# ── Branch Strategies (FM-064) ───────────────────────────────────
+# ── Branch Strategies (FM-064/066) ───────────────────────────────
 
 class BranchStrategyCreate(BaseModel):
     base_branch: str = "main"
@@ -135,7 +165,7 @@ class BranchStrategyList(BaseModel):
     total: int
 
 
-# ── PR Drafts (FM-065) ──────────────────────────────────────────
+# ── PR Drafts (FM-065/067) ──────────────────────────────────────
 
 class PRDraftCreate(BaseModel):
     patch_id: uuid.UUID | None = None
@@ -182,7 +212,15 @@ class PRDraftList(BaseModel):
     total: int
 
 
-# ── Repo Action Approvals (FM-067) ──────────────────────────────
+# FM-067: PR draft generation request
+class PRDraftGenerateRequest(BaseModel):
+    """Generate a PR draft from a patch proposal."""
+    patch_id: uuid.UUID
+    target_branch: str = "main"
+    include_checklist: bool = True
+
+
+# ── Repo Action Approvals (FM-067/068) ──────────────────────────
 
 class RepoActionApprovalCreate(BaseModel):
     action_type: RepoActionType
@@ -225,6 +263,10 @@ class SandboxExecutionCreate(BaseModel):
     working_directory: str | None = None
     environment: dict | None = None
     timeout_seconds: int = 60
+    # FM-069: safety
+    allowed_commands: list[str] | None = None
+    resource_limits: dict | None = None
+    isolated: bool = True
 
 
 class SandboxExecutionRead(BaseModel):
@@ -241,6 +283,12 @@ class SandboxExecutionRead(BaseModel):
     stderr: str | None
     exit_code: int | None
     duration_ms: int | None
+    # FM-069
+    approval_id: uuid.UUID | None
+    allowed_commands: list | None
+    resource_limits: dict | None
+    isolated: bool
+
     created_at: datetime
     completed_at: datetime | None
 
@@ -250,3 +298,9 @@ class SandboxExecutionRead(BaseModel):
 class SandboxExecutionList(BaseModel):
     items: list[SandboxExecutionRead]
     total: int
+
+
+# FM-069: Sandbox run request (triggers actual execution)
+class SandboxRunRequest(BaseModel):
+    """Request to actually run a queued sandbox execution."""
+    execution_id: uuid.UUID

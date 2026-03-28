@@ -25,6 +25,12 @@ async def create_artifact(
         run_id=data.run_id,
         task_id=data.task_id,
         created_by=data.created_by,
+        # FM-063: code artifact mapping
+        repo_connection_id=data.repo_connection_id,
+        target_path=data.target_path,
+        target_module=data.target_module,
+        change_type=data.change_type,
+        target_metadata=data.target_metadata,
     )
     db.add(artifact)
     await db.flush()

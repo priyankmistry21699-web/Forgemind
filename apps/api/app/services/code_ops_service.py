@@ -1,5 +1,17 @@
+"""Code operations service — enhanced CRUD + execution logic.
+
+FM-061–069: Code mapping, patch proposals, reviews, branches, PR drafts,
+repo action approvals, and sandbox execution with safety controls.
+"""
+
+import asyncio
+import logging
+import os
+import subprocess
+import time
 import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from sqlalchemy import select, func as sa_func
@@ -8,8 +20,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.code_ops import (
     CodeMapping, PatchProposal, ChangeReview,
     BranchStrategy, PRDraft, RepoActionApproval,
-    SandboxExecution, SandboxStatus,
+    SandboxExecution, SandboxStatus, PatchStatus,
 )
+
+logger = logging.getLogger(__name__)
+
+# FM-069: Command allowlist for sandbox safety
+SANDBOX_COMMAND_ALLOWLIST = {
+    "python", "python3", "pip", "pytest", "echo", "cat", "ls", "pwd",
+    "node", "npm", "npx", "tsc", "eslint", "prettier",
+    "go", "cargo", "rustc", "javac", "java",
+    "git", "diff", "grep", "find", "wc", "head", "tail", "sort",
+}
+
+# FM-069: Max sandbox execution time (seconds)
+MAX_SANDBOX_TIMEOUT = 300
 
 
 # ── Code Mappings (FM-061) ──────────────────────────────────────
@@ -79,6 +104,11 @@ async def create_patch(
     target_branch: str = "main",
     rationale: str | None = None,
     created_by: uuid.UUID | None = None,
+    target_files: list | None = None,
+    patch_format: str | None = None,
+    proposed_by_agent: str | None = None,
+    readiness_state: str | None = None,
+    linked_artifact_ids: list | None = None,
 ) -> PatchProposal:
     p = PatchProposal(
         project_id=project_id,
@@ -88,6 +118,11 @@ async def create_patch(
         target_branch=target_branch,
         rationale=rationale,
         created_by=created_by,
+        target_files=target_files,
+        patch_format=patch_format,
+        proposed_by_agent=proposed_by_agent,
+        readiness_state=readiness_state,
+        linked_artifact_ids=linked_artifact_ids,
     )
     db.add(p)
     await db.flush()
@@ -132,7 +167,10 @@ async def update_patch(
     p = await get_patch(db, patch_id)
     if p is None:
         return None
-    allowed = {"title", "description", "diff_content", "target_branch", "status", "rationale"}
+    allowed = {
+        "title", "description", "diff_content", "target_branch", "status", "rationale",
+        "target_files", "patch_format", "readiness_state", "linked_artifact_ids",
+    }
     for k, v in updates.items():
         if k in allowed and v is not None:
             setattr(p, k, v)
@@ -150,12 +188,20 @@ async def create_review(
     reviewer_id: uuid.UUID,
     decision: str,
     comment: str | None = None,
+    file_path: str | None = None,
+    line_start: int | None = None,
+    line_end: int | None = None,
+    suggestion: str | None = None,
 ) -> ChangeReview:
     r = ChangeReview(
         patch_id=patch_id,
         reviewer_id=reviewer_id,
         decision=decision,
         comment=comment,
+        file_path=file_path,
+        line_start=line_start,
+        line_end=line_end,
+        suggestion=suggestion,
     )
     db.add(r)
     await db.flush()
@@ -403,6 +449,9 @@ async def create_sandbox_execution(
     working_directory: str | None = None,
     environment: dict | None = None,
     timeout_seconds: int = 60,
+    allowed_commands: list | None = None,
+    resource_limits: dict | None = None,
+    isolated: bool = True,
 ) -> SandboxExecution:
     s = SandboxExecution(
         project_id=project_id,
@@ -411,7 +460,10 @@ async def create_sandbox_execution(
         command=command,
         working_directory=working_directory,
         environment=environment,
-        timeout_seconds=timeout_seconds,
+        timeout_seconds=min(timeout_seconds, MAX_SANDBOX_TIMEOUT),
+        allowed_commands=allowed_commands,
+        resource_limits=resource_limits,
+        isolated=isolated,
     )
     db.add(s)
     await db.flush()
@@ -472,3 +524,184 @@ async def list_sandbox_executions(
         query.order_by(SandboxExecution.created_at.desc()).offset(offset).limit(limit)
     )
     return list(result.scalars().all()), total
+
+
+# ── FM-067: PR Draft Generation ─────────────────────────────────
+
+async def generate_pr_draft(
+    db: AsyncSession,
+    *,
+    project_id: uuid.UUID,
+    patch_id: uuid.UUID,
+    target_branch: str = "main",
+    include_checklist: bool = True,
+) -> PRDraft:
+    """Generate a PR draft from a patch proposal."""
+    patch = await get_patch(db, patch_id)
+    if patch is None:
+        raise ValueError("Patch not found")
+
+    title = f"[ForgeMind] {patch.title}"
+    body_parts = [f"## Description\n\n{patch.description or 'Auto-generated from patch proposal.'}"]
+    if patch.rationale:
+        body_parts.append(f"## Rationale\n\n{patch.rationale}")
+    if patch.target_files:
+        files_list = "\n".join(f"- `{f}`" for f in patch.target_files)
+        body_parts.append(f"## Changed Files\n\n{files_list}")
+    body_parts.append(f"\n---\n*Generated by ForgeMind from patch `{patch.id}`*")
+    body = "\n\n".join(body_parts)
+
+    source_branch = f"forgemind/patch-{str(patch.id)[:8]}"
+
+    checklist = None
+    if include_checklist:
+        checklist = [
+            {"item": "Code reviewed", "checked": False},
+            {"item": "Tests passing", "checked": False},
+            {"item": "No security issues", "checked": False},
+        ]
+
+    linked_artifacts = []
+    if patch.linked_artifact_ids:
+        linked_artifacts = patch.linked_artifact_ids
+
+    pr = PRDraft(
+        project_id=project_id,
+        patch_id=patch_id,
+        title=title,
+        body=body,
+        source_branch=source_branch,
+        target_branch=target_branch,
+        checklist=checklist,
+        linked_artifacts=linked_artifacts,
+    )
+    db.add(pr)
+    await db.flush()
+    await db.refresh(pr)
+    return pr
+
+
+# ── FM-068: Approval gate check ─────────────────────────────────
+
+async def check_approval_gate(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+    action_type: str,
+) -> dict[str, Any]:
+    """Check if an action requires approval and whether it's been granted."""
+    query = (
+        select(RepoActionApproval)
+        .where(
+            RepoActionApproval.project_id == project_id,
+            RepoActionApproval.action_type == action_type,
+        )
+        .order_by(RepoActionApproval.created_at.desc())
+        .limit(1)
+    )
+    result = await db.execute(query)
+    approval = result.scalar_one_or_none()
+
+    if approval is None:
+        return {"requires_approval": True, "approved": False, "approval_id": None}
+
+    return {
+        "requires_approval": True,
+        "approved": approval.status == "approved",
+        "approval_id": str(approval.id),
+        "status": approval.status,
+    }
+
+
+# ── FM-069: Sandbox Execution Runner ────────────────────────────
+
+def _validate_command(command: str, allowed: list[str] | None = None) -> str | None:
+    """Validate a command against the allowlist. Returns error message or None."""
+    parts = command.strip().split()
+    if not parts:
+        return "Empty command"
+
+    base_cmd = Path(parts[0]).name
+
+    effective_allowlist = set(allowed) if allowed else SANDBOX_COMMAND_ALLOWLIST
+    if base_cmd not in effective_allowlist:
+        return f"Command '{base_cmd}' not in allowlist"
+
+    dangerous_patterns = ["&&", "||", ";", "|", "`", "$(", "${", ">>", ">"]
+    for pattern in dangerous_patterns:
+        if pattern in command:
+            return f"Dangerous pattern '{pattern}' detected in command"
+
+    return None
+
+
+async def run_sandbox_execution(
+    db: AsyncSession,
+    execution_id: uuid.UUID,
+) -> SandboxExecution | None:
+    """Actually run a queued sandbox execution with safety controls."""
+    s = await get_sandbox_execution(db, execution_id)
+    if s is None:
+        return None
+
+    if s.status != SandboxStatus.QUEUED:
+        logger.warning("Sandbox %s not in queued state (current: %s)", execution_id, s.status)
+        return s
+
+    error = _validate_command(s.command, s.allowed_commands)
+    if error:
+        s.status = SandboxStatus.FAILED
+        s.stderr = f"Command validation failed: {error}"
+        s.exit_code = -1
+        s.completed_at = datetime.now(timezone.utc)
+        await db.flush()
+        await db.refresh(s)
+        return s
+
+    cwd = s.working_directory
+    if cwd and not os.path.isdir(cwd):
+        s.status = SandboxStatus.FAILED
+        s.stderr = f"Working directory not found: {cwd}"
+        s.exit_code = -1
+        s.completed_at = datetime.now(timezone.utc)
+        await db.flush()
+        await db.refresh(s)
+        return s
+
+    s.status = SandboxStatus.RUNNING
+    await db.flush()
+
+    start_time = time.monotonic()
+    timeout = min(s.timeout_seconds, MAX_SANDBOX_TIMEOUT)
+
+    try:
+        proc = await asyncio.create_subprocess_shell(
+            s.command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=cwd,
+        )
+        try:
+            stdout_bytes, stderr_bytes = await asyncio.wait_for(
+                proc.communicate(), timeout=timeout
+            )
+            s.stdout = stdout_bytes.decode("utf-8", errors="replace")[:50000]
+            s.stderr = stderr_bytes.decode("utf-8", errors="replace")[:50000]
+            s.exit_code = proc.returncode
+            s.status = SandboxStatus.COMPLETED if proc.returncode == 0 else SandboxStatus.FAILED
+        except asyncio.TimeoutError:
+            proc.kill()
+            await proc.wait()
+            s.status = SandboxStatus.TIMEOUT
+            s.stderr = f"Execution timed out after {timeout}s"
+            s.exit_code = -1
+    except Exception as exc:
+        s.status = SandboxStatus.FAILED
+        s.stderr = f"Execution error: {exc}"
+        s.exit_code = -1
+
+    elapsed_ms = int((time.monotonic() - start_time) * 1000)
+    s.duration_ms = elapsed_ms
+    s.completed_at = datetime.now(timezone.utc)
+    await db.flush()
+    await db.refresh(s)
+    return s

@@ -1,12 +1,12 @@
 # ForgeMind — Milestone Summary
 
-> Last updated: 2026-03-28 (after FM-060 hardening — collaboration phase complete)
+> Last updated: 2026-03-31 (after FM-070 — code operations enhancements complete)
 
 ---
 
 ## Current State
 
-**ForgeMind is an operator-centered AI execution platform with adaptive multi-agent orchestration, governance, cost tracking, trust scoring, execution replay, council decision-making, cross-run knowledge, external repo integration, production hardening, team collaboration, real-time streaming, and code operations.**
+**ForgeMind is an operator-centered AI execution platform with adaptive multi-agent orchestration, governance, cost tracking, trust scoring, execution replay, council decision-making, cross-run knowledge, external repo integration, production hardening, team collaboration, real-time streaming, code operations, and a repo-aware code-change-capable execution engine with file exploration, sync metadata, artifact-to-code mapping, enhanced patch proposals, annotation-based reviews, branch strategy management, PR draft generation, approval gates, and sandboxed code execution.**
 
 It can plan software projects, execute tasks via specialized agents with capability-based composition, surface execution artifacts, require human approval for critical steps, and adapt execution based on failures and feedback. The system has an execution memory layer for rich contextual reasoning, auto-retry with agent re-routing, connector-aware orchestration, credential vault management, configurable governance policies, LLM cost tracking, audit export, heuristic trust/risk scoring, deterministic execution replay, multi-agent council decisions, project-level knowledge bases, external repository connections, production-grade security middleware, workspace-based multi-tenancy with RBAC memberships, notification engine with delivery configs, escalation rules, activity feeds with user presence, and a full code operations pipeline (patch proposals, change reviews, branch strategies, PR drafts, repo action approvals, and sandbox execution).
 
@@ -101,8 +101,9 @@ It can plan software projects, execute tasks via specialized agents with capabil
 | **10 — Platform Intelligence & Hardening**   | FM-046 to FM-050            | Replay, council, knowledge, repos, production hardening                |
 | **11 — Team Collaboration & Real-Time**      | FM-051 to FM-060            | Workspaces, RBAC, notifications, streaming, escalation, activity, hardening |
 | **12 — Repository & Code Execution**         | FM-061 to FM-069            | Code mapping, patches, reviews, branches, PRs, sandbox execution       |
+| **13 — Code Ops Enhancements**               | FM-061 to FM-070 (enhanced) | Sync metadata, file explorer, artifact mapping, enhanced patches/reviews, branch strategy, PR draft gen, approval gates, sandbox runner, frontend pages |
 
-**Total tasks completed: 69** (FM-001 through FM-069 including FM-010A, FM-015A, FM-020A, plus 5 pre-release infrastructure features)
+**Total tasks completed: 70** (FM-001 through FM-070 including FM-010A, FM-015A, FM-020A, plus 5 pre-release infrastructure features)
 
 ---
 
@@ -297,6 +298,66 @@ ForgeMind now adds:
 > **ForgeMind now has a complete code operations pipeline from mapping to sandbox execution with 69 features across 12 milestones.**
 
 ---
+
+## Code Ops Enhancements (FM-061–FM-070)
+
+ForgeMind transforms from a collaborative AI operations platform into a **repo-aware, code-change-capable execution platform**:
+
+### FM-061: Repo Sync Metadata
+- SyncStatus enum (IDLE, SYNCING, SUCCESS, FAILED) + 10 new columns on RepoConnection
+- `refresh_sync_metadata()` and `get_sync_status()` service methods
+- `GET /repos/{id}/sync-status` and `POST /repos/{id}/refresh-sync` endpoints
+
+### FM-062: File Tree Explorer
+- `get_file_tree()` with directory browsing, `get_file_content()` with size limits (1MB), `get_file_metadata()`, `build_context_snippet()`
+- Path traversal protection, MAX_TREE_ENTRIES (500), language detection via _LANG_MAP
+- `GET /repos/{id}/tree`, `GET /repos/{id}/file`, `GET /repos/{id}/file-meta` endpoints
+- Frontend: Code Explorer page with split-panel tree browser and file viewer
+
+### FM-063: Code Artifact Mapping
+- ChangeType enum (CREATE, MODIFY, DELETE, CONCEPTUAL)
+- 5 new columns on Artifact: repo_connection_id (FK), target_path, target_module, change_type, target_metadata
+
+### FM-064: Patch Proposal Engine
+- PatchFormat enum (UNIFIED, SIDE_BY_SIDE, RAW), ReadinessState enum (INCOMPLETE, NEEDS_REVIEW, READY, BLOCKED)
+- 5 new columns on PatchProposal: target_files, patch_format, proposed_by_agent, readiness_state, linked_artifact_ids
+
+### FM-065: Change Review Workspace
+- 4 new columns on ChangeReview: file_path, line_start, line_end, suggestion
+- Inline code annotation support for file-level review comments
+- Frontend: Review workspace page with diff viewer, file annotations, and suggestion rendering
+
+### FM-066: Branch Strategy Manager
+- BranchMode enum (DIRECT, FEATURE_BRANCH, REVIEW_BRANCH)
+- branch_mode, target_branch_template, last_generated_branch on RepoConnection
+
+### FM-067: PR Draft Generation
+- `generate_pr_draft()` service auto-builds PR title/body/checklist from patch proposals
+- `POST /projects/{id}/pr-drafts/generate` endpoint with PRDraftGenerateRequest schema
+
+### FM-068: Repo Action Approval Gates
+- `check_approval_gate()` service queries latest approval status per action type
+- `GET /projects/{id}/repo-approvals/check` endpoint
+
+### FM-069: Code Execution Sandbox
+- Command allowlist (python, pip, pytest, echo, cat, ls, etc.) with shell injection prevention
+- `_validate_command()` blocks dangerous patterns (&&, ||, ;, |, `, $()
+- `run_sandbox_execution()` with asyncio subprocess, timeout enforcement, output capture
+- `POST /sandbox/run` endpoint with SandboxRunRequest schema
+- Frontend: Sandbox page with command runner, execution list, and output viewer
+
+### FM-070: Code Ops Consolidation
+- Frontend pages: Code Explorer, Review Workspace, Sandbox Viewer
+- Documentation updates: ARCHITECTURE.md, MILESTONE_SUMMARY.md, TECHNICAL_DEBT.md
+- Handoff response documents for FM-061–FM-070
+- Migration 0021 covering all schema enhancements
+
+**Database additions:** Migration 0021 (+10 cols on repo_connections, +5 on artifacts, +5 on patch_proposals, +4 on change_reviews, +4 on sandbox_executions; 5 new enum types)
+**Frontend additions:** 3 new dashboard pages (Code Explorer, Review Workspace, Sandbox)
+**Test additions:** 24 new tests in test_code_ops_enhanced.py
+**Total test suite: 303 tests (all passing)**
+
+> **ForgeMind is now a repo-aware, code-change-capable AI execution platform with 70 features across 13 milestones.**
 
 ## FM-046 to FM-050 — ✅ COMPLETE
 

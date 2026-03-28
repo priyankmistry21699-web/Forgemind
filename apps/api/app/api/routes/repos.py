@@ -1,6 +1,8 @@
 """Repo connection routes — external repository/workspace integration.
 
 FM-049: CRUD, health checks, and sync endpoints for repo connections.
+FM-061: Sync metadata refresh / status endpoints.
+FM-062: File tree and code content explorer routes.
 """
 
 import uuid
@@ -15,6 +17,9 @@ from app.schemas.repo import (
     RepoConnectionCreate,
     RepoConnectionUpdate,
     RepoSyncResult,
+    FileTreeResult,
+    FileContentResult,
+    RepoSyncMetadata,
 )
 from app.services import repo_service
 
@@ -42,6 +47,12 @@ async def create_connection(
         credential_env_key=body.credential_env_key,
         config=body.config,
         workspace_path=body.workspace_path,
+        base_branch=body.base_branch,
+        target_branch=body.target_branch,
+        linked_paths=body.linked_paths,
+        provider_metadata=body.provider_metadata,
+        branch_mode=body.branch_mode,
+        target_branch_template=body.target_branch_template,
     )
     await db.commit()
     return RepoConnectionRead.model_validate(conn)
@@ -146,4 +157,90 @@ async def sync_connection(
             detail=result["error"],
         )
     await db.commit()
+    return result
+
+
+# ── FM-061: Sync metadata ───────────────────────────────────────
+
+@router.get("/repos/{connection_id}/sync-status", response_model=RepoSyncMetadata)
+async def get_sync_status(
+    connection_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+) -> RepoSyncMetadata:
+    """Get current sync metadata for a repo connection."""
+    result = await repo_service.get_sync_status(db, connection_id)
+    if "error" in result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=result["error"],
+        )
+    return RepoSyncMetadata(**result)
+
+
+@router.post("/repos/{connection_id}/refresh-sync")
+async def refresh_sync_metadata(
+    connection_id: uuid.UUID,
+    commit_sha: str | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Refresh sync metadata (commit SHA, provider data) for a repo connection."""
+    result = await repo_service.refresh_sync_metadata(
+        db, connection_id, commit_sha=commit_sha,
+    )
+    if "error" in result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=result["error"],
+        )
+    await db.commit()
+    return result
+
+
+# ── FM-062: File tree & code content ────────────────────────────
+
+@router.get("/repos/{connection_id}/tree", response_model=FileTreeResult)
+async def get_file_tree(
+    connection_id: uuid.UUID,
+    path: str = Query("", description="Sub-path within workspace"),
+    db: AsyncSession = Depends(get_db),
+) -> FileTreeResult:
+    """Browse the file tree of a linked local workspace."""
+    result = await repo_service.get_file_tree(db, connection_id, path)
+    if "error" in result:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result["error"],
+        )
+    return FileTreeResult(**result)
+
+
+@router.get("/repos/{connection_id}/file", response_model=FileContentResult)
+async def get_file_content(
+    connection_id: uuid.UUID,
+    path: str = Query(..., description="File path within workspace"),
+    db: AsyncSession = Depends(get_db),
+) -> FileContentResult:
+    """Fetch file content from a linked local workspace."""
+    result = await repo_service.get_file_content(db, connection_id, path)
+    if "error" in result:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result["error"],
+        )
+    return FileContentResult(**result)
+
+
+@router.get("/repos/{connection_id}/file-meta")
+async def get_file_metadata(
+    connection_id: uuid.UUID,
+    path: str = Query(..., description="File path within workspace"),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get metadata for a file without fetching content."""
+    result = await repo_service.get_file_metadata(db, connection_id, path)
+    if "error" in result:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result["error"],
+        )
     return result

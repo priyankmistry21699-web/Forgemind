@@ -5,12 +5,16 @@ FM-049: Provides:
 - Connection status management
 - Sync/health check operations
 - Workspace path validation
+FM-061: Extended with sync metadata refresh.
+FM-062: File tree and code context explorer.
+FM-066: Branch strategy management.
 """
 
 import os
 import uuid
 import logging
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from sqlalchemy import select, func as sa_func
@@ -20,9 +24,27 @@ from app.models.repo_connection import (
     RepoConnection,
     RepoProvider,
     RepoConnectionStatus,
+    SyncStatus,
+    BranchMode,
 )
 
 logger = logging.getLogger(__name__)
+
+# FM-062: File size guard (1 MB max for file content fetch)
+MAX_FILE_SIZE_BYTES = 1_048_576
+# FM-062: Max entries in file tree listing
+MAX_TREE_ENTRIES = 500
+
+# FM-062: Common language extension map
+_LANG_MAP: dict[str, str] = {
+    ".py": "python", ".js": "javascript", ".ts": "typescript",
+    ".tsx": "typescript", ".jsx": "javascript", ".java": "java",
+    ".go": "go", ".rs": "rust", ".rb": "ruby", ".cpp": "cpp",
+    ".c": "c", ".cs": "csharp", ".php": "php", ".swift": "swift",
+    ".kt": "kotlin", ".sql": "sql", ".sh": "shell", ".yml": "yaml",
+    ".yaml": "yaml", ".json": "json", ".md": "markdown", ".html": "html",
+    ".css": "css", ".scss": "scss",
+}
 
 
 async def create_connection(
@@ -36,6 +58,12 @@ async def create_connection(
     credential_env_key: str | None = None,
     config: dict | None = None,
     workspace_path: str | None = None,
+    base_branch: str | None = None,
+    target_branch: str | None = None,
+    linked_paths: list | None = None,
+    provider_metadata: dict | None = None,
+    branch_mode: BranchMode | None = None,
+    target_branch_template: str | None = None,
 ) -> RepoConnection:
     """Create a new repository connection."""
     conn = RepoConnection(
@@ -48,6 +76,12 @@ async def create_connection(
         config=config,
         workspace_path=workspace_path,
         status=RepoConnectionStatus.PENDING,
+        base_branch=base_branch,
+        target_branch=target_branch,
+        linked_paths=linked_paths,
+        provider_metadata=provider_metadata,
+        branch_mode=branch_mode,
+        target_branch_template=target_branch_template,
     )
     db.add(conn)
     await db.flush()
@@ -103,6 +137,11 @@ async def update_connection(
     allowed_fields = {
         "default_branch", "credential_env_key", "config",
         "workspace_path", "status",
+        # FM-061
+        "base_branch", "target_branch", "linked_paths",
+        "provider_metadata",
+        # FM-066
+        "branch_mode", "target_branch_template",
     }
     for key, value in updates.items():
         if key in allowed_fields and value is not None:
@@ -129,11 +168,7 @@ async def check_connection_health(
     db: AsyncSession,
     connection_id: uuid.UUID,
 ) -> dict[str, Any]:
-    """Check community health of a repo connection.
-
-    For local repos, checks workspace path existence.
-    For remote repos, checks if credential env var is set.
-    """
+    """Check health of a repo connection."""
     conn = await get_connection(db, connection_id)
     if conn is None:
         return {"error": "Connection not found"}
@@ -146,7 +181,6 @@ async def check_connection_health(
             issues.append(f"Workspace path does not exist: {conn.workspace_path}")
             healthy = False
     else:
-        # Remote repo — check credential
         if conn.credential_env_key:
             if not os.environ.get(conn.credential_env_key, "").strip():
                 issues.append(f"Credential env var '{conn.credential_env_key}' is not set")
@@ -175,11 +209,7 @@ async def sync_connection(
     db: AsyncSession,
     connection_id: uuid.UUID,
 ) -> dict[str, Any]:
-    """Sync a repo connection — verify and update status.
-
-    In a full implementation, this would clone/pull the repo.
-    Currently performs a health check and marks as synced.
-    """
+    """Sync a repo connection — verify and update status."""
     health = await check_connection_health(db, connection_id)
     if "error" in health:
         return health
@@ -187,7 +217,13 @@ async def sync_connection(
     conn = await get_connection(db, connection_id)
     if conn and health.get("healthy"):
         conn.status = RepoConnectionStatus.CONNECTED
+        conn.last_sync_status = SyncStatus.SUCCESS
+        conn.last_sync_error = None
         conn.last_synced_at = datetime.now(timezone.utc)
+        await db.flush()
+    elif conn:
+        conn.last_sync_status = SyncStatus.FAILED
+        conn.last_sync_error = ", ".join(health.get("issues", []))
         await db.flush()
 
     return {
@@ -197,3 +233,215 @@ async def sync_connection(
                    else f"Sync failed: {', '.join(health.get('issues', []))}",
         "synced_at": conn.last_synced_at.isoformat() if conn and conn.last_synced_at else None,
     }
+
+
+# ── FM-061: Sync metadata refresh ──────────────────────────────
+
+async def refresh_sync_metadata(
+    db: AsyncSession,
+    connection_id: uuid.UUID,
+    *,
+    commit_sha: str | None = None,
+    provider_metadata: dict | None = None,
+) -> dict[str, Any]:
+    """Refresh sync metadata for a repo connection."""
+    conn = await get_connection(db, connection_id)
+    if conn is None:
+        return {"error": "Connection not found"}
+
+    conn.last_sync_status = SyncStatus.SUCCESS
+    conn.last_sync_error = None
+    conn.last_synced_at = datetime.now(timezone.utc)
+    if commit_sha:
+        conn.last_synced_commit = commit_sha
+    if provider_metadata:
+        conn.provider_metadata = provider_metadata
+    await db.flush()
+
+    return {
+        "connection_id": str(connection_id),
+        "last_sync_status": conn.last_sync_status.value if conn.last_sync_status else None,
+        "last_synced_commit": conn.last_synced_commit,
+        "last_synced_at": conn.last_synced_at.isoformat() if conn.last_synced_at else None,
+    }
+
+
+async def get_sync_status(
+    db: AsyncSession,
+    connection_id: uuid.UUID,
+) -> dict[str, Any]:
+    """Return sync status summary for a repo connection."""
+    conn = await get_connection(db, connection_id)
+    if conn is None:
+        return {"error": "Connection not found"}
+
+    return {
+        "connection_id": str(connection_id),
+        "last_sync_status": conn.last_sync_status.value if conn.last_sync_status else None,
+        "last_sync_error": conn.last_sync_error,
+        "last_synced_commit": conn.last_synced_commit,
+        "last_synced_at": conn.last_synced_at.isoformat() if conn.last_synced_at else None,
+    }
+
+
+# ── FM-062: File tree and code context ──────────────────────────
+
+def _detect_language(file_path: str) -> str | None:
+    ext = Path(file_path).suffix.lower()
+    return _LANG_MAP.get(ext)
+
+
+async def get_file_tree(
+    db: AsyncSession,
+    connection_id: uuid.UUID,
+    path: str = "",
+) -> dict[str, Any]:
+    """Browse the file tree of a linked repo/workspace (local provider only)."""
+    conn = await get_connection(db, connection_id)
+    if conn is None:
+        return {"error": "Connection not found"}
+
+    if conn.provider != RepoProvider.LOCAL or not conn.workspace_path:
+        return {"error": "File tree browsing requires a local workspace connection"}
+
+    base = Path(conn.workspace_path).resolve()
+    target = (base / path).resolve()
+
+    # Path traversal guard
+    if not str(target).startswith(str(base)):
+        return {"error": "Path traversal not allowed"}
+
+    if not target.is_dir():
+        return {"error": f"Not a directory: {path}"}
+
+    entries: list[dict[str, Any]] = []
+    try:
+        for item in sorted(target.iterdir()):
+            if item.name.startswith("."):
+                continue  # skip hidden files
+            if len(entries) >= MAX_TREE_ENTRIES:
+                break
+            resolved_item = item.resolve()
+            entry = {
+                "name": item.name,
+                "path": str(resolved_item.relative_to(base)),
+                "is_directory": item.is_dir(),
+                "size": item.stat().st_size if item.is_file() else None,
+            }
+            entries.append(entry)
+    except PermissionError:
+        return {"error": f"Permission denied: {path}"}
+
+    return {
+        "connection_id": str(connection_id),
+        "base_path": path or ".",
+        "entries": entries,
+    }
+
+
+async def get_file_content(
+    db: AsyncSession,
+    connection_id: uuid.UUID,
+    path: str,
+) -> dict[str, Any]:
+    """Fetch file content from a linked local workspace."""
+    conn = await get_connection(db, connection_id)
+    if conn is None:
+        return {"error": "Connection not found"}
+
+    if conn.provider != RepoProvider.LOCAL or not conn.workspace_path:
+        return {"error": "File content retrieval requires a local workspace connection"}
+
+    base = Path(conn.workspace_path).resolve()
+    target = (base / path).resolve()
+
+    # Path traversal guard
+    if not str(target).startswith(str(base)):
+        return {"error": "Path traversal not allowed"}
+
+    if not target.is_file():
+        return {"error": f"Not a file: {path}"}
+
+    file_size = target.stat().st_size
+    if file_size > MAX_FILE_SIZE_BYTES:
+        return {"error": f"File too large ({file_size} bytes, max {MAX_FILE_SIZE_BYTES})"}
+
+    try:
+        content = target.read_text(encoding="utf-8", errors="replace")
+    except Exception as e:
+        return {"error": f"Cannot read file: {e}"}
+
+    return {
+        "connection_id": str(connection_id),
+        "path": path,
+        "content": content,
+        "size": file_size,
+        "language": _detect_language(path),
+    }
+
+
+async def get_file_metadata(
+    db: AsyncSession,
+    connection_id: uuid.UUID,
+    path: str,
+) -> dict[str, Any]:
+    """Get metadata for a file without fetching full content."""
+    conn = await get_connection(db, connection_id)
+    if conn is None:
+        return {"error": "Connection not found"}
+
+    if conn.provider != RepoProvider.LOCAL or not conn.workspace_path:
+        return {"error": "File metadata requires a local workspace connection"}
+
+    base = Path(conn.workspace_path).resolve()
+    target = (base / path).resolve()
+
+    if not str(target).startswith(str(base)):
+        return {"error": "Path traversal not allowed"}
+
+    if not target.exists():
+        return {"error": f"Path not found: {path}"}
+
+    stat = target.stat()
+    return {
+        "connection_id": str(connection_id),
+        "path": path,
+        "name": target.name,
+        "is_directory": target.is_dir(),
+        "size": stat.st_size,
+        "language": _detect_language(path) if target.is_file() else None,
+        "modified_at": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
+    }
+
+
+def build_context_snippet(
+    workspace_path: str,
+    file_paths: list[str],
+    *,
+    max_lines_per_file: int = 100,
+) -> str:
+    """Build a context snippet from selected files for planning/execution."""
+    base = Path(workspace_path).resolve()
+    parts: list[str] = []
+
+    for fp in file_paths:
+        target = (base / fp).resolve()
+        if not str(target).startswith(str(base)):
+            continue
+        if not target.is_file():
+            continue
+        if target.stat().st_size > MAX_FILE_SIZE_BYTES:
+            parts.append(f"--- {fp} (skipped: too large) ---")
+            continue
+
+        try:
+            lines = target.read_text(encoding="utf-8", errors="replace").splitlines()
+            truncated = lines[:max_lines_per_file]
+            parts.append(f"--- {fp} ---")
+            parts.append("\n".join(truncated))
+            if len(lines) > max_lines_per_file:
+                parts.append(f"... ({len(lines) - max_lines_per_file} more lines)")
+        except Exception:
+            parts.append(f"--- {fp} (read error) ---")
+
+    return "\n\n".join(parts)

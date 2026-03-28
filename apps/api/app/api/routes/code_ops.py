@@ -10,9 +10,9 @@ from app.schemas.code_ops import (
     PatchProposalCreate, PatchProposalUpdate, PatchProposalRead, PatchProposalList,
     ChangeReviewCreate, ChangeReviewRead, ChangeReviewList,
     BranchStrategyCreate, BranchStrategyUpdate, BranchStrategyRead, BranchStrategyList,
-    PRDraftCreate, PRDraftUpdate, PRDraftRead, PRDraftList,
+    PRDraftCreate, PRDraftUpdate, PRDraftRead, PRDraftList, PRDraftGenerateRequest,
     RepoActionApprovalCreate, RepoActionDecision, RepoActionApprovalRead, RepoActionApprovalList,
-    SandboxExecutionCreate, SandboxExecutionRead, SandboxExecutionList,
+    SandboxExecutionCreate, SandboxExecutionRead, SandboxExecutionList, SandboxRunRequest,
 )
 from app.services import code_ops_service
 
@@ -85,6 +85,11 @@ async def create_patch(
         diff_content=data.diff_content, description=data.description,
         target_branch=data.target_branch, rationale=data.rationale,
         created_by=user_id,
+        target_files=data.target_files,
+        patch_format=data.patch_format,
+        proposed_by_agent=data.proposed_by_agent,
+        readiness_state=data.readiness_state,
+        linked_artifact_ids=data.linked_artifact_ids,
     )
     return PatchProposalRead.model_validate(p)
 
@@ -150,6 +155,8 @@ async def create_review(
     r = await code_ops_service.create_review(
         db, patch_id=patch_id, reviewer_id=user_id,
         decision=data.decision, comment=data.comment,
+        file_path=data.file_path, line_start=data.line_start,
+        line_end=data.line_end, suggestion=data.suggestion,
     )
     return ChangeReviewRead.model_validate(r)
 
@@ -371,6 +378,8 @@ async def create_sandbox_execution(
         task_id=data.task_id, patch_id=data.patch_id,
         working_directory=data.working_directory,
         environment=data.environment, timeout_seconds=data.timeout_seconds,
+        allowed_commands=data.allowed_commands,
+        resource_limits=data.resource_limits, isolated=data.isolated,
     )
     return SandboxExecutionRead.model_validate(s)
 
@@ -403,4 +412,55 @@ async def get_sandbox_execution(
     s = await code_ops_service.get_sandbox_execution(db, execution_id)
     if s is None:
         raise HTTPException(status_code=404, detail="Execution not found")
+    return SandboxExecutionRead.model_validate(s)
+
+
+# ── FM-067: PR Draft Generation Endpoint ────────────────────────
+
+@router.post(
+    "/projects/{project_id}/pr-drafts/generate",
+    response_model=PRDraftRead,
+    status_code=201,
+)
+async def generate_pr_draft(
+    project_id: uuid.UUID,
+    data: PRDraftGenerateRequest,
+    db: AsyncSession = Depends(get_db),
+) -> PRDraftRead:
+    """Generate a PR draft from a patch proposal."""
+    try:
+        pr = await code_ops_service.generate_pr_draft(
+            db, project_id=project_id, patch_id=data.patch_id,
+            target_branch=data.target_branch,
+            include_checklist=data.include_checklist,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    return PRDraftRead.model_validate(pr)
+
+
+# ── FM-068: Approval Gate Check ─────────────────────────────────
+
+@router.get("/projects/{project_id}/repo-approvals/check")
+async def check_approval_gate(
+    project_id: uuid.UUID,
+    action_type: str = Query(...),
+    db: AsyncSession = Depends(get_db),
+):
+    """Check whether an action type has been approved for a project."""
+    return await code_ops_service.check_approval_gate(db, project_id, action_type)
+
+
+# ── FM-069: Sandbox Run Endpoint ────────────────────────────────
+
+@router.post("/sandbox/run", response_model=SandboxExecutionRead)
+async def run_sandbox(
+    data: SandboxRunRequest,
+    db: AsyncSession = Depends(get_db),
+) -> SandboxExecutionRead:
+    """Execute a queued sandbox execution with safety controls."""
+    s = await code_ops_service.run_sandbox_execution(db, data.execution_id)
+    if s is None:
+        raise HTTPException(status_code=404, detail="Execution not found")
+    await db.commit()
     return SandboxExecutionRead.model_validate(s)

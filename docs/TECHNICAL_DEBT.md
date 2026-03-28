@@ -198,6 +198,50 @@ Discovered during FM-010A validation pass.
 
 ---
 
+## TD-019: Sandbox command allowlist is static
+
+**Location:** `app/services/code_ops_service.py` — `SANDBOX_COMMAND_ALLOWLIST`
+**Risk:** Low–Medium
+**Discovered:** FM-069
+**Description:** The sandbox command allowlist is a hardcoded set (`python`, `pip`, `pytest`, `echo`, `cat`, `ls`, etc.). There is no per-project or per-workspace configuration for allowed commands.
+
+**Recommended future action:** Add a `SandboxPolicy` model or JSON config on the project/workspace level to allow operators to customize permitted commands. Consider a deny-list approach for more flexibility.
+
+---
+
+## TD-020: File tree explorer reads from local filesystem only
+
+**Location:** `app/services/repo_service.py` — `get_file_tree()`, `get_file_content()`
+**Risk:** Medium
+**Discovered:** FM-062
+**Description:** The file tree explorer reads directly from the local filesystem via `workspace_path`. It does not support browsing remote GitHub/GitLab repositories via their APIs. This limits the explorer to locally cloned repos.
+
+**Recommended future action:** Add provider-specific file browsing via GitHub Contents API, GitLab Repository Files API, etc. Use `workspace_path` as a cache and fall back to API calls when local files are unavailable.
+
+---
+
+## TD-021: PR draft generation is template-based, not LLM-powered
+
+**Location:** `app/services/code_ops_service.py` — `generate_pr_draft()`
+**Risk:** Low
+**Discovered:** FM-067
+**Description:** The `generate_pr_draft()` function builds PR title/body from simple string templates using the patch proposal's title, description, and file list. It does not use LLM summarization to generate more intelligent PR descriptions.
+
+**Recommended future action:** Integrate LLM-powered PR description generation that summarizes the diff content, explains the changes, and auto-generates review checklists based on code analysis.
+
+---
+
+## TD-022: Sandbox execution uses subprocess without container isolation
+
+**Location:** `app/services/code_ops_service.py` — `run_sandbox_execution()`
+**Risk:** High
+**Discovered:** FM-069
+**Description:** Sandbox execution runs commands via `asyncio.create_subprocess_exec` on the host OS. While there is a command allowlist and shell injection prevention, there is no container or VM isolation. A malicious or buggy command could affect the host system.
+
+**Recommended future action:** Run sandbox commands inside Docker containers with resource limits (CPU, memory, network), read-only filesystem mounts, and no network access by default. Consider using gVisor or Firecracker for stronger isolation.
+
+---
+
 ## TD-019: Run memory cache is in-process only
 
 **Location:** `app/services/run_memory_service.py` — `_run_summary_cache`

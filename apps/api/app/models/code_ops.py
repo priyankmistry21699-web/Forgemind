@@ -3,12 +3,12 @@
 FM-061: Code mapping (artifact-to-file)
 FM-062: Patch proposals
 FM-063: Inline review
-FM-064: Auto-branch strategies
-FM-065: PR drafts
-FM-066: Change reviews
+FM-064: Patch proposal engine enhancements (target_files, format, readiness)
+FM-065: Change review workspace (file-level annotations)
+FM-066: Change reviews / branch strategies
 FM-067: Repo action approvals
 FM-068: Sandbox execution
-FM-069: Execution results
+FM-069: Execution results with runner safety
 """
 
 import enum
@@ -31,6 +31,21 @@ class PatchStatus(str, enum.Enum):
     REJECTED = "rejected"
     APPLIED = "applied"
     SUPERSEDED = "superseded"
+
+
+class PatchFormat(str, enum.Enum):
+    """FM-064: Format of the diff content."""
+    UNIFIED = "unified"
+    SIDE_BY_SIDE = "side_by_side"
+    RAW = "raw"
+
+
+class ReadinessState(str, enum.Enum):
+    """FM-064: How ready a patch is for application."""
+    INCOMPLETE = "incomplete"
+    NEEDS_REVIEW = "needs_review"
+    READY = "ready"
+    BLOCKED = "blocked"
 
 
 class ReviewDecision(str, enum.Enum):
@@ -95,7 +110,7 @@ class CodeMapping(Base):
 
 
 class PatchProposal(Base):
-    """FM-062: AI-generated code patches for review."""
+    """FM-062/064: AI-generated code patches for review."""
     __tablename__ = "patch_proposals"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -124,6 +139,17 @@ class PatchProposal(Base):
         UUID(as_uuid=True), nullable=True
     )
 
+    # FM-064: Enhanced patch proposal fields
+    target_files: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    patch_format: Mapped[PatchFormat | None] = mapped_column(
+        Enum(PatchFormat, name="patch_format"), nullable=True
+    )
+    proposed_by_agent: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    readiness_state: Mapped[ReadinessState | None] = mapped_column(
+        Enum(ReadinessState, name="readiness_state"), nullable=True
+    )
+    linked_artifact_ids: Mapped[list | None] = mapped_column(JSON, nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -136,7 +162,7 @@ class PatchProposal(Base):
 
 
 class ChangeReview(Base):
-    """FM-063/066: Review comments on patches."""
+    """FM-063/065/066: Review comments on patches with file-level annotations."""
     __tablename__ = "change_reviews"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -158,6 +184,12 @@ class ChangeReview(Base):
         nullable=False,
     )
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # FM-065: File-level review annotations
+    file_path: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    line_start: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    line_end: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    suggestion: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -290,7 +322,7 @@ class RepoActionApproval(Base):
 
 
 class SandboxExecution(Base):
-    """FM-068/069: Sandboxed code execution with results."""
+    """FM-068/069: Sandboxed code execution with safety controls."""
     __tablename__ = "sandbox_executions"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -324,6 +356,14 @@ class SandboxExecution(Base):
     stderr: Mapped[str | None] = mapped_column(Text, nullable=True)
     exit_code: Mapped[int | None] = mapped_column(Integer, nullable=True)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    # FM-069: Safety / runner fields
+    approval_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True
+    )
+    allowed_commands: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    resource_limits: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    isolated: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

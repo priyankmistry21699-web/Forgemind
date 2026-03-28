@@ -19,6 +19,14 @@ class ArtifactType(str, enum.Enum):
     OTHER = "other"
 
 
+class ChangeType(str, enum.Enum):
+    """FM-063: Type of code change an artifact represents."""
+    CREATE = "create"
+    MODIFY = "modify"
+    DELETE = "delete"
+    CONCEPTUAL = "conceptual"
+
+
 class Artifact(Base):
     __tablename__ = "artifacts"
 
@@ -55,6 +63,19 @@ class Artifact(Base):
     created_by: Mapped[str | None] = mapped_column(
         String(100), nullable=True
     )
+
+    # FM-063: Code artifact mapping fields
+    repo_connection_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("repo_connections.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    target_path: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    target_module: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    change_type: Mapped[ChangeType | None] = mapped_column(
+        Enum(ChangeType, name="change_type"), nullable=True
+    )
+    target_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

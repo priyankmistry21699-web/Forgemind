@@ -1,6 +1,6 @@
 # ForgeMind — System Architecture
 
-> Last updated: 2026-03-28 (after FM-060 — collaboration hardening complete)
+> Last updated: 2026-03-31 (after FM-070 — code operations enhancements complete)
 
 ---
 
@@ -79,11 +79,11 @@ ForgeMind is an **operator-centered AI execution platform** that dynamically ass
 | Async       | pytest-asyncio               | Async test support             |
 | HTTP Client | httpx (AsyncClient)          | API integration tests          |
 | Test DB     | aiosqlite (in-memory SQLite) | Fast isolated test database    |
-| Total Tests | **279** (all passing)        | 252 prior + 27 FM-060 hardening |
+| Total Tests | **303** (all passing)        | 279 prior + 24 FM-061–069 enhanced |
 
 ---
 
-## Database Models (20 Total)
+## Database Models (20 Total + 5 New Enums)
 
 All models defined in `apps/api/app/models/` and registered in `apps/api/app/db/base.py`.
 
@@ -167,7 +167,7 @@ All models defined in `apps/api/app/models/` and registered in `apps/api/app/db/
 | 17  | **CouncilSession**       | `council_sessions`        | id(UUID), project_id(FK), topic, status(5 states), decision_method(4 types), final_decision, decision_metadata(JSON)        | N:1 → Project, 1:N → CouncilVotes               |
 | 18  | **CouncilVote**          | `council_votes`           | id(UUID), session_id(FK), agent_slug, decision(4 types), reasoning, confidence(0-1), weight(float)                          | N:1 → CouncilSession                             |
 | 19  | **ProjectKnowledge**     | `project_knowledge`       | id(UUID), project_id(FK), knowledge_type(7 types), title, content, tags(JSON), relevance_score, usage_count                 | N:1 → Project                                    |
-| 20  | **RepoConnection**       | `repo_connections`        | id(UUID), project_id(FK), provider(4 types), repo_url, repo_name, status(4 states), default_branch, last_synced_at          | N:1 → Project                                    |
+| 20  | **RepoConnection**       | `repo_connections`        | id(UUID), project_id(FK), provider(4 types), repo_url, repo_name, status(4 states), default_branch, last_synced_at, **+base_branch, target_branch, linked_paths(JSON), last_sync_status(enum), last_sync_error, last_synced_commit, provider_metadata(JSON), branch_mode(enum), target_branch_template, last_generated_branch** | N:1 → Project |
 
 ### Status Enums
 
@@ -190,6 +190,11 @@ All models defined in `apps/api/app/models/` and registered in `apps/api/app/db/
 | ProjectKnowledge type    | PATTERN, DECISION, LESSON_LEARNED, DEPENDENCY, BEST_PRACTICE, ARCHITECTURE, CONSTRAINT |
 | RepoConnection provider  | GITHUB, GITLAB, BITBUCKET, LOCAL                               |
 | RepoConnection status    | CONNECTED, DISCONNECTED, ERROR, PENDING                        |
+| SyncStatus (FM-061)      | IDLE, SYNCING, SUCCESS, FAILED                                 |
+| BranchMode (FM-066)      | DIRECT, FEATURE_BRANCH, REVIEW_BRANCH                          |
+| ChangeType (FM-063)      | CREATE, MODIFY, DELETE, CONCEPTUAL                             |
+| PatchFormat (FM-064)     | UNIFIED, SIDE_BY_SIDE, RAW                                     |
+| ReadinessState (FM-064)  | INCOMPLETE, NEEDS_REVIEW, READY, BLOCKED                       |
 
 ---
 
@@ -225,14 +230,14 @@ All routers registered in `apps/api/app/api/router.py` and mounted via `app.incl
 | 22  | `replay.py`           | `/`                 | `GET /runs/{id}/trace`, `GET /tasks/{id}/snapshots`, `POST /replay/snapshots`, `GET /replay/snapshots/{id}`, `POST /replay/snapshots/{id}/replay`, `GET /replay/compare`             | replay      |
 | 23  | `council.py`          | `/council`          | `POST /council/sessions`, `GET /council/sessions`, `GET /council/sessions/{id}`, `POST .../vote`, `POST .../resolve`, `POST .../escalate`                                           | council     |
 | 24  | `knowledge.py`        | `/`                 | `POST /projects/{id}/knowledge`, `GET /projects/{id}/knowledge`, `GET /knowledge/{id}`, `DELETE /knowledge/{id}`, `POST /runs/{id}/extract-knowledge`, `GET .../knowledge/context`   | knowledge   |
-| 25  | `repos.py`            | `/`                 | `POST /projects/{id}/repos`, `GET /projects/{id}/repos`, `GET /repos/{id}`, `PATCH /repos/{id}`, `DELETE /repos/{id}`, `POST /repos/{id}/health`, `POST /repos/{id}/sync`            | repos       |
+| 25  | `repos.py`            | `/`                 | `POST /projects/{id}/repos`, `GET /projects/{id}/repos`, `GET /repos/{id}`, `PATCH /repos/{id}`, `DELETE /repos/{id}`, `POST /repos/{id}/health`, `POST /repos/{id}/sync`, **`GET /repos/{id}/sync-status`, `POST /repos/{id}/refresh-sync`, `GET /repos/{id}/tree`, `GET /repos/{id}/file`, `GET /repos/{id}/file-meta`** | repos |
 | 26  | `workspaces.py`       | `/`                 | `POST /workspaces`, `GET /workspaces`, `GET /workspaces/{id}`, `PATCH /workspaces/{id}`                                                                                              | workspaces  |
 | 27  | `members.py`          | `/`                 | Workspace/project member CRUD                                                                                                                                                         | members     |
 | 28  | `notifications.py`    | `/`                 | `POST /notifications`, `GET /notifications`, `POST /{id}/read`, `POST /read-all`, delivery config CRUD                                                                                | notifications|
 | 29  | `streaming.py`        | `/`                 | `GET /stream/events`, `GET /runs/{id}/stream`                                                                                                                                         | streaming   |
 | 30  | `escalation.py`       | `/`                 | `POST /projects/{id}/escalation/rules`, `GET .../rules`, `GET .../events`, rule CRUD                                                                                                  | escalation  |
 | 31  | `activity.py`         | `/`                 | Activity feed CRUD, presence CRUD, `GET /workspaces/{id}/activity`, `GET /users/{id}/context`                                                                                         | activity    |
-| 32  | `code_ops.py`         | `/`                 | Code mapping, patch proposals, change reviews, branch strategies, PR drafts, repo action approvals, sandbox executions                                                                 | code_ops    |
+| 32  | `code_ops.py`         | `/`                 | Code mapping, patch proposals, change reviews, branch strategies, PR drafts, repo action approvals, sandbox executions, **+PR draft generation, approval gate check, sandbox run**       | code_ops    |
 
 ---
 
@@ -277,7 +282,7 @@ All business logic lives in `apps/api/app/services/`. Routes are thin — they d
 | `replay_service.py`      | capture_snapshot, get_execution_trace, replay, compare           | Deterministic execution replay        |
 | `council_service.py`     | convene, cast_vote, resolve (4 methods), escalate                | Multi-agent council decisions          |
 | `knowledge_service.py`   | create, extract_from_run, get_context, list, delete              | Cross-run project knowledge base      |
-| `repo_service.py`        | CRUD connections, check_health, sync                             | External repo integration             |
+| `repo_service.py`        | CRUD connections, check_health, sync, **refresh_sync_metadata, get_sync_status, get_file_tree, get_file_content, get_file_metadata, build_context_snippet** | External repo integration + file explorer |
 
 ### Collaboration & Real-Time Services (FM-051–060)
 
@@ -323,7 +328,7 @@ All request/response models in `apps/api/app/schemas/`.
 | `notification.py`    | NotificationCreate/Read/List, DeliveryConfigCreate/Read/List                                                      | Notification DTOs           |
 | `escalation.py`      | EscalationRuleCreate/Update/Read/List, EscalationEventRead/List                                                   | Escalation DTOs             |
 | `activity.py`        | ActivityFeedEntryCreate/Read, ActivityFeedList, PresenceUpdate/Read/List                                          | Activity & presence DTOs    |
-| `code_ops.py`        | CodeMapping/PatchProposal/ChangeReview/BranchStrategy/PRDraft/RepoActionApproval/SandboxExecution CRUD schemas    | Code operations DTOs        |
+| `code_ops.py`        | CodeMapping/PatchProposal/ChangeReview/BranchStrategy/PRDraft/RepoActionApproval/SandboxExecution CRUD schemas, **PRDraftGenerateRequest, SandboxRunRequest** | Code operations DTOs |
 
 ---
 
@@ -353,6 +358,7 @@ All migrations in `apps/api/alembic/versions/` using Alembic.
 | 18  | 0018     | Repo connections (FM-049)    | repo_connections table                                           |
 | 19  | 0019     | Collaboration + code ops     | workspaces, workspace_members, project_members, notifications, notification_delivery_configs, escalation_rules, escalation_events, activity_feed_entries, user_presences, code_mappings, patch_proposals, change_reviews, branch_strategies, pr_drafts, repo_action_approvals, sandbox_executions |
 | 20  | 0020     | Project workspace FK (FM-051)| +workspace_id (nullable FK) on projects table                    |
+| 21  | 0021     | Code ops enhancements (FM-061–069)| +10 columns on repo_connections, +5 on artifacts, +5 on patch_proposals, +4 on change_reviews, +4 on sandbox_executions; 5 new enum types |
 
 ---
 
@@ -473,6 +479,7 @@ Settings defined in `apps/api/app/core/config.py` via Pydantic `BaseSettings`:
 | `test_escalation.py`  | Escalation engine       | Rules CRUD + escalation events                           |
 | `test_activity.py`    | Activity & presence     | Activity feed + user presence upsert                     |
 | `test_code_ops.py`    | Code operations         | Mappings, patches, reviews, branches, PRs, approvals, sandbox |
+| `test_code_ops_enhanced.py` | FM-061–069 enhancements | Sync metadata, file tree, artifact mapping, patches, reviews, PR drafts, approval gates, sandbox runner (24 tests) |
 
 ### Evaluation Tests (`apps/api/evals/`)
 
@@ -490,7 +497,8 @@ Settings defined in `apps/api/app/core/config.py` via Pydantic `BaseSettings`:
 | Infrastructure tests (pre-release) | 23      |
 | FM-046–050 feature tests           | 34      |
 | FM-051–069 feature tests           | 67      |
-| **Total**                          | **252** |
+| FM-061–069 enhanced tests          | 24      |
+| **Total**                          | **303** |
 
 ---
 
@@ -517,11 +525,11 @@ forgemind/
 │   │   │   │   └── session.py        # Async engine + session factory
 │   │   │   ├── models/               # SQLAlchemy models (26 files)
 │   │   │   ├── schemas/              # Pydantic schemas (23 files)
-│   │   │   ├── services/             # Business logic (30 services)
+│   │   │   ├── services/             # Business logic (30+ services)
 │   │   │   └── main.py              # FastAPI app factory
 │   │   ├── alembic/
-│   │   │   └── versions/             # 19 migrations
-│   │   ├── tests/                    # 252 tests (23 files)
+│   │   │   └── versions/             # 21 migrations
+│   │   ├── tests/                    # 303 tests (24 files)
 │   │   ├── evals/                    # 23 eval tests
 │   │   ├── alembic.ini
 │   │   └── requirements.txt
