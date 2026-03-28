@@ -303,6 +303,7 @@ async def scan_all_runs_health(
     """Scan all active runs and return health summaries.
 
     Active runs = status in (RUNNING, PLANNING, PAUSED).
+    Also triggers escalation rules (FM-057) for STUCK/CRITICAL runs.
     """
     result = await db.execute(
         select(Run).where(
@@ -315,5 +316,24 @@ async def scan_all_runs_health(
     for run in active_runs:
         health = await get_run_health(db, run.id)
         summaries.append(health)
+
+        # FM-057: Trigger escalation for unhealthy runs
+        if health.get("health") in (RunHealth.STUCK, RunHealth.CRITICAL):
+            try:
+                from app.services import escalation_service
+                trigger_type = "run_stuck" if health["health"] == RunHealth.STUCK else "retry_exhausted"
+                await escalation_service.trigger_escalation(
+                    db,
+                    project_id=run.project_id,
+                    trigger_type=trigger_type,
+                    trigger_data={
+                        "run_id": str(run.id),
+                        "health": health["health"],
+                        "blocking_issues": health.get("blocking_issues", []),
+                    },
+                    action_taken=f"Escalation triggered: run health is {health['health']}",
+                )
+            except Exception:
+                logger.warning("Escalation trigger failed for run %s", run.id, exc_info=True)
 
     return summaries

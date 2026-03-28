@@ -10,12 +10,14 @@ from app.models.project import ProjectStatus
 class ProjectCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: str | None = None
+    workspace_id: uuid.UUID | None = None
 
 
 class ProjectUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = None
     status: ProjectStatus | None = None
+    workspace_id: uuid.UUID | None = None
 
 
 # ---------- Response schemas ----------
@@ -25,6 +27,7 @@ class ProjectRead(BaseModel):
     description: str | None
     status: ProjectStatus
     owner_id: uuid.UUID
+    workspace_id: uuid.UUID | None
     created_at: datetime
     updated_at: datetime
 

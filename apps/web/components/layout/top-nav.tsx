@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function TopNav() {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)]/80 backdrop-blur-sm px-6">
@@ -12,8 +14,11 @@ export function TopNav() {
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Notification bell */}
-        <button className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-bg-card)] hover:text-[var(--color-text)]">
+        {/* Notification bell — links to notifications page */}
+        <Link
+          href="/dashboard/notifications"
+          className="relative flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-bg-card)] hover:text-[var(--color-text)]"
+        >
           <svg
             width="15"
             height="15"
@@ -27,7 +32,7 @@ export function TopNav() {
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
-        </button>
+        </Link>
         {/* User avatar */}
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-accent-hover)] text-xs font-bold text-white shadow-sm">
           U

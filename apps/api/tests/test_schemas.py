@@ -47,6 +47,7 @@ class TestProjectSchemas:
             description=None,
             status="draft",
             owner_id=uuid.uuid4(),
+            workspace_id=None,
             created_at=now,
             updated_at=now,
         )

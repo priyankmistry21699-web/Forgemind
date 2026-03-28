@@ -15,6 +15,7 @@ async def create_project(
         name=data.name,
         description=data.description,
         owner_id=owner_id,
+        workspace_id=data.workspace_id,
     )
     db.add(project)
     await db.flush()

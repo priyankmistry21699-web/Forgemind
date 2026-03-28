@@ -10,6 +10,7 @@ from app.schemas.activity import (
     PresenceUpdate, PresenceRead, PresenceList,
 )
 from app.services import activity_service
+from app.services import user_activity_service
 
 router = APIRouter()
 
@@ -89,3 +90,33 @@ async def get_presence(
     if p is None:
         raise HTTPException(status_code=404, detail="Presence not found")
     return PresenceRead.model_validate(p)
+
+
+# ── Workspace Activity (FM-058) ─────────────────────────────────
+
+@router.get("/workspaces/{workspace_id}/activity", response_model=ActivityFeedList)
+async def get_workspace_activity(
+    workspace_id: uuid.UUID,
+    offset: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+) -> ActivityFeedList:
+    """Get activity feed scoped to a workspace."""
+    items, total = await activity_service.list_activities(
+        db, workspace_id=workspace_id, limit=limit, offset=offset,
+    )
+    return ActivityFeedList(
+        items=[ActivityFeedEntryRead.model_validate(e) for e in items],
+        total=total,
+    )
+
+
+# ── User Assignment Context (FM-059) ────────────────────────────
+
+@router.get("/users/{user_id}/context")
+async def get_user_context(
+    user_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Get assignment and presence context for a user."""
+    return await user_activity_service.get_user_assignment_context(db, user_id)

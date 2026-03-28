@@ -1,6 +1,6 @@
 # ForgeMind — Milestone Summary
 
-> Last updated: 2026-03-28 (after FM-069 — all 69 tasks complete across 12 milestones)
+> Last updated: 2026-03-28 (after FM-060 hardening — collaboration phase complete)
 
 ---
 
@@ -99,8 +99,10 @@ It can plan software projects, execute tasks via specialized agents with capabil
 | **9 — Connector & Retry Intelligence**       | FM-041 to FM-045            | Connector readiness, credential vault, retry v2, chatbot v2, eval suite |
 | **Pre-release Infrastructure**               | (5 features)                | Run lifecycle, cost tracking, governance, audit export, trust scoring   |
 | **10 — Platform Intelligence & Hardening**   | FM-046 to FM-050            | Replay, council, knowledge, repos, production hardening                |
+| **11 — Team Collaboration & Real-Time**      | FM-051 to FM-060            | Workspaces, RBAC, notifications, streaming, escalation, activity, hardening |
+| **12 — Repository & Code Execution**         | FM-061 to FM-069            | Code mapping, patches, reviews, branches, PRs, sandbox execution       |
 
-**Total tasks completed: 50** (FM-001 through FM-050 including FM-010A, FM-015A, FM-020A, plus 5 pre-release infrastructure features)
+**Total tasks completed: 69** (FM-001 through FM-069 including FM-010A, FM-015A, FM-020A, plus 5 pre-release infrastructure features)
 
 ---
 
@@ -222,9 +224,55 @@ ForgeMind now adds:
 
 **Database additions:** 1 new migration (0019), 9 new models (Workspace, WorkspaceMember, ProjectMember, Notification, NotificationDeliveryConfig, EscalationRule, EscalationEvent, ActivityFeedEntry, UserPresence)
 **Test additions:** 50 new tests across 6 test files (workspaces, members, streaming, notifications, escalation, activity)
-**Total test suite: 235 tests… continued below**
+**Total test suite: 252 tests (all passing)**
 
 > **ForgeMind now has workspace-based multi-tenancy, real-time streaming, notifications, escalation, and activity tracking.**
+
+---
+
+## FM-060 Collaboration Phase Hardening
+
+The FM-060 hardening pass adds structural depth and integration to the basic CRUD built in FM-051–059:
+
+### Backend Structural Enhancements
+
+1. **workspace_id on Project (FM-051)** — Added nullable FK `workspace_id` to the Project model with `SET NULL` on delete; migration 0020 adds the column and index
+2. **Authorization service (FM-052)** — `authz_service.py` with Action enum (15 actions), permission matrices for workspace (8 actions) and project (7 actions), check functions that raise 403/404
+3. **Workspace membership validation (FM-053)** — `add_project_member()` now validates workspace membership before allowing project assignment
+4. **Run-scoped SSE streaming (FM-054)** — `stream_service.py` with in-memory asyncio.Queue-based pub/sub; `GET /runs/{run_id}/stream` endpoint for per-run SSE; global subscriber support
+5. **Cross-service notification hooks (FM-055)** — Approval and event services now auto-create notifications on approval_created, approval_resolved, and all emitted events
+6. **Multi-channel delivery service (FM-056)** — `notification_delivery_service.py` with webhook (httpx), Slack (incoming webhook), and email (stub) delivery channels
+7. **Escalation integration (FM-057)** — `run_lifecycle_service.py` now triggers escalation for STUCK/CRITICAL runs during health scans
+8. **Workspace activity endpoint (FM-058)** — `GET /workspaces/{workspace_id}/activity` for workspace-scoped activity feeds
+9. **User activity service (FM-059)** — `user_activity_service.py` with presence tracking, active user queries, and assignment context; `GET /users/{user_id}/context` endpoint
+
+### Frontend
+
+10. **Type definitions** — workspace.ts, notification.ts, activity.ts, escalation.ts, project-member.ts
+11. **API clients** — workspaces.ts, notifications.ts, escalations.ts, activity.ts, project-members.ts, stream.ts (SSE)
+12. **Dashboard pages** — Workspaces, Notifications, Activity Feed, Escalations pages
+13. **Components** — ProjectMembersPanel reusable component
+14. **Navigation** — Sidebar updated with Workspaces, Notifications, Activity, Escalations nav items; top-nav bell linked to /dashboard/notifications
+15. **Project type** — workspace_id field added to Project interface
+
+### Testing
+
+16. **27 FM-060 hardening tests** in `test_collaboration_phase.py` covering:
+    - Workspace-scoped projects (workspace_id field, creation with workspace)
+    - Authorization permission matrices (workspace + project, role checks, 403/404)
+    - Stream service pub/sub (subscribe, publish, global, run-scoped generator)
+    - Notification delivery (no configs, email stub, webhook no-URL)
+    - Workspace activity endpoint (empty, with entries)
+    - User activity service (touch, update, assignment context, endpoint)
+    - End-to-end integration flows (full workspace→project flow, notification lifecycle, escalation, presence, delivery config)
+
+**Database additions:** Migration 0020 (workspace_id FK on projects)
+**New services:** authz_service.py, notification_delivery_service.py, stream_service.py, user_activity_service.py
+**Frontend additions:** 5 type files, 6 lib files, 4 pages, 1 component, sidebar + top-nav updates
+**Test additions:** 27 new tests in test_collaboration_phase.py
+**Total test suite: 279 tests (all passing)**
+
+> **ForgeMind now has deep team collaboration with RBAC authorization, real-time streaming, cross-service hooks, and workspace-scoped operations.**
 
 ---
 
@@ -244,7 +292,7 @@ ForgeMind now adds:
 
 **Database additions:** Migration 0019 (shared with Milestone 11), 7 new models (CodeMapping, PatchProposal, ChangeReview, BranchStrategy, PRDraft, RepoActionApproval, SandboxExecution)
 **Test additions:** 17 new tests in test_code_ops.py
-**Total test suite: 252 tests (all passing)**
+**Total test suite: 279 tests (all passing)**
 
 > **ForgeMind now has a complete code operations pipeline from mapping to sandbox execution with 69 features across 12 milestones.**
 

@@ -1,6 +1,7 @@
 import uuid
 from typing import Any
 
+from fastapi import HTTPException, status
 from sqlalchemy import select, func as sa_func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -102,6 +103,20 @@ async def add_project_member(
     is_approver: bool = False,
     is_reviewer: bool = False,
 ) -> ProjectMember:
+    # FM-053: Validate workspace membership before project assignment
+    from app.models.project import Project
+    proj_result = await db.execute(
+        select(Project).where(Project.id == project_id)
+    )
+    project = proj_result.scalar_one_or_none()
+    if project and project.workspace_id:
+        ws_member = await get_workspace_member(db, project.workspace_id, user_id)
+        if ws_member is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User must be a workspace member before being added to a project",
+            )
+
     member = ProjectMember(
         project_id=project_id,
         user_id=user_id,

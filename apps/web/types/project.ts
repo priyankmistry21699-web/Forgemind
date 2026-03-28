@@ -14,6 +14,7 @@ export interface Project {
   description: string | null;
   status: ProjectStatus;
   owner_id: string;
+  workspace_id: string | null;
   created_at: string;
   updated_at: string;
 }

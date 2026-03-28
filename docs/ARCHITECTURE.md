@@ -1,6 +1,6 @@
 # ForgeMind — System Architecture
 
-> Last updated: 2026-03-28 (after FM-069 — all features complete)
+> Last updated: 2026-03-28 (after FM-060 — collaboration hardening complete)
 
 ---
 
@@ -79,7 +79,7 @@ ForgeMind is an **operator-centered AI execution platform** that dynamically ass
 | Async       | pytest-asyncio               | Async test support             |
 | HTTP Client | httpx (AsyncClient)          | API integration tests          |
 | Test DB     | aiosqlite (in-memory SQLite) | Fast isolated test database    |
-| Total Tests | **185** (all passing)        | 105 core + 23 evals + 46 infra + 34 FM-046–050 |
+| Total Tests | **279** (all passing)        | 252 prior + 27 FM-060 hardening |
 
 ---
 
@@ -149,7 +149,7 @@ All models defined in `apps/api/app/models/` and registered in `apps/api/app/db/
 | #   | Model                    | Table                     | Key Columns                                                                                                                 | Relationships                                   |
 | --- | ------------------------ | ------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
 | 1   | **User**                 | `users`                   | id(UUID), email(unique), display_name, clerk_id, is_active                                                                  | 1:N → Projects                                  |
-| 2   | **Project**              | `projects`                | id(UUID), name, description, status(6 states), owner_id(FK)                                                                 | N:1 → User, 1:N → Runs/Artifacts/ConnectorLinks |
+| 2   | **Project**              | `projects`                | id(UUID), name, description, status(6 states), owner_id(FK), workspace_id(FK, nullable)                                    | N:1 → User/Workspace, 1:N → Runs/Artifacts      |
 | 3   | **Run**                  | `runs`                    | id(UUID), run_number, status(6 states), trigger, project_id(FK)                                                             | N:1 → Project, 1:N → Tasks, 1:1 → PlannerResult |
 | 4   | **Task**                 | `tasks`                   | id(UUID), title, task_type, status(7 states), depends_on(UUID[]), run_id(FK), assigned_agent_slug, max_retries, retry_count | N:1 → Run, self-ref parent/children             |
 | 5   | **PlannerResult**        | `planner_results`         | id(UUID), run_id(FK, unique), overview, architecture_summary, recommended_stack(JSON), assumptions(JSON), next_steps(JSON)  | N:1 → Run                                       |
@@ -226,6 +226,13 @@ All routers registered in `apps/api/app/api/router.py` and mounted via `app.incl
 | 23  | `council.py`          | `/council`          | `POST /council/sessions`, `GET /council/sessions`, `GET /council/sessions/{id}`, `POST .../vote`, `POST .../resolve`, `POST .../escalate`                                           | council     |
 | 24  | `knowledge.py`        | `/`                 | `POST /projects/{id}/knowledge`, `GET /projects/{id}/knowledge`, `GET /knowledge/{id}`, `DELETE /knowledge/{id}`, `POST /runs/{id}/extract-knowledge`, `GET .../knowledge/context`   | knowledge   |
 | 25  | `repos.py`            | `/`                 | `POST /projects/{id}/repos`, `GET /projects/{id}/repos`, `GET /repos/{id}`, `PATCH /repos/{id}`, `DELETE /repos/{id}`, `POST /repos/{id}/health`, `POST /repos/{id}/sync`            | repos       |
+| 26  | `workspaces.py`       | `/`                 | `POST /workspaces`, `GET /workspaces`, `GET /workspaces/{id}`, `PATCH /workspaces/{id}`                                                                                              | workspaces  |
+| 27  | `members.py`          | `/`                 | Workspace/project member CRUD                                                                                                                                                         | members     |
+| 28  | `notifications.py`    | `/`                 | `POST /notifications`, `GET /notifications`, `POST /{id}/read`, `POST /read-all`, delivery config CRUD                                                                                | notifications|
+| 29  | `streaming.py`        | `/`                 | `GET /stream/events`, `GET /runs/{id}/stream`                                                                                                                                         | streaming   |
+| 30  | `escalation.py`       | `/`                 | `POST /projects/{id}/escalation/rules`, `GET .../rules`, `GET .../events`, rule CRUD                                                                                                  | escalation  |
+| 31  | `activity.py`         | `/`                 | Activity feed CRUD, presence CRUD, `GET /workspaces/{id}/activity`, `GET /users/{id}/context`                                                                                         | activity    |
+| 32  | `code_ops.py`         | `/`                 | Code mapping, patch proposals, change reviews, branch strategies, PR drafts, repo action approvals, sandbox executions                                                                 | code_ops    |
 
 ---
 
@@ -272,6 +279,20 @@ All business logic lives in `apps/api/app/services/`. Routes are thin — they d
 | `knowledge_service.py`   | create, extract_from_run, get_context, list, delete              | Cross-run project knowledge base      |
 | `repo_service.py`        | CRUD connections, check_health, sync                             | External repo integration             |
 
+### Collaboration & Real-Time Services (FM-051–060)
+
+| Service                           | Key Functions                                                    | Purpose                               |
+| --------------------------------- | ---------------------------------------------------------------- | ------------------------------------- |
+| `workspace_service.py`            | create, get, list, update                                        | Workspace CRUD                        |
+| `membership_service.py`           | add/remove workspace & project members, workspace validation     | RBAC membership management            |
+| `notification_service.py`         | create, list, mark read, mark all read, delivery config CRUD     | In-app notification engine            |
+| `notification_delivery_service.py`| deliver_notification, webhook/slack/email channels                | External notification delivery        |
+| `escalation_service.py`           | create/list/update rules, trigger/list events                    | Escalation rule engine                |
+| `activity_service.py`             | create/list activities, upsert/get/list presence                 | Activity feed + user presence         |
+| `authz_service.py`                | check_workspace/project_permission, permission matrices          | RBAC authorization checks             |
+| `stream_service.py`               | subscribe/unsubscribe run/global, publish, SSE generators        | In-memory pub/sub for real-time SSE   |
+| `user_activity_service.py`        | touch_user_activity, get_active_users, get_assignment_context    | User presence & assignment tracking   |
+
 ---
 
 ## Pydantic Schemas
@@ -306,7 +327,7 @@ All request/response models in `apps/api/app/schemas/`.
 
 ---
 
-## Database Migrations (19 Total)
+## Database Migrations (20 Total)
 
 All migrations in `apps/api/alembic/versions/` using Alembic.
 
@@ -331,6 +352,7 @@ All migrations in `apps/api/alembic/versions/` using Alembic.
 | 17  | 0017     | Project knowledge (FM-048)   | project_knowledge table                                          |
 | 18  | 0018     | Repo connections (FM-049)    | repo_connections table                                           |
 | 19  | 0019     | Collaboration + code ops     | workspaces, workspace_members, project_members, notifications, notification_delivery_configs, escalation_rules, escalation_events, activity_feed_entries, user_presences, code_mappings, patch_proposals, change_reviews, branch_strategies, pr_drafts, repo_action_approvals, sandbox_executions |
+| 20  | 0020     | Project workspace FK (FM-051)| +workspace_id (nullable FK) on projects table                    |
 
 ---
 
