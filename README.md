@@ -153,7 +153,19 @@ flowchart TD
 - Health checking and sync operations per connection
 - Multi-repo support per project
 
-### 🛡️ Production Hardening
+### � Repository-Aware Code Operations
+
+- **File tree explorer** — browse connected repo files with language detection and path traversal protection
+- **Sync metadata** — track last synced commit, sync status (idle/syncing/success/failed), provider metadata
+- **Code artifact mapping** — link execution artifacts to specific files with change type tracking (create/modify/delete)
+- **Enhanced patch proposals** — target file lists, readiness state (incomplete/needs_review/ready/blocked), patch format
+- **Annotation-based reviews** — file-specific review comments with line ranges and code suggestions
+- **Branch strategy management** — configurable branch modes (direct/feature_branch/review_branch) with templates
+- **PR draft generation** — auto-build PR title, body, and checklist from patch proposals
+- **Approval gates** — per-action-type approval checks (push/merge/deploy/release/delete_branch)
+- **Code execution sandbox** — command allowlist, shell injection prevention, async execution with timeout enforcement
+
+### �🛡️ Production Hardening
 
 - JWT authentication with dev-mode stub fallback
 - Per-IP token bucket rate limiting (100 req/60s)
@@ -174,17 +186,18 @@ flowchart TB
 
     subgraph Backend["⚡ BACKEND · Port 8000"]
         FA["<b>FastAPI</b> — Python 3.12 · Async"]
-        subgraph Routes["📡 26 API Routes"]
+        subgraph Routes["📡 32 API Routes"]
             direction LR
             R1["health · projects\nplanner · planner_results"] ~~~ R2["tasks · runs\nartifacts · agents"]
             R3["approvals · events\nchat · composition"] ~~~ R4["connectors · memory\ngovernance · trust"]
             R5["replay · council\nknowledge · repos"] ~~~ R6["costs · audit\nlifecycle · vault"]
+            R7["workspaces · members\nnotifications · streaming"] ~~~ R8["escalation · activity\ncode_ops"]
         end
-        subgraph Svcs["⚙️ 24 Services"]
+        subgraph Svcs["⚙️ 30+ Services"]
             direction LR
             S1["project · planner\ntask · run · artifact"] ~~~ S2["agent · approval · event\nexecution · chat"]
             S3["composition · connector\nrun_memory · adaptive"] ~~~ S4["replay · council\nknowledge · repo"]
-            S5["governance · trust\ncost · audit · retry"]
+            S5["governance · trust\ncost · audit · retry"] ~~~ S6["workspace · member\nnotification · code_ops"]
         end
         subgraph Middleware["🛡️ Production Middleware"]
             direction LR
@@ -204,7 +217,7 @@ flowchart TB
 
     subgraph Infra["🗄️ INFRASTRUCTURE"]
         direction LR
-        PG["🐘 <b>PostgreSQL 16</b>\n20 tables · 18 migrations"]
+        PG["🐘 <b>PostgreSQL 16</b>\n29 tables · 21 migrations"]
         RD["🔴 <b>Redis 7</b>\nCache · Queues"]
         MN["📦 <b>MinIO</b>\nS3 Object Storage"]
         LLM["🤖 <b>LiteLLM</b>\nGPT-4o · Claude\nGemini · Ollama"]
@@ -343,6 +356,29 @@ erDiagram
         string provider
         string repo_url
         string status
+        string sync_status
+        string branch_mode
+    }
+    CODE_MAPPINGS {
+        uuid id PK
+        uuid project_id FK
+        string file_path
+        string language
+    }
+    PATCH_PROPOSALS {
+        uuid id PK
+        uuid project_id FK
+        string title
+        text diff_content
+        string status
+        string readiness_state
+    }
+    SANDBOX_EXECUTIONS {
+        uuid id PK
+        uuid project_id FK
+        string command
+        string status
+        int exit_code
     }
 
     PROJECTS ||--o{ RUNS : "has many"
@@ -350,6 +386,9 @@ erDiagram
     PROJECTS ||--o{ PROJECT_KNOWLEDGE : "accumulates"
     PROJECTS ||--o{ REPO_CONNECTIONS : "links to"
     PROJECTS ||--o{ COUNCIL_SESSIONS : "convenes"
+    PROJECTS ||--o{ CODE_MAPPINGS : "maps code"
+    PROJECTS ||--o{ PATCH_PROPOSALS : "proposes changes"
+    PROJECTS ||--o{ SANDBOX_EXECUTIONS : "executes code"
     RUNS ||--o{ TASKS : "contains"
     RUNS ||--o{ REPLAY_SNAPSHOTS : "traces"
     TASKS ||--o{ ARTIFACTS : "produces"
@@ -357,6 +396,7 @@ erDiagram
     RUNS ||--o{ EXECUTION_EVENTS : "logs"
     AGENTS ||--o{ TASKS : "executes"
     COUNCIL_SESSIONS ||--o{ COUNCIL_VOTES : "collects"
+    PATCH_PROPOSALS ||--o{ CHANGE_REVIEWS : "reviewed by"
 ```
 
 ### Execution Flow
@@ -523,8 +563,8 @@ forgemind/
 │   │   ├── app/
 │   │   │   ├── main.py            #    App entry + lifespan
 │   │   │   ├── api/
-│   │   │   │   ├── router.py      #    26 route mounts
-│   │   │   │   └── routes/        #    Route handlers (25 files)
+│   │   │   │   ├── router.py      #    32 route mounts
+│   │   │   │   └── routes/        #    Route handlers (32 files)
 │   │   │   │       ├── health.py, projects.py, planner.py
 │   │   │   │       ├── planner_results.py, tasks.py, runs.py
 │   │   │   │       ├── artifacts.py, agents.py, approvals.py
@@ -535,6 +575,9 @@ forgemind/
 │   │   │   │       ├── governance.py, audit.py, trust.py
 │   │   │   │       ├── replay.py, council.py
 │   │   │   │       ├── knowledge.py, repos.py
+│   │   │   │       ├── workspaces.py, workspace_members.py
+│   │   │   │       ├── notifications.py, streaming.py
+│   │   │   │       ├── escalation.py, activity.py, code_ops.py
 │   │   │   │       └── __init__.py
 │   │   │   ├── core/              #    Config, auth, middleware
 │   │   │   │   ├── config.py      #    Settings (env-based)
@@ -545,10 +588,10 @@ forgemind/
 │   │   │   │   ├── error_handlers.py    # Global error handlers
 │   │   │   │   └── llm.py         #    LiteLLM wrapper
 │   │   │   ├── db/                #    Database setup
-│   │   │   │   ├── base.py        #    Model imports (20 models)
+│   │   │   │   ├── base.py        #    Model imports (29 models)
 │   │   │   │   ├── base_class.py  #    SQLAlchemy declarative base
 │   │   │   │   └── session.py     #    Async session factory
-│   │   │   ├── models/            #    SQLAlchemy models (20)
+│   │   │   ├── models/            #    SQLAlchemy models (26 files)
 │   │   │   │   ├── user.py, project.py, run.py, task.py
 │   │   │   │   ├── planner_result.py, artifact.py, agent.py
 │   │   │   │   ├── approval_request.py, execution_event.py
@@ -556,9 +599,11 @@ forgemind/
 │   │   │   │   ├── cost_record.py, governance_policy.py
 │   │   │   │   ├── trust_score.py, replay_snapshot.py
 │   │   │   │   ├── council.py, project_knowledge.py
-│   │   │   │   └── repo_connection.py
-│   │   │   ├── schemas/           #    Pydantic schemas (17 files)
-│   │   │   └── services/          #    Business logic (24 services)
+│   │   │   │   ├── repo_connection.py, workspace.py
+│   │   │   │   ├── activity.py, code_ops.py
+│   │   │   │   └── notification.py, escalation.py
+│   │   │   ├── schemas/           #    Pydantic schemas (23 files)
+│   │   │   └── services/          #    Business logic (30+ services)
 │   │   │       ├── project_service.py, planner_service.py
 │   │   │       ├── task_service.py, artifact_service.py
 │   │   │       ├── agent_service.py, approval_service.py
@@ -571,8 +616,13 @@ forgemind/
 │   │   │       ├── governance_service.py, audit_export_service.py
 │   │   │       ├── trust_scoring_service.py, replay_service.py
 │   │   │       ├── council_service.py, knowledge_service.py
-│   │   │       └── repo_service.py
-│   │   └── alembic/versions/      #    18 migration files
+│   │   │       ├── repo_service.py, workspace_service.py
+│   │   │       ├── membership_service.py, notification_service.py
+│   │   │       ├── notification_delivery_service.py, escalation_service.py
+│   │   │       ├── activity_service.py, authz_service.py
+│   │   │       ├── stream_service.py, user_activity_service.py
+│   │   │       └── code_ops_service.py
+│   │   └── alembic/versions/      #    21 migration files
 │   │
 │   ├── web/                       # 🌐 Next.js 15 Frontend
 │   │   ├── package.json           #    Node dependencies
@@ -580,13 +630,20 @@ forgemind/
 │   │   ├── app/                   #    Pages (App Router)
 │   │   │   ├── layout.tsx         #    Root layout
 │   │   │   ├── page.tsx           #    Landing → redirect
-│   │   │   └── dashboard/         #    Dashboard pages
+│   │   │   └── dashboard/         #    Dashboard pages (12)
 │   │   │       ├── page.tsx       #    Main dashboard
 │   │   │       ├── approvals/     #    Approval inbox
 │   │   │       ├── artifacts/     #    Artifact detail
 │   │   │       ├── projects/      #    Project detail
-│   │   │       └── runs/          #    Run detail
-│   │   ├── components/            #    React components (14 files)
+│   │   │       ├── runs/          #    Run detail
+│   │   │       ├── workspaces/    #    Workspace management
+│   │   │       ├── notifications/ #    Notification center
+│   │   │       ├── activity/      #    Activity feed
+│   │   │       ├── escalations/   #    Escalation rules
+│   │   │       ├── code-explorer/ #    File tree browser
+│   │   │       ├── reviews/       #    Review workspace
+│   │   │       └── sandbox/       #    Code execution sandbox
+│   │   ├── components/            #    React components (15+ files)
 │   │   │   ├── layout/            #    Shell, sidebar, top nav
 │   │   │   ├── approvals/         #    Approval card + list
 │   │   │   ├── artifacts/         #    Artifact list section
@@ -595,8 +652,8 @@ forgemind/
 │   │   │   ├── planner/           #    Prompt form, plan view
 │   │   │   ├── projects/          #    Project list, create form
 │   │   │   └── tasks/             #    Run task list
-│   │   ├── lib/                   #    API client functions (9 files)
-│   │   └── types/                 #    TypeScript interfaces (7 files)
+│   │   ├── lib/                   #    API client functions (15 files)
+│   │   └── types/                 #    TypeScript interfaces (12 files)
 │   │
 │   └── worker/                    # 🔧 Background Worker
 │       └── worker/
@@ -610,11 +667,12 @@ forgemind/
 │               └── registry.py    #    Agent dispatch registry
 │
 ├── 📚 docs/
+│   ├── ARCHITECTURE.md            #    Full system architecture reference
 │   ├── MILESTONE_SUMMARY.md       #    What ForgeMind can do
-│   ├── TECHNICAL_DEBT.md          #    Known debt items (21)
+│   ├── TECHNICAL_DEBT.md          #    Known debt items (22)
 │   └── agent-handoffs/            #    Task board + response docs
 │       ├── TASKS.md               #    FM-001 to FM-040
-│       └── responses/             #    Per-task implementation logs
+│       └── FM-0XX-response.md     #    Per-task implementation logs (70 docs)
 │
 └── 📦 packages/                   #    Future shared packages
     ├── agents/, connectors/, core/
@@ -908,6 +966,24 @@ Base URL: `http://localhost:8000`
 | `GET`    | `/sandbox/{id}`                          | Get sandbox execution     |
 | `POST`   | `/sandbox/{id}/complete`                 | Complete sandbox execution|
 
+#### Repo File Explorer & Sync
+
+| Method | Endpoint                                 | Description               |
+| ------ | ---------------------------------------- | ------------------------- |
+| `GET`  | `/repos/{id}/sync-status`                | Get repo sync status      |
+| `POST` | `/repos/{id}/refresh-sync`               | Refresh repo sync         |
+| `GET`  | `/repos/{id}/tree`                       | Get repo file tree        |
+| `GET`  | `/repos/{id}/file`                       | Get file contents         |
+| `GET`  | `/repos/{id}/file-meta`                  | Get file metadata         |
+
+#### Enhanced Code Operations
+
+| Method | Endpoint                                 | Description               |
+| ------ | ---------------------------------------- | ------------------------- |
+| `POST` | `/projects/{id}/pr-drafts/generate`      | Auto-generate PR draft    |
+| `POST` | `/projects/{id}/repo-approvals/check`    | Auto-check approval gates |
+| `POST` | `/projects/{id}/sandbox/run`             | Run sandbox with auto-complete |
+
 > Full interactive docs at `http://localhost:8000/docs` (Swagger UI)
 
 ---
@@ -950,6 +1026,8 @@ alembic downgrade -1
 | 0017 | `add_project_knowledge`      | project_knowledge table                      |
 | 0018 | `add_repo_connections`       | repo_connections table                       |
 | 0019 | `add_collaboration_and_code_ops` | workspaces, workspace_members, project_members, notifications, notification_delivery_configs, escalation_rules, escalation_events, activity_feed_entries, user_presences, code_mappings, patch_proposals, change_reviews, branch_strategies, pr_drafts, repo_action_approvals, sandbox_executions |
+| 0020 | `add_project_workspace_fk`       | +workspace_id FK on projects table                   |
+| 0021 | `add_code_ops_enhancements`      | +sync_status/branch_mode on repo_connections, +annotation columns on change_reviews, +strategy_metadata on branch_strategies, +generation_metadata on pr_drafts, +execution_metadata on sandbox_executions, 5 new enum types |
 
 ### Code Quality
 
@@ -984,7 +1062,7 @@ make test
 
 ## 📊 Milestone Progress
 
-### Completed: 12 Milestones — 69 Tasks ✅
+### Completed: 13 Milestones — 70 Tasks ✅
 
 | #   | Milestone                                | Tasks                      | Status      |
 | --- | ---------------------------------------- | -------------------------- | ----------- |
@@ -999,7 +1077,8 @@ make test
 | 9   | **Pre-Release Infrastructure**           | FM-041 → FM-045            | ✅ Complete |
 | 10  | **Platform Intelligence & Hardening**    | FM-046 → FM-050            | ✅ Complete |
 | 11  | **Team Collaboration & Real-Time**       | FM-051 → FM-059            | ✅ Complete |
-| 12  | **Repository & Code Execution**          | FM-061 → FM-069            | ✅ Complete |
+| 12  | **Collaboration Hardening & Code Foundations** | FM-060 → FM-069       | ✅ Complete |
+| 13  | **Code Ops Enhancements**                | FM-061 → FM-070 (enhanced) | ✅ Complete |
 
 <details>
 <summary><strong>Milestone 1 — Platform Foundation</strong></summary>
@@ -1120,17 +1199,33 @@ make test
 </details>
 
 <details>
-<summary><strong>Milestone 12 — Repository & Code Execution</strong></summary>
+<summary><strong>Milestone 12 — Collaboration Hardening & Code Foundations</strong></summary>
 
-- FM-061: Code mapping model
-- FM-062: Patch proposal model
-- FM-063: Change review workflow
-- FM-064: Branch strategy configuration
-- FM-065: PR draft composer
-- FM-066: Repo action approval gate
-- FM-067: Sandbox execution engine
-- FM-068: Code ops REST API
-- FM-069: Code ops integration tests
+- FM-060: Collaboration hardening — presence heartbeat, notification batching, escalation dedup, activity pagination
+- FM-061: Code mapping model — file-to-artifact mapping with language metadata
+- FM-062: Patch proposal model — structured diff proposals with line-level targeting
+- FM-063: Change review workflow — annotation-based code review with resolution tracking
+- FM-064: Branch strategy configuration — per-project branch naming and protection rules
+- FM-065: PR draft composer — auto-generated pull request descriptions from patches
+- FM-066: Repo action approval gate — multi-reviewer approval checks before merge
+- FM-067: Sandbox execution engine — isolated code execution with resource limits
+- FM-068: Code ops REST API — 8 route groups, 30+ endpoints
+- FM-069: Code ops integration tests — 50+ tests covering all code ops workflows
+</details>
+
+<details>
+<summary><strong>Milestone 13 — Code Ops Enhancements</strong></summary>
+
+- FM-061 (enhanced): Sync status tracking — repo connection health monitoring with last-sync timestamps
+- FM-062 (enhanced): Branch mode configuration — trunk-based / feature-branch / GitFlow strategy selection
+- FM-063 (enhanced): Annotation-based reviews — inline code annotations with severity and category
+- FM-064 (enhanced): Strategy metadata — branch naming patterns, protection rules, auto-merge config
+- FM-065 (enhanced): PR generation metadata — template selection, auto-description, label assignment
+- FM-066 (enhanced): Approval gate automation — auto-check rules with configurable thresholds
+- FM-067 (enhanced): Execution metadata — runtime stats, resource usage, output capture
+- FM-068 (enhanced): Enhanced API layer — file explorer, sync refresh, auto-generate, auto-check endpoints
+- FM-069 (enhanced): Extended test coverage — 303 total tests, migration verification, enum validation
+- FM-070: Database migration — 0020 workspace FK + 0021 code ops column enhancements, 5 new enum types
 </details>
 
 ---
@@ -1156,7 +1251,7 @@ make test
 
 **Built with ❤️ by [Priyank Mistry](https://github.com/priyankmistry21699-web)**
 
-_ForgeMind v1.0.0 — 69 tasks completed across 12 milestones · 252 tests passing_
+_ForgeMind v1.0.0 — 70 tasks completed across 13 milestones · 303 tests passing_
 
 </div>
 
