@@ -176,7 +176,9 @@ flowchart TD
 
 ## 🏗️ Architecture
 
-### System Architecture
+> _Complete master system architecture — every layer, service, model, and product flow, color-coded. Full reference: [FORGEMIND\_MASTER\_ARCHITECTURE.md](FORGEMIND_MASTER_ARCHITECTURE.md)_
+
+### System Architecture Overview
 
 ```mermaid
 flowchart TB
@@ -248,6 +250,151 @@ flowchart TB
     style MW2 fill:#d97706,stroke:#fbbf24,color:#fff
     style MW3 fill:#d97706,stroke:#fbbf24,color:#fff
     style MW4 fill:#d97706,stroke:#fbbf24,color:#fff
+```
+
+### Frontend Architecture
+
+```mermaid
+flowchart TD
+    U["🧑‍💻 Operator / Reviewer / Member"]
+
+    subgraph FE["🌐 FRONTEND — Next.js 15 · React 19 · TypeScript 5 · Tailwind 4"]
+        direction TB
+        subgraph Pages["📄 12 Dashboard Pages — apps/web/app/dashboard/"]
+            direction LR
+            P1["🏠 Dashboard"] ~~~ P2["🏢 Workspaces"] ~~~ P3["📋 Projects"]
+            P4["⚡ Runs"] ~~~ P5["📄 Artifacts"] ~~~ P6["✅ Approvals"]
+            P7["🔔 Notifications"] ~~~ P8["📊 Activity"] ~~~ P9["⚠️ Escalations"]
+            P10["📂 Code Explorer"] ~~~ P11["🔍 Reviews"] ~~~ P12["🖥️ Sandbox"]
+        end
+        subgraph Comp["🧩 Component Groups — apps/web/components/"]
+            direction LR
+            C1["layout/*\nShell · Sidebar · TopNav"] ~~~ C2["projects/* · tasks/*\nProject List · Task Board"]
+            C3["artifacts/* · chat/*\nArtifact View · Chat Panel"] ~~~ C4["approvals/* · reviews/*\nApproval Cards · Review UI"]
+        end
+        LIB["📦 lib/* — 15 API client modules  ·  📝 types/* — 12 TypeScript contracts"]
+    end
+
+    U --> Pages
+    Pages --> Comp --> LIB
+
+    style U fill:#1e3a5f,stroke:#4a90d9,color:#fff,stroke-width:2px
+    style FE fill:#0c4a6e,stroke:#0ea5e9,color:#fff,stroke-width:2px
+    style Pages fill:#0369a1,stroke:#0ea5e9,color:#fff
+    style Comp fill:#075985,stroke:#38bdf8,color:#fff
+    style LIB fill:#164e63,stroke:#06b6d4,color:#fff
+    style P1 fill:#0ea5e9,stroke:#38bdf8,color:#fff
+    style P2 fill:#0ea5e9,stroke:#38bdf8,color:#fff
+    style P3 fill:#0ea5e9,stroke:#38bdf8,color:#fff
+    style P4 fill:#ea580c,stroke:#fb923c,color:#fff
+    style P5 fill:#7c3aed,stroke:#a78bfa,color:#fff
+    style P6 fill:#16a34a,stroke:#4ade80,color:#fff
+    style P7 fill:#ea580c,stroke:#fb923c,color:#fff
+    style P8 fill:#7c3aed,stroke:#a78bfa,color:#fff
+    style P9 fill:#dc2626,stroke:#ef4444,color:#fff
+    style P10 fill:#2563eb,stroke:#60a5fa,color:#fff
+    style P11 fill:#8b5cf6,stroke:#a78bfa,color:#fff
+    style P12 fill:#059669,stroke:#34d399,color:#fff
+    style C1 fill:#0891b2,stroke:#22d3ee,color:#fff
+    style C2 fill:#0891b2,stroke:#22d3ee,color:#fff
+    style C3 fill:#0891b2,stroke:#22d3ee,color:#fff
+    style C4 fill:#0891b2,stroke:#22d3ee,color:#fff
+```
+
+### API → Service → Data Layer
+
+```mermaid
+flowchart LR
+    subgraph API["📡 API LAYER — 32 Route Handlers"]
+        direction TB
+        RA["🔧 Platform Core\nhealth · projects · planner\ntasks · runs · artifacts"]
+        RB["🤖 Execution Intelligence\nagents · chat · composition\nmemory · retry · lifecycle"]
+        RC["🛡️ Governance\napprovals · governance · audit\ntrust · costs · council"]
+        RD["🤝 Collaboration\nworkspaces · members · streaming\nnotifications · escalation · activity"]
+        RE["📂 Repo & Code Ops\nrepos · code_ops\nreplay · knowledge · vault"]
+    end
+
+    subgraph SVC["⚙️ SERVICE LAYER — 33 Services"]
+        direction TB
+        SA["🔧 Core\nproject · planner · task\nexecution · artifact · event"]
+        SB["🤖 Intelligence\nagent · chat · composition\nrun_memory · adaptive_retry\nadaptive_orchestrator"]
+        SC["🛡️ Governance\napproval · governance · cost\ntrust · replay · council\nknowledge · audit"]
+        SD["🤝 Collaboration\nworkspace · membership · authz\nstream · notification\nnotification_delivery\nescalation · activity\nuser_activity"]
+        SE["📂 Code Ops\ncode_ops_service\nrepo_service"]
+    end
+
+    subgraph DATA["🗃️ DATA MODELS — 29+ Tables"]
+        direction TB
+        MA["🔧 Core Domain\nUser · Project · Run\nTask · PlannerResult\nArtifact · Agent"]
+        MB["📋 Execution & Connectors\nApprovalRequest · ExecutionEvent\nReplaySnapshot · Connector\nProjectConnectorLink · CredentialVault"]
+        MC["🛡️ Governance\nCostRecord · GovernancePolicy\nTrustScore · CouncilSession\nCouncilVote · ProjectKnowledge"]
+        MD["🤝 Collaboration\nWorkspace · WorkspaceMember\nProjectMember · Notification\nNotificationDeliveryConfig\nEscalationRule · EscalationEvent\nActivityFeedEntry · UserPresence"]
+        ME["📂 Code Ops\nRepoConnection · CodeMapping\nPatchProposal · ChangeReview\nBranchStrategy · PRDraft\nRepoActionApproval\nSandboxExecution"]
+    end
+
+    API --> SVC --> DATA
+
+    style API fill:#1e1b4b,stroke:#818cf8,color:#fff,stroke-width:2px
+    style SVC fill:#14532d,stroke:#4ade80,color:#fff,stroke-width:2px
+    style DATA fill:#451a03,stroke:#f59e0b,color:#fff,stroke-width:2px
+    style RA fill:#6366f1,stroke:#818cf8,color:#fff
+    style RB fill:#8b5cf6,stroke:#a78bfa,color:#fff
+    style RC fill:#d97706,stroke:#fbbf24,color:#fff
+    style RD fill:#0891b2,stroke:#22d3ee,color:#fff
+    style RE fill:#2563eb,stroke:#60a5fa,color:#fff
+    style SA fill:#059669,stroke:#34d399,color:#fff
+    style SB fill:#7c3aed,stroke:#a78bfa,color:#fff
+    style SC fill:#ea580c,stroke:#fb923c,color:#fff
+    style SD fill:#0ea5e9,stroke:#38bdf8,color:#fff
+    style SE fill:#2563eb,stroke:#60a5fa,color:#fff
+    style MA fill:#d97706,stroke:#fbbf24,color:#fff
+    style MB fill:#be185d,stroke:#ec4899,color:#fff
+    style MC fill:#dc2626,stroke:#ef4444,color:#fff
+    style MD fill:#0891b2,stroke:#22d3ee,color:#fff
+    style ME fill:#1d4ed8,stroke:#3b82f6,color:#fff
+```
+
+### Code Operations Pipeline
+
+```mermaid
+flowchart TD
+    REPO["🔗 External Repository\nGitHub · GitLab · Bitbucket · Local"]
+
+    subgraph CODEOPS["📂 CODE OPERATIONS PIPELINE"]
+        direction TB
+        SYNC["🔄 Repo Sync\nSync status tracking · Last commit hash\nProvider metadata · Health check"]
+        TREE["🌳 File Tree Explorer\nDirectory browse · File content viewer\nLanguage detection · Path traversal protection"]
+        MAP["🗺️ Code Mapping\nArtifact → File path linking\nChange type: create / modify / delete"]
+        PATCH["📝 Patch Proposal\nDiff content · Target files · Readiness state\nFormat: unified / side_by_side / raw"]
+        REVIEW["🔍 Change Review\nAnnotation-based · File + line ranges\nCode suggestions · Decision: approve / reject / comment"]
+        BRANCH["🌿 Branch Strategy\nMode: direct / feature_branch / review_branch\nNaming templates · Base/target config"]
+        PR["📋 PR Draft Generation\nAuto-title · Body with description + rationale\nChecklist: reviewed · tests · security"]
+        GATE["🔒 Approval Gate\n5 types: push · merge · pr_create\nbranch_create · patch_apply"]
+        SANDBOX["🖥️ Sandbox Execution\n30+ allowed commands · Dangerous pattern detection\nAsync subprocess · Timeout max 300s\nstdout/stderr capture 50KB · Resource limits"]
+    end
+
+    REPO --> SYNC
+    SYNC --> TREE
+    TREE --> MAP
+    MAP --> PATCH
+    PATCH --> REVIEW
+    REVIEW --> BRANCH
+    BRANCH --> PR
+    PR --> GATE
+    GATE --> SANDBOX
+    SANDBOX -->|"✅ Validated"| REPO
+
+    style REPO fill:#1e3a5f,stroke:#4a90d9,color:#fff,stroke-width:2px
+    style CODEOPS fill:#0d1117,stroke:#8b5cf6,color:#fff,stroke-width:2px
+    style SYNC fill:#0891b2,stroke:#22d3ee,color:#fff
+    style TREE fill:#059669,stroke:#34d399,color:#fff
+    style MAP fill:#2563eb,stroke:#60a5fa,color:#fff
+    style PATCH fill:#7c3aed,stroke:#a78bfa,color:#fff
+    style REVIEW fill:#8b5cf6,stroke:#c4b5fd,color:#fff
+    style BRANCH fill:#16a34a,stroke:#4ade80,color:#fff
+    style PR fill:#ea580c,stroke:#fb923c,color:#fff
+    style GATE fill:#dc2626,stroke:#ef4444,color:#fff
+    style SANDBOX fill:#d97706,stroke:#fbbf24,color:#fff
 ```
 
 ### Data Model
@@ -520,6 +667,213 @@ flowchart LR
     style RV fill:#7c3aed,stroke:#a78bfa,color:#fff
     style TE fill:#059669,stroke:#34d399,color:#fff
 ```
+
+### System Layers Explained
+
+<details>
+<summary><b>🌐 1. Frontend Layer — <code>apps/web</code></b></summary>
+
+The frontend is the operator control plane providing all user-facing workflows:
+
+| Page | Purpose |
+|------|---------|
+| 🏠 **Dashboard** | Top-level operational summary |
+| 🏢 **Workspaces** | Team/workspace management |
+| 📋 **Projects** | Planning + execution entry point |
+| ⚡ **Runs** | Live execution state |
+| 📄 **Artifacts** | Outputs from planning/execution/code-ops |
+| ✅ **Approvals** | Human-in-the-loop control |
+| 🔔 **Notifications** | Alert center |
+| 📊 **Activity Feed** | Cross-project operational awareness |
+| ⚠️ **Escalations** | Overdue / high-risk conditions |
+| 📂 **Code Explorer** | Repo/code context surface |
+| 🔍 **Reviews** | Patch review workspace |
+| 🖥️ **Sandbox** | Controlled validation surface |
+
+**Folder structure:** `app/` (route pages) · `components/` (reusable UI) · `lib/` (API client wrappers) · `types/` (TypeScript contracts)
+
+</details>
+
+<details>
+<summary><b>📡 2. API Layer — <code>apps/api/app/api/routes</code> — 32 Route Handlers</b></summary>
+
+The API layer is thin and route-oriented — request validation → auth/authz → service delegation → response shaping.
+
+| Category | Route Groups |
+|----------|-------------|
+| 🔧 **Platform Core** | `health` · `projects` · `planner` · `planner_results` · `tasks` · `runs` · `artifacts` |
+| 🤖 **Execution Intelligence** | `agents` · `chat` · `composition` · `memory` · `retry` · `lifecycle` |
+| 🛡️ **Governance** | `approvals` · `governance` · `audit` · `trust` · `costs` · `council` |
+| 🤝 **Collaboration** | `workspaces` · `members` · `streaming` · `notifications` · `escalation` · `activity` |
+| 📂 **Repo / Code-Ops** | `repos` · `code_ops` · `replay` · `knowledge` · `vault` · `connectors` |
+| ⚙️ **Operational** | `events` · `run_lifecycle` |
+
+</details>
+
+<details>
+<summary><b>⚙️ 3. Service Layer — <code>apps/api/app/services</code> — 33 Services</b></summary>
+
+This is the real business-logic core.
+
+**🔧 Core execution services:**
+`project_service` · `planner_service` · `task_service` · `execution_service` · `artifact_service` · `agent_service` · `event_service`
+
+**🤖 Intelligence services:**
+`chat_service` · `composition_service` · `run_memory_service` · `adaptive_retry_service` · `adaptive_orchestrator`
+
+**🔌 Connector / repo services:**
+`connector_service` · `repo_service` · `code_ops_service`
+
+**🛡️ Governance services:**
+`approval_service` · `governance_service` · `cost_tracking_service` · `trust_scoring_service` · `replay_service` · `council_service` · `knowledge_service` · `audit_export_service`
+
+**🤝 Collaboration services:**
+`workspace_service` · `membership_service` · `authz_service` · `stream_service` · `notification_service` · `notification_delivery_service` · `escalation_service` · `activity_service` · `user_activity_service`
+
+</details>
+
+<details>
+<summary><b>🔧 4. Worker Layer — <code>apps/worker</code></b></summary>
+
+The worker is the runtime engine that executes tasks outside normal request flow.
+
+**Main responsibilities:** poll for ready work → choose agent via capability scoring → build handoff context → LLM execution → update task state → create artifacts → emit events → invalidate caches
+
+**Agents:** `architect_agent.py` · `coder_agent.py` · `reviewer_agent.py` · `tester_agent.py`
+
+**Base/registry:** `base.py` (shared prompting + handoff context) · `registry.py` (dispatch resolution)
+
+</details>
+
+<details>
+<summary><b>🗃️ 5. Model Layer — <code>apps/api/app/models</code> — 29+ Tables</b></summary>
+
+**🔧 Core domain:**
+`User` · `Project` · `Run` · `Task` · `PlannerResult` · `Artifact` · `Agent` · `ApprovalRequest` · `ExecutionEvent`
+
+**🔌 Connector / governance:**
+`Connector` · `ProjectConnectorLink` · `CredentialVault` · `CostRecord` · `GovernancePolicy` · `TrustScore` · `ReplaySnapshot` · `CouncilSession` · `CouncilVote` · `ProjectKnowledge` · `RepoConnection`
+
+**🤝 Collaboration:**
+`Workspace` · `WorkspaceMember` · `ProjectMember` · `Notification` · `NotificationDeliveryConfig` · `EscalationRule` · `EscalationEvent` · `ActivityFeedEntry` · `UserPresence`
+
+**📂 Code-ops:**
+`CodeMapping` · `PatchProposal` · `ChangeReview` · `BranchStrategy` · `PRDraft` · `RepoActionApproval` · `SandboxExecution`
+
+</details>
+
+<details>
+<summary><b>🏗️ 6. Core Infrastructure — <code>apps/api/app/core</code></b></summary>
+
+| Module | Purpose |
+|--------|---------|
+| `config.py` | Settings / environment |
+| `auth.py` / `auth_stub.py` | JWT production auth / dev fallback |
+| `rate_limit.py` | Per-IP token bucket (100 req / 60s) |
+| `logging_middleware.py` | Request tracing + unique request IDs |
+| `error_handlers.py` | Uniform JSON error responses |
+| `llm.py` | LiteLLM wrapper (GPT-4o · Claude · Gemini · Ollama) |
+
+</details>
+
+<details>
+<summary><b>🗄️ 7. Persistence / Infrastructure</b></summary>
+
+| System | Version | Role |
+|--------|---------|------|
+| 🐘 **PostgreSQL** | 16 | Main relational persistence — 29+ tables, 21 migrations |
+| 🔴 **Redis** | 7 | Worker / runtime support, caching, queues |
+| 📦 **MinIO** | Latest | S3-compatible local object storage |
+| 🐳 **Docker Compose** | — | 6-service local orchestration |
+
+</details>
+
+### End-to-End Product Flows
+
+<details>
+<summary><b>🅰 Planning Flow</b></summary>
+
+```
+1. User opens dashboard
+2. User submits natural language prompt
+3. planner_service creates: project → run → tasks → planner result
+4. Frontend shows planner output + run context
+```
+
+</details>
+
+<details>
+<summary><b>🅱 Execution Flow</b></summary>
+
+```
+1. Worker polls for ready tasks
+2. Composition/agent logic resolves best agent via capability scoring
+3. Agent executes (LLM-powered generation)
+4. Execution service updates task state
+5. Artifacts are created
+6. Execution events are emitted
+7. Run page updates via API / SSE stream
+```
+
+</details>
+
+<details>
+<summary><b>🅲 Approval / Governance Flow</b></summary>
+
+```
+1. Execution or policy detects gated action
+2. Approval request is created
+3. Operator reviews in approval inbox
+4. Governance policies / council may influence decision
+5. Execution resumes or remains blocked
+```
+
+</details>
+
+<details>
+<summary><b>🅳 Chat / Memory Flow</b></summary>
+
+```
+1. User asks question on run page
+2. Chat service assembles run summary + memory
+3. Memory layer pulls: tasks, artifacts, approvals, events, project knowledge
+4. LLM generates operator-facing answer
+```
+
+</details>
+
+<details>
+<summary><b>🅴 Collaboration Flow</b></summary>
+
+```
+1. Workspaces define tenant/team boundary
+2. Workspace roles (owner → viewer) control permissions
+3. Project membership controls scoped involvement
+4. Notifications + activity feed keep users aware
+5. Escalations surface overdue / high-risk situations
+6. Presence shows recent activity / assignment context
+7. SSE streaming provides live run updates
+```
+
+</details>
+
+<details>
+<summary><b>🅵 Repo / Code-Ops Flow</b></summary>
+
+```
+1. Project links to external repo/workspace
+2. Code mapping ties artifacts to file paths
+3. Patch proposals are generated (diff + target files)
+4. Reviews are created on patches (annotation-based)
+5. Branch strategy defines base/target patterns
+6. PR drafts are auto-generated from patches
+7. Repo-sensitive actions pass through approval gates
+8. Sandbox validates code proposals safely (allowlist + timeout)
+```
+
+</details>
+
+> **ForgeMind in one sentence:** A workspace-aware, approval-governed, multi-agent AI execution platform that can plan projects, orchestrate execution, manage human approvals, maintain operational memory, collaborate across teams, integrate with repositories, generate code-change proposals, review them, and validate them in a controlled sandbox.
 
 ---
 
