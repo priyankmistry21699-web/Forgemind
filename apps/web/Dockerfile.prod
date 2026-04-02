@@ -1,0 +1,47 @@
+# ============================================================
+# ForgeMind Web — Production Dockerfile (multi-stage)
+# ============================================================
+
+# ── Dependencies stage ───────────────────────────────────────
+FROM node:20-alpine AS deps
+
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm ci --only=production
+
+# ── Build stage ──────────────────────────────────────────────
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm ci
+COPY . .
+
+# Build-time env vars (must be set at build time for NEXT_PUBLIC_*)
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
+RUN npm run build
+
+# ── Runtime stage ────────────────────────────────────────────
+FROM node:20-alpine AS runtime
+
+WORKDIR /app
+
+# Non-root user
+RUN adduser -D appuser
+
+# Copy only what's needed to run
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+
+USER appuser
+
+EXPOSE 3000
+
+ENV NODE_ENV=production
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
+
+CMD ["node", "server.js"]

@@ -565,15 +565,15 @@ Extract reusable code from apps into at least 2–4 real packages:
 
 ### Acceptance Criteria
 
-- [ ] Another engineer can deploy from docs
-- [ ] Production env vars documented
-- [ ] Health endpoints and startup assumptions documented
-- [ ] Security-sensitive defaults called out
+- [x] Another engineer can deploy from docs
+- [x] Production env vars documented
+- [x] Health endpoints and startup assumptions documented
+- [x] Security-sensitive defaults called out
 
 ### Tests
 
-- [ ] Startup smoke test in prod-like config
-- [ ] Container build verification (optionally in CI)
+- [x] Startup smoke test in prod-like config
+- [x] Container build verification (optionally in CI)
 
 ---
 
@@ -590,7 +590,7 @@ Extract reusable code from apps into at least 2–4 real packages:
 | FM-077 | Real-Time UX Integration                  | ✅ Complete    |
 | FM-078 | Observability and Runtime Instrumentation | ✅ Complete    |
 | FM-079 | Monorepo Package Extraction               | ✅ Complete    |
-| FM-080 | Production Deployment Foundation          | 🔲 Not started |
+| FM-080 | Production Deployment Foundation          | ✅ Complete    |
 
 ---
 
