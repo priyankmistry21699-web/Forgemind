@@ -142,6 +142,7 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
 async def sample_project(db_session: AsyncSession):
     """Create and return a sample project for tests."""
     from app.models.project import Project
+    from app.models.membership import ProjectMember, ProjectRole
 
     project = Project(
         name="Test Project",
@@ -151,6 +152,14 @@ async def sample_project(db_session: AsyncSession):
     db_session.add(project)
     await db_session.flush()
     await db_session.refresh(project)
+    # Auto-enroll stub user as project lead (matches service behaviour)
+    lead = ProjectMember(
+        project_id=project.id,
+        user_id=STUB_USER_ID,
+        role=ProjectRole.LEAD,
+    )
+    db_session.add(lead)
+    await db_session.flush()
     return project
 
 

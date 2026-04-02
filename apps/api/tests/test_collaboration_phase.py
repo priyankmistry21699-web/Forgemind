@@ -109,24 +109,20 @@ class TestAuthzService:
 
     @pytest.mark.asyncio
     async def test_check_workspace_permission_authorized(self, db_session: AsyncSession):
-        """Member with correct role should pass."""
+        """Owner (auto-enrolled) should pass permission check."""
         from app.services.authz_service import check_workspace_permission, Action
-        from app.services import workspace_service, membership_service
+        from app.services import workspace_service
         from app.models.membership import WorkspaceRole
 
         ws = await workspace_service.create_workspace(
             db_session, name="Auth WS", slug="auth-ws-test",
             owner_id=STUB_USER_ID,
         )
-        await membership_service.add_workspace_member(
-            db_session, workspace_id=ws.id, user_id=STUB_USER_ID,
-            role=WorkspaceRole.ADMIN,
-        )
-
+        # Owner is auto-enrolled — no need to add manually
         role = await check_workspace_permission(
             db_session, ws.id, STUB_USER_ID, Action.WORKSPACE_UPDATE
         )
-        assert role == WorkspaceRole.ADMIN
+        assert role == WorkspaceRole.OWNER
 
     @pytest.mark.asyncio
     async def test_check_workspace_permission_forbidden(self, db_session: AsyncSession):
@@ -136,18 +132,19 @@ class TestAuthzService:
         from app.models.membership import WorkspaceRole
         from fastapi import HTTPException
 
+        OTHER = uuid.UUID("00000000-0000-0000-0000-000000000099")
         ws = await workspace_service.create_workspace(
             db_session, name="Auth WS2", slug="auth-ws-forbidden",
             owner_id=STUB_USER_ID,
         )
         await membership_service.add_workspace_member(
-            db_session, workspace_id=ws.id, user_id=STUB_USER_ID,
+            db_session, workspace_id=ws.id, user_id=OTHER,
             role=WorkspaceRole.VIEWER,
         )
 
         with pytest.raises(HTTPException) as exc_info:
             await check_workspace_permission(
-                db_session, ws.id, STUB_USER_ID, Action.WORKSPACE_DELETE
+                db_session, ws.id, OTHER, Action.WORKSPACE_DELETE
             )
         assert exc_info.value.status_code == 403
 
@@ -165,10 +162,11 @@ class TestProjectMembershipValidation:
         from app.services import membership_service
         from app.models.membership import ProjectRole
 
+        OTHER = uuid.UUID("00000000-0000-0000-0000-000000000099")
         # sample_project has no workspace_id, should work fine
         member = await membership_service.add_project_member(
             db_session, project_id=sample_project.id,
-            user_id=STUB_USER_ID, role=ProjectRole.LEAD,
+            user_id=OTHER, role=ProjectRole.LEAD,
         )
         assert member.role.value == "lead"
 
@@ -434,16 +432,17 @@ class TestCollaborationIntegration:
     @pytest.mark.asyncio
     async def test_full_workspace_project_flow(self, client: AsyncClient):
         """Create workspace → add member → create project in workspace → list activity."""
-        # 1. Create workspace
+        # 1. Create workspace (owner auto-enrolled as member)
         ws_resp = await client.post("/workspaces", json={
             "name": "Integration WS", "slug": "integ-ws-flow"
         })
         assert ws_resp.status_code == 201
         ws_id = ws_resp.json()["id"]
 
-        # 2. Add self as member
+        # 2. Add another user as member
+        other_user = "00000000-0000-0000-0000-000000000099"
         mem_resp = await client.post(f"/workspaces/{ws_id}/members", json={
-            "user_id": str(STUB_USER_ID), "role": "admin"
+            "user_id": other_user, "role": "admin"
         })
         assert mem_resp.status_code == 201
 
@@ -457,7 +456,7 @@ class TestCollaborationIntegration:
         # 4. List workspace members
         members_resp = await client.get(f"/workspaces/{ws_id}/members")
         assert members_resp.status_code == 200
-        assert members_resp.json()["total"] >= 1
+        assert members_resp.json()["total"] >= 2  # owner + other
 
     @pytest.mark.asyncio
     async def test_notification_create_and_read_flow(self, client: AsyncClient):

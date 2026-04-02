@@ -46,7 +46,7 @@ By the end of FM-080, ForgeMind should be:
 | FM-073 | Platform Admin Frontend Parity | P0 | connectors / agents / settings | 1 |
 | FM-074 | Real Authentication Integration | P0 | auth / session / identity | 2 |
 | FM-075 | Route-Level RBAC Enforcement Hardening | P0 | authorization consistency | 2 |
-| FM-076 | CI/CD Pipeline and Quality Gates | P0 | automation / regression prevention | 2 |
+| FM-076 | CI/CD Pipeline and Quality Gates | P0 | automation / regression prevention | ✅ |
 | FM-077 | Real-Time UX Integration | P1 | SSE / live updates / subscriptions | 3 |
 | FM-078 | Observability and Runtime Instrumentation | P1 | metrics / tracing / logs | 3 |
 | FM-079 | Monorepo Package Extraction | P1 | shared packages / boundaries | 3 |
@@ -526,7 +526,7 @@ Extract reusable code from apps into at least 2–4 real packages:
 | FM-073 | Platform Admin Frontend Parity | ✅ Complete |
 | FM-074 | Real Authentication Integration | ✅ Complete |
 | FM-075 | Route-Level RBAC Enforcement Hardening | ✅ Complete |
-| FM-076 | CI/CD Pipeline and Quality Gates | 🔲 Not started |
+| FM-076 | CI/CD Pipeline and Quality Gates | ✅ Complete |
 | FM-077 | Real-Time UX Integration | 🔲 Not started |
 | FM-078 | Observability and Runtime Instrumentation | 🔲 Not started |
 | FM-079 | Monorepo Package Extraction | 🔲 Not started |

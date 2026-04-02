@@ -161,9 +161,9 @@
 
 ## Backlog
 
-### Milestone 18 — CI/CD & Automation (FM-076)
+### Milestone 18 — CI/CD & Automation (FM-076) ✅ Done
 
-- FM-076 CI/CD pipeline and quality gates (GitHub Actions: lint, test, typecheck, build)
+- FM-076 ✅ CI/CD pipeline and quality gates (GitHub Actions: lint, test, typecheck, build)
 
 ### Milestone 19 — Real-Time & Observability (FM-077 to FM-078)
 

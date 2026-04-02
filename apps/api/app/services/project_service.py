@@ -5,6 +5,7 @@ from sqlalchemy import select, func as sa_func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.project import Project
+from app.models.membership import ProjectMember, ProjectRole
 from app.schemas.project import ProjectCreate, ProjectUpdate
 
 
@@ -20,6 +21,14 @@ async def create_project(
     db.add(project)
     await db.flush()
     await db.refresh(project)
+    # Auto-enroll the creator as project lead
+    lead = ProjectMember(
+        project_id=project.id,
+        user_id=owner_id,
+        role=ProjectRole.LEAD,
+    )
+    db.add(lead)
+    await db.flush()
     return project
 
 

@@ -5,6 +5,7 @@ from sqlalchemy import select, func as sa_func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.workspace import Workspace, WorkspaceStatus
+from app.models.membership import WorkspaceMember, WorkspaceRole
 
 
 async def create_workspace(
@@ -26,6 +27,14 @@ async def create_workspace(
     db.add(ws)
     await db.flush()
     await db.refresh(ws)
+    # Auto-enroll the creator as workspace owner member
+    owner_member = WorkspaceMember(
+        workspace_id=ws.id,
+        user_id=owner_id,
+        role=WorkspaceRole.OWNER,
+    )
+    db.add(owner_member)
+    await db.flush()
     return ws
 
 
