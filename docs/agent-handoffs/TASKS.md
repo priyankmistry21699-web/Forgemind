@@ -142,7 +142,36 @@
 
 ## Backlog
 
-- (none)
+### Milestone 14 — Advanced Frontend Parity I (FM-071)
+
+- FM-071 Frontend pages for Trust, Replay, Council, Governance (dashboard pages + lib + types + sidebar)
+
+### Milestone 15 — Advanced Frontend Parity II (FM-072)
+
+- FM-072 Frontend pages for Costs, Audit, Knowledge, Credential Vault (dashboard pages + lib + types + sidebar)
+
+### Milestone 16 — Platform Admin Frontend Parity (FM-073)
+
+- FM-073 Frontend pages for Connectors, Agents, Settings (dashboard pages + lib + types + enable sidebar links)
+
+### Milestone 17 — Auth & RBAC Hardening (FM-074 to FM-075)
+
+- FM-074 Real authentication integration (replace stub auth, real login flow, token verification)
+- FM-075 Route-level RBAC enforcement hardening (audit all routes, consistent 401/403)
+
+### Milestone 18 — CI/CD & Automation (FM-076)
+
+- FM-076 CI/CD pipeline and quality gates (GitHub Actions: lint, test, typecheck, build)
+
+### Milestone 19 — Real-Time & Observability (FM-077 to FM-078)
+
+- FM-077 Real-time UX integration (SSE consumption, live updates, reconnect handling)
+- FM-078 Observability and runtime instrumentation (metrics endpoint, tracing, request IDs)
+
+### Milestone 20 — Platform Maturity (FM-079 to FM-080)
+
+- FM-079 Monorepo package extraction (turn packages/ stubs into real shared packages)
+- FM-080 Production deployment foundation (prod compose, env docs, health endpoints, deployment README)
 
 ## Blocked
 
