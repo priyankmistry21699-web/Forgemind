@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "forgemind-security"
+version = "0.1.0"
+description = "Authentication and authorization primitives for the ForgeMind platform"
+requires-python = ">=3.11"
+dependencies = [
+    "python-jose[cryptography]>=3.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]

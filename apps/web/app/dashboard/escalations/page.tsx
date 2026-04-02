@@ -25,7 +25,9 @@ export default function EscalationsPage() {
       const data = await fetchEscalationRules(projectId);
       setRules(data.items);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load escalation rules");
+      setError(
+        err instanceof Error ? err.message : "Failed to load escalation rules",
+      );
     } finally {
       setLoading(false);
     }
@@ -51,7 +53,10 @@ export default function EscalationsPage() {
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
-        <Link href="/dashboard" className="hover:text-[var(--color-text)] transition-colors">
+        <Link
+          href="/dashboard"
+          className="hover:text-[var(--color-text)] transition-colors"
+        >
           Dashboard
         </Link>
         <span>/</span>
@@ -83,14 +88,20 @@ export default function EscalationsPage() {
       {/* Live escalation alerts */}
       {alerts.length > 0 && (
         <div className="space-y-2">
-          <h2 className="text-sm font-semibold text-amber-400">Live Escalation Alerts</h2>
+          <h2 className="text-sm font-semibold text-amber-400">
+            Live Escalation Alerts
+          </h2>
           {alerts.map((alert, i) => (
             <div
               key={i}
               className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-300"
             >
               <span className="mr-2">{"\u26A0"}</span>
-              {String(alert.data.message ?? alert.data.rule_name ?? "Escalation triggered")}
+              {String(
+                alert.data.message ??
+                  alert.data.rule_name ??
+                  "Escalation triggered",
+              )}
             </div>
           ))}
         </div>
@@ -113,7 +124,9 @@ export default function EscalationsPage() {
       {/* Rules list */}
       {!loading && projectId && rules.length === 0 && (
         <div className="rounded-xl border border-dashed border-[var(--color-border)] p-12 text-center">
-          <p className="text-sm text-[var(--color-text-muted)]">No escalation rules for this project.</p>
+          <p className="text-sm text-[var(--color-text-muted)]">
+            No escalation rules for this project.
+          </p>
         </div>
       )}
 
@@ -125,7 +138,9 @@ export default function EscalationsPage() {
               className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-4"
             >
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-[var(--color-text)]">{rule.name}</h3>
+                <h3 className="font-semibold text-[var(--color-text)]">
+                  {rule.name}
+                </h3>
                 <span
                   className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
                     rule.is_active

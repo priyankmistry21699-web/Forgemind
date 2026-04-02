@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { fetchNotifications, markNotificationRead, markAllRead } from "@/lib/notifications";
+import {
+  fetchNotifications,
+  markNotificationRead,
+  markAllRead,
+} from "@/lib/notifications";
 import { useGlobalStream } from "@/lib/hooks/use-stream";
 import type { Notification } from "@/types/notification";
 
@@ -28,7 +32,9 @@ export default function NotificationsPage() {
       setNotifications(data.items);
       setUnreadCount(data.unread_count);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load notifications");
+      setError(
+        err instanceof Error ? err.message : "Failed to load notifications",
+      );
     } finally {
       setLoading(false);
     }
@@ -75,7 +81,10 @@ export default function NotificationsPage() {
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
-        <Link href="/dashboard" className="hover:text-[var(--color-text)] transition-colors">
+        <Link
+          href="/dashboard"
+          className="hover:text-[var(--color-text)] transition-colors"
+        >
           Dashboard
         </Link>
         <span>/</span>
@@ -139,7 +148,9 @@ export default function NotificationsPage() {
       {/* Notification list */}
       {!loading && notifications.length === 0 && (
         <div className="rounded-xl border border-dashed border-[var(--color-border)] p-12 text-center">
-          <p className="text-sm text-[var(--color-text-muted)]">No notifications</p>
+          <p className="text-sm text-[var(--color-text-muted)]">
+            No notifications
+          </p>
         </div>
       )}
 
@@ -162,7 +173,9 @@ export default function NotificationsPage() {
               </span>
 
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-[var(--color-text)]">{n.title}</p>
+                <p className="text-sm font-medium text-[var(--color-text)]">
+                  {n.title}
+                </p>
                 {n.body && (
                   <p className="mt-1 text-xs text-[var(--color-text-muted)] line-clamp-2">
                     {n.body}

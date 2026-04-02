@@ -172,7 +172,7 @@
 
 ### Milestone 20 — Platform Maturity (FM-079 to FM-080)
 
-- FM-079 Monorepo package extraction (turn packages/ stubs into real shared packages)
+- FM-079 ✅ Monorepo package extraction (4 real packages: @forgemind/types, forgemind-utils, forgemind-security, forgemind-core)
 - FM-080 Production deployment foundation (prod compose, env docs, health endpoints, deployment README)
 
 ## Blocked

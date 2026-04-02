@@ -57,7 +57,10 @@ export default function ActivityPage() {
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
-        <Link href="/dashboard" className="hover:text-[var(--color-text)] transition-colors">
+        <Link
+          href="/dashboard"
+          className="hover:text-[var(--color-text)] transition-colors"
+        >
           Dashboard
         </Link>
         <span>/</span>
@@ -69,7 +72,8 @@ export default function ActivityPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Activity Feed</h1>
           <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-            Real-time view of all operations across the platform ({total} events)
+            Real-time view of all operations across the platform ({total}{" "}
+            events)
           </p>
         </div>
         <div className="flex items-center gap-2 text-[10px] text-[var(--color-text-dim)]">
@@ -99,7 +103,9 @@ export default function ActivityPage() {
       {/* Activity list */}
       {!loading && entries.length === 0 && (
         <div className="rounded-xl border border-dashed border-[var(--color-border)] p-12 text-center">
-          <p className="text-sm text-[var(--color-text-muted)]">No activity recorded yet.</p>
+          <p className="text-sm text-[var(--color-text-muted)]">
+            No activity recorded yet.
+          </p>
         </div>
       )}
 
@@ -116,7 +122,9 @@ export default function ActivityPage() {
               </div>
 
               <div className="min-w-0 flex-1">
-                <p className="text-sm text-[var(--color-text)]">{entry.summary}</p>
+                <p className="text-sm text-[var(--color-text)]">
+                  {entry.summary}
+                </p>
                 <div className="mt-1 flex items-center gap-3 text-[10px] text-[var(--color-text-dim)]">
                   <span className="rounded bg-[var(--color-bg-secondary)] px-1.5 py-0.5">
                     {entry.activity_type.replace(/_/g, " ")}

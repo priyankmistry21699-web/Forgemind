@@ -1,12 +1,16 @@
-# packages/security
+# forgemind-security
 
-> Token vault, encryption, RBAC, and secrets management.
+> Authentication and authorization primitives for the ForgeMind platform.
 
-## Contents (planned)
+## Contents
 
-- Token vault (AES-256-GCM / Fernet encrypted storage)
-- Scoped token access (which agents can use which secrets)
-- API key hashing (bcrypt)
-- RBAC permission engine
-- Secrets rotation and expiry alerts
-- Audit logging for all secret access
+| Module | Description                                                                                                                                                                  |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `jwt`  | Stateless JWT create/decode helpers using python-jose (`JWTConfig`, `create_token`, `decode_token`)                                                                          |
+| `rbac` | Pure RBAC permission engine: `Action` enum (20 actions), `WorkspaceRole`/`ProjectRole` enums, permission matrices, `is_workspace_action_allowed`/`is_project_action_allowed` |
+
+## Usage
+
+```python
+from forgemind_security import create_token, JWTConfig, Action, is_workspace_action_allowed
+```
