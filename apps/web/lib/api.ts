@@ -23,10 +23,21 @@ export async function apiFetch<T>(
   options?: RequestInit,
 ): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
+
+  // Attach stored auth token if available
+  const authHeaders: Record<string, string> = {};
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("forgemind_token");
+    if (token) {
+      authHeaders["Authorization"] = `Bearer ${token}`;
+    }
+  }
+
   const res = await fetch(url, {
     ...options,
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders,
       ...options?.headers,
     },
   });

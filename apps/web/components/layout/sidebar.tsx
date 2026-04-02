@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 
 const NAV_ITEMS = [
   {
@@ -346,6 +347,8 @@ const CHILD_ROUTES = NAV_ITEMS.filter(
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
 
   const isItemActive = (href: string) => {
     if (href === "/dashboard") {
@@ -406,6 +409,24 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="border-t border-[var(--color-border)] px-5 py-3">
+        {user && (
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent)]/20 text-[10px] font-semibold text-[var(--color-accent)]">
+                {user.display_name.charAt(0).toUpperCase()}
+              </div>
+              <span className="truncate text-[11px] text-[var(--color-text-muted)]">
+                {user.display_name}
+              </span>
+            </div>
+            <button
+              onClick={() => { logout(); router.push("/login"); }}
+              className="text-[10px] text-[var(--color-text-dim)] hover:text-red-400 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-success)]" />
           <p className="text-[11px] text-[var(--color-text-dim)]">

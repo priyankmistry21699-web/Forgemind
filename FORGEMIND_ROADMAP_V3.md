@@ -524,7 +524,7 @@ Extract reusable code from apps into at least 2–4 real packages:
 | FM-071 | Advanced Frontend Parity I | ✅ Complete |
 | FM-072 | Advanced Frontend Parity II | ✅ Complete |
 | FM-073 | Platform Admin Frontend Parity | ✅ Complete |
-| FM-074 | Real Authentication Integration | 🔲 Not started |
+| FM-074 | Real Authentication Integration | ✅ Complete |
 | FM-075 | Route-Level RBAC Enforcement Hardening | 🔲 Not started |
 | FM-076 | CI/CD Pipeline and Quality Gates | 🔲 Not started |
 | FM-077 | Real-Time UX Integration | 🔲 Not started |

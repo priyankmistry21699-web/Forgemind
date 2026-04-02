@@ -34,10 +34,13 @@ _security = HTTPBearer(auto_error=False)
 def _get_jwt_secret() -> str | None:
     """Get JWT secret from settings (lazy import to avoid circular)."""
     from app.core.config import settings
-    secret = settings.secret_key
-    if secret == "change-me-to-a-random-secret":
-        return None
-    return secret
+    return settings.secret_key
+
+
+def _is_dev_mode() -> bool:
+    """Check if running in dev mode (default/unchanged secret)."""
+    from app.core.config import settings
+    return settings.secret_key == "change-me-to-a-random-secret"
 
 
 def create_access_token(
@@ -50,6 +53,9 @@ def create_access_token(
     secret = _get_jwt_secret()
     if secret is None or not _jose_available:
         raise ValueError("JWT not configured — set SECRET_KEY and install python-jose")
+
+    if _is_dev_mode():
+        logger.warning("Creating JWT with default dev secret — NOT safe for production")
 
     now = datetime.now(timezone.utc)
     expire = now + (expires_delta or timedelta(hours=_TOKEN_EXPIRE_HOURS))
@@ -78,35 +84,33 @@ async def get_current_user_id(
     """Extract user ID from JWT token, or fall back to stub in dev mode.
 
     Production: requires valid JWT Bearer token.
-    Development: returns stub user ID when no JWT_SECRET is configured.
+    Development: returns stub user ID when no token is provided.
     """
-    secret = _get_jwt_secret()
+    # If a token is provided, always verify it (even in dev mode)
+    if credentials is not None:
+        try:
+            payload = decode_token(credentials.credentials)
+            user_id = uuid.UUID(payload["sub"])
+            return user_id
+        except (ValueError, KeyError):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
-    # Dev mode — no JWT configured, return stub
-    if secret is None or not _jose_available:
+    # No token provided — allow stub fallback only in dev mode
+    if _is_dev_mode():
         return _STUB_USER_ID
 
-    # Production mode — require valid token
-    if credentials is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    try:
-        payload = decode_token(credentials.credentials)
-        user_id = uuid.UUID(payload["sub"])
-        return user_id
-    except (ValueError, KeyError):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Authentication required",
+        headers={"WWW-Authenticate": "Bearer"},
+    )

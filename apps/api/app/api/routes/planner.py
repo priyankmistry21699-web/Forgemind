@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth_stub import get_current_user_id
+from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.schemas.prompt_intake import PromptIntakeRequest, PromptIntakeResponse
 from app.services.planner_service import plan_from_prompt

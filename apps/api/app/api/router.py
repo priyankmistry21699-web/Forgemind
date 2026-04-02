@@ -32,6 +32,7 @@ from app.api.routes.notifications import router as notifications_router
 from app.api.routes.escalation import router as escalation_router
 from app.api.routes.activity import router as activity_router
 from app.api.routes.code_ops import router as code_ops_router
+from app.api.routes.auth import router as auth_router
 
 api_router = APIRouter()
 
@@ -130,3 +131,6 @@ api_router.include_router(activity_router, tags=["activity"])
 
 # Code operations (FM-061–069)
 api_router.include_router(code_ops_router, tags=["code-ops"])
+
+# Authentication (FM-074)
+api_router.include_router(auth_router, tags=["auth"])

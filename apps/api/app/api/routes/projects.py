@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth_stub import get_current_user_id
+from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectRead, ProjectList
 from app.services import project_service

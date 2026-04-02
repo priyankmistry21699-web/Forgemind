@@ -152,11 +152,13 @@
 
 - FM-073 Frontend pages for Connectors, Agents, Settings (3 dashboard pages, 2 lib clients, 2 type files, sidebar links enabled)
 
-## Backlog
+## Done
 
 ### Milestone 17 — Auth & RBAC Hardening (FM-074 to FM-075)
 
-- FM-074 Real authentication integration (replace stub auth, real login flow, token verification)
+- ✅ FM-074 Real authentication integration (replace stub auth, real login flow, token verification)
+
+## Backlog
 - FM-075 Route-level RBAC enforcement hardening (audit all routes, consistent 401/403)
 
 ### Milestone 18 — CI/CD & Automation (FM-076)

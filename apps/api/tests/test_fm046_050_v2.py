@@ -686,10 +686,11 @@ class TestProductionHardening:
         assert bucket.consume() is False  # Exhausted
 
     def test_auth_stub_fallback(self):
-        """In dev mode (no JWT secret), auth falls back to stub user."""
-        from app.core.auth import _get_jwt_secret, _STUB_USER_ID
-        # Default secret is "change-me-to-a-random-secret" → returns None
-        assert _get_jwt_secret() is None
+        """In dev mode (default secret), auth falls back to stub user."""
+        from app.core.auth import _get_jwt_secret, _is_dev_mode, _STUB_USER_ID
+        # Default secret is returned as-is; _is_dev_mode() detects dev mode
+        assert _get_jwt_secret() == "change-me-to-a-random-secret"
+        assert _is_dev_mode() is True
 
     def test_custom_rules_evaluation(self):
         """Test custom rule evaluation logic."""
