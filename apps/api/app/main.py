@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.api.router import api_router
 from app.core.rate_limit import RateLimitMiddleware
 from app.core.logging_middleware import RequestLoggingMiddleware
+from app.core.metrics_middleware import MetricsMiddleware
 from app.core.error_handlers import register_error_handlers
 
 
@@ -54,6 +55,9 @@ def create_app() -> FastAPI:
 
     # Request logging (FM-050)
     app.add_middleware(RequestLoggingMiddleware)
+
+    # Metrics collection (FM-078)
+    app.add_middleware(MetricsMiddleware)
 
     # Mount routers
     app.include_router(api_router)

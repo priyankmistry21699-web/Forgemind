@@ -168,7 +168,7 @@
 ### Milestone 19 — Real-Time & Observability (FM-077 to FM-078)
 
 - FM-077 ✅ Real-time UX integration (SSE consumption, live updates, reconnect handling)
-- FM-078 Observability and runtime instrumentation (metrics endpoint, tracing, request IDs)
+- FM-078 ✅ Observability and runtime instrumentation (metrics endpoint, tracing, request IDs)
 
 ### Milestone 20 — Platform Maturity (FM-079 to FM-080)
 
