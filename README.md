@@ -176,7 +176,7 @@ flowchart TD
 
 ## 🏗️ Architecture
 
-> _Complete master system architecture — every layer, service, model, and product flow, color-coded. Full reference: [FORGEMIND\_MASTER\_ARCHITECTURE.md](FORGEMIND_MASTER_ARCHITECTURE.md)_
+> _Complete master system architecture — every layer, service, model, and product flow, color-coded. Full reference: [FORGEMIND_MASTER_ARCHITECTURE.md](FORGEMIND_MASTER_ARCHITECTURE.md)_
 
 ### System Architecture Overview
 
@@ -675,20 +675,20 @@ flowchart LR
 
 The frontend is the operator control plane providing all user-facing workflows:
 
-| Page | Purpose |
-|------|---------|
-| 🏠 **Dashboard** | Top-level operational summary |
-| 🏢 **Workspaces** | Team/workspace management |
-| 📋 **Projects** | Planning + execution entry point |
-| ⚡ **Runs** | Live execution state |
-| 📄 **Artifacts** | Outputs from planning/execution/code-ops |
-| ✅ **Approvals** | Human-in-the-loop control |
-| 🔔 **Notifications** | Alert center |
-| 📊 **Activity Feed** | Cross-project operational awareness |
-| ⚠️ **Escalations** | Overdue / high-risk conditions |
-| 📂 **Code Explorer** | Repo/code context surface |
-| 🔍 **Reviews** | Patch review workspace |
-| 🖥️ **Sandbox** | Controlled validation surface |
+| Page                 | Purpose                                  |
+| -------------------- | ---------------------------------------- |
+| 🏠 **Dashboard**     | Top-level operational summary            |
+| 🏢 **Workspaces**    | Team/workspace management                |
+| 📋 **Projects**      | Planning + execution entry point         |
+| ⚡ **Runs**          | Live execution state                     |
+| 📄 **Artifacts**     | Outputs from planning/execution/code-ops |
+| ✅ **Approvals**     | Human-in-the-loop control                |
+| 🔔 **Notifications** | Alert center                             |
+| 📊 **Activity Feed** | Cross-project operational awareness      |
+| ⚠️ **Escalations**   | Overdue / high-risk conditions           |
+| 📂 **Code Explorer** | Repo/code context surface                |
+| 🔍 **Reviews**       | Patch review workspace                   |
+| 🖥️ **Sandbox**       | Controlled validation surface            |
 
 **Folder structure:** `app/` (route pages) · `components/` (reusable UI) · `lib/` (API client wrappers) · `types/` (TypeScript contracts)
 
@@ -699,14 +699,14 @@ The frontend is the operator control plane providing all user-facing workflows:
 
 The API layer is thin and route-oriented — request validation → auth/authz → service delegation → response shaping.
 
-| Category | Route Groups |
-|----------|-------------|
-| 🔧 **Platform Core** | `health` · `projects` · `planner` · `planner_results` · `tasks` · `runs` · `artifacts` |
-| 🤖 **Execution Intelligence** | `agents` · `chat` · `composition` · `memory` · `retry` · `lifecycle` |
-| 🛡️ **Governance** | `approvals` · `governance` · `audit` · `trust` · `costs` · `council` |
-| 🤝 **Collaboration** | `workspaces` · `members` · `streaming` · `notifications` · `escalation` · `activity` |
-| 📂 **Repo / Code-Ops** | `repos` · `code_ops` · `replay` · `knowledge` · `vault` · `connectors` |
-| ⚙️ **Operational** | `events` · `run_lifecycle` |
+| Category                      | Route Groups                                                                           |
+| ----------------------------- | -------------------------------------------------------------------------------------- |
+| 🔧 **Platform Core**          | `health` · `projects` · `planner` · `planner_results` · `tasks` · `runs` · `artifacts` |
+| 🤖 **Execution Intelligence** | `agents` · `chat` · `composition` · `memory` · `retry` · `lifecycle`                   |
+| 🛡️ **Governance**             | `approvals` · `governance` · `audit` · `trust` · `costs` · `council`                   |
+| 🤝 **Collaboration**          | `workspaces` · `members` · `streaming` · `notifications` · `escalation` · `activity`   |
+| 📂 **Repo / Code-Ops**        | `repos` · `code_ops` · `replay` · `knowledge` · `vault` · `connectors`                 |
+| ⚙️ **Operational**            | `events` · `run_lifecycle`                                                             |
 
 </details>
 
@@ -765,26 +765,26 @@ The worker is the runtime engine that executes tasks outside normal request flow
 <details>
 <summary><b>🏗️ 6. Core Infrastructure — <code>apps/api/app/core</code></b></summary>
 
-| Module | Purpose |
-|--------|---------|
-| `config.py` | Settings / environment |
-| `auth.py` / `auth_stub.py` | JWT production auth / dev fallback |
-| `rate_limit.py` | Per-IP token bucket (100 req / 60s) |
-| `logging_middleware.py` | Request tracing + unique request IDs |
-| `error_handlers.py` | Uniform JSON error responses |
-| `llm.py` | LiteLLM wrapper (GPT-4o · Claude · Gemini · Ollama) |
+| Module                     | Purpose                                             |
+| -------------------------- | --------------------------------------------------- |
+| `config.py`                | Settings / environment                              |
+| `auth.py` / `auth_stub.py` | JWT production auth / dev fallback                  |
+| `rate_limit.py`            | Per-IP token bucket (100 req / 60s)                 |
+| `logging_middleware.py`    | Request tracing + unique request IDs                |
+| `error_handlers.py`        | Uniform JSON error responses                        |
+| `llm.py`                   | LiteLLM wrapper (GPT-4o · Claude · Gemini · Ollama) |
 
 </details>
 
 <details>
 <summary><b>🗄️ 7. Persistence / Infrastructure</b></summary>
 
-| System | Version | Role |
-|--------|---------|------|
-| 🐘 **PostgreSQL** | 16 | Main relational persistence — 29+ tables, 21 migrations |
-| 🔴 **Redis** | 7 | Worker / runtime support, caching, queues |
-| 📦 **MinIO** | Latest | S3-compatible local object storage |
-| 🐳 **Docker Compose** | — | 6-service local orchestration |
+| System                | Version | Role                                                    |
+| --------------------- | ------- | ------------------------------------------------------- |
+| 🐘 **PostgreSQL**     | 16      | Main relational persistence — 29+ tables, 21 migrations |
+| 🔴 **Redis**          | 7       | Worker / runtime support, caching, queues               |
+| 📦 **MinIO**          | Latest  | S3-compatible local object storage                      |
+| 🐳 **Docker Compose** | —       | 6-service local orchestration                           |
 
 </details>
 
@@ -879,22 +879,22 @@ The worker is the runtime engine that executes tasks outside normal request flow
 
 ## 🛠️ Tech Stack
 
-| Layer                 | Technology           | Version     | Purpose                           |
-| --------------------- | -------------------- | ----------- | --------------------------------- |
-| 🎨 **Frontend**       | Next.js (App Router) | 15.x        | Server/client components, routing |
-| ⚛️ **UI**             | React                | 19.x        | Component library                 |
-| 📝 **Language**       | TypeScript           | 5.x         | Type safety                       |
-| 🎨 **Styling**        | Tailwind CSS         | 4.x         | Utility-first CSS                 |
-| ⚡ **Backend**        | FastAPI              | 0.115+      | Async REST API                    |
-| 🐍 **Runtime**        | Python               | 3.12+       | Backend language                  |
-| 🗃️ **ORM**            | SQLAlchemy           | 2.0 (async) | Database access                   |
-| 📊 **Validation**     | Pydantic             | v2          | Schema validation                 |
-| 🐘 **Database**       | PostgreSQL           | 16          | Primary data store                |
-| 🔴 **Cache**          | Redis                | 7           | Caching, queues                   |
-| 📦 **Storage**        | MinIO                | Latest      | S3-compatible object storage      |
-| 🔄 **Migrations**     | Alembic              | 1.14+       | Database versioning               |
-| 🤖 **LLM Gateway**    | LiteLLM              | 1.50+       | Multi-provider LLM abstraction    |
-| �️ **Auth**            | python-jose (JWT)    | —           | Production JWT authentication     |
+| Layer                  | Technology           | Version     | Purpose                           |
+| ---------------------- | -------------------- | ----------- | --------------------------------- |
+| 🎨 **Frontend**        | Next.js (App Router) | 15.x        | Server/client components, routing |
+| ⚛️ **UI**              | React                | 19.x        | Component library                 |
+| 📝 **Language**        | TypeScript           | 5.x         | Type safety                       |
+| 🎨 **Styling**         | Tailwind CSS         | 4.x         | Utility-first CSS                 |
+| ⚡ **Backend**         | FastAPI              | 0.115+      | Async REST API                    |
+| 🐍 **Runtime**         | Python               | 3.12+       | Backend language                  |
+| 🗃️ **ORM**             | SQLAlchemy           | 2.0 (async) | Database access                   |
+| 📊 **Validation**      | Pydantic             | v2          | Schema validation                 |
+| 🐘 **Database**        | PostgreSQL           | 16          | Primary data store                |
+| 🔴 **Cache**           | Redis                | 7           | Caching, queues                   |
+| 📦 **Storage**         | MinIO                | Latest      | S3-compatible object storage      |
+| 🔄 **Migrations**      | Alembic              | 1.14+       | Database versioning               |
+| 🤖 **LLM Gateway**     | LiteLLM              | 1.50+       | Multi-provider LLM abstraction    |
+| �️ **Auth**             | python-jose (JWT)    | —           | Production JWT authentication     |
 | �🐳 **Infrastructure** | Docker Compose       | —           | 6-service local stack             |
 
 ---
@@ -1202,41 +1202,41 @@ Base URL: `http://localhost:8000`
 
 ### Replay & Council
 
-| Method | Path                               | Description               |
-| ------ | ---------------------------------- | ------------------------- |
-| `GET`  | `/runs/{id}/trace`                 | Execution trace           |
-| `GET`  | `/tasks/{id}/snapshots`            | Task snapshots            |
-| `POST` | `/replay/snapshots`                | Capture snapshot          |
-| `POST` | `/replay/snapshots/{id}/replay`    | Replay execution          |
-| `GET`  | `/replay/compare`                  | Compare original/replay   |
-| `POST` | `/council/sessions`                | Convene council           |
-| `POST` | `/council/sessions/{id}/vote`      | Cast agent vote           |
-| `POST` | `/council/sessions/{id}/resolve`   | Resolve decision          |
+| Method | Path                             | Description             |
+| ------ | -------------------------------- | ----------------------- |
+| `GET`  | `/runs/{id}/trace`               | Execution trace         |
+| `GET`  | `/tasks/{id}/snapshots`          | Task snapshots          |
+| `POST` | `/replay/snapshots`              | Capture snapshot        |
+| `POST` | `/replay/snapshots/{id}/replay`  | Replay execution        |
+| `GET`  | `/replay/compare`                | Compare original/replay |
+| `POST` | `/council/sessions`              | Convene council         |
+| `POST` | `/council/sessions/{id}/vote`    | Cast agent vote         |
+| `POST` | `/council/sessions/{id}/resolve` | Resolve decision        |
 
 ### Knowledge & Repos
 
-| Method   | Path                                     | Description           |
-| -------- | ---------------------------------------- | --------------------- |
-| `POST`   | `/projects/{id}/knowledge`               | Create knowledge      |
-| `GET`    | `/projects/{id}/knowledge`               | List knowledge        |
-| `POST`   | `/runs/{id}/extract-knowledge`           | Auto-extract          |
-| `GET`    | `/projects/{id}/knowledge/context`       | Knowledge context     |
-| `POST`   | `/projects/{id}/repos`                   | Connect repo          |
-| `GET`    | `/projects/{id}/repos`                   | List connections      |
-| `POST`   | `/repos/{id}/health`                     | Health check          |
-| `POST`   | `/repos/{id}/sync`                       | Sync repo             |
+| Method | Path                               | Description       |
+| ------ | ---------------------------------- | ----------------- |
+| `POST` | `/projects/{id}/knowledge`         | Create knowledge  |
+| `GET`  | `/projects/{id}/knowledge`         | List knowledge    |
+| `POST` | `/runs/{id}/extract-knowledge`     | Auto-extract      |
+| `GET`  | `/projects/{id}/knowledge/context` | Knowledge context |
+| `POST` | `/projects/{id}/repos`             | Connect repo      |
+| `GET`  | `/projects/{id}/repos`             | List connections  |
+| `POST` | `/repos/{id}/health`               | Health check      |
+| `POST` | `/repos/{id}/sync`                 | Sync repo         |
 
 ### Governance & Trust
 
-| Method | Path                              | Description               |
-| ------ | --------------------------------- | ------------------------- |
-| `POST` | `/governance/policies`            | Create policy             |
-| `GET`  | `/governance/evaluate/task`       | Evaluate approval         |
-| `GET`  | `/governance/evaluate/with-council` | Evaluate with council   |
-| `POST` | `/trust/tasks/{id}/assess`        | Assess task trust         |
-| `GET`  | `/trust/runs/{id}/risk-summary`   | Run risk summary          |
-| `GET`  | `/audit/export/json`              | Export audit log          |
-| `GET`  | `/costs/runs/{id}/summary`        | Cost summary              |
+| Method | Path                                | Description           |
+| ------ | ----------------------------------- | --------------------- |
+| `POST` | `/governance/policies`              | Create policy         |
+| `GET`  | `/governance/evaluate/task`         | Evaluate approval     |
+| `GET`  | `/governance/evaluate/with-council` | Evaluate with council |
+| `POST` | `/trust/tasks/{id}/assess`          | Assess task trust     |
+| `GET`  | `/trust/runs/{id}/risk-summary`     | Run risk summary      |
+| `GET`  | `/audit/export/json`                | Export audit log      |
+| `GET`  | `/costs/runs/{id}/summary`          | Cost summary          |
 
 ### Agent Registry
 
@@ -1248,95 +1248,95 @@ Base URL: `http://localhost:8000`
 
 ### Workspaces & Membership
 
-| Method   | Path                                     | Description               |
-| -------- | ---------------------------------------- | ------------------------- |
-| `POST`   | `/workspaces`                            | Create workspace          |
-| `GET`    | `/workspaces`                            | List workspaces           |
-| `GET`    | `/workspaces/{id}`                       | Get workspace             |
-| `PATCH`  | `/workspaces/{id}`                       | Update workspace          |
-| `DELETE` | `/workspaces/{id}`                       | Delete workspace          |
-| `POST`   | `/workspaces/{id}/members`               | Add workspace member      |
-| `GET`    | `/workspaces/{id}/members`               | List workspace members    |
-| `PATCH`  | `/workspaces/{id}/members/{user_id}`     | Update member role        |
-| `DELETE` | `/workspaces/{id}/members/{user_id}`     | Remove workspace member   |
-| `POST`   | `/projects/{id}/members`                 | Add project member        |
-| `GET`    | `/projects/{id}/members`                 | List project members      |
-| `PATCH`  | `/projects/{id}/members/{user_id}`       | Update project member     |
-| `DELETE` | `/projects/{id}/members/{user_id}`       | Remove project member     |
+| Method   | Path                                 | Description             |
+| -------- | ------------------------------------ | ----------------------- |
+| `POST`   | `/workspaces`                        | Create workspace        |
+| `GET`    | `/workspaces`                        | List workspaces         |
+| `GET`    | `/workspaces/{id}`                   | Get workspace           |
+| `PATCH`  | `/workspaces/{id}`                   | Update workspace        |
+| `DELETE` | `/workspaces/{id}`                   | Delete workspace        |
+| `POST`   | `/workspaces/{id}/members`           | Add workspace member    |
+| `GET`    | `/workspaces/{id}/members`           | List workspace members  |
+| `PATCH`  | `/workspaces/{id}/members/{user_id}` | Update member role      |
+| `DELETE` | `/workspaces/{id}/members/{user_id}` | Remove workspace member |
+| `POST`   | `/projects/{id}/members`             | Add project member      |
+| `GET`    | `/projects/{id}/members`             | List project members    |
+| `PATCH`  | `/projects/{id}/members/{user_id}`   | Update project member   |
+| `DELETE` | `/projects/{id}/members/{user_id}`   | Remove project member   |
 
 ### Notifications & Streaming
 
-| Method | Path                              | Description               |
-| ------ | --------------------------------- | ------------------------- |
-| `GET`  | `/stream/events`                  | SSE event stream          |
-| `POST` | `/notifications`                  | Create notification       |
-| `GET`  | `/notifications`                  | List notifications        |
-| `POST` | `/notifications/{id}/read`        | Mark notification read    |
-| `POST` | `/notifications/read-all`         | Mark all read             |
-| `POST` | `/notifications/delivery`         | Create delivery config    |
-| `GET`  | `/notifications/delivery`         | List delivery configs     |
+| Method | Path                       | Description            |
+| ------ | -------------------------- | ---------------------- |
+| `GET`  | `/stream/events`           | SSE event stream       |
+| `POST` | `/notifications`           | Create notification    |
+| `GET`  | `/notifications`           | List notifications     |
+| `POST` | `/notifications/{id}/read` | Mark notification read |
+| `POST` | `/notifications/read-all`  | Mark all read          |
+| `POST` | `/notifications/delivery`  | Create delivery config |
+| `GET`  | `/notifications/delivery`  | List delivery configs  |
 
 ### Escalation & Activity
 
-| Method   | Path                                         | Description            |
-| -------- | -------------------------------------------- | ---------------------- |
-| `POST`   | `/projects/{id}/escalation/rules`            | Create escalation rule |
-| `GET`    | `/projects/{id}/escalation/rules`            | List escalation rules  |
-| `GET`    | `/escalation/rules/{id}`                     | Get escalation rule    |
-| `PATCH`  | `/escalation/rules/{id}`                     | Update escalation rule |
-| `DELETE` | `/escalation/rules/{id}`                     | Delete escalation rule |
-| `GET`    | `/projects/{id}/escalation/events`           | List escalation events |
-| `POST`   | `/activity`                                  | Create activity entry  |
-| `GET`    | `/activity`                                  | List activity feed     |
-| `PUT`    | `/presence`                                  | Update presence        |
-| `GET`    | `/presence`                                  | List all presence      |
-| `GET`    | `/presence/{user_id}`                        | Get user presence      |
+| Method   | Path                               | Description            |
+| -------- | ---------------------------------- | ---------------------- |
+| `POST`   | `/projects/{id}/escalation/rules`  | Create escalation rule |
+| `GET`    | `/projects/{id}/escalation/rules`  | List escalation rules  |
+| `GET`    | `/escalation/rules/{id}`           | Get escalation rule    |
+| `PATCH`  | `/escalation/rules/{id}`           | Update escalation rule |
+| `DELETE` | `/escalation/rules/{id}`           | Delete escalation rule |
+| `GET`    | `/projects/{id}/escalation/events` | List escalation events |
+| `POST`   | `/activity`                        | Create activity entry  |
+| `GET`    | `/activity`                        | List activity feed     |
+| `PUT`    | `/presence`                        | Update presence        |
+| `GET`    | `/presence`                        | List all presence      |
+| `GET`    | `/presence/{user_id}`              | Get user presence      |
 
 ### Code Operations
 
-| Method   | Path                                     | Description               |
-| -------- | ---------------------------------------- | ------------------------- |
-| `POST`   | `/projects/{id}/code-mappings`           | Create code mapping       |
-| `GET`    | `/projects/{id}/code-mappings`           | List code mappings        |
-| `DELETE` | `/code-mappings/{id}`                    | Delete code mapping       |
-| `POST`   | `/projects/{id}/patches`                 | Create patch proposal     |
-| `GET`    | `/projects/{id}/patches`                 | List patch proposals      |
-| `GET`    | `/patches/{id}`                          | Get patch proposal        |
-| `PATCH`  | `/patches/{id}`                          | Update patch proposal     |
-| `POST`   | `/patches/{id}/reviews`                  | Create change review      |
-| `GET`    | `/patches/{id}/reviews`                  | List change reviews       |
-| `POST`   | `/projects/{id}/branch-strategy`         | Create branch strategy    |
-| `GET`    | `/projects/{id}/branch-strategies`       | List branch strategies    |
-| `PATCH`  | `/branch-strategies/{id}`                | Update branch strategy    |
-| `POST`   | `/projects/{id}/pr-drafts`               | Create PR draft           |
-| `GET`    | `/projects/{id}/pr-drafts`               | List PR drafts            |
-| `GET`    | `/pr-drafts/{id}`                        | Get PR draft              |
-| `PATCH`  | `/pr-drafts/{id}`                        | Update PR draft           |
-| `POST`   | `/projects/{id}/repo-approvals`          | Create repo approval      |
-| `GET`    | `/projects/{id}/repo-approvals`          | List repo approvals       |
-| `PATCH`  | `/repo-approvals/{id}/decide`            | Decide repo approval      |
-| `POST`   | `/projects/{id}/sandbox`                 | Create sandbox execution  |
-| `GET`    | `/projects/{id}/sandbox`                 | List sandbox executions   |
-| `GET`    | `/sandbox/{id}`                          | Get sandbox execution     |
-| `POST`   | `/sandbox/{id}/complete`                 | Complete sandbox execution|
+| Method   | Path                               | Description                |
+| -------- | ---------------------------------- | -------------------------- |
+| `POST`   | `/projects/{id}/code-mappings`     | Create code mapping        |
+| `GET`    | `/projects/{id}/code-mappings`     | List code mappings         |
+| `DELETE` | `/code-mappings/{id}`              | Delete code mapping        |
+| `POST`   | `/projects/{id}/patches`           | Create patch proposal      |
+| `GET`    | `/projects/{id}/patches`           | List patch proposals       |
+| `GET`    | `/patches/{id}`                    | Get patch proposal         |
+| `PATCH`  | `/patches/{id}`                    | Update patch proposal      |
+| `POST`   | `/patches/{id}/reviews`            | Create change review       |
+| `GET`    | `/patches/{id}/reviews`            | List change reviews        |
+| `POST`   | `/projects/{id}/branch-strategy`   | Create branch strategy     |
+| `GET`    | `/projects/{id}/branch-strategies` | List branch strategies     |
+| `PATCH`  | `/branch-strategies/{id}`          | Update branch strategy     |
+| `POST`   | `/projects/{id}/pr-drafts`         | Create PR draft            |
+| `GET`    | `/projects/{id}/pr-drafts`         | List PR drafts             |
+| `GET`    | `/pr-drafts/{id}`                  | Get PR draft               |
+| `PATCH`  | `/pr-drafts/{id}`                  | Update PR draft            |
+| `POST`   | `/projects/{id}/repo-approvals`    | Create repo approval       |
+| `GET`    | `/projects/{id}/repo-approvals`    | List repo approvals        |
+| `PATCH`  | `/repo-approvals/{id}/decide`      | Decide repo approval       |
+| `POST`   | `/projects/{id}/sandbox`           | Create sandbox execution   |
+| `GET`    | `/projects/{id}/sandbox`           | List sandbox executions    |
+| `GET`    | `/sandbox/{id}`                    | Get sandbox execution      |
+| `POST`   | `/sandbox/{id}/complete`           | Complete sandbox execution |
 
 #### Repo File Explorer & Sync
 
-| Method | Endpoint                                 | Description               |
-| ------ | ---------------------------------------- | ------------------------- |
-| `GET`  | `/repos/{id}/sync-status`                | Get repo sync status      |
-| `POST` | `/repos/{id}/refresh-sync`               | Refresh repo sync         |
-| `GET`  | `/repos/{id}/tree`                       | Get repo file tree        |
-| `GET`  | `/repos/{id}/file`                       | Get file contents         |
-| `GET`  | `/repos/{id}/file-meta`                  | Get file metadata         |
+| Method | Endpoint                   | Description          |
+| ------ | -------------------------- | -------------------- |
+| `GET`  | `/repos/{id}/sync-status`  | Get repo sync status |
+| `POST` | `/repos/{id}/refresh-sync` | Refresh repo sync    |
+| `GET`  | `/repos/{id}/tree`         | Get repo file tree   |
+| `GET`  | `/repos/{id}/file`         | Get file contents    |
+| `GET`  | `/repos/{id}/file-meta`    | Get file metadata    |
 
 #### Enhanced Code Operations
 
-| Method | Endpoint                                 | Description               |
-| ------ | ---------------------------------------- | ------------------------- |
-| `POST` | `/projects/{id}/pr-drafts/generate`      | Auto-generate PR draft    |
-| `POST` | `/projects/{id}/repo-approvals/check`    | Auto-check approval gates |
-| `POST` | `/projects/{id}/sandbox/run`             | Run sandbox with auto-complete |
+| Method | Endpoint                              | Description                    |
+| ------ | ------------------------------------- | ------------------------------ |
+| `POST` | `/projects/{id}/pr-drafts/generate`   | Auto-generate PR draft         |
+| `POST` | `/projects/{id}/repo-approvals/check` | Auto-check approval gates      |
+| `POST` | `/projects/{id}/sandbox/run`          | Run sandbox with auto-complete |
 
 > Full interactive docs at `http://localhost:8000/docs` (Swagger UI)
 
@@ -1359,29 +1359,29 @@ alembic downgrade -1
 
 ### Migration History
 
-| #    | Migration                    | Description                                  |
-| ---- | ---------------------------- | -------------------------------------------- |
-| 0001 | `initial_schema`             | users, projects, runs, tasks                 |
-| 0002 | `add_planner_results`        | planner_results table                        |
-| 0003 | `add_artifacts`              | artifacts table                              |
-| 0004 | `add_agents`                 | agents table + seed data                     |
-| 0005 | `add_task_execution_columns` | agent_slug, error_message on tasks           |
-| 0006 | `add_approval_requests`      | approval_requests table                      |
-| 0007 | `add_execution_events`       | execution_events table                       |
-| 0008 | `add_connectors`             | connectors table                             |
-| 0009 | `add_connector_readiness`    | project_connector_links table                |
-| 0010 | `add_credential_vault`       | credential_vault table                       |
-| 0011 | `add_retry_columns`          | +max_retries, +retry_count on tasks          |
-| 0012 | `add_cost_tracking`          | cost_records table                           |
-| 0013 | `add_governance_policies`    | governance_policies table                    |
-| 0014 | `add_trust_scores`           | trust_scores table                           |
-| 0015 | `add_replay_snapshots`       | replay_snapshots table                       |
-| 0016 | `add_council_tables`         | council_sessions + council_votes tables      |
-| 0017 | `add_project_knowledge`      | project_knowledge table                      |
-| 0018 | `add_repo_connections`       | repo_connections table                       |
+| #    | Migration                        | Description                                                                                                                                                                                                                                                                                       |
+| ---- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0001 | `initial_schema`                 | users, projects, runs, tasks                                                                                                                                                                                                                                                                      |
+| 0002 | `add_planner_results`            | planner_results table                                                                                                                                                                                                                                                                             |
+| 0003 | `add_artifacts`                  | artifacts table                                                                                                                                                                                                                                                                                   |
+| 0004 | `add_agents`                     | agents table + seed data                                                                                                                                                                                                                                                                          |
+| 0005 | `add_task_execution_columns`     | agent_slug, error_message on tasks                                                                                                                                                                                                                                                                |
+| 0006 | `add_approval_requests`          | approval_requests table                                                                                                                                                                                                                                                                           |
+| 0007 | `add_execution_events`           | execution_events table                                                                                                                                                                                                                                                                            |
+| 0008 | `add_connectors`                 | connectors table                                                                                                                                                                                                                                                                                  |
+| 0009 | `add_connector_readiness`        | project_connector_links table                                                                                                                                                                                                                                                                     |
+| 0010 | `add_credential_vault`           | credential_vault table                                                                                                                                                                                                                                                                            |
+| 0011 | `add_retry_columns`              | +max_retries, +retry_count on tasks                                                                                                                                                                                                                                                               |
+| 0012 | `add_cost_tracking`              | cost_records table                                                                                                                                                                                                                                                                                |
+| 0013 | `add_governance_policies`        | governance_policies table                                                                                                                                                                                                                                                                         |
+| 0014 | `add_trust_scores`               | trust_scores table                                                                                                                                                                                                                                                                                |
+| 0015 | `add_replay_snapshots`           | replay_snapshots table                                                                                                                                                                                                                                                                            |
+| 0016 | `add_council_tables`             | council_sessions + council_votes tables                                                                                                                                                                                                                                                           |
+| 0017 | `add_project_knowledge`          | project_knowledge table                                                                                                                                                                                                                                                                           |
+| 0018 | `add_repo_connections`           | repo_connections table                                                                                                                                                                                                                                                                            |
 | 0019 | `add_collaboration_and_code_ops` | workspaces, workspace_members, project_members, notifications, notification_delivery_configs, escalation_rules, escalation_events, activity_feed_entries, user_presences, code_mappings, patch_proposals, change_reviews, branch_strategies, pr_drafts, repo_action_approvals, sandbox_executions |
-| 0020 | `add_project_workspace_fk`       | +workspace_id FK on projects table                   |
-| 0021 | `add_code_ops_enhancements`      | +sync_status/branch_mode on repo_connections, +annotation columns on change_reviews, +strategy_metadata on branch_strategies, +generation_metadata on pr_drafts, +execution_metadata on sandbox_executions, 5 new enum types |
+| 0020 | `add_project_workspace_fk`       | +workspace_id FK on projects table                                                                                                                                                                                                                                                                |
+| 0021 | `add_code_ops_enhancements`      | +sync_status/branch_mode on repo_connections, +annotation columns on change_reviews, +strategy_metadata on branch_strategies, +generation_metadata on pr_drafts, +execution_metadata on sandbox_executions, 5 new enum types                                                                      |
 
 ### Code Quality
 
@@ -1418,21 +1418,21 @@ make test
 
 ### Completed: 13 Milestones — 70 Tasks ✅
 
-| #   | Milestone                                | Tasks                      | Status      |
-| --- | ---------------------------------------- | -------------------------- | ----------- |
-| 1   | **Platform Foundation**                  | FM-001 → FM-005            | ✅ Complete |
-| 2   | **Backend Core**                         | FM-006 → FM-011 (+FM-010A) | ✅ Complete |
-| 3   | **Frontend MVP**                         | FM-012 → FM-015A           | ✅ Complete |
-| 4   | **AI Planning Intelligence**             | FM-016 → FM-020A           | ✅ Complete |
-| 5   | **Execution Foundations**                | FM-021 → FM-025            | ✅ Complete |
-| 6   | **Controlled Execution & Observability** | FM-026 → FM-030            | ✅ Complete |
-| 7   | **Operator Control & Interaction**       | FM-031 → FM-035            | ✅ Complete |
-| 8   | **Adaptive Multi-Agent Foundations**     | FM-036 → FM-040            | ✅ Complete |
-| 9   | **Pre-Release Infrastructure**           | FM-041 → FM-045            | ✅ Complete |
-| 10  | **Platform Intelligence & Hardening**    | FM-046 → FM-050            | ✅ Complete |
-| 11  | **Team Collaboration & Real-Time**       | FM-051 → FM-059            | ✅ Complete |
-| 12  | **Collaboration Hardening & Code Foundations** | FM-060 → FM-069       | ✅ Complete |
-| 13  | **Code Ops Enhancements**                | FM-061 → FM-070 (enhanced) | ✅ Complete |
+| #   | Milestone                                      | Tasks                      | Status      |
+| --- | ---------------------------------------------- | -------------------------- | ----------- |
+| 1   | **Platform Foundation**                        | FM-001 → FM-005            | ✅ Complete |
+| 2   | **Backend Core**                               | FM-006 → FM-011 (+FM-010A) | ✅ Complete |
+| 3   | **Frontend MVP**                               | FM-012 → FM-015A           | ✅ Complete |
+| 4   | **AI Planning Intelligence**                   | FM-016 → FM-020A           | ✅ Complete |
+| 5   | **Execution Foundations**                      | FM-021 → FM-025            | ✅ Complete |
+| 6   | **Controlled Execution & Observability**       | FM-026 → FM-030            | ✅ Complete |
+| 7   | **Operator Control & Interaction**             | FM-031 → FM-035            | ✅ Complete |
+| 8   | **Adaptive Multi-Agent Foundations**           | FM-036 → FM-040            | ✅ Complete |
+| 9   | **Pre-Release Infrastructure**                 | FM-041 → FM-045            | ✅ Complete |
+| 10  | **Platform Intelligence & Hardening**          | FM-046 → FM-050            | ✅ Complete |
+| 11  | **Team Collaboration & Real-Time**             | FM-051 → FM-059            | ✅ Complete |
+| 12  | **Collaboration Hardening & Code Foundations** | FM-060 → FM-069            | ✅ Complete |
+| 13  | **Code Ops Enhancements**                      | FM-061 → FM-070 (enhanced) | ✅ Complete |
 
 <details>
 <summary><strong>Milestone 1 — Platform Foundation</strong></summary>

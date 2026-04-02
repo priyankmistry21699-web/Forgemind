@@ -93,16 +93,56 @@
 - Audit trail export (JSON/CSV export with compliance metadata)
 - Trust scoring & risk assessment (TrustScore model, heuristic scoring)
 
+### Milestone 10 — Platform Intelligence & Hardening (FM-046 to FM-050)
+
+- FM-046 Run Replay and Execution Trace Inspection (ReplaySnapshot model, SHA-256 hashing, replay comparison)
+- FM-047A Multi-Agent Council Decision Engine (CouncilSession/CouncilVote models, 4 decision methods)
+- FM-047 Policy-Based Approval Rules (GovernancePolicy model, multi-trigger evaluation)
+- FM-048 Multi-Run Memory and Project Knowledge Base (ProjectKnowledge model, auto-extraction, context injection)
+- FM-049 External Repo / Workspace Execution Integration (RepoConnection model, GitHub/GitLab/Bitbucket/local)
+- FM-050 Production Readiness and Platform Hardening Pass (JWT auth, rate limiting, request logging, error handlers)
+
+### Milestone 11 — Team Collaboration & Real-Time (FM-051 to FM-059)
+
+- FM-051 Workspace model and multi-tenant shell
+- FM-052 Workspace member roles (5 roles: owner, admin, manager, member, viewer)
+- FM-053 Project-level member and permissions
+- FM-054 SSE streaming foundation (asyncio.Queue pub/sub, run-scoped + global streams)
+- FM-055 In-app notification engine (12 types, 4 priorities, read/unread tracking)
+- FM-056 Notification delivery config (webhook/slack/email channels)
+- FM-057 Escalation rule engine (6 triggers, 5 actions, cooldown support)
+- FM-058 Activity feed and audit extension (15 activity types, project/workspace filtering)
+- FM-059 User presence tracking (heartbeat, assignment context, last-seen)
+
+### Milestone 12 — Collaboration Hardening & Code Foundations (FM-060 to FM-069)
+
+- FM-060 Collaboration hardening pass (presence heartbeat, notification batching, escalation dedup, pagination)
+- FM-061 Code mapping model (file-to-artifact mapping with language metadata)
+- FM-062 Patch proposal model (structured diff proposals with line-level targeting)
+- FM-063 Change review workflow (annotation-based code review with resolution tracking)
+- FM-064 Branch strategy configuration (per-project branch naming and protection rules)
+- FM-065 PR draft composer (auto-generated PR descriptions from patches)
+- FM-066 Repo action approval gate (5 action types: push/merge/pr_create/branch_create/patch_apply)
+- FM-067 Sandbox execution engine (async subprocess runner with timeout, stdout/stderr capture)
+- FM-068 Code ops REST API (8 route groups, 30+ endpoints)
+- FM-069 Code ops integration tests (47 tests across test_code_ops.py + test_code_ops_enhanced.py)
+
+### Milestone 13 — Code Ops Enhancements (FM-070 + FM-061–069 enhanced)
+
+- FM-061 enhanced: Sync status tracking (repo connection health, last-sync timestamps, provider metadata)
+- FM-062 enhanced: Branch mode configuration (direct/feature_branch/review_branch)
+- FM-063 enhanced: Annotation-based reviews (inline file/line/suggestion annotations)
+- FM-064 enhanced: Enhanced patch proposals (target_files, readiness_state, patch_format, proposed_by_agent)
+- FM-065 enhanced: PR generation metadata (auto-title, body sections, checklist generation)
+- FM-066 enhanced: Approval gate check endpoint (auto-query most recent approval per action type)
+- FM-067 enhanced: Sandbox runner safety (command allowlist, dangerous pattern detection, 300s max timeout)
+- FM-068 enhanced: Enhanced API layer (file explorer, sync refresh, auto-generate, auto-check endpoints)
+- FM-069 enhanced: Extended test coverage (303 total tests, migration verification, enum validation)
+- FM-070 Database migration (0020 workspace FK + 0021 code ops enhancements, 5 new enum types)
+
 ## Backlog
 
-### FM-046 to FM-050 — Advanced Platform Features
-
-- FM-046 Run Replay and Execution Trace Inspection
-- FM-047A Multi-Agent Council Decision Engine
-- FM-047 Policy-Based Approval Rules
-- FM-048 Multi-Run Memory and Project Knowledge Base
-- FM-049 External Repo / Workspace Execution Integration
-- FM-050 Production Readiness and Platform Hardening Pass
+- (none)
 
 ## Blocked
 
