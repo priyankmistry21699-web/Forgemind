@@ -148,11 +148,11 @@
 
 - FM-072 Frontend pages for Costs, Audit, Knowledge, Credential Vault (4 dashboard pages, 4 lib clients, 4 type files, sidebar update)
 
-## Backlog
-
 ### Milestone 16 — Platform Admin Frontend Parity (FM-073)
 
-- FM-073 Frontend pages for Connectors, Agents, Settings (dashboard pages + lib + types + enable sidebar links)
+- FM-073 Frontend pages for Connectors, Agents, Settings (3 dashboard pages, 2 lib clients, 2 type files, sidebar links enabled)
+
+## Backlog
 
 ### Milestone 17 — Auth & RBAC Hardening (FM-074 to FM-075)
 

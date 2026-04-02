@@ -279,8 +279,7 @@ const NAV_ITEMS = [
   },
   {
     label: "Agents",
-    href: "/agents",
-    disabled: true,
+    href: "/dashboard/agents",
     icon: (
       <svg
         width="16"
@@ -301,8 +300,7 @@ const NAV_ITEMS = [
   },
   {
     label: "Connectors",
-    href: "/connectors",
-    disabled: true,
+    href: "/dashboard/connectors",
     icon: (
       <svg
         width="16"
@@ -322,8 +320,7 @@ const NAV_ITEMS = [
   },
   {
     label: "Settings",
-    href: "/settings",
-    disabled: true,
+    href: "/dashboard/settings",
     icon: (
       <svg
         width="16"
