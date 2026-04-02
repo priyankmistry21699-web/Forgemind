@@ -10,6 +10,7 @@ import { fetchArtifacts } from "@/lib/artifacts";
 import { fetchApprovals } from "@/lib/approvals";
 import { fetchEvents } from "@/lib/events";
 import { fetchProject } from "@/lib/projects";
+import { useRunStream } from "@/lib/hooks/use-stream";
 
 import type { Run } from "@/types/run";
 import type { Project } from "@/types/project";
@@ -93,6 +94,25 @@ export default function RunDetailPage() {
     load();
   }, [load]);
 
+  // ── Live SSE updates ──────────────────────────────────────────
+  const { events: liveEvents, connected } = useRunStream(runId);
+
+  // Refresh data when meaningful SSE events arrive
+  useEffect(() => {
+    if (liveEvents.length === 0) return;
+    const last = liveEvents[liveEvents.length - 1];
+    const refreshTypes = [
+      "task_updated",
+      "run_status_changed",
+      "artifact_created",
+      "approval_requested",
+      "approval_decided",
+    ];
+    if (refreshTypes.includes(last.event_type)) {
+      load();
+    }
+  }, [liveEvents, load]);
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -171,6 +191,16 @@ export default function RunDetailPage() {
           </p>
         </div>
         <StatusBadge status={run.status} />
+      </div>
+
+      {/* Live connection indicator */}
+      <div className="flex items-center gap-2 text-[10px] text-[var(--color-text-dim)]">
+        <span
+          className={`inline-block h-2 w-2 rounded-full ${
+            connected ? "bg-emerald-400" : "bg-zinc-500"
+          }`}
+        />
+        {connected ? "Live" : "Reconnecting\u2026"}
       </div>
 
       {/* Summary cards */}

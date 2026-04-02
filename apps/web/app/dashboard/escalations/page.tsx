@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { fetchEscalationRules } from "@/lib/escalations";
+import { useGlobalStream } from "@/lib/hooks/use-stream";
 import type { EscalationRule } from "@/types/escalation";
+import type { StreamEvent } from "@/lib/stream";
 
 export default function EscalationsPage() {
   const [rules, setRules] = useState<EscalationRule[]>([]);
@@ -32,6 +34,18 @@ export default function EscalationsPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // ── Live escalation alerts via SSE ────────────────────────────
+  const { events: liveEvents } = useGlobalStream();
+  const [alerts, setAlerts] = useState<StreamEvent[]>([]);
+
+  useEffect(() => {
+    if (liveEvents.length === 0) return;
+    const last = liveEvents[liveEvents.length - 1];
+    if (last.event_type === "escalation_triggered") {
+      setAlerts((prev) => [last, ...prev].slice(0, 10));
+    }
+  }, [liveEvents]);
 
   return (
     <div className="space-y-6">
@@ -65,6 +79,22 @@ export default function EscalationsPage() {
           className="w-full max-w-md rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-dim)]"
         />
       </div>
+
+      {/* Live escalation alerts */}
+      {alerts.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="text-sm font-semibold text-amber-400">Live Escalation Alerts</h2>
+          {alerts.map((alert, i) => (
+            <div
+              key={i}
+              className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-300"
+            >
+              <span className="mr-2">{"\u26A0"}</span>
+              {String(alert.data.message ?? alert.data.rule_name ?? "Escalation triggered")}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Error */}
       {error && (

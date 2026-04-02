@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { fetchActivity } from "@/lib/activity";
+import { useGlobalStream } from "@/lib/hooks/use-stream";
 import type { ActivityFeedEntry } from "@/types/activity";
 
 const TYPE_ICONS: Record<string, string> = {
@@ -43,6 +44,15 @@ export default function ActivityPage() {
     load();
   }, [load]);
 
+  // ── Live SSE — auto-refresh on any activity event ─────────────
+  const { events: liveEvents, connected } = useGlobalStream();
+
+  useEffect(() => {
+    if (liveEvents.length === 0) return;
+    // Any event that reaches global stream is activity-worthy
+    load();
+  }, [liveEvents, load]);
+
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
@@ -55,11 +65,21 @@ export default function ActivityPage() {
       </div>
 
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Activity Feed</h1>
-        <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-          Real-time view of all operations across the platform ({total} events)
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Activity Feed</h1>
+          <p className="mt-1 text-sm text-[var(--color-text-muted)]">
+            Real-time view of all operations across the platform ({total} events)
+          </p>
+        </div>
+        <div className="flex items-center gap-2 text-[10px] text-[var(--color-text-dim)]">
+          <span
+            className={`inline-block h-2 w-2 rounded-full ${
+              connected ? "bg-emerald-400" : "bg-zinc-500"
+            }`}
+          />
+          {connected ? "Live" : "Reconnecting\u2026"}
+        </div>
       </div>
 
       {/* Error */}

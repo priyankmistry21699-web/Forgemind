@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { fetchNotifications, markNotificationRead, markAllRead } from "@/lib/notifications";
+import { useGlobalStream } from "@/lib/hooks/use-stream";
 import type { Notification } from "@/types/notification";
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -36,6 +37,21 @@ export default function NotificationsPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // ── Live SSE — auto-refresh on notification events ────────────
+  const { events: liveEvents } = useGlobalStream();
+
+  useEffect(() => {
+    if (liveEvents.length === 0) return;
+    const last = liveEvents[liveEvents.length - 1];
+    if (
+      last.event_type.startsWith("notification") ||
+      last.event_type === "approval_requested" ||
+      last.event_type === "escalation_triggered"
+    ) {
+      load();
+    }
+  }, [liveEvents, load]);
 
   const handleMarkRead = async (id: string) => {
     try {
