@@ -144,11 +144,11 @@
 
 - FM-071 Frontend pages for Trust, Replay, Council, Governance (4 dashboard pages, 4 lib clients, 4 type files, sidebar update)
 
-## Backlog
-
 ### Milestone 15 — Advanced Frontend Parity II (FM-072)
 
-- FM-072 Frontend pages for Costs, Audit, Knowledge, Credential Vault (dashboard pages + lib + types + sidebar)
+- FM-072 Frontend pages for Costs, Audit, Knowledge, Credential Vault (4 dashboard pages, 4 lib clients, 4 type files, sidebar update)
+
+## Backlog
 
 ### Milestone 16 — Platform Admin Frontend Parity (FM-073)
 
