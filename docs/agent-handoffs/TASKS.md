@@ -140,11 +140,11 @@
 - FM-069 enhanced: Extended test coverage (303 total tests, migration verification, enum validation)
 - FM-070 Database migration (0020 workspace FK + 0021 code ops enhancements, 5 new enum types)
 
-## Backlog
-
 ### Milestone 14 — Advanced Frontend Parity I (FM-071)
 
-- FM-071 Frontend pages for Trust, Replay, Council, Governance (dashboard pages + lib + types + sidebar)
+- FM-071 Frontend pages for Trust, Replay, Council, Governance (4 dashboard pages, 4 lib clients, 4 type files, sidebar update)
+
+## Backlog
 
 ### Milestone 15 — Advanced Frontend Parity II (FM-072)
 
