@@ -8,6 +8,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.models.trust_score import EntityType, RiskLevel
 from app.schemas.trust import TrustScoreRead, TrustScoreList
@@ -20,6 +21,7 @@ router = APIRouter(prefix="/trust")
 async def assess_task(
     task_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TrustScoreRead:
     """Compute and store trust score for a task."""
     try:
@@ -36,6 +38,7 @@ async def assess_task(
 async def assess_run(
     run_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TrustScoreRead:
     """Compute and store trust score for a run."""
     try:
@@ -52,6 +55,7 @@ async def assess_run(
 async def get_run_risk_summary(
     run_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Get comprehensive risk summary for a run and all its tasks."""
     try:
@@ -69,6 +73,7 @@ async def list_trust_scores(
     risk_level: RiskLevel | None = Query(None),
     entity_type: EntityType | None = Query(None),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TrustScoreList:
     """List trust scores with optional filters."""
     scores = await trust_scoring_service.list_trust_scores(
@@ -89,6 +94,7 @@ async def get_trust_score(
     entity_type: EntityType,
     entity_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TrustScoreRead:
     """Get trust score for a specific entity."""
     ts = await trust_scoring_service.get_trust_score(db, entity_type, entity_id)

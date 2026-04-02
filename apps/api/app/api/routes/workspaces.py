@@ -7,6 +7,7 @@ from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.schemas.workspace import WorkspaceCreate, WorkspaceUpdate, WorkspaceRead, WorkspaceList
 from app.services import workspace_service
+from app.services.authz_service import check_workspace_permission, Action
 
 router = APIRouter()
 
@@ -47,7 +48,9 @@ async def list_workspaces(
 async def get_workspace(
     workspace_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> WorkspaceRead:
+    await check_workspace_permission(db, workspace_id, user_id, Action.WORKSPACE_VIEW)
     ws = await workspace_service.get_workspace(db, workspace_id)
     if ws is None:
         raise HTTPException(status_code=404, detail="Workspace not found")
@@ -59,7 +62,9 @@ async def update_workspace(
     workspace_id: uuid.UUID,
     data: WorkspaceUpdate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> WorkspaceRead:
+    await check_workspace_permission(db, workspace_id, user_id, Action.WORKSPACE_UPDATE)
     ws = await workspace_service.update_workspace(
         db, workspace_id, **data.model_dump(exclude_unset=True),
     )
@@ -72,7 +77,9 @@ async def update_workspace(
 async def delete_workspace(
     workspace_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> None:
+    await check_workspace_permission(db, workspace_id, user_id, Action.WORKSPACE_DELETE)
     deleted = await workspace_service.delete_workspace(db, workspace_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Workspace not found")

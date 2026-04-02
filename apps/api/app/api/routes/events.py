@@ -5,6 +5,7 @@ import uuid
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.schemas.execution_event import ExecutionEventRead, ExecutionEventList
 from app.services import event_service
@@ -19,6 +20,7 @@ async def list_events(
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ExecutionEventList:
     """List execution events with optional filters."""
     events, total = await event_service.list_events(

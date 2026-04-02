@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
+from app.core.auth import get_current_user_id
 from app.models.approval_request import ApprovalStatus
 from app.schemas.approval import ApprovalRead, ApprovalList, ApprovalDecision
 from app.services import approval_service
@@ -21,6 +22,7 @@ async def list_approvals(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ApprovalList:
     """List approval requests with optional filters."""
     approvals, total = await approval_service.list_approvals(
@@ -41,6 +43,7 @@ async def list_approvals(
 async def get_approval(
     approval_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ApprovalRead:
     """Get a single approval request."""
     approval = await approval_service.get_approval(db, approval_id)
@@ -52,6 +55,7 @@ async def decide_approval(
     approval_id: uuid.UUID,
     data: ApprovalDecision,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ApprovalRead:
     """Approve or reject a pending approval request."""
     approval = await approval_service.resolve_approval(db, approval_id, data)

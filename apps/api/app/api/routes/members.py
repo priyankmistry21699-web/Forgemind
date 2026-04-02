@@ -10,6 +10,7 @@ from app.schemas.membership import (
     ProjectMemberCreate, ProjectMemberUpdate, ProjectMemberRead, ProjectMemberList,
 )
 from app.services import membership_service
+from app.services.authz_service import check_workspace_permission, check_project_permission, Action
 
 router = APIRouter()
 
@@ -25,7 +26,9 @@ async def add_workspace_member(
     workspace_id: uuid.UUID,
     data: WorkspaceMemberCreate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> WorkspaceMemberRead:
+    await check_workspace_permission(db, workspace_id, user_id, Action.WORKSPACE_MANAGE_MEMBERS)
     existing = await membership_service.get_workspace_member(
         db, workspace_id, data.user_id,
     )
@@ -46,7 +49,9 @@ async def list_workspace_members(
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> WorkspaceMemberList:
+    await check_workspace_permission(db, workspace_id, user_id, Action.WORKSPACE_VIEW)
     items, total = await membership_service.list_workspace_members(
         db, workspace_id, limit=limit, offset=offset,
     )
@@ -57,17 +62,19 @@ async def list_workspace_members(
 
 
 @router.patch(
-    "/workspaces/{workspace_id}/members/{user_id}",
+    "/workspaces/{workspace_id}/members/{member_user_id}",
     response_model=WorkspaceMemberRead,
 )
 async def update_workspace_member(
     workspace_id: uuid.UUID,
-    user_id: uuid.UUID,
+    member_user_id: uuid.UUID,
     data: WorkspaceMemberUpdate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> WorkspaceMemberRead:
+    await check_workspace_permission(db, workspace_id, user_id, Action.WORKSPACE_MANAGE_MEMBERS)
     member = await membership_service.update_workspace_member_role(
-        db, workspace_id, user_id, data.role,
+        db, workspace_id, member_user_id, data.role,
     )
     if member is None:
         raise HTTPException(status_code=404, detail="Member not found")
@@ -75,16 +82,18 @@ async def update_workspace_member(
 
 
 @router.delete(
-    "/workspaces/{workspace_id}/members/{user_id}",
+    "/workspaces/{workspace_id}/members/{member_user_id}",
     status_code=204,
 )
 async def remove_workspace_member(
     workspace_id: uuid.UUID,
-    user_id: uuid.UUID,
+    member_user_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> None:
+    await check_workspace_permission(db, workspace_id, user_id, Action.WORKSPACE_MANAGE_MEMBERS)
     removed = await membership_service.remove_workspace_member(
-        db, workspace_id, user_id,
+        db, workspace_id, member_user_id,
     )
     if not removed:
         raise HTTPException(status_code=404, detail="Member not found")
@@ -101,7 +110,9 @@ async def add_project_member(
     project_id: uuid.UUID,
     data: ProjectMemberCreate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectMemberRead:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_MEMBERS)
     existing = await membership_service.get_project_member(
         db, project_id, data.user_id,
     )
@@ -123,7 +134,9 @@ async def list_project_members(
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectMemberList:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await membership_service.list_project_members(
         db, project_id, limit=limit, offset=offset,
     )
@@ -134,17 +147,19 @@ async def list_project_members(
 
 
 @router.patch(
-    "/projects/{project_id}/members/{user_id}",
+    "/projects/{project_id}/members/{member_user_id}",
     response_model=ProjectMemberRead,
 )
 async def update_project_member(
     project_id: uuid.UUID,
-    user_id: uuid.UUID,
+    member_user_id: uuid.UUID,
     data: ProjectMemberUpdate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectMemberRead:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_MEMBERS)
     member = await membership_service.update_project_member(
-        db, project_id, user_id, **data.model_dump(exclude_unset=True),
+        db, project_id, member_user_id, **data.model_dump(exclude_unset=True),
     )
     if member is None:
         raise HTTPException(status_code=404, detail="Member not found")
@@ -152,16 +167,18 @@ async def update_project_member(
 
 
 @router.delete(
-    "/projects/{project_id}/members/{user_id}",
+    "/projects/{project_id}/members/{member_user_id}",
     status_code=204,
 )
 async def remove_project_member(
     project_id: uuid.UUID,
-    user_id: uuid.UUID,
+    member_user_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> None:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_MEMBERS)
     removed = await membership_service.remove_project_member(
-        db, project_id, user_id,
+        db, project_id, member_user_id,
     )
     if not removed:
         raise HTTPException(status_code=404, detail="Member not found")

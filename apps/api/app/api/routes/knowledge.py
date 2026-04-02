@@ -8,6 +8,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.models.project_knowledge import KnowledgeType
 from app.schemas.knowledge import (
@@ -31,6 +32,7 @@ async def create_knowledge(
     project_id: uuid.UUID,
     body: ProjectKnowledgeCreate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectKnowledgeRead:
     """Add a knowledge entry to a project."""
     entry = await knowledge_service.create_knowledge(
@@ -58,6 +60,7 @@ async def list_knowledge(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectKnowledgeList:
     """List knowledge entries for a project."""
     entries, total = await knowledge_service.list_knowledge(
@@ -79,6 +82,7 @@ async def list_knowledge(
 async def get_knowledge(
     knowledge_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectKnowledgeRead:
     """Get a single knowledge entry."""
     entry = await knowledge_service.get_knowledge(db, knowledge_id)
@@ -94,6 +98,7 @@ async def get_knowledge(
 async def delete_knowledge(
     knowledge_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Delete a knowledge entry."""
     deleted = await knowledge_service.delete_knowledge(db, knowledge_id)
@@ -112,6 +117,7 @@ async def delete_knowledge(
 async def extract_knowledge(
     run_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> KnowledgeExtractionResult:
     """Extract knowledge from a completed run."""
     entries = await knowledge_service.extract_knowledge_from_run(db, run_id)
@@ -131,6 +137,7 @@ async def get_knowledge_context(
     project_id: uuid.UUID,
     max_entries: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> KnowledgeContext:
     """Get assembled knowledge context for agent enrichment."""
     ctx = await knowledge_service.get_knowledge_context(

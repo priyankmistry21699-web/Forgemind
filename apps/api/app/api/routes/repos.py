@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
+from app.core.auth import get_current_user_id
 from app.schemas.repo import (
     RepoConnectionRead,
     RepoConnectionList,
@@ -35,6 +36,7 @@ async def create_connection(
     project_id: uuid.UUID,
     body: RepoConnectionCreate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RepoConnectionRead:
     """Create a new repo connection for a project."""
     conn = await repo_service.create_connection(
@@ -67,6 +69,7 @@ async def list_connections(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RepoConnectionList:
     """List repo connections for a project."""
     connections, total = await repo_service.list_connections(
@@ -82,6 +85,7 @@ async def list_connections(
 async def get_connection(
     connection_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RepoConnectionRead:
     """Get a single repo connection."""
     conn = await repo_service.get_connection(db, connection_id)
@@ -98,6 +102,7 @@ async def update_connection(
     connection_id: uuid.UUID,
     body: RepoConnectionUpdate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RepoConnectionRead:
     """Update a repo connection."""
     conn = await repo_service.update_connection(
@@ -117,6 +122,7 @@ async def update_connection(
 async def delete_connection(
     connection_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Delete a repo connection."""
     deleted = await repo_service.delete_connection(db, connection_id)
@@ -132,6 +138,7 @@ async def delete_connection(
 async def check_health(
     connection_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Check health of a repo connection."""
     result = await repo_service.check_connection_health(db, connection_id)
@@ -148,6 +155,7 @@ async def check_health(
 async def sync_connection(
     connection_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Sync a repo connection — verify and update status."""
     result = await repo_service.sync_connection(db, connection_id)
@@ -166,6 +174,7 @@ async def sync_connection(
 async def get_sync_status(
     connection_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RepoSyncMetadata:
     """Get current sync metadata for a repo connection."""
     result = await repo_service.get_sync_status(db, connection_id)
@@ -182,6 +191,7 @@ async def refresh_sync_metadata(
     connection_id: uuid.UUID,
     commit_sha: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Refresh sync metadata (commit SHA, provider data) for a repo connection."""
     result = await repo_service.refresh_sync_metadata(
@@ -203,6 +213,7 @@ async def get_file_tree(
     connection_id: uuid.UUID,
     path: str = Query("", description="Sub-path within workspace"),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> FileTreeResult:
     """Browse the file tree of a linked local workspace."""
     result = await repo_service.get_file_tree(db, connection_id, path)
@@ -219,6 +230,7 @@ async def get_file_content(
     connection_id: uuid.UUID,
     path: str = Query(..., description="File path within workspace"),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> FileContentResult:
     """Fetch file content from a linked local workspace."""
     result = await repo_service.get_file_content(db, connection_id, path)
@@ -235,6 +247,7 @@ async def get_file_metadata(
     connection_id: uuid.UUID,
     path: str = Query(..., description="File path within workspace"),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Get metadata for a file without fetching content."""
     result = await repo_service.get_file_metadata(db, connection_id, path)

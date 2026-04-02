@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
+from app.core.auth import get_current_user_id
 from app.schemas.credential_vault import (
     CredentialVaultCreate,
     CredentialVaultRead,
@@ -41,6 +42,7 @@ async def _resolve_connector_slug(
 async def create_credential(
     body: CredentialVaultCreate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CredentialVaultRead:
     """Register a new credential in the vault."""
     credential = await credential_vault_service.create_credential(
@@ -65,6 +67,7 @@ async def create_credential(
 async def list_credentials(
     project_id: uuid.UUID | None = None,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CredentialVaultList:
     """List all credential vault entries."""
     credentials, total = await credential_vault_service.list_credentials(
@@ -88,6 +91,7 @@ async def list_credentials(
 async def get_credential(
     credential_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CredentialVaultRead:
     """Get a single credential vault entry."""
     credential = await credential_vault_service.get_credential(db, credential_id)
@@ -110,6 +114,7 @@ async def update_credential(
     credential_id: uuid.UUID,
     body: CredentialVaultUpdate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CredentialVaultRead:
     """Update credential metadata."""
     update_data = body.model_dump(exclude_unset=True)
@@ -134,6 +139,7 @@ async def update_credential(
 async def delete_credential(
     credential_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> None:
     """Delete a credential vault entry."""
     deleted = await credential_vault_service.delete_credential(db, credential_id)
@@ -147,6 +153,7 @@ async def delete_credential(
 @router.post("/vault/credentials/refresh")
 async def refresh_statuses(
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> dict:
     """Refresh all credential statuses based on current env vars."""
     changed = await credential_vault_service.refresh_credential_statuses(db)

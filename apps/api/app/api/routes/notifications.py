@@ -56,6 +56,7 @@ async def list_notifications(
 async def mark_read(
     notification_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> NotificationRead:
     n = await notification_service.mark_notification_read(db, notification_id)
     if n is None:

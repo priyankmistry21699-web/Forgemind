@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.schemas.connector import (
     ConnectorRead,
@@ -25,6 +26,7 @@ router = APIRouter()
 @router.get("/connectors", response_model=ConnectorList)
 async def list_connectors(
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ConnectorList:
     """List all registered connectors."""
     connectors, total = await connector_service.list_connectors(db)
@@ -47,6 +49,7 @@ class ConnectorRequirements(BaseModel):
 async def get_connector_requirements(
     run_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ConnectorRequirements:
     """Analyse a run and recommend required external connectors."""
     from app.models.planner_result import PlannerResult
@@ -109,6 +112,7 @@ async def link_connector(
     project_id: uuid.UUID,
     body: ProjectConnectorLinkCreate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectConnectorLinkRead:
     """Link a connector to a project with a priority level."""
     link = await connector_service.link_connector_to_project(
@@ -142,6 +146,7 @@ async def link_connector(
 async def get_readiness(
     project_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectReadinessSummary:
     """Get readiness summary for all connectors linked to a project."""
     summary = await connector_service.get_project_readiness(db, project_id)
@@ -165,6 +170,7 @@ async def update_readiness(
     connector_slug: str,
     body: ProjectConnectorReadinessUpdate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectConnectorLinkRead:
     """Update the readiness state of a project-connector link."""
     link = await connector_service.update_connector_readiness(
@@ -204,6 +210,7 @@ class RunConnectorBlockers(BaseModel):
 async def get_run_blockers(
     run_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RunConnectorBlockers:
     """Get connectors that are blocking a run from proceeding."""
     blockers = await connector_service.get_run_connector_blockers(db, run_id)

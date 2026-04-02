@@ -5,6 +5,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.services import run_memory_service
 
@@ -16,6 +17,7 @@ async def get_run_summary(
     run_id: uuid.UUID,
     refresh: bool = False,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Return a cached execution summary for the run."""
     summary = await run_memory_service.get_run_summary(
@@ -30,6 +32,7 @@ async def get_run_summary(
 async def get_failure_analysis(
     run_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Analyse failures and suggest recovery actions."""
     analysis = await run_memory_service.get_failure_analysis(db, run_id)
@@ -42,6 +45,7 @@ async def get_failure_analysis(
 async def get_run_context_text(
     run_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Return the assembled text context (same format used by chat service)."""
     summary = await run_memory_service.get_run_summary(db, run_id)

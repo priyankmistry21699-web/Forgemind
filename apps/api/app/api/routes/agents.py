@@ -3,6 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.schemas.agent import AgentRead, AgentList
 from app.services import agent_service
@@ -13,6 +14,7 @@ router = APIRouter()
 @router.get("/agents", response_model=AgentList)
 async def list_agents(
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> AgentList:
     """List all registered agents."""
     agents, total = await agent_service.list_agents(db)
@@ -26,6 +28,7 @@ async def list_agents(
 async def get_agent(
     agent_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> AgentRead:
     """Retrieve a single agent by ID."""
     agent = await agent_service.get_agent(db, agent_id)

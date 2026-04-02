@@ -39,6 +39,7 @@ async def list_activities(
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ActivityFeedList:
     items, total = await activity_service.list_activities(
         db, project_id=project_id, workspace_id=workspace_id,
@@ -71,6 +72,7 @@ async def list_presence(
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PresenceList:
     items, total = await activity_service.list_presence(
         db, limit=limit, offset=offset,
@@ -85,6 +87,7 @@ async def list_presence(
 async def get_presence(
     user_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    current_user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PresenceRead:
     p = await activity_service.get_presence(db, user_id)
     if p is None:
@@ -100,6 +103,7 @@ async def get_workspace_activity(
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ActivityFeedList:
     """Get activity feed scoped to a workspace."""
     items, total = await activity_service.list_activities(
@@ -117,6 +121,7 @@ async def get_workspace_activity(
 async def get_user_context(
     user_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    current_user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> dict:
     """Get assignment and presence context for a user."""
     return await user_activity_service.get_user_assignment_context(db, user_id)

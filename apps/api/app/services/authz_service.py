@@ -27,6 +27,8 @@ class Action(str, Enum):
     WORKSPACE_MANAGE_REPOS = "workspace:manage_repos"
     WORKSPACE_CREATE_PROJECT = "workspace:create_project"
     WORKSPACE_VIEW = "workspace:view"
+    WORKSPACE_MANAGE_SECRETS = "workspace:manage_secrets"
+    WORKSPACE_VIEW_AUDIT = "workspace:view_audit"
 
     # Project-level
     PROJECT_UPDATE = "project:update"
@@ -36,6 +38,9 @@ class Action(str, Enum):
     PROJECT_RUN = "project:run"
     PROJECT_APPROVE = "project:approve"
     PROJECT_REVIEW = "project:review"
+    PROJECT_EXECUTE_CODE = "project:execute_code"
+    PROJECT_MANAGE_KNOWLEDGE = "project:manage_knowledge"
+    PROJECT_MANAGE_ESCALATION = "project:manage_escalation"
 
 
 # ── Permission matrix ────────────────────────────────────────────
@@ -49,6 +54,8 @@ WORKSPACE_PERMISSIONS: dict[Action, set[WorkspaceRole]] = {
     Action.WORKSPACE_MANAGE_REPOS: {WorkspaceRole.OWNER, WorkspaceRole.ADMIN, WorkspaceRole.OPERATOR},
     Action.WORKSPACE_CREATE_PROJECT: {WorkspaceRole.OWNER, WorkspaceRole.ADMIN, WorkspaceRole.OPERATOR},
     Action.WORKSPACE_VIEW: {WorkspaceRole.OWNER, WorkspaceRole.ADMIN, WorkspaceRole.OPERATOR, WorkspaceRole.REVIEWER, WorkspaceRole.VIEWER},
+    Action.WORKSPACE_MANAGE_SECRETS: {WorkspaceRole.OWNER, WorkspaceRole.ADMIN},
+    Action.WORKSPACE_VIEW_AUDIT: {WorkspaceRole.OWNER, WorkspaceRole.ADMIN, WorkspaceRole.REVIEWER},
 }
 
 PROJECT_PERMISSIONS: dict[Action, set[ProjectRole]] = {
@@ -59,6 +66,9 @@ PROJECT_PERMISSIONS: dict[Action, set[ProjectRole]] = {
     Action.PROJECT_RUN: {ProjectRole.LEAD, ProjectRole.OPERATOR},
     Action.PROJECT_APPROVE: {ProjectRole.LEAD, ProjectRole.REVIEWER},
     Action.PROJECT_REVIEW: {ProjectRole.LEAD, ProjectRole.REVIEWER},
+    Action.PROJECT_EXECUTE_CODE: {ProjectRole.LEAD, ProjectRole.OPERATOR},
+    Action.PROJECT_MANAGE_KNOWLEDGE: {ProjectRole.LEAD, ProjectRole.OPERATOR},
+    Action.PROJECT_MANAGE_ESCALATION: {ProjectRole.LEAD},
 }
 
 

@@ -9,6 +9,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.schemas.replay import (
     ReplaySnapshotRead,
@@ -28,6 +29,7 @@ router = APIRouter()
 async def get_execution_trace(
     run_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ExecutionTrace:
     """Get the full execution trace for a run (ordered snapshots)."""
     trace = await replay_service.get_execution_trace(db, run_id)
@@ -47,6 +49,7 @@ async def get_execution_trace(
 async def get_task_snapshots(
     task_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ReplaySnapshotList:
     """Get all execution snapshots for a specific task."""
     snapshots = await replay_service.get_task_snapshots(db, task_id)
@@ -62,6 +65,7 @@ async def get_task_snapshots(
 async def get_snapshot(
     snapshot_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ReplaySnapshotRead:
     """Get a single replay snapshot by ID."""
     snapshot = await replay_service.get_snapshot(db, snapshot_id)
@@ -81,6 +85,7 @@ async def get_snapshot(
 async def create_snapshot(
     body: ReplaySnapshotCreate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ReplaySnapshotRead:
     """Manually capture an execution snapshot."""
     snapshot = await replay_service.capture_snapshot(
@@ -112,6 +117,7 @@ async def list_snapshots(
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ReplaySnapshotList:
     """List replay snapshots with optional filters."""
     snapshots, total = await replay_service.list_snapshots(
@@ -135,6 +141,7 @@ async def list_snapshots(
 async def replay_snapshot(
     snapshot_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Replay an execution snapshot — re-run with identical inputs and compare."""
     result = await replay_service.replay_snapshot(db, snapshot_id)
@@ -152,6 +159,7 @@ async def compare_snapshots(
     original_id: uuid.UUID = Query(...),
     replay_id: uuid.UUID = Query(...),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Compare original and replay snapshot outputs."""
     result = await replay_service.compare_snapshots(db, original_id, replay_id)

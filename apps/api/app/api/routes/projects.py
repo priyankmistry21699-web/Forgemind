@@ -41,6 +41,7 @@ async def list_projects(
 async def get_project(
     project_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectRead:
     project = await project_service.get_project(db, project_id)
     return ProjectRead.model_validate(project)
@@ -51,6 +52,7 @@ async def update_project(
     project_id: uuid.UUID,
     data: ProjectUpdate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectRead:
     project = await project_service.update_project(db, project_id, data)
     return ProjectRead.model_validate(project)

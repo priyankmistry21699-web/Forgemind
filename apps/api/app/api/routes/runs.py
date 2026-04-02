@@ -5,6 +5,7 @@ from sqlalchemy import select, func as sa_func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
+from app.core.auth import get_current_user_id
 from app.models.run import Run
 from app.schemas.run import RunRead, RunList
 
@@ -17,6 +18,7 @@ async def list_runs(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RunList:
     """List all runs for a project, newest first."""
     query = select(Run).where(Run.project_id == project_id)
@@ -40,6 +42,7 @@ async def list_runs(
 async def get_latest_run(
     project_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RunRead:
     """Get the most recent run for a project."""
     result = await db.execute(
@@ -61,6 +64,7 @@ async def get_latest_run(
 async def get_run(
     run_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RunRead:
     """Get a single run by ID."""
     result = await db.execute(select(Run).where(Run.id == run_id))

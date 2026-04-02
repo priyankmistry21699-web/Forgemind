@@ -8,6 +8,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.models.council import CouncilStatus
 from app.schemas.council import (
@@ -27,6 +28,7 @@ router = APIRouter(prefix="/council")
 async def convene_council(
     body: ConveneCouncilRequest,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CouncilSessionRead:
     """Convene a new council session for multi-agent deliberation."""
     session = await council_service.convene_council(
@@ -51,6 +53,7 @@ async def list_sessions(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CouncilSessionList:
     """List council sessions with optional filters."""
     sessions, total = await council_service.list_sessions(
@@ -71,6 +74,7 @@ async def list_sessions(
 async def get_session(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CouncilSessionRead:
     """Get a council session with its votes."""
     session = await council_service.get_session(db, session_id)
@@ -91,6 +95,7 @@ async def cast_vote(
     session_id: uuid.UUID,
     body: CastVoteRequest,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CouncilVoteRead:
     """Cast a vote in a council session."""
     try:
@@ -116,6 +121,7 @@ async def cast_vote(
 async def resolve_council(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Resolve a council session — tally votes and determine outcome."""
     result = await council_service.resolve_council(db, session_id)
@@ -132,6 +138,7 @@ async def resolve_council(
 async def escalate_council(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Escalate a deadlocked council to human review."""
     result = await council_service.escalate_council(db, session_id)

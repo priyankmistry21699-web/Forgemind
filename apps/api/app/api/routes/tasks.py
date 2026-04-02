@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
+from app.core.auth import get_current_user_id
 from app.schemas.task import (
     TaskRead,
     TaskList,
@@ -22,6 +23,7 @@ router = APIRouter()
 async def list_tasks(
     run_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TaskList:
     """List all tasks for a given run, ordered by execution index."""
     tasks, total = await task_service.list_tasks_by_run(db, run_id)
@@ -35,6 +37,7 @@ async def list_tasks(
 async def get_ready_tasks(
     run_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ReadyTasksResponse:
     """Return tasks whose dependencies are all satisfied and are ready to execute."""
     tasks, total = await task_service.get_ready_tasks(db, run_id)
@@ -48,6 +51,7 @@ async def get_ready_tasks(
 async def get_task(
     task_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TaskRead:
     task = await task_service.get_task(db, task_id)
     return TaskRead.model_validate(task)
@@ -58,6 +62,7 @@ async def update_task_status(
     task_id: uuid.UUID,
     data: TaskStatusUpdate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TaskRead:
     """Transition a task to a new status with state-machine validation."""
     task = await task_service.update_task_status(db, task_id, data.status)
@@ -69,6 +74,7 @@ async def claim_task(
     task_id: uuid.UUID,
     data: TaskClaimRequest,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TaskRead:
     """Claim a READY task for an agent, setting it to RUNNING."""
     task = await execution_service.claim_task(db, task_id, data.agent_slug)
@@ -81,6 +87,7 @@ async def complete_task(
     task_id: uuid.UUID,
     data: TaskCompleteRequest,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TaskRead:
     """Complete a RUNNING task, optionally creating an output artifact."""
     task = await execution_service.complete_task(
@@ -99,6 +106,7 @@ async def fail_task(
     task_id: uuid.UUID,
     data: TaskFailRequest,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TaskRead:
     """Fail a RUNNING task with an error message."""
     task = await execution_service.fail_task(db, task_id, data.error_message)
@@ -110,6 +118,7 @@ async def fail_task(
 async def retry_task(
     task_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TaskRead:
     """Retry a FAILED task, resetting it to READY for re-execution."""
     task = await execution_service.retry_task(db, task_id)
@@ -121,6 +130,7 @@ async def retry_task(
 async def cancel_task(
     task_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TaskRead:
     """Cancel a READY or RUNNING task."""
     task = await execution_service.cancel_task(db, task_id)

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
+from app.core.auth import get_current_user_id
 from app.schemas.escalation import (
     EscalationRuleCreate, EscalationRuleUpdate, EscalationRuleRead, EscalationRuleList,
     EscalationEventRead, EscalationEventList,
@@ -24,6 +25,7 @@ async def create_rule(
     project_id: uuid.UUID,
     data: EscalationRuleCreate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> EscalationRuleRead:
     rule = await escalation_service.create_rule(
         db, project_id=project_id, name=data.name,
@@ -43,6 +45,7 @@ async def list_rules(
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> EscalationRuleList:
     items, total = await escalation_service.list_rules(
         db, project_id, limit=limit, offset=offset,
@@ -57,6 +60,7 @@ async def list_rules(
 async def get_rule(
     rule_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> EscalationRuleRead:
     rule = await escalation_service.get_rule(db, rule_id)
     if rule is None:
@@ -69,6 +73,7 @@ async def update_rule(
     rule_id: uuid.UUID,
     data: EscalationRuleUpdate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> EscalationRuleRead:
     rule = await escalation_service.update_rule(
         db, rule_id, **data.model_dump(exclude_unset=True),
@@ -82,6 +87,7 @@ async def update_rule(
 async def delete_rule(
     rule_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> None:
     deleted = await escalation_service.delete_rule(db, rule_id)
     if not deleted:
@@ -99,6 +105,7 @@ async def list_events(
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> EscalationEventList:
     items, total = await escalation_service.list_events(
         db, project_id, limit=limit, offset=offset,

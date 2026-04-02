@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
+from app.core.auth import get_current_user_id
 from app.schemas.governance import (
     GovernancePolicyRead,
     GovernancePolicyList,
@@ -24,6 +25,7 @@ router = APIRouter(prefix="/governance")
 async def create_policy(
     body: GovernancePolicyCreate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> GovernancePolicyRead:
     """Create a new governance policy."""
     policy = await governance_service.create_policy(
@@ -45,6 +47,7 @@ async def create_policy(
 async def list_policies(
     project_id: uuid.UUID | None = Query(None),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> GovernancePolicyList:
     """List governance policies, optionally filtered by project."""
     policies = await governance_service.list_policies(
@@ -60,6 +63,7 @@ async def list_policies(
 async def get_policy(
     policy_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> GovernancePolicyRead:
     """Get a single policy by ID."""
     policy = await governance_service.get_policy(db, policy_id)
@@ -76,6 +80,7 @@ async def update_policy(
     policy_id: uuid.UUID,
     body: GovernancePolicyUpdate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> GovernancePolicyRead:
     """Update a governance policy."""
     policy = await governance_service.update_policy(
@@ -96,6 +101,7 @@ async def update_policy(
 async def delete_policy(
     policy_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Delete a governance policy."""
     deleted = await governance_service.delete_policy(db, policy_id)
@@ -114,6 +120,7 @@ async def evaluate_task_approval(
     cost_usd: float | None = Query(None),
     agent_slug: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Evaluate whether a task type requires approval under current policies.
 
@@ -137,6 +144,7 @@ async def evaluate_with_council(
     cost_usd: float | None = Query(None),
     agent_slug: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Evaluate approval with council recommendation.
 
@@ -151,6 +159,7 @@ async def evaluate_with_council(
 @router.post("/seed-defaults")
 async def seed_defaults(
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Seed default governance policies (architecture + review approval gates)."""
     policies = await governance_service.seed_default_policies(db)

@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.services import composition_service
 from app.services import task_service
@@ -27,7 +28,7 @@ class CapabilityReport(BaseModel):
 
 
 @router.get("/composition/capabilities", response_model=CapabilityReport)
-async def list_capabilities() -> CapabilityReport:
+async def list_capabilities(user_id: uuid.UUID = Depends(get_current_user_id)) -> CapabilityReport:
     """List all known capability groups and their skills."""
     return CapabilityReport(
         capability_groups=composition_service.CAPABILITY_TAXONOMY,
@@ -38,6 +39,7 @@ async def list_capabilities() -> CapabilityReport:
 async def get_run_composition(
     run_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TeamComposition:
     """Analyse a run's task set and return the recommended agent team composition."""
     tasks, _ = await task_service.list_tasks_by_run(db, run_id)

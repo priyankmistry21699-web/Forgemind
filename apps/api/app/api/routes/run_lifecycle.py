@@ -8,6 +8,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.services import run_lifecycle_service
 
@@ -18,6 +19,7 @@ router = APIRouter(prefix="/lifecycle")
 async def get_run_health(
     run_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Get comprehensive health status for a run."""
     result = await run_lifecycle_service.get_run_health(db, run_id)
@@ -33,6 +35,7 @@ async def get_run_health(
 async def try_auto_complete(
     run_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Attempt to auto-complete a run if all tasks are in terminal states."""
     result = await run_lifecycle_service.try_auto_complete_run(db, run_id)
@@ -44,6 +47,7 @@ async def try_auto_complete(
 async def try_auto_fail(
     run_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Attempt to auto-fail a run if unrecoverable blocking failures exist."""
     result = await run_lifecycle_service.try_auto_fail_run(db, run_id)
@@ -54,6 +58,7 @@ async def try_auto_fail(
 @router.get("/runs/health/scan")
 async def scan_all_runs(
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Scan all active runs and return health summaries."""
     return await run_lifecycle_service.scan_all_runs_health(db)

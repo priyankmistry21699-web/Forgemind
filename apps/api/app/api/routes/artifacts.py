@@ -3,6 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.schemas.artifact import (
     ArtifactCreate,
@@ -24,6 +25,7 @@ async def create_artifact(
     project_id: uuid.UUID,
     data: ArtifactCreate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ArtifactRead:
     """Create a new artifact linked to a project (and optionally a run/task)."""
     artifact = await artifact_service.create_artifact(db, project_id, data)
@@ -42,6 +44,7 @@ async def list_artifacts(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ArtifactList:
     """List artifacts for a project, optionally filtered by run or task."""
     artifacts, total = await artifact_service.list_artifacts_by_project(
@@ -57,6 +60,7 @@ async def list_artifacts(
 async def get_artifact(
     artifact_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ArtifactRead:
     """Get a single artifact by ID."""
     artifact = await artifact_service.get_artifact(db, artifact_id)
@@ -68,6 +72,7 @@ async def update_artifact(
     artifact_id: uuid.UUID,
     data: ArtifactUpdate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ArtifactRead:
     """Update an artifact's title, content, or metadata. Bumps version on content changes."""
     artifact = await artifact_service.update_artifact(db, artifact_id, data)
@@ -79,6 +84,7 @@ async def update_artifact(
 async def delete_artifact(
     artifact_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> None:
     """Delete an artifact."""
     await artifact_service.delete_artifact(db, artifact_id)

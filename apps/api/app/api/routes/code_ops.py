@@ -30,6 +30,7 @@ async def create_code_mapping(
     project_id: uuid.UUID,
     data: CodeMappingCreate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CodeMappingRead:
     cm = await code_ops_service.create_code_mapping(
         db, project_id=project_id, artifact_id=data.artifact_id,
@@ -47,6 +48,7 @@ async def list_code_mappings(
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CodeMappingList:
     items, total = await code_ops_service.list_code_mappings(
         db, project_id, limit=limit, offset=offset,
@@ -61,6 +63,7 @@ async def list_code_mappings(
 async def delete_code_mapping(
     mapping_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> None:
     deleted = await code_ops_service.delete_code_mapping(db, mapping_id)
     if not deleted:
@@ -104,6 +107,7 @@ async def list_patches(
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PatchProposalList:
     items, total = await code_ops_service.list_patches(
         db, project_id, status_filter=status, limit=limit, offset=offset,
@@ -118,6 +122,7 @@ async def list_patches(
 async def get_patch(
     patch_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PatchProposalRead:
     p = await code_ops_service.get_patch(db, patch_id)
     if p is None:
@@ -130,6 +135,7 @@ async def update_patch(
     patch_id: uuid.UUID,
     data: PatchProposalUpdate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PatchProposalRead:
     p = await code_ops_service.update_patch(
         db, patch_id, **data.model_dump(exclude_unset=True),
@@ -170,6 +176,7 @@ async def list_reviews(
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ChangeReviewList:
     items, total = await code_ops_service.list_reviews(
         db, patch_id, limit=limit, offset=offset,
@@ -191,6 +198,7 @@ async def create_branch_strategy(
     project_id: uuid.UUID,
     data: BranchStrategyCreate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> BranchStrategyRead:
     bs = await code_ops_service.create_branch_strategy(
         db, project_id=project_id, base_branch=data.base_branch,
@@ -210,6 +218,7 @@ async def list_branch_strategies(
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> BranchStrategyList:
     items, total = await code_ops_service.list_branch_strategies(
         db, project_id, limit=limit, offset=offset,
@@ -228,6 +237,7 @@ async def update_branch_strategy(
     strategy_id: uuid.UUID,
     data: BranchStrategyUpdate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> BranchStrategyRead:
     bs = await code_ops_service.update_branch_strategy(
         db, strategy_id, **data.model_dump(exclude_unset=True),
@@ -248,6 +258,7 @@ async def create_pr_draft(
     project_id: uuid.UUID,
     data: PRDraftCreate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PRDraftRead:
     pr = await code_ops_service.create_pr_draft(
         db, project_id=project_id, title=data.title,
@@ -268,6 +279,7 @@ async def list_pr_drafts(
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PRDraftList:
     items, total = await code_ops_service.list_pr_drafts(
         db, project_id, status_filter=status, limit=limit, offset=offset,
@@ -282,6 +294,7 @@ async def list_pr_drafts(
 async def get_pr_draft(
     pr_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PRDraftRead:
     pr = await code_ops_service.get_pr_draft(db, pr_id)
     if pr is None:
@@ -294,6 +307,7 @@ async def update_pr_draft(
     pr_id: uuid.UUID,
     data: PRDraftUpdate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PRDraftRead:
     pr = await code_ops_service.update_pr_draft(
         db, pr_id, **data.model_dump(exclude_unset=True),
@@ -314,6 +328,7 @@ async def create_repo_approval(
     project_id: uuid.UUID,
     data: RepoActionApprovalCreate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RepoActionApprovalRead:
     a = await code_ops_service.create_repo_action_approval(
         db, project_id=project_id, action_type=data.action_type,
@@ -332,6 +347,7 @@ async def list_repo_approvals(
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RepoActionApprovalList:
     items, total = await code_ops_service.list_repo_action_approvals(
         db, project_id, status_filter=status, limit=limit, offset=offset,
@@ -372,6 +388,7 @@ async def create_sandbox_execution(
     project_id: uuid.UUID,
     data: SandboxExecutionCreate,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> SandboxExecutionRead:
     s = await code_ops_service.create_sandbox_execution(
         db, project_id=project_id, command=data.command,
@@ -394,6 +411,7 @@ async def list_sandbox_executions(
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> SandboxExecutionList:
     items, total = await code_ops_service.list_sandbox_executions(
         db, project_id, status_filter=status, limit=limit, offset=offset,
@@ -408,6 +426,7 @@ async def list_sandbox_executions(
 async def get_sandbox_execution(
     execution_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> SandboxExecutionRead:
     s = await code_ops_service.get_sandbox_execution(db, execution_id)
     if s is None:
@@ -426,6 +445,7 @@ async def generate_pr_draft(
     project_id: uuid.UUID,
     data: PRDraftGenerateRequest,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PRDraftRead:
     """Generate a PR draft from a patch proposal."""
     try:
@@ -446,6 +466,7 @@ async def check_approval_gate(
     project_id: uuid.UUID,
     action_type: str = Query(...),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Check whether an action type has been approved for a project."""
     return await code_ops_service.check_approval_gate(db, project_id, action_type)
@@ -457,6 +478,7 @@ async def check_approval_gate(
 async def run_sandbox(
     data: SandboxRunRequest,
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> SandboxExecutionRead:
     """Execute a queued sandbox execution with safety controls."""
     s = await code_ops_service.run_sandbox_execution(db, data.execution_id)

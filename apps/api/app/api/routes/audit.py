@@ -11,6 +11,7 @@ from fastapi.responses import PlainTextResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
+from app.core.auth import get_current_user_id
 from app.models.execution_event import EventType
 from app.services import audit_export_service
 
@@ -25,6 +26,7 @@ async def export_json(
     start_date: datetime | None = Query(None),
     end_date: datetime | None = Query(None),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Export execution events as JSON with compliance metadata."""
     return await audit_export_service.export_events_json(
@@ -45,6 +47,7 @@ async def export_csv(
     start_date: datetime | None = Query(None),
     end_date: datetime | None = Query(None),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Export execution events as CSV."""
     csv_content = await audit_export_service.export_events_csv(
@@ -67,6 +70,7 @@ async def audit_summary(
     project_id: uuid.UUID | None = Query(None),
     run_id: uuid.UUID | None = Query(None),
     db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Get audit trail summary with event type breakdown."""
     return await audit_export_service.get_audit_summary(
