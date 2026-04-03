@@ -32,3 +32,10 @@ testpaths = ["tests"]
 filterwarnings = [
     "ignore::DeprecationWarning",
 ]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+exclude = ["alembic*", "evals*"]
