@@ -14,6 +14,8 @@ from app.db.session import get_db
 from app.core.auth import get_current_user_id
 from app.models.execution_event import EventType
 from app.services import audit_export_service
+from app.services.authz_service import check_project_permission, Action
+from app.core.authz_deps import resolve_project_for_run
 
 router = APIRouter(prefix="/audit")
 
@@ -29,6 +31,11 @@ async def export_json(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Export execution events as JSON with compliance metadata."""
+    if project_id is not None:
+        await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    elif run_id is not None:
+        pid = await resolve_project_for_run(db, run_id)
+        await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     return await audit_export_service.export_events_json(
         db,
         project_id=project_id,
@@ -50,6 +57,11 @@ async def export_csv(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Export execution events as CSV."""
+    if project_id is not None:
+        await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    elif run_id is not None:
+        pid = await resolve_project_for_run(db, run_id)
+        await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     csv_content = await audit_export_service.export_events_csv(
         db,
         project_id=project_id,
@@ -73,6 +85,11 @@ async def audit_summary(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Get audit trail summary with event type breakdown."""
+    if project_id is not None:
+        await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    elif run_id is not None:
+        pid = await resolve_project_for_run(db, run_id)
+        await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     return await audit_export_service.get_audit_summary(
         db, project_id=project_id, run_id=run_id
     )

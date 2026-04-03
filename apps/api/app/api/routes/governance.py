@@ -17,6 +17,9 @@ from app.schemas.governance import (
     GovernancePolicyUpdate,
 )
 from app.services import governance_service
+from app.services.authz_service import check_project_permission, Action
+from app.core.authz_deps import resolve_project_for_entity
+from app.models.governance_policy import GovernancePolicy
 
 router = APIRouter(prefix="/governance")
 
@@ -28,6 +31,8 @@ async def create_policy(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> GovernancePolicyRead:
     """Create a new governance policy."""
+    if body.project_id is not None:
+        await check_project_permission(db, body.project_id, user_id, Action.PROJECT_UPDATE)
     policy = await governance_service.create_policy(
         db,
         name=body.name,
@@ -50,6 +55,8 @@ async def list_policies(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> GovernancePolicyList:
     """List governance policies, optionally filtered by project."""
+    if project_id is not None:
+        await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     policies = await governance_service.list_policies(
         db, project_id=project_id
     )
@@ -66,6 +73,9 @@ async def get_policy(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> GovernancePolicyRead:
     """Get a single policy by ID."""
+    proj_id = await resolve_project_for_entity(db, GovernancePolicy, policy_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     policy = await governance_service.get_policy(db, policy_id)
     if policy is None:
         raise HTTPException(
@@ -83,6 +93,9 @@ async def update_policy(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> GovernancePolicyRead:
     """Update a governance policy."""
+    proj_id = await resolve_project_for_entity(db, GovernancePolicy, policy_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_UPDATE)
     policy = await governance_service.update_policy(
         db,
         policy_id,
@@ -104,6 +117,9 @@ async def delete_policy(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Delete a governance policy."""
+    proj_id = await resolve_project_for_entity(db, GovernancePolicy, policy_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_UPDATE)
     deleted = await governance_service.delete_policy(db, policy_id)
     if not deleted:
         raise HTTPException(
@@ -126,6 +142,7 @@ async def evaluate_task_approval(
 
     FM-047: Enhanced with cost threshold, agent, and custom rule support.
     """
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     action = await governance_service.evaluate_task_approval(
         db, task_type=task_type, project_id=project_id,
         cost_usd=cost_usd, agent_slug=agent_slug,
@@ -150,6 +167,7 @@ async def evaluate_with_council(
 
     FM-047: Returns whether council review is recommended alongside the action.
     """
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     return await governance_service.evaluate_approval_with_council(
         db, task_type=task_type, project_id=project_id,
         cost_usd=cost_usd, agent_slug=agent_slug,

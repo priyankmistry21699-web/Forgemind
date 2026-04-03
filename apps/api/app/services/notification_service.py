@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy import select, func as sa_func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.metrics import inc_counter
 from app.models.notification import (
     Notification, NotificationDeliveryConfig,
 )
@@ -35,6 +36,7 @@ async def create_notification(
     db.add(n)
     await db.flush()
     await db.refresh(n)
+    inc_counter("notification_created_total", labels={"type": notification_type, "priority": priority})
     return n
 
 
@@ -82,6 +84,7 @@ async def mark_notification_read(
     n.is_read = True
     await db.flush()
     await db.refresh(n)
+    inc_counter("notification_read_total")
     return n
 
 
@@ -114,6 +117,7 @@ async def create_delivery_config(
     db.add(c)
     await db.flush()
     await db.refresh(c)
+    inc_counter("notification_delivery_config_total", labels={"channel": channel})
     return c
 
 

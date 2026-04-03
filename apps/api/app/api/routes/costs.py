@@ -12,6 +12,8 @@ from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.schemas.cost import CostRecordRead, CostRecordList
 from app.services import cost_tracking_service
+from app.services.authz_service import check_project_permission, Action
+from app.core.authz_deps import resolve_project_for_run
 
 router = APIRouter(prefix="/costs")
 
@@ -23,6 +25,8 @@ async def get_run_cost_summary(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Get aggregated cost summary for a run."""
+    pid = await resolve_project_for_run(db, run_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     return await cost_tracking_service.get_run_cost_summary(db, run_id)
 
 
@@ -33,6 +37,7 @@ async def get_project_cost_summary(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Get aggregated cost summary for a project."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     return await cost_tracking_service.get_project_cost_summary(db, project_id)
 
 
@@ -44,6 +49,11 @@ async def get_cost_breakdown(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Get cost breakdown by model."""
+    if project_id is not None:
+        await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    elif run_id is not None:
+        pid = await resolve_project_for_run(db, run_id)
+        await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     return await cost_tracking_service.get_cost_breakdown_by_model(
         db, project_id=project_id, run_id=run_id
     )
@@ -59,6 +69,11 @@ async def list_cost_records(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CostRecordList:
     """List individual cost records."""
+    if project_id is not None:
+        await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    elif run_id is not None:
+        pid = await resolve_project_for_run(db, run_id)
+        await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     records, total = await cost_tracking_service.list_cost_records(
         db, project_id=project_id, run_id=run_id, limit=limit, offset=offset
     )

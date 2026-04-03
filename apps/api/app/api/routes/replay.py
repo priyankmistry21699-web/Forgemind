@@ -19,6 +19,9 @@ from app.schemas.replay import (
     ExecutionTrace,
 )
 from app.services import replay_service
+from app.services.authz_service import check_project_permission, Action
+from app.core.authz_deps import resolve_project_for_run, resolve_project_for_task, resolve_project_for_entity
+from app.models.replay_snapshot import ReplaySnapshot
 
 router = APIRouter()
 
@@ -32,6 +35,8 @@ async def get_execution_trace(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ExecutionTrace:
     """Get the full execution trace for a run (ordered snapshots)."""
+    pid = await resolve_project_for_run(db, run_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     trace = await replay_service.get_execution_trace(db, run_id)
     return ExecutionTrace(
         run_id=run_id,
@@ -52,6 +57,8 @@ async def get_task_snapshots(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ReplaySnapshotList:
     """Get all execution snapshots for a specific task."""
+    pid = await resolve_project_for_task(db, task_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     snapshots = await replay_service.get_task_snapshots(db, task_id)
     return ReplaySnapshotList(
         items=[ReplaySnapshotRead.model_validate(s) for s in snapshots],
@@ -68,6 +75,9 @@ async def get_snapshot(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ReplaySnapshotRead:
     """Get a single replay snapshot by ID."""
+    proj_id = await resolve_project_for_entity(db, ReplaySnapshot, snapshot_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     snapshot = await replay_service.get_snapshot(db, snapshot_id)
     if snapshot is None:
         raise HTTPException(
@@ -88,6 +98,7 @@ async def create_snapshot(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ReplaySnapshotRead:
     """Manually capture an execution snapshot."""
+    await check_project_permission(db, body.project_id, user_id, Action.PROJECT_RUN)
     snapshot = await replay_service.capture_snapshot(
         db,
         task_id=body.task_id,
@@ -120,6 +131,14 @@ async def list_snapshots(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ReplaySnapshotList:
     """List replay snapshots with optional filters."""
+    if project_id is not None:
+        await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    elif run_id is not None:
+        pid = await resolve_project_for_run(db, run_id)
+        await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
+    elif task_id is not None:
+        pid = await resolve_project_for_task(db, task_id)
+        await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     snapshots, total = await replay_service.list_snapshots(
         db,
         run_id=run_id,
@@ -144,6 +163,9 @@ async def replay_snapshot(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Replay an execution snapshot — re-run with identical inputs and compare."""
+    proj_id = await resolve_project_for_entity(db, ReplaySnapshot, snapshot_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_RUN)
     result = await replay_service.replay_snapshot(db, snapshot_id)
     if "error" in result:
         raise HTTPException(

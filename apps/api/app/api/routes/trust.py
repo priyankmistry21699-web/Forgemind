@@ -13,6 +13,8 @@ from app.db.session import get_db
 from app.models.trust_score import EntityType, RiskLevel
 from app.schemas.trust import TrustScoreRead, TrustScoreList
 from app.services import trust_scoring_service
+from app.services.authz_service import check_project_permission, Action
+from app.core.authz_deps import resolve_project_for_task, resolve_project_for_run
 
 router = APIRouter(prefix="/trust")
 
@@ -24,6 +26,8 @@ async def assess_task(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TrustScoreRead:
     """Compute and store trust score for a task."""
+    pid = await resolve_project_for_task(db, task_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     try:
         ts = await trust_scoring_service.assess_task(db, task_id)
         await db.commit()
@@ -41,6 +45,8 @@ async def assess_run(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TrustScoreRead:
     """Compute and store trust score for a run."""
+    pid = await resolve_project_for_run(db, run_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     try:
         ts = await trust_scoring_service.assess_run(db, run_id)
         await db.commit()
@@ -58,6 +64,8 @@ async def get_run_risk_summary(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Get comprehensive risk summary for a run and all its tasks."""
+    pid = await resolve_project_for_run(db, run_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     try:
         return await trust_scoring_service.get_run_risk_summary(db, run_id)
     except ValueError as e:
@@ -76,6 +84,11 @@ async def list_trust_scores(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TrustScoreList:
     """List trust scores with optional filters."""
+    if project_id is not None:
+        await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    elif run_id is not None:
+        pid = await resolve_project_for_run(db, run_id)
+        await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     scores = await trust_scoring_service.list_trust_scores(
         db,
         project_id=project_id,

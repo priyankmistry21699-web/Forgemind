@@ -11,6 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.services import run_lifecycle_service
+from app.services.authz_service import check_project_permission, Action
+from app.core.authz_deps import resolve_project_for_run
 
 router = APIRouter(prefix="/lifecycle")
 
@@ -22,6 +24,8 @@ async def get_run_health(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Get comprehensive health status for a run."""
+    pid = await resolve_project_for_run(db, run_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     result = await run_lifecycle_service.get_run_health(db, run_id)
     if "error" in result:
         raise HTTPException(
@@ -38,6 +42,8 @@ async def try_auto_complete(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Attempt to auto-complete a run if all tasks are in terminal states."""
+    pid = await resolve_project_for_run(db, run_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_RUN)
     result = await run_lifecycle_service.try_auto_complete_run(db, run_id)
     await db.commit()
     return result
@@ -50,6 +56,8 @@ async def try_auto_fail(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Attempt to auto-fail a run if unrecoverable blocking failures exist."""
+    pid = await resolve_project_for_run(db, run_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_RUN)
     result = await run_lifecycle_service.try_auto_fail_run(db, run_id)
     await db.commit()
     return result

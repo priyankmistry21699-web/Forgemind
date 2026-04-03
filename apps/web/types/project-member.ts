@@ -1,16 +1,2 @@
-/** Project member types matching the backend schemas. */
-
-export type ProjectRole = "lead" | "contributor" | "reviewer" | "viewer";
-
-export interface ProjectMember {
-  id: string;
-  project_id: string;
-  user_id: string;
-  role: ProjectRole;
-  created_at: string;
-}
-
-export interface ProjectMemberList {
-  items: ProjectMember[];
-  total: number;
-}
+﻿// FM-079: Re-exported from @forgemind/types package (single source of truth)
+export * from "@forgemind/types";

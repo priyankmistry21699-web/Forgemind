@@ -1,7 +1,6 @@
 """Auth routes — register, login, and current user endpoints (FM-074)."""
 
-import hashlib
-import secrets
+import bcrypt
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -20,21 +19,14 @@ from app.schemas.auth import (
 router = APIRouter()
 
 
-def _hash_password(password: str, salt: str | None = None) -> str:
-    """Hash a password with a random salt using SHA-256.
-
-    Format: salt$hash (both hex-encoded).
-    """
-    if salt is None:
-        salt = secrets.token_hex(16)
-    h = hashlib.sha256(f"{salt}{password}".encode()).hexdigest()
-    return f"{salt}${h}"
+def _hash_password(password: str) -> str:
+    """Hash a password using bcrypt."""
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
 def _verify_password(password: str, stored: str) -> bool:
-    """Verify a password against a stored salt$hash string."""
-    salt, _ = stored.split("$", 1)
-    return _hash_password(password, salt) == stored
+    """Verify a password against a stored bcrypt hash."""
+    return bcrypt.checkpw(password.encode(), stored.encode())
 
 
 @router.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)

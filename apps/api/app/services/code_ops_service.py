@@ -22,6 +22,7 @@ from app.models.code_ops import (
     BranchStrategy, PRDraft, RepoActionApproval,
     SandboxExecution, SandboxStatus, PatchStatus,
 )
+from app.core.metrics import inc_counter, observe_histogram
 
 logger = logging.getLogger(__name__)
 
@@ -468,6 +469,7 @@ async def create_sandbox_execution(
     db.add(s)
     await db.flush()
     await db.refresh(s)
+    inc_counter("sandbox_created_total")
     return s
 
 
@@ -501,6 +503,9 @@ async def complete_sandbox_execution(
     s.completed_at = datetime.now(timezone.utc)
     await db.flush()
     await db.refresh(s)
+    inc_counter("sandbox_completed_total", labels={"status": status.value if hasattr(status, 'value') else str(status)})
+    if duration_ms is not None:
+        observe_histogram("sandbox_duration_seconds", duration_ms / 1000.0)
     return s
 
 

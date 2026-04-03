@@ -384,3 +384,262 @@ class TestRoleResolution:
         proj, _ = project_with_members
         role = await get_project_role(db_session, proj.id, uuid.uuid4())
         assert role is None
+
+
+# ── Route-level Negative RBAC Tests ─────────────────────────────
+
+
+@pytest_asyncio.fixture
+async def viewer_project(db_session: AsyncSession):
+    """Create a project with STUB_USER_ID as LEAD plus a VIEWER user.
+
+    Returns (project, viewer_user, viewer_token).
+    """
+    from app.models.project import Project
+    from app.models.user import User
+    from app.core.auth import create_access_token
+
+    proj = Project(name="RBAC Route Proj", owner_id=STUB_USER_ID)
+    db_session.add(proj)
+    await db_session.flush()
+
+    lead = ProjectMember(
+        project_id=proj.id, user_id=STUB_USER_ID, role=ProjectRole.LEAD,
+    )
+    db_session.add(lead)
+
+    viewer = User(email="viewer-route@test.dev", display_name="Viewer User")
+    db_session.add(viewer)
+    await db_session.flush()
+
+    viewer_member = ProjectMember(
+        project_id=proj.id, user_id=viewer.id, role=ProjectRole.VIEWER,
+    )
+    db_session.add(viewer_member)
+    await db_session.commit()
+
+    token = create_access_token(viewer.id)
+    return proj, viewer, token
+
+
+@pytest_asyncio.fixture
+async def viewer_run(db_session: AsyncSession, viewer_project):
+    """Create a run under the viewer_project."""
+    from app.models.run import Run
+
+    proj, _, _ = viewer_project
+    run = Run(run_number=1, project_id=proj.id, trigger="test")
+    db_session.add(run)
+    await db_session.flush()
+    await db_session.refresh(run)
+    return run
+
+
+@pytest_asyncio.fixture
+async def viewer_task(db_session: AsyncSession, viewer_run):
+    """Create a task under the viewer_run."""
+    from app.models.task import Task, TaskStatus
+
+    task = Task(
+        title="Viewer Test Task", description="t", task_type="coding",
+        status=TaskStatus.READY, order_index=0, run_id=viewer_run.id,
+    )
+    db_session.add(task)
+    await db_session.flush()
+    await db_session.refresh(task)
+    return task
+
+
+class TestRouteRBACEnforcement:
+    """Negative route-level tests: a VIEWER user should get 403 on write operations."""
+
+    # ── Projects ─────────────────────────────────────────────────
+
+    async def test_viewer_cannot_update_project(self, client: AsyncClient, viewer_project):
+        proj, _, token = viewer_project
+        resp = await client.patch(
+            f"/projects/{proj.id}",
+            json={"name": "hacked"},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 403
+
+    async def test_viewer_can_view_project(self, client: AsyncClient, viewer_project):
+        proj, _, token = viewer_project
+        resp = await client.get(
+            f"/projects/{proj.id}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 200
+
+    # ── Runs ─────────────────────────────────────────────────────
+
+    async def test_viewer_can_list_runs(self, client: AsyncClient, viewer_project):
+        proj, _, token = viewer_project
+        resp = await client.get(
+            f"/projects/{proj.id}/runs",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 200
+
+    # ── Tasks ────────────────────────────────────────────────────
+
+    async def test_viewer_can_list_tasks(self, client: AsyncClient, viewer_run, viewer_project):
+        _, _, token = viewer_project
+        resp = await client.get(
+            f"/runs/{viewer_run.id}/tasks",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 200
+
+    async def test_viewer_cannot_claim_task(self, client: AsyncClient, viewer_task, viewer_project):
+        _, _, token = viewer_project
+        resp = await client.post(
+            f"/tasks/{viewer_task.id}/claim",
+            json={"agent_slug": "test-agent"},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 403
+
+    async def test_viewer_cannot_cancel_task(self, client: AsyncClient, viewer_task, viewer_project):
+        _, _, token = viewer_project
+        resp = await client.post(
+            f"/tasks/{viewer_task.id}/cancel",
+            json={},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 403
+
+    # ── Knowledge ────────────────────────────────────────────────
+
+    async def test_viewer_cannot_create_knowledge(self, client: AsyncClient, viewer_project):
+        proj, _, token = viewer_project
+        resp = await client.post(
+            f"/projects/{proj.id}/knowledge",
+            json={
+                "knowledge_type": "lesson_learned",
+                "title": "test",
+                "content": "test content",
+            },
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 403
+
+    async def test_viewer_can_list_knowledge(self, client: AsyncClient, viewer_project):
+        proj, _, token = viewer_project
+        resp = await client.get(
+            f"/projects/{proj.id}/knowledge",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 200
+
+    # ── Escalation ───────────────────────────────────────────────
+
+    async def test_viewer_cannot_create_escalation_rule(self, client: AsyncClient, viewer_project):
+        proj, _, token = viewer_project
+        resp = await client.post(
+            f"/projects/{proj.id}/escalation/rules",
+            json={
+                "name": "hack rule",
+                "trigger": "task_timeout",
+                "action": "notify",
+            },
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 403
+
+    # ── Code Ops ─────────────────────────────────────────────────
+
+    async def test_viewer_cannot_create_patch(self, client: AsyncClient, viewer_project):
+        proj, _, token = viewer_project
+        resp = await client.post(
+            f"/projects/{proj.id}/patches",
+            json={
+                "title": "hack patch",
+                "diff_content": "--- a/f\n+++ b/f\n",
+            },
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 403
+
+    async def test_viewer_cannot_create_sandbox(self, client: AsyncClient, viewer_project):
+        proj, _, token = viewer_project
+        resp = await client.post(
+            f"/projects/{proj.id}/sandbox",
+            json={"command": "rm -rf /"},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 403
+
+    async def test_viewer_can_list_patches(self, client: AsyncClient, viewer_project):
+        proj, _, token = viewer_project
+        resp = await client.get(
+            f"/projects/{proj.id}/patches",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 200
+
+    # ── Repos ────────────────────────────────────────────────────
+
+    async def test_viewer_cannot_create_repo(self, client: AsyncClient, viewer_project):
+        proj, _, token = viewer_project
+        resp = await client.post(
+            f"/projects/{proj.id}/repos",
+            json={
+                "provider": "github",
+                "repo_url": "https://github.com/x/y",
+                "repo_name": "y",
+            },
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 403
+
+    async def test_viewer_can_list_repos(self, client: AsyncClient, viewer_project):
+        proj, _, token = viewer_project
+        resp = await client.get(
+            f"/projects/{proj.id}/repos",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 200
+
+    # ── Costs ────────────────────────────────────────────────────
+
+    async def test_viewer_can_view_project_costs(self, client: AsyncClient, viewer_project):
+        proj, _, token = viewer_project
+        resp = await client.get(
+            f"/costs/projects/{proj.id}/summary",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 200
+
+    # ── Council ──────────────────────────────────────────────────
+
+    async def test_viewer_cannot_convene_council(self, client: AsyncClient, viewer_project):
+        proj, _, token = viewer_project
+        resp = await client.post(
+            "/council/sessions",
+            json={
+                "project_id": str(proj.id),
+                "topic": "test topic",
+            },
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 403
+
+    # ── Run Lifecycle ────────────────────────────────────────────
+
+    async def test_viewer_cannot_auto_complete_run(self, client: AsyncClient, viewer_run, viewer_project):
+        _, _, token = viewer_project
+        resp = await client.post(
+            f"/lifecycle/runs/{viewer_run.id}/auto-complete",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 403
+
+    async def test_viewer_can_check_run_health(self, client: AsyncClient, viewer_run, viewer_project):
+        _, _, token = viewer_project
+        resp = await client.get(
+            f"/lifecycle/runs/{viewer_run.id}/health",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 200

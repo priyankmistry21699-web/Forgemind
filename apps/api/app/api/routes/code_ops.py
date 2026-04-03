@@ -15,6 +15,9 @@ from app.schemas.code_ops import (
     SandboxExecutionCreate, SandboxExecutionRead, SandboxExecutionList, SandboxRunRequest,
 )
 from app.services import code_ops_service
+from app.services.authz_service import check_project_permission, Action
+from app.core.authz_deps import resolve_project_for_entity
+from app.models.code_ops import CodeMapping, PatchProposal, BranchStrategy, PRDraft, RepoActionApproval, SandboxExecution
 
 router = APIRouter()
 
@@ -32,6 +35,7 @@ async def create_code_mapping(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CodeMappingRead:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_UPDATE)
     cm = await code_ops_service.create_code_mapping(
         db, project_id=project_id, artifact_id=data.artifact_id,
         file_path=data.file_path, language=data.language, metadata_=data.metadata_,
@@ -50,6 +54,7 @@ async def list_code_mappings(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CodeMappingList:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await code_ops_service.list_code_mappings(
         db, project_id, limit=limit, offset=offset,
     )
@@ -65,6 +70,9 @@ async def delete_code_mapping(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> None:
+    proj_id = await resolve_project_for_entity(db, CodeMapping, mapping_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_UPDATE)
     deleted = await code_ops_service.delete_code_mapping(db, mapping_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Mapping not found")
@@ -83,6 +91,7 @@ async def create_patch(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PatchProposalRead:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_EXECUTE_CODE)
     p = await code_ops_service.create_patch(
         db, project_id=project_id, title=data.title,
         diff_content=data.diff_content, description=data.description,
@@ -109,6 +118,7 @@ async def list_patches(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PatchProposalList:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await code_ops_service.list_patches(
         db, project_id, status_filter=status, limit=limit, offset=offset,
     )
@@ -124,6 +134,9 @@ async def get_patch(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PatchProposalRead:
+    proj_id = await resolve_project_for_entity(db, PatchProposal, patch_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     p = await code_ops_service.get_patch(db, patch_id)
     if p is None:
         raise HTTPException(status_code=404, detail="Patch not found")
@@ -137,6 +150,9 @@ async def update_patch(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PatchProposalRead:
+    proj_id = await resolve_project_for_entity(db, PatchProposal, patch_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_EXECUTE_CODE)
     p = await code_ops_service.update_patch(
         db, patch_id, **data.model_dump(exclude_unset=True),
     )
@@ -158,6 +174,9 @@ async def create_review(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ChangeReviewRead:
+    proj_id = await resolve_project_for_entity(db, PatchProposal, patch_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_REVIEW)
     r = await code_ops_service.create_review(
         db, patch_id=patch_id, reviewer_id=user_id,
         decision=data.decision, comment=data.comment,
@@ -178,6 +197,9 @@ async def list_reviews(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ChangeReviewList:
+    proj_id = await resolve_project_for_entity(db, PatchProposal, patch_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     items, total = await code_ops_service.list_reviews(
         db, patch_id, limit=limit, offset=offset,
     )
@@ -200,6 +222,7 @@ async def create_branch_strategy(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> BranchStrategyRead:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_EXECUTE_CODE)
     bs = await code_ops_service.create_branch_strategy(
         db, project_id=project_id, base_branch=data.base_branch,
         branch_pattern=data.branch_pattern,
@@ -220,6 +243,7 @@ async def list_branch_strategies(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> BranchStrategyList:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await code_ops_service.list_branch_strategies(
         db, project_id, limit=limit, offset=offset,
     )
@@ -239,6 +263,9 @@ async def update_branch_strategy(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> BranchStrategyRead:
+    proj_id = await resolve_project_for_entity(db, BranchStrategy, strategy_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_EXECUTE_CODE)
     bs = await code_ops_service.update_branch_strategy(
         db, strategy_id, **data.model_dump(exclude_unset=True),
     )
@@ -260,6 +287,7 @@ async def create_pr_draft(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PRDraftRead:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_EXECUTE_CODE)
     pr = await code_ops_service.create_pr_draft(
         db, project_id=project_id, title=data.title,
         source_branch=data.source_branch, target_branch=data.target_branch,
@@ -281,6 +309,7 @@ async def list_pr_drafts(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PRDraftList:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await code_ops_service.list_pr_drafts(
         db, project_id, status_filter=status, limit=limit, offset=offset,
     )
@@ -296,6 +325,9 @@ async def get_pr_draft(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PRDraftRead:
+    proj_id = await resolve_project_for_entity(db, PRDraft, pr_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     pr = await code_ops_service.get_pr_draft(db, pr_id)
     if pr is None:
         raise HTTPException(status_code=404, detail="PR draft not found")
@@ -309,6 +341,9 @@ async def update_pr_draft(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PRDraftRead:
+    proj_id = await resolve_project_for_entity(db, PRDraft, pr_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_EXECUTE_CODE)
     pr = await code_ops_service.update_pr_draft(
         db, pr_id, **data.model_dump(exclude_unset=True),
     )
@@ -330,6 +365,7 @@ async def create_repo_approval(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RepoActionApprovalRead:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_EXECUTE_CODE)
     a = await code_ops_service.create_repo_action_approval(
         db, project_id=project_id, action_type=data.action_type,
         reason=data.reason, context=data.context,
@@ -349,6 +385,7 @@ async def list_repo_approvals(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RepoActionApprovalList:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await code_ops_service.list_repo_action_approvals(
         db, project_id, status_filter=status, limit=limit, offset=offset,
     )
@@ -368,6 +405,9 @@ async def decide_repo_approval(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RepoActionApprovalRead:
+    proj_id = await resolve_project_for_entity(db, RepoActionApproval, approval_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_APPROVE)
     a = await code_ops_service.decide_repo_action(
         db, approval_id, decided_by=user_id,
         status=data.status, decision_comment=data.decision_comment,
@@ -390,6 +430,7 @@ async def create_sandbox_execution(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> SandboxExecutionRead:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_EXECUTE_CODE)
     s = await code_ops_service.create_sandbox_execution(
         db, project_id=project_id, command=data.command,
         task_id=data.task_id, patch_id=data.patch_id,
@@ -413,6 +454,7 @@ async def list_sandbox_executions(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> SandboxExecutionList:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await code_ops_service.list_sandbox_executions(
         db, project_id, status_filter=status, limit=limit, offset=offset,
     )
@@ -428,6 +470,9 @@ async def get_sandbox_execution(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> SandboxExecutionRead:
+    proj_id = await resolve_project_for_entity(db, SandboxExecution, execution_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     s = await code_ops_service.get_sandbox_execution(db, execution_id)
     if s is None:
         raise HTTPException(status_code=404, detail="Execution not found")
@@ -448,6 +493,7 @@ async def generate_pr_draft(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PRDraftRead:
     """Generate a PR draft from a patch proposal."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_EXECUTE_CODE)
     try:
         pr = await code_ops_service.generate_pr_draft(
             db, project_id=project_id, patch_id=data.patch_id,
@@ -469,6 +515,7 @@ async def check_approval_gate(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Check whether an action type has been approved for a project."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     return await code_ops_service.check_approval_gate(db, project_id, action_type)
 
 
@@ -481,6 +528,9 @@ async def run_sandbox(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> SandboxExecutionRead:
     """Execute a queued sandbox execution with safety controls."""
+    proj_id = await resolve_project_for_entity(db, SandboxExecution, data.execution_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_EXECUTE_CODE)
     s = await code_ops_service.run_sandbox_execution(db, data.execution_id)
     if s is None:
         raise HTTPException(status_code=404, detail="Execution not found")

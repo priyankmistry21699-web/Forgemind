@@ -8,6 +8,7 @@ with actual source code extracted from the codebase.
 ## Packages Created
 
 ### 1. `@forgemind/types` (packages/schemas)
+
 - **Language**: TypeScript
 - **Contents**: 22 domain type modules + barrel `index.ts` export
 - **Types**: ActivityFeedEntry, Agent, Approval, Artifact, AuditEvent, Connector, CostRecord,
@@ -17,6 +18,7 @@ with actual source code extracted from the codebase.
 - **Source**: Mirrors `apps/web/types/` — canonical shared type definitions
 
 ### 2. `forgemind-utils` (packages/utils)
+
 - **Language**: Python
 - **Contents**: 4 modules — `metrics`, `rate_limit`, `error_handlers`, `logging_middleware`
 - **Extracted from**: `apps/api/app/core/`
@@ -24,6 +26,7 @@ with actual source code extracted from the codebase.
   `RateLimitMiddleware`, `register_error_handlers`, `RequestLoggingMiddleware`
 
 ### 3. `forgemind-security` (packages/security)
+
 - **Language**: Python
 - **Contents**: 2 modules — `jwt`, `rbac`
 - **jwt**: Stateless `create_token`/`decode_token` with `JWTConfig` dataclass
@@ -32,6 +35,7 @@ with actual source code extracted from the codebase.
 - **Design**: DB-independent so it can be used across services or in tests
 
 ### 4. `forgemind-core` (packages/core)
+
 - **Language**: Python
 - **Contents**: 2 modules — `constants`, `llm`
 - **constants**: Frozen sets for all domain statuses (`PROJECT_STATUSES`, `RUN_STATUSES`,
@@ -41,6 +45,7 @@ with actual source code extracted from the codebase.
 ## Tests
 
 10 new tests in `test_fm079_packages.py`:
+
 - Schema package: source file count, barrel export validation, package.json metadata
 - Utils package: file structure, metrics round-trip
 - Security package: file structure, RBAC engine correctness, JWT round-trip
@@ -55,8 +60,8 @@ with actual source code extracted from the codebase.
 ## Files Created
 
 - `packages/schemas/src/` — 23 TypeScript files (22 domain + index.ts)
-- `packages/utils/pyproject.toml` + `forgemind_utils/` (4 modules + __init__.py)
-- `packages/security/pyproject.toml` + `forgemind_security/` (2 modules + __init__.py)
-- `packages/core/pyproject.toml` + `forgemind_core/` (2 modules + __init__.py)
+- `packages/utils/pyproject.toml` + `forgemind_utils/` (4 modules + **init**.py)
+- `packages/security/pyproject.toml` + `forgemind_security/` (2 modules + **init**.py)
+- `packages/core/pyproject.toml` + `forgemind_core/` (2 modules + **init**.py)
 - `apps/api/tests/test_fm079_packages.py` — 10 tests
 - Updated READMEs for all 4 packages

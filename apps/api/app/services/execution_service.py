@@ -1,10 +1,12 @@
-"""Execution service — task claiming, completion, and failure lifecycle."""
+"""Execution service - task claiming, completion, and failure lifecycle."""
 
+import time
 import uuid
 
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.metrics import inc_counter, observe_histogram
 from app.models.artifact import ArtifactType
 from app.models.task import Task, TaskStatus
 from app.schemas.artifact import ArtifactCreate
@@ -23,6 +25,7 @@ async def claim_task(
     agent_slug: str,
 ) -> Task:
     """Claim a READY task for an agent, setting it to RUNNING."""
+    t0 = time.monotonic()
     task = await task_service.get_task(db, task_id)
 
     if task.status != TaskStatus.READY:
@@ -60,6 +63,8 @@ async def claim_task(
     )
 
     await db.refresh(task)
+    inc_counter("task_claimed_total", labels={"agent": agent_slug})
+    observe_histogram("task_claim_duration_seconds", time.monotonic() - t0)
     return task
 
 
@@ -72,6 +77,7 @@ async def complete_task(
     artifact_type: str | None = None,
 ) -> Task:
     """Complete a RUNNING task, optionally creating an output artifact."""
+    t0 = time.monotonic()
     task = await task_service.get_task(db, task_id)
 
     if task.status != TaskStatus.RUNNING:
@@ -158,6 +164,8 @@ async def complete_task(
     await task_service._promote_ready_tasks(db, task.run_id)
 
     await db.refresh(task)
+    inc_counter("task_completed_total", labels={"task_type": task.task_type})
+    observe_histogram("task_complete_duration_seconds", time.monotonic() - t0)
     return task
 
 
@@ -167,6 +175,7 @@ async def fail_task(
     error_message: str,
 ) -> Task:
     """Fail a RUNNING task with an error message."""
+    t0 = time.monotonic()
     task = await task_service.get_task(db, task_id)
 
     if task.status != TaskStatus.RUNNING:
@@ -202,6 +211,8 @@ async def fail_task(
     )
 
     await db.refresh(task)
+    inc_counter("task_failed_total")
+    observe_histogram("task_fail_duration_seconds", time.monotonic() - t0)
     return task
 
 
@@ -245,6 +256,7 @@ async def retry_task(
     )
 
     await db.refresh(task)
+    inc_counter("task_retried_total")
     return task
 
 
@@ -282,4 +294,5 @@ async def cancel_task(
     )
 
     await db.refresh(task)
+    inc_counter("task_cancelled_total")
     return task

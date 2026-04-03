@@ -4,6 +4,7 @@ FM-075: Central helpers that resolve ownership chains and enforce permissions.
 """
 
 import uuid
+from typing import Any
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
@@ -60,3 +61,17 @@ async def resolve_project_for_task(
             detail="Task not found",
         )
     return proj_id
+
+
+async def resolve_project_for_entity(
+    db: AsyncSession, model_class: Any, entity_id: uuid.UUID,
+) -> uuid.UUID | None:
+    """Generic resolver: fetch entity's project_id by primary key.
+
+    Returns the project_id or None if the entity doesn't exist or
+    the entity has no project_id set (nullable column).
+    """
+    result = await db.execute(
+        select(model_class.project_id).where(model_class.id == entity_id)
+    )
+    return result.scalar_one_or_none()

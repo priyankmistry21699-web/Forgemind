@@ -23,6 +23,9 @@ from app.schemas.repo import (
     RepoSyncMetadata,
 )
 from app.services import repo_service
+from app.services.authz_service import check_project_permission, Action
+from app.core.authz_deps import resolve_project_for_entity
+from app.models.repo_connection import RepoConnection
 
 router = APIRouter()
 
@@ -39,6 +42,7 @@ async def create_connection(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RepoConnectionRead:
     """Create a new repo connection for a project."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_UPDATE)
     conn = await repo_service.create_connection(
         db,
         project_id=project_id,
@@ -72,6 +76,7 @@ async def list_connections(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RepoConnectionList:
     """List repo connections for a project."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     connections, total = await repo_service.list_connections(
         db, project_id, limit=limit, offset=offset
     )
@@ -88,6 +93,9 @@ async def get_connection(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RepoConnectionRead:
     """Get a single repo connection."""
+    proj_id = await resolve_project_for_entity(db, RepoConnection, connection_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     conn = await repo_service.get_connection(db, connection_id)
     if conn is None:
         raise HTTPException(
@@ -105,6 +113,9 @@ async def update_connection(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RepoConnectionRead:
     """Update a repo connection."""
+    proj_id = await resolve_project_for_entity(db, RepoConnection, connection_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_UPDATE)
     conn = await repo_service.update_connection(
         db, connection_id,
         **body.model_dump(exclude_unset=True),
@@ -125,6 +136,9 @@ async def delete_connection(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Delete a repo connection."""
+    proj_id = await resolve_project_for_entity(db, RepoConnection, connection_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_UPDATE)
     deleted = await repo_service.delete_connection(db, connection_id)
     if not deleted:
         raise HTTPException(
@@ -141,6 +155,9 @@ async def check_health(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Check health of a repo connection."""
+    proj_id = await resolve_project_for_entity(db, RepoConnection, connection_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     result = await repo_service.check_connection_health(db, connection_id)
     if "error" in result:
         raise HTTPException(
@@ -158,6 +175,9 @@ async def sync_connection(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Sync a repo connection — verify and update status."""
+    proj_id = await resolve_project_for_entity(db, RepoConnection, connection_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_UPDATE)
     result = await repo_service.sync_connection(db, connection_id)
     if "error" in result:
         raise HTTPException(
@@ -177,6 +197,9 @@ async def get_sync_status(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RepoSyncMetadata:
     """Get current sync metadata for a repo connection."""
+    proj_id = await resolve_project_for_entity(db, RepoConnection, connection_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     result = await repo_service.get_sync_status(db, connection_id)
     if "error" in result:
         raise HTTPException(
@@ -194,6 +217,9 @@ async def refresh_sync_metadata(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Refresh sync metadata (commit SHA, provider data) for a repo connection."""
+    proj_id = await resolve_project_for_entity(db, RepoConnection, connection_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_UPDATE)
     result = await repo_service.refresh_sync_metadata(
         db, connection_id, commit_sha=commit_sha,
     )
@@ -216,6 +242,9 @@ async def get_file_tree(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> FileTreeResult:
     """Browse the file tree of a linked local workspace."""
+    proj_id = await resolve_project_for_entity(db, RepoConnection, connection_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     result = await repo_service.get_file_tree(db, connection_id, path)
     if "error" in result:
         raise HTTPException(
@@ -233,6 +262,9 @@ async def get_file_content(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> FileContentResult:
     """Fetch file content from a linked local workspace."""
+    proj_id = await resolve_project_for_entity(db, RepoConnection, connection_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     result = await repo_service.get_file_content(db, connection_id, path)
     if "error" in result:
         raise HTTPException(
@@ -250,6 +282,9 @@ async def get_file_metadata(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Get metadata for a file without fetching content."""
+    proj_id = await resolve_project_for_entity(db, RepoConnection, connection_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     result = await repo_service.get_file_metadata(db, connection_id, path)
     if "error" in result:
         raise HTTPException(

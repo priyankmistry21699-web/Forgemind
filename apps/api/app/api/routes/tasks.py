@@ -15,6 +15,8 @@ from app.schemas.task import (
     TaskFailRequest,
 )
 from app.services import task_service, execution_service
+from app.services.authz_service import check_project_permission, Action
+from app.core.authz_deps import resolve_project_for_run, resolve_project_for_task
 
 router = APIRouter()
 
@@ -26,6 +28,8 @@ async def list_tasks(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TaskList:
     """List all tasks for a given run, ordered by execution index."""
+    pid = await resolve_project_for_run(db, run_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     tasks, total = await task_service.list_tasks_by_run(db, run_id)
     return TaskList(
         items=[TaskRead.model_validate(t) for t in tasks],
@@ -40,6 +44,8 @@ async def get_ready_tasks(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ReadyTasksResponse:
     """Return tasks whose dependencies are all satisfied and are ready to execute."""
+    pid = await resolve_project_for_run(db, run_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     tasks, total = await task_service.get_ready_tasks(db, run_id)
     return ReadyTasksResponse(
         items=[TaskRead.model_validate(t) for t in tasks],
@@ -54,6 +60,8 @@ async def get_task(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TaskRead:
     task = await task_service.get_task(db, task_id)
+    pid = await resolve_project_for_task(db, task_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     return TaskRead.model_validate(task)
 
 
@@ -65,6 +73,8 @@ async def update_task_status(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TaskRead:
     """Transition a task to a new status with state-machine validation."""
+    pid = await resolve_project_for_task(db, task_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_RUN)
     task = await task_service.update_task_status(db, task_id, data.status)
     return TaskRead.model_validate(task)
 
@@ -77,6 +87,8 @@ async def claim_task(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TaskRead:
     """Claim a READY task for an agent, setting it to RUNNING."""
+    pid = await resolve_project_for_task(db, task_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_RUN)
     task = await execution_service.claim_task(db, task_id, data.agent_slug)
     await db.commit()
     return TaskRead.model_validate(task)
@@ -90,6 +102,8 @@ async def complete_task(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TaskRead:
     """Complete a RUNNING task, optionally creating an output artifact."""
+    pid = await resolve_project_for_task(db, task_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_RUN)
     task = await execution_service.complete_task(
         db,
         task_id,
@@ -109,6 +123,8 @@ async def fail_task(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TaskRead:
     """Fail a RUNNING task with an error message."""
+    pid = await resolve_project_for_task(db, task_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_RUN)
     task = await execution_service.fail_task(db, task_id, data.error_message)
     await db.commit()
     return TaskRead.model_validate(task)
@@ -121,6 +137,8 @@ async def retry_task(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TaskRead:
     """Retry a FAILED task, resetting it to READY for re-execution."""
+    pid = await resolve_project_for_task(db, task_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_RUN)
     task = await execution_service.retry_task(db, task_id)
     await db.commit()
     return TaskRead.model_validate(task)
@@ -133,6 +151,8 @@ async def cancel_task(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TaskRead:
     """Cancel a READY or RUNNING task."""
+    pid = await resolve_project_for_task(db, task_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_RUN)
     task = await execution_service.cancel_task(db, task_id)
     await db.commit()
     return TaskRead.model_validate(task)

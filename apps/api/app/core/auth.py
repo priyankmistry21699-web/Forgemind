@@ -38,9 +38,17 @@ def _get_jwt_secret() -> str | None:
 
 
 def _is_dev_mode() -> bool:
-    """Check if running in dev mode (default/unchanged secret)."""
+    """Check if running in dev mode (default/unchanged secret + non-production env).
+
+    Both conditions must be true: SECRET_KEY must be the default AND
+    APP_ENV must not be 'production'. This prevents accidental deployment
+    with default config from bypassing authentication.
+    """
     from app.core.config import settings
-    return settings.secret_key == "change-me-to-a-random-secret"
+    return (
+        settings.secret_key == "change-me-to-a-random-secret"
+        and settings.app_env != "production"
+    )
 
 
 def create_access_token(

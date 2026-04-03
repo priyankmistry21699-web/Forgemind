@@ -41,6 +41,7 @@ class Action(str, Enum):
     PROJECT_EXECUTE_CODE = "project:execute_code"
     PROJECT_MANAGE_KNOWLEDGE = "project:manage_knowledge"
     PROJECT_MANAGE_ESCALATION = "project:manage_escalation"
+    PROJECT_MANAGE_ARCHITECTURE = "project:manage_architecture"
 
 
 # ── Permission matrix ────────────────────────────────────────────
@@ -69,6 +70,7 @@ PROJECT_PERMISSIONS: dict[Action, set[ProjectRole]] = {
     Action.PROJECT_EXECUTE_CODE: {ProjectRole.LEAD, ProjectRole.OPERATOR},
     Action.PROJECT_MANAGE_KNOWLEDGE: {ProjectRole.LEAD, ProjectRole.OPERATOR},
     Action.PROJECT_MANAGE_ESCALATION: {ProjectRole.LEAD},
+    Action.PROJECT_MANAGE_ARCHITECTURE: {ProjectRole.LEAD, ProjectRole.OPERATOR},
 }
 
 

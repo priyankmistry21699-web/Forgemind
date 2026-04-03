@@ -320,6 +320,26 @@ const NAV_ITEMS = [
     ),
   },
   {
+    label: "Architecture",
+    href: "/dashboard/architecture",
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <polygon points="12 2 2 7 12 12 22 7 12 2" />
+        <polyline points="2 17 12 22 22 17" />
+        <polyline points="2 12 12 17 22 12" />
+      </svg>
+    ),
+  },
+  {
     label: "Settings",
     href: "/dashboard/settings",
     icon: (
@@ -420,7 +440,10 @@ export function Sidebar() {
               </span>
             </div>
             <button
-              onClick={() => { logout(); router.push("/login"); }}
+              onClick={() => {
+                logout();
+                router.push("/login");
+              }}
               className="text-[10px] text-[var(--color-text-dim)] hover:text-red-400 transition-colors"
             >
               Logout

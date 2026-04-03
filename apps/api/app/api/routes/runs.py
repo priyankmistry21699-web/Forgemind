@@ -8,6 +8,8 @@ from app.db.session import get_db
 from app.core.auth import get_current_user_id
 from app.models.run import Run
 from app.schemas.run import RunRead, RunList
+from app.services.authz_service import check_project_permission, Action
+from app.core.authz_deps import resolve_project_for_run
 
 router = APIRouter()
 
@@ -21,6 +23,7 @@ async def list_runs(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RunList:
     """List all runs for a project, newest first."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     query = select(Run).where(Run.project_id == project_id)
 
     count_result = await db.execute(
@@ -45,6 +48,7 @@ async def get_latest_run(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RunRead:
     """Get the most recent run for a project."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     result = await db.execute(
         select(Run)
         .where(Run.project_id == project_id)
@@ -67,6 +71,8 @@ async def get_run(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> RunRead:
     """Get a single run by ID."""
+    pid = await resolve_project_for_run(db, run_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     result = await db.execute(select(Run).where(Run.id == run_id))
     run = result.scalar_one_or_none()
     if run is None:

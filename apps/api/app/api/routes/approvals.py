@@ -10,6 +10,9 @@ from app.core.auth import get_current_user_id
 from app.models.approval_request import ApprovalStatus
 from app.schemas.approval import ApprovalRead, ApprovalList, ApprovalDecision
 from app.services import approval_service
+from app.services.authz_service import check_project_permission, Action
+from app.core.authz_deps import resolve_project_for_entity
+from app.models.approval_request import ApprovalRequest
 
 router = APIRouter(prefix="/approvals")
 
@@ -25,6 +28,8 @@ async def list_approvals(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ApprovalList:
     """List approval requests with optional filters."""
+    if project_id is not None:
+        await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     approvals, total = await approval_service.list_approvals(
         db,
         project_id=project_id,
@@ -46,6 +51,9 @@ async def get_approval(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ApprovalRead:
     """Get a single approval request."""
+    proj_id = await resolve_project_for_entity(db, ApprovalRequest, approval_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     approval = await approval_service.get_approval(db, approval_id)
     return ApprovalRead.model_validate(approval)
 
@@ -58,5 +66,8 @@ async def decide_approval(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ApprovalRead:
     """Approve or reject a pending approval request."""
+    proj_id = await resolve_project_for_entity(db, ApprovalRequest, approval_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_APPROVE)
     approval = await approval_service.resolve_approval(db, approval_id, data)
     return ApprovalRead.model_validate(approval)

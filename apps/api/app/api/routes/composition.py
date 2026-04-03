@@ -10,6 +10,8 @@ from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.services import composition_service
 from app.services import task_service
+from app.services.authz_service import check_project_permission, Action
+from app.core.authz_deps import resolve_project_for_run
 
 router = APIRouter()
 
@@ -42,6 +44,8 @@ async def get_run_composition(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TeamComposition:
     """Analyse a run's task set and return the recommended agent team composition."""
+    pid = await resolve_project_for_run(db, run_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_VIEW)
     tasks, _ = await task_service.list_tasks_by_run(db, run_id)
 
     phases = [

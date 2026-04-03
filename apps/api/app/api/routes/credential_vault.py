@@ -15,6 +15,9 @@ from app.schemas.credential_vault import (
     CredentialCheckResult,
 )
 from app.services import credential_vault_service
+from app.services.authz_service import check_project_permission, Action
+from app.core.authz_deps import resolve_project_for_entity
+from app.models.credential_vault import CredentialVault
 from app.models.connector import Connector
 from sqlalchemy import select
 
@@ -45,6 +48,8 @@ async def create_credential(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CredentialVaultRead:
     """Register a new credential in the vault."""
+    if body.project_id is not None:
+        await check_project_permission(db, body.project_id, user_id, Action.PROJECT_UPDATE)
     credential = await credential_vault_service.create_credential(
         db,
         name=body.name,
@@ -70,6 +75,8 @@ async def list_credentials(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CredentialVaultList:
     """List all credential vault entries."""
+    if project_id is not None:
+        await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     credentials, total = await credential_vault_service.list_credentials(
         db, project_id=project_id
     )
@@ -94,6 +101,9 @@ async def get_credential(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CredentialVaultRead:
     """Get a single credential vault entry."""
+    proj_id = await resolve_project_for_entity(db, CredentialVault, credential_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     credential = await credential_vault_service.get_credential(db, credential_id)
     if credential is None:
         raise HTTPException(
@@ -117,6 +127,9 @@ async def update_credential(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CredentialVaultRead:
     """Update credential metadata."""
+    proj_id = await resolve_project_for_entity(db, CredentialVault, credential_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_UPDATE)
     update_data = body.model_dump(exclude_unset=True)
     credential = await credential_vault_service.update_credential(
         db, credential_id, **update_data
@@ -142,6 +155,9 @@ async def delete_credential(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> None:
     """Delete a credential vault entry."""
+    proj_id = await resolve_project_for_entity(db, CredentialVault, credential_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_UPDATE)
     deleted = await credential_vault_service.delete_credential(db, credential_id)
     if not deleted:
         raise HTTPException(

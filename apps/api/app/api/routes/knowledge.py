@@ -19,6 +19,9 @@ from app.schemas.knowledge import (
     KnowledgeContext,
 )
 from app.services import knowledge_service
+from app.services.authz_service import check_project_permission, Action
+from app.core.authz_deps import resolve_project_for_entity, resolve_project_for_run
+from app.models.project_knowledge import ProjectKnowledge
 
 router = APIRouter()
 
@@ -35,6 +38,7 @@ async def create_knowledge(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectKnowledgeRead:
     """Add a knowledge entry to a project."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_KNOWLEDGE)
     entry = await knowledge_service.create_knowledge(
         db,
         project_id=project_id,
@@ -63,6 +67,7 @@ async def list_knowledge(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectKnowledgeList:
     """List knowledge entries for a project."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     entries, total = await knowledge_service.list_knowledge(
         db, project_id,
         knowledge_type=knowledge_type,
@@ -85,6 +90,9 @@ async def get_knowledge(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectKnowledgeRead:
     """Get a single knowledge entry."""
+    proj_id = await resolve_project_for_entity(db, ProjectKnowledge, knowledge_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     entry = await knowledge_service.get_knowledge(db, knowledge_id)
     if entry is None:
         raise HTTPException(
@@ -101,6 +109,9 @@ async def delete_knowledge(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Delete a knowledge entry."""
+    proj_id = await resolve_project_for_entity(db, ProjectKnowledge, knowledge_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_MANAGE_KNOWLEDGE)
     deleted = await knowledge_service.delete_knowledge(db, knowledge_id)
     if not deleted:
         raise HTTPException(
@@ -120,6 +131,8 @@ async def extract_knowledge(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> KnowledgeExtractionResult:
     """Extract knowledge from a completed run."""
+    pid = await resolve_project_for_run(db, run_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_MANAGE_KNOWLEDGE)
     entries = await knowledge_service.extract_knowledge_from_run(db, run_id)
     await db.commit()
     return KnowledgeExtractionResult(
@@ -140,6 +153,7 @@ async def get_knowledge_context(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> KnowledgeContext:
     """Get assembled knowledge context for agent enrichment."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     ctx = await knowledge_service.get_knowledge_context(
         db, project_id, max_entries=max_entries
     )

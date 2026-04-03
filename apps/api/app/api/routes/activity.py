@@ -11,6 +11,7 @@ from app.schemas.activity import (
 )
 from app.services import activity_service
 from app.services import user_activity_service
+from app.services.authz_service import check_project_permission, check_workspace_permission, Action
 
 router = APIRouter()
 
@@ -23,6 +24,10 @@ async def create_activity(
     db: AsyncSession = Depends(get_db),
     actor_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ActivityFeedEntryRead:
+    if data.project_id is not None:
+        await check_project_permission(db, data.project_id, actor_id, Action.PROJECT_UPDATE)
+    elif data.workspace_id is not None:
+        await check_workspace_permission(db, data.workspace_id, actor_id, Action.WORKSPACE_UPDATE)
     entry = await activity_service.create_activity(
         db, actor_id=actor_id, activity_type=data.activity_type,
         summary=data.summary, project_id=data.project_id,
@@ -41,6 +46,10 @@ async def list_activities(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ActivityFeedList:
+    if project_id is not None:
+        await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    elif workspace_id is not None:
+        await check_workspace_permission(db, workspace_id, user_id, Action.WORKSPACE_VIEW)
     items, total = await activity_service.list_activities(
         db, project_id=project_id, workspace_id=workspace_id,
         limit=limit, offset=offset,
@@ -106,6 +115,7 @@ async def get_workspace_activity(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ActivityFeedList:
     """Get activity feed scoped to a workspace."""
+    await check_workspace_permission(db, workspace_id, user_id, Action.WORKSPACE_VIEW)
     items, total = await activity_service.list_activities(
         db, workspace_id=workspace_id, limit=limit, offset=offset,
     )

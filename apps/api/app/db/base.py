@@ -38,3 +38,8 @@ from app.models.code_ops import (  # noqa: F401
     CodeMapping, PatchProposal, ChangeReview, BranchStrategy,
     PRDraft, RepoActionApproval, SandboxExecution,
 )
+from app.models.architecture import (  # noqa: F401
+    ArchitectureNode, ArchitectureEdge, ArchitectureSnapshot,
+    ArchitectureDrift, ArchitectureRule, ArchitectureRuleResult,
+    ChangeImpactAssessment,
+)

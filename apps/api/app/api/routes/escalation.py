@@ -10,6 +10,9 @@ from app.schemas.escalation import (
     EscalationEventRead, EscalationEventList,
 )
 from app.services import escalation_service
+from app.services.authz_service import check_project_permission, Action
+from app.core.authz_deps import resolve_project_for_entity
+from app.models.escalation import EscalationRule
 
 router = APIRouter()
 
@@ -27,6 +30,7 @@ async def create_rule(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> EscalationRuleRead:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_ESCALATION)
     rule = await escalation_service.create_rule(
         db, project_id=project_id, name=data.name,
         trigger=data.trigger, action=data.action,
@@ -47,6 +51,7 @@ async def list_rules(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> EscalationRuleList:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await escalation_service.list_rules(
         db, project_id, limit=limit, offset=offset,
     )
@@ -62,6 +67,9 @@ async def get_rule(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> EscalationRuleRead:
+    proj_id = await resolve_project_for_entity(db, EscalationRule, rule_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     rule = await escalation_service.get_rule(db, rule_id)
     if rule is None:
         raise HTTPException(status_code=404, detail="Rule not found")
@@ -75,6 +83,9 @@ async def update_rule(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> EscalationRuleRead:
+    proj_id = await resolve_project_for_entity(db, EscalationRule, rule_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_MANAGE_ESCALATION)
     rule = await escalation_service.update_rule(
         db, rule_id, **data.model_dump(exclude_unset=True),
     )
@@ -89,6 +100,9 @@ async def delete_rule(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> None:
+    proj_id = await resolve_project_for_entity(db, EscalationRule, rule_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_MANAGE_ESCALATION)
     deleted = await escalation_service.delete_rule(db, rule_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Rule not found")
@@ -107,6 +121,7 @@ async def list_events(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> EscalationEventList:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await escalation_service.list_events(
         db, project_id, limit=limit, offset=offset,
     )

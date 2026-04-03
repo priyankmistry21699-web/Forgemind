@@ -7,6 +7,7 @@ from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectRead, ProjectList
 from app.services import project_service
+from app.services.authz_service import check_project_permission, Action
 
 router = APIRouter()
 
@@ -43,6 +44,7 @@ async def get_project(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectRead:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     project = await project_service.get_project(db, project_id)
     return ProjectRead.model_validate(project)
 
@@ -54,5 +56,6 @@ async def update_project(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectRead:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_UPDATE)
     project = await project_service.update_project(db, project_id, data)
     return ProjectRead.model_validate(project)

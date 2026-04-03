@@ -7,6 +7,7 @@
 export * from "./activity";
 export * from "./agent";
 export * from "./approval";
+export * from "./architecture";
 export * from "./artifact";
 export * from "./audit";
 export * from "./connector";

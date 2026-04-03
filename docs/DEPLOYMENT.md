@@ -34,27 +34,27 @@ curl http://localhost/health/ready
 
 ### Required
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `SECRET_KEY` | JWT signing secret (min 32 chars) | `openssl rand -hex 32` |
-| `POSTGRES_PASSWORD` | Database password | Strong random password |
-| `CORS_ORIGINS` | Allowed CORS origins | `https://forgemind.example.com` |
-| `NEXT_PUBLIC_API_URL` | Public API URL for frontend | `https://forgemind.example.com` |
+| Variable              | Description                       | Example                         |
+| --------------------- | --------------------------------- | ------------------------------- |
+| `SECRET_KEY`          | JWT signing secret (min 32 chars) | `openssl rand -hex 32`          |
+| `POSTGRES_PASSWORD`   | Database password                 | Strong random password          |
+| `CORS_ORIGINS`        | Allowed CORS origins              | `https://forgemind.example.com` |
+| `NEXT_PUBLIC_API_URL` | Public API URL for frontend       | `https://forgemind.example.com` |
 
 ### Optional
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `POSTGRES_DB` | `forgemind` | Database name |
-| `POSTGRES_USER` | `forgemind` | Database user |
-| `REDIS_PASSWORD` | *(empty)* | Redis auth password |
-| `API_WORKERS` | `2` | Uvicorn worker count |
-| `WORKER_POLL_INTERVAL` | `5` | Background worker poll interval (seconds) |
-| `OPENAI_API_KEY` | *(empty)* | OpenAI API key for LLM planner |
-| `ANTHROPIC_API_KEY` | *(empty)* | Anthropic API key (alternative) |
-| `GOOGLE_API_KEY` | *(empty)* | Google AI API key (alternative) |
-| `HTTP_PORT` | `80` | Nginx HTTP port |
-| `HTTPS_PORT` | `443` | Nginx HTTPS port |
+| Variable               | Default     | Description                               |
+| ---------------------- | ----------- | ----------------------------------------- |
+| `POSTGRES_DB`          | `forgemind` | Database name                             |
+| `POSTGRES_USER`        | `forgemind` | Database user                             |
+| `REDIS_PASSWORD`       | _(empty)_   | Redis auth password                       |
+| `API_WORKERS`          | `2`         | Uvicorn worker count                      |
+| `WORKER_POLL_INTERVAL` | `5`         | Background worker poll interval (seconds) |
+| `OPENAI_API_KEY`       | _(empty)_   | OpenAI API key for LLM planner            |
+| `ANTHROPIC_API_KEY`    | _(empty)_   | Anthropic API key (alternative)           |
+| `GOOGLE_API_KEY`       | _(empty)_   | Google AI API key (alternative)           |
+| `HTTP_PORT`            | `80`        | Nginx HTTP port                           |
+| `HTTPS_PORT`           | `443`       | Nginx HTTPS port                          |
 
 ## Architecture
 
@@ -79,11 +79,11 @@ exposes ports to the host.
 
 ## Health Endpoints
 
-| Endpoint | Purpose |
-|----------|---------|
-| `GET /health` | Liveness check — API process is running |
+| Endpoint            | Purpose                                              |
+| ------------------- | ---------------------------------------------------- |
+| `GET /health`       | Liveness check — API process is running              |
 | `GET /health/ready` | Readiness check — API + database connection verified |
-| `GET /metrics` | Prometheus-compatible metrics (counters, histograms) |
+| `GET /metrics`      | Prometheus-compatible metrics (counters, histograms) |
 
 ## Security Checklist
 
@@ -114,6 +114,7 @@ docker compose -f docker-compose.prod.yml restart nginx
 ```
 
 Set up auto-renewal:
+
 ```bash
 echo "0 3 * * * certbot renew --quiet && docker compose -f /path/to/docker-compose.prod.yml restart nginx" | crontab -
 ```
@@ -121,6 +122,7 @@ echo "0 3 * * * certbot renew --quiet && docker compose -f /path/to/docker-compo
 ## Running Without TLS (Development/Staging)
 
 Edit `deploy/nginx.conf`:
+
 1. Remove or comment out the HTTPS server block
 2. Change the HTTP server to proxy directly instead of redirecting:
 
@@ -147,6 +149,7 @@ curl -s https://forgemind.example.com/metrics
 ```
 
 To integrate with Prometheus, add to your `prometheus.yml`:
+
 ```yaml
 scrape_configs:
   - job_name: "forgemind"

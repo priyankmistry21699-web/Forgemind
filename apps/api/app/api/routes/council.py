@@ -20,6 +20,9 @@ from app.schemas.council import (
     CouncilDecisionResult,
 )
 from app.services import council_service
+from app.services.authz_service import check_project_permission, Action
+from app.core.authz_deps import resolve_project_for_entity
+from app.models.council import CouncilSession
 
 router = APIRouter(prefix="/council")
 
@@ -31,6 +34,7 @@ async def convene_council(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CouncilSessionRead:
     """Convene a new council session for multi-agent deliberation."""
+    await check_project_permission(db, body.project_id, user_id, Action.PROJECT_RUN)
     session = await council_service.convene_council(
         db,
         project_id=body.project_id,
@@ -56,6 +60,8 @@ async def list_sessions(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CouncilSessionList:
     """List council sessions with optional filters."""
+    if project_id is not None:
+        await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     sessions, total = await council_service.list_sessions(
         db,
         project_id=project_id,
@@ -77,6 +83,9 @@ async def get_session(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CouncilSessionRead:
     """Get a council session with its votes."""
+    proj_id = await resolve_project_for_entity(db, CouncilSession, session_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     session = await council_service.get_session(db, session_id)
     if session is None:
         raise HTTPException(
@@ -98,6 +107,9 @@ async def cast_vote(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CouncilVoteRead:
     """Cast a vote in a council session."""
+    proj_id = await resolve_project_for_entity(db, CouncilSession, session_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_RUN)
     try:
         vote = await council_service.cast_vote(
             db,
@@ -124,6 +136,9 @@ async def resolve_council(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Resolve a council session — tally votes and determine outcome."""
+    proj_id = await resolve_project_for_entity(db, CouncilSession, session_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_RUN)
     result = await council_service.resolve_council(db, session_id)
     if "error" in result:
         raise HTTPException(
@@ -141,6 +156,9 @@ async def escalate_council(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Escalate a deadlocked council to human review."""
+    proj_id = await resolve_project_for_entity(db, CouncilSession, session_id)
+    if proj_id is not None:
+        await check_project_permission(db, proj_id, user_id, Action.PROJECT_RUN)
     result = await council_service.escalate_council(db, session_id)
     if "error" in result:
         raise HTTPException(
