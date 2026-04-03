@@ -165,12 +165,24 @@ flowchart TD
 - **Approval gates** — per-action-type approval checks (push/merge/deploy/release/delete_branch)
 - **Code execution sandbox** — command allowlist, shell injection prevention, async execution with timeout enforcement
 
-### �🛡️ Production Hardening
+### 🛡️ Production Hardening
 
 - JWT authentication with dev-mode stub fallback
 - Per-IP token bucket rate limiting (100 req/60s)
 - Request logging with timing and unique request IDs
 - Global error handlers for consistent JSON error responses
+
+### 🧠 Architecture Intelligence
+
+- **Topology mapping** — filesystem scanning with Python/TS import parsing and automatic layer classification
+- **Drift detection** — snapshot comparison against conventions with resolve/ignore workflows
+- **Rule engine** — 5 rule categories (dependency, layer, naming, size, circular) with pass/fail evaluators
+- **Impact analysis** — BFS blast-radius computation with severity escalation (LOW→CRITICAL)
+- **Refactor recommendations** — god-module, circular dependency, and isolated node detection
+- **Architecture approvals** — auto-approval workflow triggered for HIGH/CRITICAL impact changes
+- **Design doc synthesis** — Markdown report generation from graph, drift, and rule data
+- **Structural health score** — composite 0–100 score with letter grade (A–F)
+- **Full dashboard** — dedicated frontend page with 12-function API client and TypeScript types
 
 ---
 
@@ -188,18 +200,18 @@ flowchart TB
 
     subgraph Backend["⚡ BACKEND · Port 8000"]
         FA["<b>FastAPI</b> — Python 3.12 · Async"]
-        subgraph Routes["📡 32 API Routes"]
+        subgraph Routes["📡 33 API Routes"]
             direction LR
             R1["health · projects\nplanner · planner_results"] ~~~ R2["tasks · runs\nartifacts · agents"]
             R3["approvals · events\nchat · composition"] ~~~ R4["connectors · memory\ngovernance · trust"]
             R5["replay · council\nknowledge · repos"] ~~~ R6["costs · audit\nlifecycle · vault"]
-            R7["workspaces · members\nnotifications · streaming"] ~~~ R8["escalation · activity\ncode_ops"]
+            R7["workspaces · members\nnotifications · streaming"] ~~~ R8["escalation · activity\ncode_ops · architecture"]
         end
-        subgraph Svcs["⚙️ 30+ Services"]
+        subgraph Svcs["⚙️ 40+ Services"]
             direction LR
             S1["project · planner\ntask · run · artifact"] ~~~ S2["agent · approval · event\nexecution · chat"]
             S3["composition · connector\nrun_memory · adaptive"] ~~~ S4["replay · council\nknowledge · repo"]
-            S5["governance · trust\ncost · audit · retry"] ~~~ S6["workspace · member\nnotification · code_ops"]
+            S5["governance · trust\ncost · audit · retry"] ~~~ S6["workspace · member\nnotification · code_ops\n9 architecture services"]
         end
         subgraph Middleware["🛡️ Production Middleware"]
             direction LR
@@ -219,7 +231,7 @@ flowchart TB
 
     subgraph Infra["🗄️ INFRASTRUCTURE"]
         direction LR
-        PG["🐘 <b>PostgreSQL 16</b>\n29 tables · 21 migrations"]
+        PG["🐘 <b>PostgreSQL 16</b>\n36 tables · 22 migrations"]
         RD["🔴 <b>Redis 7</b>\nCache · Queues"]
         MN["📦 <b>MinIO</b>\nS3 Object Storage"]
         LLM["🤖 <b>LiteLLM</b>\nGPT-4o · Claude\nGemini · Ollama"]
@@ -260,19 +272,20 @@ flowchart TD
 
     subgraph FE["🌐 FRONTEND — Next.js 15 · React 19 · TypeScript 5 · Tailwind 4"]
         direction TB
-        subgraph Pages["📄 12 Dashboard Pages — apps/web/app/dashboard/"]
+        subgraph Pages["📄 13 Dashboard Pages — apps/web/app/dashboard/"]
             direction LR
             P1["🏠 Dashboard"] ~~~ P2["🏢 Workspaces"] ~~~ P3["📋 Projects"]
             P4["⚡ Runs"] ~~~ P5["📄 Artifacts"] ~~~ P6["✅ Approvals"]
             P7["🔔 Notifications"] ~~~ P8["📊 Activity"] ~~~ P9["⚠️ Escalations"]
             P10["📂 Code Explorer"] ~~~ P11["🔍 Reviews"] ~~~ P12["🖥️ Sandbox"]
+            P13["🧠 Architecture"]
         end
         subgraph Comp["🧩 Component Groups — apps/web/components/"]
             direction LR
             C1["layout/*\nShell · Sidebar · TopNav"] ~~~ C2["projects/* · tasks/*\nProject List · Task Board"]
             C3["artifacts/* · chat/*\nArtifact View · Chat Panel"] ~~~ C4["approvals/* · reviews/*\nApproval Cards · Review UI"]
         end
-        LIB["📦 lib/* — 15 API client modules  ·  📝 types/* — 12 TypeScript contracts"]
+        LIB["📦 lib/* — 16 API client modules  ·  📝 types/* — 21 TypeScript contracts"]
     end
 
     U --> Pages
@@ -295,6 +308,7 @@ flowchart TD
     style P10 fill:#2563eb,stroke:#60a5fa,color:#fff
     style P11 fill:#8b5cf6,stroke:#a78bfa,color:#fff
     style P12 fill:#059669,stroke:#34d399,color:#fff
+    style P13 fill:#d97706,stroke:#fbbf24,color:#fff
     style C1 fill:#0891b2,stroke:#22d3ee,color:#fff
     style C2 fill:#0891b2,stroke:#22d3ee,color:#fff
     style C3 fill:#0891b2,stroke:#22d3ee,color:#fff
@@ -305,31 +319,34 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    subgraph API["📡 API LAYER — 32 Route Handlers"]
+    subgraph API["📡 API LAYER — 33 Route Handlers"]
         direction TB
         RA["🔧 Platform Core\nhealth · projects · planner\ntasks · runs · artifacts"]
         RB["🤖 Execution Intelligence\nagents · chat · composition\nmemory · retry · lifecycle"]
         RC["🛡️ Governance\napprovals · governance · audit\ntrust · costs · council"]
         RD["🤝 Collaboration\nworkspaces · members · streaming\nnotifications · escalation · activity"]
         RE["📂 Repo & Code Ops\nrepos · code_ops\nreplay · knowledge · vault"]
+        RF["🧠 Architecture Intelligence\narchitecture"]
     end
 
-    subgraph SVC["⚙️ SERVICE LAYER — 33 Services"]
+    subgraph SVC["⚙️ SERVICE LAYER — 42 Services"]
         direction TB
         SA["🔧 Core\nproject · planner · task\nexecution · artifact · event"]
         SB["🤖 Intelligence\nagent · chat · composition\nrun_memory · adaptive_retry\nadaptive_orchestrator"]
         SC["🛡️ Governance\napproval · governance · cost\ntrust · replay · council\nknowledge · audit"]
         SD["🤝 Collaboration\nworkspace · membership · authz\nstream · notification\nnotification_delivery\nescalation · activity\nuser_activity"]
         SE["📂 Code Ops\ncode_ops_service\nrepo_service"]
+        SF["🧠 Architecture\n9 services: topology\ndrift · rules · impact\nhealth · approvals\ndesign docs · refactor\narchitecture core"]
     end
 
-    subgraph DATA["🗃️ DATA MODELS — 29+ Tables"]
+    subgraph DATA["🗃️ DATA MODELS — 36+ Tables"]
         direction TB
         MA["🔧 Core Domain\nUser · Project · Run\nTask · PlannerResult\nArtifact · Agent"]
         MB["📋 Execution & Connectors\nApprovalRequest · ExecutionEvent\nReplaySnapshot · Connector\nProjectConnectorLink · CredentialVault"]
         MC["🛡️ Governance\nCostRecord · GovernancePolicy\nTrustScore · CouncilSession\nCouncilVote · ProjectKnowledge"]
         MD["🤝 Collaboration\nWorkspace · WorkspaceMember\nProjectMember · Notification\nNotificationDeliveryConfig\nEscalationRule · EscalationEvent\nActivityFeedEntry · UserPresence"]
         ME["📂 Code Ops\nRepoConnection · CodeMapping\nPatchProposal · ChangeReview\nBranchStrategy · PRDraft\nRepoActionApproval\nSandboxExecution"]
+        MF["🧠 Architecture\nArchComponent · ArchDependency\nArchLayer · DriftRecord\nArchRule · ArchApproval\nHealthSnapshot"]
     end
 
     API --> SVC --> DATA
@@ -342,16 +359,19 @@ flowchart LR
     style RC fill:#d97706,stroke:#fbbf24,color:#fff
     style RD fill:#0891b2,stroke:#22d3ee,color:#fff
     style RE fill:#2563eb,stroke:#60a5fa,color:#fff
+    style RF fill:#d97706,stroke:#fbbf24,color:#fff
     style SA fill:#059669,stroke:#34d399,color:#fff
     style SB fill:#7c3aed,stroke:#a78bfa,color:#fff
     style SC fill:#ea580c,stroke:#fb923c,color:#fff
     style SD fill:#0ea5e9,stroke:#38bdf8,color:#fff
     style SE fill:#2563eb,stroke:#60a5fa,color:#fff
+    style SF fill:#7c3aed,stroke:#a78bfa,color:#fff
     style MA fill:#d97706,stroke:#fbbf24,color:#fff
     style MB fill:#be185d,stroke:#ec4899,color:#fff
     style MC fill:#dc2626,stroke:#ef4444,color:#fff
     style MD fill:#0891b2,stroke:#22d3ee,color:#fff
     style ME fill:#1d4ed8,stroke:#3b82f6,color:#fff
+    style MF fill:#ea580c,stroke:#fb923c,color:#fff
 ```
 
 ### Code Operations Pipeline
@@ -527,6 +547,46 @@ erDiagram
         string status
         int exit_code
     }
+    ARCH_COMPONENTS {
+        uuid id PK
+        uuid project_id FK
+        string name
+        string layer
+        string component_type
+    }
+    ARCH_DEPENDENCIES {
+        uuid id PK
+        uuid source_id FK
+        uuid target_id FK
+        string dependency_type
+    }
+    DRIFT_RECORDS {
+        uuid id PK
+        uuid project_id FK
+        string drift_type
+        string severity
+        string status
+    }
+    ARCH_RULES {
+        uuid id PK
+        uuid project_id FK
+        string rule_type
+        string name
+        boolean enabled
+    }
+    ARCH_APPROVALS {
+        uuid id PK
+        uuid project_id FK
+        string impact_level
+        string status
+        string decided_by
+    }
+    HEALTH_SNAPSHOTS {
+        uuid id PK
+        uuid project_id FK
+        float score
+        string grade
+    }
 
     PROJECTS ||--o{ RUNS : "has many"
     PROJECTS ||--o{ PLANNER_RESULTS : "generates"
@@ -536,6 +596,12 @@ erDiagram
     PROJECTS ||--o{ CODE_MAPPINGS : "maps code"
     PROJECTS ||--o{ PATCH_PROPOSALS : "proposes changes"
     PROJECTS ||--o{ SANDBOX_EXECUTIONS : "executes code"
+    PROJECTS ||--o{ ARCH_COMPONENTS : "maps architecture"
+    PROJECTS ||--o{ DRIFT_RECORDS : "tracks drift"
+    PROJECTS ||--o{ ARCH_RULES : "enforces rules"
+    PROJECTS ||--o{ ARCH_APPROVALS : "gates changes"
+    PROJECTS ||--o{ HEALTH_SNAPSHOTS : "measures health"
+    ARCH_COMPONENTS ||--o{ ARCH_DEPENDENCIES : "depends on"
     RUNS ||--o{ TASKS : "contains"
     RUNS ||--o{ REPLAY_SNAPSHOTS : "traces"
     TASKS ||--o{ ARTIFACTS : "produces"
@@ -689,13 +755,14 @@ The frontend is the operator control plane providing all user-facing workflows:
 | 📂 **Code Explorer** | Repo/code context surface                |
 | 🔍 **Reviews**       | Patch review workspace                   |
 | 🖥️ **Sandbox**       | Controlled validation surface            |
+| 🧠 **Architecture**  | Architecture intelligence dashboard      |
 
 **Folder structure:** `app/` (route pages) · `components/` (reusable UI) · `lib/` (API client wrappers) · `types/` (TypeScript contracts)
 
 </details>
 
 <details>
-<summary><b>📡 2. API Layer — <code>apps/api/app/api/routes</code> — 32 Route Handlers</b></summary>
+<summary><b>📡 2. API Layer — <code>apps/api/app/api/routes</code> — 33 Route Handlers</b></summary>
 
 The API layer is thin and route-oriented — request validation → auth/authz → service delegation → response shaping.
 
@@ -706,12 +773,13 @@ The API layer is thin and route-oriented — request validation → auth/authz �
 | 🛡️ **Governance**             | `approvals` · `governance` · `audit` · `trust` · `costs` · `council`                   |
 | 🤝 **Collaboration**          | `workspaces` · `members` · `streaming` · `notifications` · `escalation` · `activity`   |
 | 📂 **Repo / Code-Ops**        | `repos` · `code_ops` · `replay` · `knowledge` · `vault` · `connectors`                 |
+| 🧠 **Architecture**           | `architecture` (topology, drift, rules, impact, health, approvals)                     |
 | ⚙️ **Operational**            | `events` · `run_lifecycle`                                                             |
 
 </details>
 
 <details>
-<summary><b>⚙️ 3. Service Layer — <code>apps/api/app/services</code> — 33 Services</b></summary>
+<summary><b>⚙️ 3. Service Layer — <code>apps/api/app/services</code> — 42 Services</b></summary>
 
 This is the real business-logic core.
 
@@ -730,6 +798,9 @@ This is the real business-logic core.
 **🤝 Collaboration services:**
 `workspace_service` · `membership_service` · `authz_service` · `stream_service` · `notification_service` · `notification_delivery_service` · `escalation_service` · `activity_service` · `user_activity_service`
 
+**🧠 Architecture Intelligence services:**
+`architecture_service` · `topology_mapper_service` · `drift_detection_service` · `architecture_rule_service` · `impact_analysis_service` · `refactor_recommendation_service` · `design_doc_service` · `structural_health_service` · `architecture_approval_service`
+
 </details>
 
 <details>
@@ -746,7 +817,7 @@ The worker is the runtime engine that executes tasks outside normal request flow
 </details>
 
 <details>
-<summary><b>🗃️ 5. Model Layer — <code>apps/api/app/models</code> — 29+ Tables</b></summary>
+<summary><b>🗃️ 5. Model Layer — <code>apps/api/app/models</code> — 36+ Tables</b></summary>
 
 **🔧 Core domain:**
 `User` · `Project` · `Run` · `Task` · `PlannerResult` · `Artifact` · `Agent` · `ApprovalRequest` · `ExecutionEvent`
@@ -760,6 +831,9 @@ The worker is the runtime engine that executes tasks outside normal request flow
 **📂 Code-ops:**
 `CodeMapping` · `PatchProposal` · `ChangeReview` · `BranchStrategy` · `PRDraft` · `RepoActionApproval` · `SandboxExecution`
 
+**🧠 Architecture:**
+`ArchComponent` · `ArchDependency` · `ArchLayer` · `DriftRecord` · `ArchRule` · `ArchApproval` · `HealthSnapshot`
+
 </details>
 
 <details>
@@ -768,10 +842,12 @@ The worker is the runtime engine that executes tasks outside normal request flow
 | Module                     | Purpose                                             |
 | -------------------------- | --------------------------------------------------- |
 | `config.py`                | Settings / environment                              |
-| `auth.py` / `auth_stub.py` | JWT production auth / dev fallback                  |
+| `auth.py`                  | JWT authentication (production)                     |
+| `authz_deps.py`            | RBAC dependency injection for routes                |
 | `rate_limit.py`            | Per-IP token bucket (100 req / 60s)                 |
 | `logging_middleware.py`    | Request tracing + unique request IDs                |
 | `error_handlers.py`        | Uniform JSON error responses                        |
+| `metrics.py`               | Prometheus metrics endpoint + counters              |
 | `llm.py`                   | LiteLLM wrapper (GPT-4o · Claude · Gemini · Ollama) |
 
 </details>
@@ -781,7 +857,7 @@ The worker is the runtime engine that executes tasks outside normal request flow
 
 | System                | Version | Role                                                    |
 | --------------------- | ------- | ------------------------------------------------------- |
-| 🐘 **PostgreSQL**     | 16      | Main relational persistence — 29+ tables, 21 migrations |
+| 🐘 **PostgreSQL**     | 16      | Main relational persistence — 36+ tables, 22 migrations |
 | 🔴 **Redis**          | 7       | Worker / runtime support, caching, queues               |
 | 📦 **MinIO**          | Latest  | S3-compatible local object storage                      |
 | 🐳 **Docker Compose** | —       | 6-service local orchestration                           |
@@ -873,7 +949,25 @@ The worker is the runtime engine that executes tasks outside normal request flow
 
 </details>
 
-> **ForgeMind in one sentence:** A workspace-aware, approval-governed, multi-agent AI execution platform that can plan projects, orchestrate execution, manage human approvals, maintain operational memory, collaborate across teams, integrate with repositories, generate code-change proposals, review them, and validate them in a controlled sandbox.
+<details>
+<summary><b>🅶 Architecture Intelligence Flow</b></summary>
+
+```
+1. Topology mapper scans codebase for components, dependencies, and layers
+2. Architecture graph is built from scan results
+3. Drift detection compares current state against conventions/snapshots
+4. Rule engine evaluates dependency, layer, naming, size, and circular rules
+5. Impact analysis computes blast-radius for proposed changes via BFS
+6. Refactor recommendations detect god-modules, circular deps, isolated nodes
+7. Design doc synthesis generates Markdown reports from all architecture data
+8. Structural health score computes composite 0–100 grade (A–F)
+9. HIGH/CRITICAL impact changes trigger automatic architecture approvals
+10. Architecture dashboard surfaces all data in a dedicated frontend page
+```
+
+</details>
+
+> **ForgeMind in one sentence:** A workspace-aware, approval-governed, multi-agent AI execution platform that can plan projects, orchestrate execution, manage human approvals, maintain operational memory, collaborate across teams, integrate with repositories, generate code-change proposals, review them, validate them in a controlled sandbox, and continuously analyze architecture health with drift detection, impact analysis, and refactor recommendations.
 
 ---
 
@@ -917,8 +1011,8 @@ forgemind/
 │   │   ├── app/
 │   │   │   ├── main.py            #    App entry + lifespan
 │   │   │   ├── api/
-│   │   │   │   ├── router.py      #    32 route mounts
-│   │   │   │   └── routes/        #    Route handlers (32 files)
+│   │   │   │   ├── router.py      #    33 route mounts
+│   │   │   │   └── routes/        #    Route handlers (33 files)
 │   │   │   │       ├── health.py, projects.py, planner.py
 │   │   │   │       ├── planner_results.py, tasks.py, runs.py
 │   │   │   │       ├── artifacts.py, agents.py, approvals.py
@@ -932,20 +1026,22 @@ forgemind/
 │   │   │   │       ├── workspaces.py, workspace_members.py
 │   │   │   │       ├── notifications.py, streaming.py
 │   │   │   │       ├── escalation.py, activity.py, code_ops.py
+│   │   │   │       ├── architecture.py
 │   │   │   │       └── __init__.py
 │   │   │   ├── core/              #    Config, auth, middleware
 │   │   │   │   ├── config.py      #    Settings (env-based)
-│   │   │   │   ├── auth_stub.py   #    Auth placeholder (dev)
 │   │   │   │   ├── auth.py        #    JWT authentication (prod)
+│   │   │   │   ├── authz_deps.py  #    RBAC dependency injection
 │   │   │   │   ├── rate_limit.py  #    Token bucket rate limiter
 │   │   │   │   ├── logging_middleware.py # Request logging
 │   │   │   │   ├── error_handlers.py    # Global error handlers
+│   │   │   │   ├── metrics.py     #    Prometheus metrics
 │   │   │   │   └── llm.py         #    LiteLLM wrapper
 │   │   │   ├── db/                #    Database setup
-│   │   │   │   ├── base.py        #    Model imports (29 models)
+│   │   │   │   ├── base.py        #    Model imports (36 models)
 │   │   │   │   ├── base_class.py  #    SQLAlchemy declarative base
 │   │   │   │   └── session.py     #    Async session factory
-│   │   │   ├── models/            #    SQLAlchemy models (26 files)
+│   │   │   ├── models/            #    SQLAlchemy models (27 files)
 │   │   │   │   ├── user.py, project.py, run.py, task.py
 │   │   │   │   ├── planner_result.py, artifact.py, agent.py
 │   │   │   │   ├── approval_request.py, execution_event.py
@@ -955,9 +1051,10 @@ forgemind/
 │   │   │   │   ├── council.py, project_knowledge.py
 │   │   │   │   ├── repo_connection.py, workspace.py
 │   │   │   │   ├── activity.py, code_ops.py
-│   │   │   │   └── notification.py, escalation.py
-│   │   │   ├── schemas/           #    Pydantic schemas (23 files)
-│   │   │   └── services/          #    Business logic (30+ services)
+│   │   │   │   ├── notification.py, escalation.py
+│   │   │   │   └── architecture.py    #    7 architecture models
+│   │   │   ├── schemas/           #    Pydantic schemas (24 files)
+│   │   │   └── services/          #    Business logic (40+ services)
 │   │   │       ├── project_service.py, planner_service.py
 │   │   │       ├── task_service.py, artifact_service.py
 │   │   │       ├── agent_service.py, approval_service.py
@@ -975,8 +1072,13 @@ forgemind/
 │   │   │       ├── notification_delivery_service.py, escalation_service.py
 │   │   │       ├── activity_service.py, authz_service.py
 │   │   │       ├── stream_service.py, user_activity_service.py
-│   │   │       └── code_ops_service.py
-│   │   └── alembic/versions/      #    21 migration files
+│   │   │       ├── code_ops_service.py
+│   │   │       ├── architecture_service.py, topology_mapper_service.py
+│   │   │       ├── drift_detection_service.py, architecture_rule_service.py
+│   │   │       ├── impact_analysis_service.py, refactor_recommendation_service.py
+│   │   │       ├── design_doc_service.py, structural_health_service.py
+│   │   │       └── architecture_approval_service.py
+│   │   └── alembic/versions/      #    22 migration files
 │   │
 │   ├── web/                       # 🌐 Next.js 15 Frontend
 │   │   ├── package.json           #    Node dependencies
@@ -984,7 +1086,7 @@ forgemind/
 │   │   ├── app/                   #    Pages (App Router)
 │   │   │   ├── layout.tsx         #    Root layout
 │   │   │   ├── page.tsx           #    Landing → redirect
-│   │   │   └── dashboard/         #    Dashboard pages (12)
+│   │   │   └── dashboard/         #    Dashboard pages (13)
 │   │   │       ├── page.tsx       #    Main dashboard
 │   │   │       ├── approvals/     #    Approval inbox
 │   │   │       ├── artifacts/     #    Artifact detail
@@ -996,7 +1098,8 @@ forgemind/
 │   │   │       ├── escalations/   #    Escalation rules
 │   │   │       ├── code-explorer/ #    File tree browser
 │   │   │       ├── reviews/       #    Review workspace
-│   │   │       └── sandbox/       #    Code execution sandbox
+│   │   │       ├── sandbox/       #    Code execution sandbox
+│   │   │       └── architecture/  #    Architecture intelligence
 │   │   ├── components/            #    React components (15+ files)
 │   │   │   ├── layout/            #    Shell, sidebar, top nav
 │   │   │   ├── approvals/         #    Approval card + list
@@ -1006,8 +1109,8 @@ forgemind/
 │   │   │   ├── planner/           #    Prompt form, plan view
 │   │   │   ├── projects/          #    Project list, create form
 │   │   │   └── tasks/             #    Run task list
-│   │   ├── lib/                   #    API client functions (15 files)
-│   │   └── types/                 #    TypeScript interfaces (12 files)
+│   │   ├── lib/                   #    API client functions (16 files)
+│   │   └── types/                 #    TypeScript interfaces (21 files)
 │   │
 │   └── worker/                    # 🔧 Background Worker
 │       └── worker/
@@ -1023,10 +1126,11 @@ forgemind/
 ├── 📚 docs/
 │   ├── ARCHITECTURE.md            #    Full system architecture reference
 │   ├── MILESTONE_SUMMARY.md       #    What ForgeMind can do
+│   ├── DEPLOYMENT.md              #    Production deployment guide
 │   ├── TECHNICAL_DEBT.md          #    Known debt items (22)
 │   └── agent-handoffs/            #    Task board + response docs
-│       ├── TASKS.md               #    FM-001 to FM-040
-│       └── FM-0XX-response.md     #    Per-task implementation logs (70 docs)
+│       ├── TASKS.md               #    FM-001 to FM-090
+│       └── FM-0XX-response.md     #    Per-task implementation logs (90 docs)
 │
 └── 📦 packages/                   #    Future shared packages
     ├── agents/, connectors/, core/
@@ -1338,6 +1442,30 @@ Base URL: `http://localhost:8000`
 | `POST` | `/projects/{id}/repo-approvals/check` | Auto-check approval gates      |
 | `POST` | `/projects/{id}/sandbox/run`          | Run sandbox with auto-complete |
 
+### Architecture Intelligence
+
+| Method | Endpoint                                       | Description                  |
+| ------ | ---------------------------------------------- | ---------------------------- |
+| `POST` | `/projects/{id}/architecture/scan`             | Scan project topology        |
+| `GET`  | `/projects/{id}/architecture/graph`            | Get architecture graph       |
+| `GET`  | `/projects/{id}/architecture/components`       | List components              |
+| `GET`  | `/projects/{id}/architecture/dependencies`     | List dependencies            |
+| `GET`  | `/projects/{id}/architecture/layers`           | List architecture layers     |
+| `POST` | `/projects/{id}/architecture/drift/detect`     | Run drift detection          |
+| `GET`  | `/projects/{id}/architecture/drift`            | List drift records           |
+| `PATCH`| `/architecture/drift/{id}/resolve`             | Resolve drift record         |
+| `POST` | `/projects/{id}/architecture/rules`            | Create architecture rule     |
+| `GET`  | `/projects/{id}/architecture/rules`            | List architecture rules      |
+| `POST` | `/projects/{id}/architecture/rules/evaluate`   | Evaluate rules               |
+| `POST` | `/projects/{id}/architecture/impact`           | Analyze change impact        |
+| `POST` | `/projects/{id}/architecture/recommendations`  | Get refactor recommendations |
+| `POST` | `/projects/{id}/architecture/design-doc`       | Generate design document     |
+| `POST` | `/projects/{id}/architecture/health`           | Compute health score         |
+| `GET`  | `/projects/{id}/architecture/health/history`   | Health score history         |
+| `POST` | `/projects/{id}/architecture/approvals`        | Create architecture approval |
+| `GET`  | `/projects/{id}/architecture/approvals`        | List architecture approvals  |
+| `PATCH`| `/architecture/approvals/{id}/decide`          | Decide architecture approval |
+
 > Full interactive docs at `http://localhost:8000/docs` (Swagger UI)
 
 ---
@@ -1382,6 +1510,7 @@ alembic downgrade -1
 | 0019 | `add_collaboration_and_code_ops` | workspaces, workspace_members, project_members, notifications, notification_delivery_configs, escalation_rules, escalation_events, activity_feed_entries, user_presences, code_mappings, patch_proposals, change_reviews, branch_strategies, pr_drafts, repo_action_approvals, sandbox_executions |
 | 0020 | `add_project_workspace_fk`       | +workspace_id FK on projects table                                                                                                                                                                                                                                                                |
 | 0021 | `add_code_ops_enhancements`      | +sync_status/branch_mode on repo_connections, +annotation columns on change_reviews, +strategy_metadata on branch_strategies, +generation_metadata on pr_drafts, +execution_metadata on sandbox_executions, 5 new enum types                                                                      |
+| 0022 | `add_architecture_tables`        | arch_components, arch_dependencies, arch_layers, drift_records, arch_rules, arch_approvals, health_snapshots — 7 tables, 11 enums                                                                                                                                                                 |
 
 ### Code Quality
 
