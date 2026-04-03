@@ -4,7 +4,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
-const NAV_ITEMS = [
+interface NavItem {
+  label: string;
+  href: string;
+  icon: React.ReactElement;
+  disabled?: boolean;
+}
+
+const NAV_ITEMS: NavItem[] = [
   {
     label: "Dashboard",
     href: "/dashboard",

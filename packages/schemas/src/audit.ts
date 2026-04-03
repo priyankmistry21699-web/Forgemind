@@ -12,6 +12,9 @@ export type AuditEventType =
   | "run_failed"
   | "plan_generated";
 
+/** Convenience alias used by the web frontend. */
+export type EventType = AuditEventType;
+
 export interface AuditSummary {
   total_events: number;
   event_breakdown: Record<string, number>;
