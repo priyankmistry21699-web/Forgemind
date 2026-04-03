@@ -32,6 +32,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install -e ../../packages/utils
+          pip install -e ../../packages/core
+          pip install -e ../../packages/security
           pip install -e ".[dev]"
 
       - name: Lint (ruff)

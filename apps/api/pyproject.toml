@@ -15,6 +15,10 @@ dependencies = [
     "litellm>=1.50.0",
     "python-jose[cryptography]>=3.3.0",
     "bcrypt>=4.0.0",
+    # Shared monorepo packages (FM-079)
+    "forgemind-utils",
+    "forgemind-core",
+    "forgemind-security",
 ]
 
 [project.optional-dependencies]
