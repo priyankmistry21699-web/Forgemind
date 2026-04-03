@@ -1,5 +1,7 @@
 # ForgeMind — Complete Project Roadmap (v2)
 
+> ⚠️ **LEGACY** — This file is the original phase-based roadmap. It has been superseded by [FORGEMIND_ROADMAP_V3.md](FORGEMIND_ROADMAP_V3.md), which is the active source of truth covering FM-071 through FM-090.
+
 > **A Secure Autonomous Engineering Platform That Turns High-Level Goals Into Complete Working Systems**
 >
 > ForgeMind is not just a multi-agent coding system. It is a governed autonomous engineering platform that turns high-level goals into secure, connected, verifiable software systems — with goal-to-system synthesis, dynamic agent composition, connector intelligence, local workspace access, approval-based execution, architecture compliance, and long-term project drift awareness.
@@ -36,6 +38,7 @@
 ### The Problem (Bigger Than Code)
 
 Building software is not just "writing code." It involves:
+
 - Understanding **what** to build (requirements, architecture)
 - Figuring out **how to connect** things (APIs, OAuth, tokens, secrets)
 - Setting up **local environments** (repos, dependencies, env vars)
@@ -61,16 +64,16 @@ ForgeMind is **NOT** just another AI coding agent.
 
 ### Category
 
-| Other Tools (OpenClaw/NemoClaw-style) | ForgeMind |
-|---------------------------------------|-----------|
-| AI coding agent | AI systems architect + builder + guardian |
-| Autonomous execution | Governed autonomous engineering |
-| Task completion | Goal-to-system synthesis |
-| Code generation | Architecture + connectors + code + verification + deployment + monitoring |
-| Fixed agent pipeline | Dynamic agent composition per project |
-| User handles OAuth/tokens/env | Connector intelligence + token vault |
-| Cloud-only | Local OS companion + cloud hybrid |
-| Generate and forget | Long-term drift detection + project health |
+| Other Tools (OpenClaw/NemoClaw-style) | ForgeMind                                                                 |
+| ------------------------------------- | ------------------------------------------------------------------------- |
+| AI coding agent                       | AI systems architect + builder + guardian                                 |
+| Autonomous execution                  | Governed autonomous engineering                                           |
+| Task completion                       | Goal-to-system synthesis                                                  |
+| Code generation                       | Architecture + connectors + code + verification + deployment + monitoring |
+| Fixed agent pipeline                  | Dynamic agent composition per project                                     |
+| User handles OAuth/tokens/env         | Connector intelligence + token vault                                      |
+| Cloud-only                            | Local OS companion + cloud hybrid                                         |
+| Generate and forget                   | Long-term drift detection + project health                                |
 
 ---
 
@@ -79,71 +82,84 @@ ForgeMind is **NOT** just another AI coding agent.
 ### The 7 Core Differentiators
 
 #### 1. Goal-to-System Synthesis
+
 User says "Build a YouTube automation pipeline" → ForgeMind infers system type, chooses stack, chooses connectors, generates architecture, generates roadmap, scaffolds it, monitors it. Not just code — a complete **system**.
 
 #### 2. Dynamic Agent Composition
+
 ForgeMind doesn't use fixed agent teams. It analyzes the project, identifies required capabilities, and **dynamically assembles the right agent team** per project. A RAG app gets different agents than a CI/CD pipeline.
 
 #### 3. Connector Intelligence + Token Vault
+
 Most tools leave users stuck with client IDs, OAuth scopes, token refresh, and env var chaos. ForgeMind provides a connector registry, setup wizard, callback URI generation, scope guidance, token vault, connection testing, and expiry/rotation — all governed and audited.
 
 #### 4. ForgeMind Local (OS/Workspace Companion)
+
 Local repo inspection, file import, command execution, environment analysis, build/test execution — all with scoped folder access, approval gates, and hybrid local/cloud workflow. It runs **on your machine**, securely.
 
 #### 5. Trust Layer (Replay, Risk, Evidence, Approvals)
+
 Every agent decision has: decision explanation, evidence view, risk score, confidence score, replayable runs, audit logs, and approval gates. Users can always answer: "Why did it do this? Can I trust it? What changed? How do I reproduce it?"
 
 #### 6. Architecture Compliance + Drift Detection
+
 ForgeMind tracks intended architecture vs actual codebase vs deployment state vs docs. It detects drift, inconsistencies, missing security controls, and missing backup implementations. It's a **guardian of project health**, not just a generator.
 
 #### 7. Governed Self-Improvement
+
 ForgeMind improves templates, task decomposition, retry logic, connector recommendations, and stack defaults over time — but **never** changes core policies, escalates privileges, or runs destructive actions autonomously. Improvement within policy boundaries.
 
 ---
 
 ## 3. What Users Get
 
-| Feature | Description |
-|---------|-------------|
-| **Goal-to-System** | Describe your idea in plain English → get a complete system: PRD, architecture, connectors, code, tests, deployment |
-| **Smart Agent Teams** | ForgeMind builds the right AI team for your project — not a fixed pipeline |
-| **Connector Vault** | OAuth, API keys, tokens — set up in a guided wizard with secure storage and auto-rotation |
-| **Local Companion** | Inspect local repos, run builds, execute commands — all with approval gates |
-| **Auto-Coder** | Agents write code following your style guide, patterns, and conventions |
-| **Code Reviewer** | Every piece of code is reviewed by an AI reviewer before merge |
-| **Test Generator** | Automatic unit/integration/e2e test generation + sandboxed execution |
-| **Security Scanner** | Continuous OWASP scanning + dependency checks + secrets detection |
-| **Architecture Guardian** | Drift detection, compliance scoring, architecture-vs-reality checks |
-| **Doc Writer** | API docs, README, architecture docs auto-generated and kept in sync |
-| **Deploy Manager** | CI/CD pipeline generation + deployment configs + one-click deploy |
-| **Bug Fixer** | Paste an error → diagnosis, fix, test verification, PR creation |
-| **Trust Dashboard** | Decision explanations, risk scores, confidence levels, replayable runs |
-| **Approval Gates** | Nothing ships without your approval. Full control at every step |
-| **Full Audit Trail** | Every agent action logged — who, what, when, why, which prompt, what cost |
-| **Multi-LLM Support** | OpenAI, Anthropic, Google, Ollama, or any compatible provider |
-| **Real-Time Dashboard** | Watch agents work in real-time with live logs and progress |
-| **Cost Tracking** | Per-agent, per-task, per-project token usage and cost breakdown |
-| **Team Collaboration** | Invite team members, assign roles, share projects |
-| **Self-Improving** | Templates, recommendations, and defaults get smarter — within your policies |
+| Feature                   | Description                                                                                                         |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Goal-to-System**        | Describe your idea in plain English → get a complete system: PRD, architecture, connectors, code, tests, deployment |
+| **Smart Agent Teams**     | ForgeMind builds the right AI team for your project — not a fixed pipeline                                          |
+| **Connector Vault**       | OAuth, API keys, tokens — set up in a guided wizard with secure storage and auto-rotation                           |
+| **Local Companion**       | Inspect local repos, run builds, execute commands — all with approval gates                                         |
+| **Auto-Coder**            | Agents write code following your style guide, patterns, and conventions                                             |
+| **Code Reviewer**         | Every piece of code is reviewed by an AI reviewer before merge                                                      |
+| **Test Generator**        | Automatic unit/integration/e2e test generation + sandboxed execution                                                |
+| **Security Scanner**      | Continuous OWASP scanning + dependency checks + secrets detection                                                   |
+| **Architecture Guardian** | Drift detection, compliance scoring, architecture-vs-reality checks                                                 |
+| **Doc Writer**            | API docs, README, architecture docs auto-generated and kept in sync                                                 |
+| **Deploy Manager**        | CI/CD pipeline generation + deployment configs + one-click deploy                                                   |
+| **Bug Fixer**             | Paste an error → diagnosis, fix, test verification, PR creation                                                     |
+| **Trust Dashboard**       | Decision explanations, risk scores, confidence levels, replayable runs                                              |
+| **Approval Gates**        | Nothing ships without your approval. Full control at every step                                                     |
+| **Full Audit Trail**      | Every agent action logged — who, what, when, why, which prompt, what cost                                           |
+| **Multi-LLM Support**     | OpenAI, Anthropic, Google, Ollama, or any compatible provider                                                       |
+| **Real-Time Dashboard**   | Watch agents work in real-time with live logs and progress                                                          |
+| **Cost Tracking**         | Per-agent, per-task, per-project token usage and cost breakdown                                                     |
+| **Team Collaboration**    | Invite team members, assign roles, share projects                                                                   |
+| **Self-Improving**        | Templates, recommendations, and defaults get smarter — within your policies                                         |
 
 ---
 
 ## 4. Core Concepts
 
 ### Agent
+
 A specialized autonomous worker with a defined role, tools, and boundaries. Each agent has a **contract** specifying: capabilities, restrictions, tools, input/output schema, retry/timeout policy, model preference, and rate limits. Agents are NOT fixed — they are **dynamically composed** per project.
 
 ### Agent Composition Engine
+
 The system that analyzes project intent, classifies the project type, identifies required capabilities, chooses agent templates, instantiates agents with proper prompts/tools, and decides parallel vs sequential execution. This is ForgeMind's brain for team building.
 
 ### Orchestrator
+
 Receives a user request, invokes the Agent Composition Engine to build the right team, breaks work into a **DAG (Directed Acyclic Graph)**, assigns tasks to agents, manages dependencies, handles failures, and enforces governance.
 
 ### Connector
+
 An external service integration (API, OAuth provider, database, cloud service). Connectors are managed through the **Connector Registry** with guided setup, token vaulting, rotation, and health monitoring.
 
 ### Governance
+
 Human-defined rules that control agent behavior:
+
 - Approval gates (which actions need human sign-off)
 - Budget limits (max tokens/cost per task)
 - Tool restrictions (which agents can access which tools)
@@ -151,15 +167,19 @@ Human-defined rules that control agent behavior:
 - Self-improvement boundaries (what can/cannot be auto-updated)
 
 ### Artifact
+
 Any output an agent produces: code files, docs, test files, configs, PRDs, diagrams, architecture docs. All artifacts are **versioned** with full history, diffs, and checksums.
 
 ### Trust Record
+
 Every agent action generates a trust record: input, output, decision reasoning, evidence references, risk score, confidence score, prompt version, cost, and duration. Trust records enable **replay** (re-run any past action with same inputs) and **audit** (trace any decision).
 
 ### Architecture Blueprint
+
 A living document describing the intended architecture of a project: components, relationships, data flows, security boundaries, deployment topology. The **Drift Engine** continuously compares this blueprint against actual code, deployment, and docs.
 
 ### Session
+
 A workspace context that persists across agent interactions. Contains project state, conversation history, file tree, active tasks, and local environment info (when ForgeMind Local is connected).
 
 ---
@@ -167,91 +187,100 @@ A workspace context that persists across agent interactions. Contains project st
 ## 5. Updated Tech Stack
 
 ### Frontend
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **Next.js 15** (App Router) | Web framework | Server components, streaming, API routes |
-| **TypeScript 5.x** | Type safety | Catch errors at compile time |
-| **Tailwind CSS 4** | Styling | Utility-first, fast iteration |
-| **shadcn/ui** | Component library | Accessible, customizable, no lock-in |
-| **Zustand** | State management | Simple, fast, no boilerplate |
-| **React Query (TanStack Query v5)** | Server state | Caching, background refetch, optimistic updates |
-| **Socket.IO Client** | Real-time updates | Live agent progress, logs streaming |
-| **Monaco Editor** | Code editor | VS Code-quality code editing in browser |
-| **Mermaid.js** | Diagrams | Render architecture/flow diagrams from agent output |
-| **React Flow** | DAG visualization | Visualize task DAGs + architecture graphs |
-| **xterm.js** | Terminal emulator | ForgeMind Local terminal in browser |
+
+| Technology                          | Purpose           | Why                                                 |
+| ----------------------------------- | ----------------- | --------------------------------------------------- |
+| **Next.js 15** (App Router)         | Web framework     | Server components, streaming, API routes            |
+| **TypeScript 5.x**                  | Type safety       | Catch errors at compile time                        |
+| **Tailwind CSS 4**                  | Styling           | Utility-first, fast iteration                       |
+| **shadcn/ui**                       | Component library | Accessible, customizable, no lock-in                |
+| **Zustand**                         | State management  | Simple, fast, no boilerplate                        |
+| **React Query (TanStack Query v5)** | Server state      | Caching, background refetch, optimistic updates     |
+| **Socket.IO Client**                | Real-time updates | Live agent progress, logs streaming                 |
+| **Monaco Editor**                   | Code editor       | VS Code-quality code editing in browser             |
+| **Mermaid.js**                      | Diagrams          | Render architecture/flow diagrams from agent output |
+| **React Flow**                      | DAG visualization | Visualize task DAGs + architecture graphs           |
+| **xterm.js**                        | Terminal emulator | ForgeMind Local terminal in browser                 |
 
 ### Backend — Core API
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **FastAPI** (Python 3.12) | API framework | Async, fast, auto-docs, type-safe |
-| **Pydantic v2** | Data validation | Schema validation, serialization |
-| **SQLAlchemy 2.0** + **Alembic** | ORM + Migrations | Async ORM, reliable schema migrations |
-| **Celery 5** + **Redis** | Task queue | Distributed async task execution |
-| **Socket.IO (python-socketio)** | WebSocket server | Real-time agent status broadcasting |
-| **LiteLLM** | LLM gateway | Unified API for 100+ LLM providers |
-| **LangGraph** | Agent orchestration | Stateful agent graphs, tool calling, loops |
-| **Jinja2** | Prompt templates | Version-controlled prompt rendering |
+
+| Technology                       | Purpose             | Why                                        |
+| -------------------------------- | ------------------- | ------------------------------------------ |
+| **FastAPI** (Python 3.12)        | API framework       | Async, fast, auto-docs, type-safe          |
+| **Pydantic v2**                  | Data validation     | Schema validation, serialization           |
+| **SQLAlchemy 2.0** + **Alembic** | ORM + Migrations    | Async ORM, reliable schema migrations      |
+| **Celery 5** + **Redis**         | Task queue          | Distributed async task execution           |
+| **Socket.IO (python-socketio)**  | WebSocket server    | Real-time agent status broadcasting        |
+| **LiteLLM**                      | LLM gateway         | Unified API for 100+ LLM providers         |
+| **LangGraph**                    | Agent orchestration | Stateful agent graphs, tool calling, loops |
+| **Jinja2**                       | Prompt templates    | Version-controlled prompt rendering        |
 
 ### Backend — ForgeMind-Specific Engines
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **Agent Composition Engine** (custom) | Dynamic agent assembly | Classify project → build right agent team |
-| **Connector Registry** (custom) | Integration management | Store connector metadata, setup flows, health checks |
-| **Token Vault** (custom + Fernet/AES) | Secret management | Encrypt, store, rotate tokens securely |
-| **Drift Engine** (custom + AST) | Architecture compliance | Compare blueprint vs reality, detect drift |
-| **Trust Recorder** (custom) | Decision audit | Log evidence, risk, confidence for every agent action |
-| **Project Classifier** (LLM-powered) | Goal analysis | Understand project type and required capabilities |
+
+| Technology                            | Purpose                 | Why                                                   |
+| ------------------------------------- | ----------------------- | ----------------------------------------------------- |
+| **Agent Composition Engine** (custom) | Dynamic agent assembly  | Classify project → build right agent team             |
+| **Connector Registry** (custom)       | Integration management  | Store connector metadata, setup flows, health checks  |
+| **Token Vault** (custom + Fernet/AES) | Secret management       | Encrypt, store, rotate tokens securely                |
+| **Drift Engine** (custom + AST)       | Architecture compliance | Compare blueprint vs reality, detect drift            |
+| **Trust Recorder** (custom)           | Decision audit          | Log evidence, risk, confidence for every agent action |
+| **Project Classifier** (LLM-powered)  | Goal analysis           | Understand project type and required capabilities     |
 
 ### Database & Storage
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **PostgreSQL 16** | Primary database | JSONB for flexible data, robust, mature |
-| **Redis 7** | Cache + Queue broker | Session cache, Celery broker, rate limiting |
-| **MinIO** (or S3/R2) | File/artifact storage | Store generated code, docs, artifacts |
-| **Alembic** | DB migrations | Version-controlled schema changes |
+
+| Technology           | Purpose               | Why                                         |
+| -------------------- | --------------------- | ------------------------------------------- |
+| **PostgreSQL 16**    | Primary database      | JSONB for flexible data, robust, mature     |
+| **Redis 7**          | Cache + Queue broker  | Session cache, Celery broker, rate limiting |
+| **MinIO** (or S3/R2) | File/artifact storage | Store generated code, docs, artifacts       |
+| **Alembic**          | DB migrations         | Version-controlled schema changes           |
 
 ### Auth & Security
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **Clerk** | Authentication | Social login, MFA, user management, free tier |
-| **Custom RBAC** | Authorization | Fine-grained permission control |
-| **python-jose** | JWT handling | Verify Clerk JWTs on backend |
-| **bcrypt** | Secret hashing | Hash API keys at rest |
-| **cryptography (Fernet)** | Token encryption | Encrypt connector tokens at rest |
+
+| Technology                | Purpose          | Why                                           |
+| ------------------------- | ---------------- | --------------------------------------------- |
+| **Clerk**                 | Authentication   | Social login, MFA, user management, free tier |
+| **Custom RBAC**           | Authorization    | Fine-grained permission control               |
+| **python-jose**           | JWT handling     | Verify Clerk JWTs on backend                  |
+| **bcrypt**                | Secret hashing   | Hash API keys at rest                         |
+| **cryptography (Fernet)** | Token encryption | Encrypt connector tokens at rest              |
 
 ### ForgeMind Local (Desktop Companion)
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **Tauri** (or Electron-lite) | Desktop shell | Lightweight, secure, system access |
-| **WebSocket bridge** | Local↔Cloud sync | Secure tunnel between local agent and cloud |
-| **Chokidar** (Node) / **Watchdog** (Python) | File watcher | Monitor local repo changes |
-| **Sandboxed executor** | Local commands | Run builds/tests with approval gates |
+
+| Technology                                  | Purpose          | Why                                         |
+| ------------------------------------------- | ---------------- | ------------------------------------------- |
+| **Tauri** (or Electron-lite)                | Desktop shell    | Lightweight, secure, system access          |
+| **WebSocket bridge**                        | Local↔Cloud sync | Secure tunnel between local agent and cloud |
+| **Chokidar** (Node) / **Watchdog** (Python) | File watcher     | Monitor local repo changes                  |
+| **Sandboxed executor**                      | Local commands   | Run builds/tests with approval gates        |
 
 ### DevOps & Infrastructure
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **Docker** + **Docker Compose** | Containerization | Consistent local + prod environments |
-| **GitHub Actions** | CI/CD | Automated testing, linting, deployment |
-| **Nginx** (or Caddy) | Reverse proxy | SSL termination, routing |
-| **Railway / Fly.io / AWS ECS** | Hosting | Easy deployment with scaling |
+
+| Technology                      | Purpose          | Why                                    |
+| ------------------------------- | ---------------- | -------------------------------------- |
+| **Docker** + **Docker Compose** | Containerization | Consistent local + prod environments   |
+| **GitHub Actions**              | CI/CD            | Automated testing, linting, deployment |
+| **Nginx** (or Caddy)            | Reverse proxy    | SSL termination, routing               |
+| **Railway / Fly.io / AWS ECS**  | Hosting          | Easy deployment with scaling           |
 
 ### Monitoring & Observability
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **Prometheus** + **Grafana** | Metrics & dashboards | Agent performance, system health |
-| **Structured logging** (structlog) | Logging | JSON logs, correlation IDs |
-| **Sentry** | Error tracking | Catch and alert on exceptions |
-| **OpenTelemetry** | Distributed tracing | Trace requests across services |
+
+| Technology                         | Purpose              | Why                              |
+| ---------------------------------- | -------------------- | -------------------------------- |
+| **Prometheus** + **Grafana**       | Metrics & dashboards | Agent performance, system health |
+| **Structured logging** (structlog) | Logging              | JSON logs, correlation IDs       |
+| **Sentry**                         | Error tracking       | Catch and alert on exceptions    |
+| **OpenTelemetry**                  | Distributed tracing  | Trace requests across services   |
 
 ### Testing
-| Technology | Purpose | Why |
-|-----------|---------|-----|
-| **pytest** + **pytest-asyncio** | Backend tests | Async test support |
-| **Vitest** + **Testing Library** | Frontend tests | Fast, modern, React-friendly |
-| **Playwright** | E2E tests | Cross-browser, reliable |
-| **Factory Boy** | Test fixtures | Generate test data easily |
-| **Testcontainers** | Integration tests | Spin up real DB/Redis in tests |
+
+| Technology                       | Purpose           | Why                            |
+| -------------------------------- | ----------------- | ------------------------------ |
+| **pytest** + **pytest-asyncio**  | Backend tests     | Async test support             |
+| **Vitest** + **Testing Library** | Frontend tests    | Fast, modern, React-friendly   |
+| **Playwright**                   | E2E tests         | Cross-browser, reliable        |
+| **Factory Boy**                  | Test fixtures     | Generate test data easily      |
+| **Testcontainers**               | Integration tests | Spin up real DB/Redis in tests |
 
 ---
 
@@ -327,6 +356,7 @@ A workspace context that persists across agent interactions. Contains project st
 ## 7. Feature List (Complete)
 
 ### 7.1 Goal-to-System Synthesis
+
 - [ ] Natural language project description → full system plan
 - [ ] Project type classification (web app, RAG app, pipeline, CLI, SaaS, etc.)
 - [ ] Automatic stack selection based on project type
@@ -339,6 +369,7 @@ A workspace context that persists across agent interactions. Contains project st
 - [ ] Import existing codebase for analysis and onboarding
 
 ### 7.2 Dynamic Agent Composition
+
 - [ ] Project Classifier — analyze goal and determine project type
 - [ ] Capability Registry — what each agent type can do
 - [ ] Agent Template Registry — reusable agent definitions
@@ -350,6 +381,7 @@ A workspace context that persists across agent interactions. Contains project st
 - [ ] Agent marketplace (community-shared agent templates)
 
 ### 7.3 Connector Intelligence & Token Vault
+
 - [ ] Connector Registry (OAuth, API key, webhook, database connectors)
 - [ ] Setup Wizard per connector (guided step-by-step)
 - [ ] Callback URI generation for OAuth flows
@@ -362,6 +394,7 @@ A workspace context that persists across agent interactions. Contains project st
 - [ ] Environment variable generation from connectors
 
 ### 7.4 ForgeMind Local (Desktop Companion)
+
 - [ ] Scoped folder access (user chooses which folders to expose)
 - [ ] Local repo inspection (file tree, git status, dependencies)
 - [ ] Local file import into ForgeMind projects
@@ -372,6 +405,7 @@ A workspace context that persists across agent interactions. Contains project st
 - [ ] Secure WebSocket bridge (local ↔ cloud sync)
 
 ### 7.5 Core Agent System
+
 - [ ] Architect Agent — system design, component decomposition
 - [ ] Coder Agent — write code following conventions
 - [ ] Reviewer Agent — code review with actionable feedback
@@ -385,6 +419,7 @@ A workspace context that persists across agent interactions. Contains project st
 - [ ] Researcher Agent — search docs, StackOverflow, GitHub for solutions
 
 ### 7.6 Orchestration & Governance
+
 - [ ] DAG-based task scheduling with dependency resolution
 - [ ] Human approval gates (configurable per action type)
 - [ ] Budget limits per agent, per task, per project
@@ -398,6 +433,7 @@ A workspace context that persists across agent interactions. Contains project st
 - [ ] Circuit breaker pattern for failing agents
 
 ### 7.7 Trust Layer
+
 - [ ] Decision explanation per agent action
 - [ ] Evidence view (what data the agent used)
 - [ ] Risk score per action (low/medium/high/critical)
@@ -410,6 +446,7 @@ A workspace context that persists across agent interactions. Contains project st
 - [ ] Trust dashboard (project-level trust metrics)
 
 ### 7.8 Architecture Compliance & Drift Detection
+
 - [ ] Architecture Blueprint editor (define intended architecture)
 - [ ] Auto-generate blueprint from codebase analysis
 - [ ] Drift detection (blueprint vs actual code)
@@ -422,6 +459,7 @@ A workspace context that persists across agent interactions. Contains project st
 - [ ] Runbook consistency checks
 
 ### 7.9 Verification-First Execution
+
 - [ ] Auto-test generation for all code changes
 - [ ] Sandboxed test execution (Docker containers)
 - [ ] Linting on all generated code
@@ -432,6 +470,7 @@ A workspace context that persists across agent interactions. Contains project st
 - [ ] Verification report per task
 
 ### 7.10 Real-Time Features
+
 - [ ] Live agent activity stream (Socket.IO)
 - [ ] Real-time log viewer per agent
 - [ ] Task progress indicators
@@ -439,6 +478,7 @@ A workspace context that persists across agent interactions. Contains project st
 - [ ] Collaborative cursors (team members see each other's focus)
 
 ### 7.11 Code & Artifact Management
+
 - [ ] In-browser code editor (Monaco)
 - [ ] Artifact versioning (every generated file has history)
 - [ ] Diff viewer (compare artifact versions)
@@ -447,6 +487,7 @@ A workspace context that persists across agent interactions. Contains project st
 - [ ] Prompt versioning (track which prompt version produced which output)
 
 ### 7.12 LLM & Cost Management
+
 - [ ] Multi-provider support via LiteLLM
 - [ ] Per-request cost tracking
 - [ ] Per-agent cost breakdown
@@ -456,6 +497,7 @@ A workspace context that persists across agent interactions. Contains project st
 - [ ] Token usage analytics dashboard
 
 ### 7.13 User & Team
+
 - [ ] User registration/login (Clerk)
 - [ ] Social login (Google, GitHub)
 - [ ] Team workspaces
@@ -465,6 +507,7 @@ A workspace context that persists across agent interactions. Contains project st
 - [ ] API key management (encrypted at rest)
 
 ### 7.14 Governed Self-Improvement
+
 - [ ] Template quality tracking (which templates produce best results)
 - [ ] Task decomposition improvement (learn from past projects)
 - [ ] Retry logic optimization (adjust strategies based on failure patterns)
@@ -475,6 +518,7 @@ A workspace context that persists across agent interactions. Contains project st
 - [ ] Human review of self-improvement suggestions
 
 ### 7.15 Integrations (Later Phases)
+
 - [ ] GitHub / GitLab integration
 - [ ] Slack notifications
 - [ ] VS Code extension
@@ -825,6 +869,7 @@ fallback_model: "gpt-4o-mini" # if primary fails
   - Token counting and cost calculation
   - Streaming support
 - [ ] Build **Agent Base Class**:
+
   ```python
   class BaseAgent:
       agent_type: str
@@ -839,6 +884,7 @@ fallback_model: "gpt-4o-mini" # if primary fails
       def validate_input(self, input: dict) -> bool
       def validate_output(self, output: dict) -> bool
   ```
+
 - [ ] Build **Planner Agent**:
   - Input: project description (natural language)
   - Output: PRD (markdown), architecture doc, task list with dependencies

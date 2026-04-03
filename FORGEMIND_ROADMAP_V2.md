@@ -1,5 +1,7 @@
 # ForgeMind — Complete Project Roadmap v2
 
+> ⚠️ **LEGACY** — This file is the expanded v2 roadmap. It has been superseded by [FORGEMIND_ROADMAP_V3.md](FORGEMIND_ROADMAP_V3.md), which is the active source of truth covering FM-071 through FM-090.
+
 > **A Secure Autonomous Engineering Platform that turns high-level goals into complete, connected, verifiable software systems — with architecture generation, connector intelligence, local workspace access, approval-based execution, and long-term project drift awareness.**
 
 ForgeMind is **not** just another multi-agent coding tool. It is a **goal-to-system synthesis platform** — it understands what to build, what to connect, how to secure it, how to verify it, and how to keep it aligned over time.

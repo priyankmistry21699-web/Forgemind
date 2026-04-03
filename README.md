@@ -1416,7 +1416,7 @@ make test
 
 ## 📊 Milestone Progress
 
-### Completed: 13 Milestones — 70 Tasks ✅
+### Completed: 21 Milestones — 90 Tasks ✅
 
 | #   | Milestone                                      | Tasks                      | Status      |
 | --- | ---------------------------------------------- | -------------------------- | ----------- |
@@ -1433,6 +1433,14 @@ make test
 | 11  | **Team Collaboration & Real-Time**             | FM-051 → FM-059            | ✅ Complete |
 | 12  | **Collaboration Hardening & Code Foundations** | FM-060 → FM-069            | ✅ Complete |
 | 13  | **Code Ops Enhancements**                      | FM-061 → FM-070 (enhanced) | ✅ Complete |
+| 14  | **Advanced Frontend Parity I**                 | FM-071                     | ✅ Complete |
+| 15  | **Advanced Frontend Parity II**                | FM-072                     | ✅ Complete |
+| 16  | **Platform Admin Frontend Parity**             | FM-073                     | ✅ Complete |
+| 17  | **Auth & RBAC Hardening**                      | FM-074 → FM-075            | ✅ Complete |
+| 18  | **CI/CD & Automation**                         | FM-076                     | ✅ Complete |
+| 19  | **Real-Time & Observability**                  | FM-077 → FM-078            | ✅ Complete |
+| 20  | **Platform Maturity**                          | FM-079 → FM-080            | ✅ Complete |
+| 21  | **Architecture Intelligence**                  | FM-081 → FM-090            | ✅ Complete |
 
 <details>
 <summary><strong>Milestone 1 — Platform Foundation</strong></summary>
@@ -1582,6 +1590,66 @@ make test
 - FM-070: Database migration — 0020 workspace FK + 0021 code ops column enhancements, 5 new enum types
 </details>
 
+<details>
+<summary><strong>Milestone 14 — Advanced Frontend Parity I</strong></summary>
+
+- FM-071: Frontend pages for Trust, Replay, Council, Governance — 4 dashboard pages, 4 lib clients, 4 type files, sidebar nav updates
+</details>
+
+<details>
+<summary><strong>Milestone 15 — Advanced Frontend Parity II</strong></summary>
+
+- FM-072: Frontend pages for Costs, Audit, Knowledge, Credential Vault — 4 dashboard pages, 4 lib clients, 4 type files
+</details>
+
+<details>
+<summary><strong>Milestone 16 — Platform Admin Frontend Parity</strong></summary>
+
+- FM-073: Frontend pages for Connectors, Agents, Settings — 3 dashboard pages, 2 lib clients, 2 type files, sidebar links enabled
+</details>
+
+<details>
+<summary><strong>Milestone 17 — Auth & RBAC Hardening</strong></summary>
+
+- FM-074: Real authentication integration — production JWT auth, real login/logout, token verification
+- FM-075: Route-level RBAC enforcement — auth on all 164 non-public endpoints, permission matrix, consistent error semantics
+</details>
+
+<details>
+<summary><strong>Milestone 18 — CI/CD & Automation</strong></summary>
+
+- FM-076: CI/CD pipeline and quality gates — GitHub Actions: Python lint, pytest, TS typecheck, ESLint, build verification
+</details>
+
+<details>
+<summary><strong>Milestone 19 — Real-Time & Observability</strong></summary>
+
+- FM-077: Real-time UX integration — SSE consumption, live run updates, reconnect handling
+- FM-078: Observability and runtime instrumentation — Prometheus metrics endpoint, request latency/error counters, worker metrics
+</details>
+
+<details>
+<summary><strong>Milestone 20 — Platform Maturity</strong></summary>
+
+- FM-079: Monorepo package extraction — 4 real packages: @forgemind/types, forgemind-utils, forgemind-security, forgemind-core
+- FM-080: Production deployment foundation — multi-stage Docker builds, prod compose, nginx, deployment README
+</details>
+
+<details>
+<summary><strong>Milestone 21 — Architecture Intelligence</strong></summary>
+
+- FM-081: Architecture graph foundation — 7 models, 9 enums, 28 schemas, 12 CRUD endpoints, migration 0022
+- FM-082: Topology mapping service — filesystem scanner, Python/TS import parsing, layer classification
+- FM-083: Drift detection engine — snapshot comparison, convention drift, resolve/ignore workflow
+- FM-084: Architecture rule engine — 5 rule categories, evaluators, pass/fail results
+- FM-085: Architecture dashboard frontend — dashboard page, 12-function API client, TypeScript types, sidebar nav
+- FM-086: Design doc synthesis — Markdown generation from graph, drift, and rule data
+- FM-087: Change impact analysis — BFS blast-radius computation, severity escalation
+- FM-088: Refactor recommendations — god-module, circular dep, isolated node detection
+- FM-089: Architecture approval workflow — auto-approval for HIGH/CRITICAL impacts
+- FM-090: Structural health score — composite 0–100 score with letter grade
+</details>
+
 ---
 
 ## 🧩 Technical Decisions
@@ -1605,7 +1673,7 @@ make test
 
 **Built with ❤️ by [Priyank Mistry](https://github.com/priyankmistry21699-web)**
 
-_ForgeMind v1.0.0 — 70 tasks completed across 13 milestones · 303 tests passing_
+_ForgeMind v1.0.0 — 90 tasks completed across 21 milestones · 482 tests passing_
 
 </div>
 

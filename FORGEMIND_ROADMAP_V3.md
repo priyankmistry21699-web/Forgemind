@@ -1,16 +1,19 @@
-# ForgeMind — Roadmap V3: FM-071 to FM-080
+# ForgeMind — Roadmap V3: FM-071 to FM-090
 
-> **Status**: PROPOSED — Official next milestone block after FM-070 completion  
+> **Status**: COMPLETE — All 20 milestones (FM-071 to FM-090) implemented  
 > **Created**: 2026-04-02  
-> **Theme**: Productization, Frontend Parity, Auth Hardening, CI/CD, Observability, Production Readiness
+> **Updated**: 2026-04-03  
+> **Themes**: Productization, Frontend Parity, Auth Hardening, CI/CD, Observability, Production Readiness, Architecture Intelligence
 
 ---
 
 ## Context
 
-ForgeMind has completed all currently defined milestones through **FM-070** (74 tasks including sub-variants).
+ForgeMind has completed all currently defined milestones through **FM-090** (90 tasks including sub-variants, 482 tests passing).
 
-The biggest gaps identified after FM-070:
+FM-071–FM-080 addressed productization gaps identified after FM-070. FM-081–FM-090 added the **Architecture Intelligence** subsystem — a graph-based architecture analysis, drift detection, rule enforcement, and structural health scoring layer.
+
+### Gaps closed by FM-071–080 (after FM-070):
 
 - **11 missing frontend pages** for advanced backend subsystems (trust, replay, council, governance, costs, audit, knowledge, vault, connectors, agents, settings)
 - **Auth is stub/dev-mode** — not production-grade
@@ -52,6 +55,21 @@ By the end of FM-080, ForgeMind should be:
 | FM-079 | Monorepo Package Extraction               | P1       | shared packages / boundaries          | 3    |
 | FM-080 | Production Deployment Foundation          | P1       | deployability / envs / ops baseline   | 3    |
 
+### FM-081–FM-090 — Architecture Intelligence (Wave 4)
+
+| FM     | Title                           | Priority | Theme                                   | Wave |
+| ------ | ------------------------------- | -------- | --------------------------------------- | ---- |
+| FM-081 | Architecture Graph Foundation   | P0       | graph model / CRUD / snapshots          | 4    |
+| FM-082 | Topology Mapping Service        | P0       | filesystem scan / import parsing        | 4    |
+| FM-083 | Drift Detection Engine          | P0       | snapshot diff / convention drift        | 4    |
+| FM-084 | Architecture Rule Engine        | P0       | rule definition / evaluation / results  | 4    |
+| FM-085 | Architecture Dashboard Frontend | P0       | dashboard page / API client / sidebar   | 4    |
+| FM-086 | Design Doc Synthesis            | P1       | Markdown doc generation from graph      | 4    |
+| FM-087 | Change Impact Analysis          | P1       | BFS traversal / blast radius / severity | 4    |
+| FM-088 | Refactor Recommendations        | P1       | god-modules / circular deps / isolation | 4    |
+| FM-089 | Architecture Approval Workflow  | P1       | auto-approval for high-severity impacts | 4    |
+| FM-090 | Structural Health Score         | P1       | composite 0–100 health metric           | 4    |
+
 ---
 
 ## Implementation Waves
@@ -67,6 +85,10 @@ Makes the platform secure and automatable. Real auth → RBAC enforcement → CI
 ### Wave 3 — Maturity (FM-077, FM-078, FM-079, FM-080)
 
 Makes the product feel live, observable, and production-ready.
+
+### Wave 4 — Architecture Intelligence (FM-081–FM-090)
+
+Adds a graph-based architecture analysis subsystem: model the codebase as nodes and edges, detect drift, enforce architectural rules, score structural health, and generate design documentation and refactor recommendations.
 
 ---
 
@@ -577,20 +599,298 @@ Extract reusable code from apps into at least 2–4 real packages:
 
 ---
 
+## FM-081 — Architecture Graph Foundation
+
+**Title**: Core data model and CRUD for architecture nodes, edges, and snapshots  
+**Priority**: P0  
+**Depends on**: None
+
+### Scope
+
+- `ArchitectureNode` model with 12 node types (service, module, route, model, schema, middleware, utility, config, test, migration, component, page), key, name, path, language, metadata, source_type, status
+- `ArchitectureEdge` model with 10 edge types (imports, calls, depends_on, extends, implements, composes, routes_to, reads_from, writes_to, configures), confidence score, from/to node FKs
+- `ArchitectureSnapshot` model for point-in-time graph captures (name, source, summary, node/edge counts, snapshot_data JSON)
+- Full CRUD: create/get/list/update/delete nodes; create/list/delete edges
+- `get_full_graph()` — returns all nodes + edges for a project
+- `get_neighbors()` — returns nodes adjacent to a given node
+- Migration 0022 with 7 tables and 11 DB enum types
+
+### Files Created
+
+- `apps/api/app/models/architecture.py` — 7 SQLAlchemy models, 9 enums
+- `apps/api/app/schemas/architecture.py` — 28 Pydantic schemas
+- `apps/api/app/services/architecture_service.py` — graph CRUD service
+- `apps/api/app/api/routes/architecture.py` — 27 route endpoints
+- `apps/api/alembic/versions/2026_04_03_0022_add_architecture_tables.py`
+- `apps/api/app/db/base.py` — updated with 7 model imports
+
+### Endpoints (12)
+
+- `POST /projects/{pid}/architecture/nodes` — create node
+- `GET /projects/{pid}/architecture/nodes` — list nodes
+- `GET /projects/{pid}/architecture/nodes/{nid}` — get node
+- `PATCH /projects/{pid}/architecture/nodes/{nid}` — update node
+- `DELETE /projects/{pid}/architecture/nodes/{nid}` — delete node
+- `POST /projects/{pid}/architecture/edges` — create edge
+- `GET /projects/{pid}/architecture/edges` — list edges
+- `DELETE /projects/{pid}/architecture/edges/{eid}` — delete edge
+- `GET /projects/{pid}/architecture/graph` — full graph
+- `GET /projects/{pid}/architecture/nodes/{nid}/neighbors` — neighbors
+- `POST /projects/{pid}/architecture/snapshots` — create snapshot
+- `GET /projects/{pid}/architecture/snapshots` — list snapshots
+
+---
+
+## FM-082 — Topology Mapping Service
+
+**Title**: Filesystem scanner that infers architecture nodes and edges from source code  
+**Priority**: P0  
+**Depends on**: FM-081
+
+### Scope
+
+- `parse_python_imports()` — extract imports from Python source files
+- `parse_typescript_imports()` — extract imports from TypeScript/JavaScript source files
+- `classify_layer()` — assign files to architectural layers (route, service, model, schema, middleware, utility, config, test, migration, component, page)
+- `detect_language()` — identify file language from extension
+- `scan_directory_structure()` — walk a filesystem path and discover source files
+- `compute_topology_summary()` — aggregate scan results into counts and layer breakdown
+- `map_topology()` — full pipeline: scan → parse → classify → persist nodes + edges
+
+### Files Created
+
+- `apps/api/app/services/topology_mapper_service.py`
+
+### Endpoints (1)
+
+- `POST /projects/{pid}/architecture/topology/map` — trigger topology scan
+
+---
+
+## FM-083 — Drift Detection Engine
+
+**Title**: Compare current architecture graph against snapshots or conventions  
+**Priority**: P0  
+**Depends on**: FM-081
+
+### Scope
+
+- `ArchitectureDrift` model with severity (info/warning/error/critical), status (open/resolved/ignored), drift_type, source_snapshot reference
+- `detect_drift()` — compare current graph vs. snapshot or run convention checks (cross-layer imports, undocumented components, new/removed nodes)
+- `_compare_with_snapshot()` — diff current node/edge sets against a saved snapshot
+- `_detect_convention_drift()` — detect cross-layer violations and undocumented components
+- `list_drifts()` — retrieve drift records filtered by status/severity
+- `resolve_drift()` / `ignore_drift()` — update drift status
+
+### Files Created
+
+- `apps/api/app/services/drift_detection_service.py`
+
+### Endpoints (4)
+
+- `POST /projects/{pid}/architecture/drift/detect` — trigger drift detection
+- `GET /projects/{pid}/architecture/drift` — list drifts
+- `POST /projects/{pid}/architecture/drift/{did}/resolve` — resolve drift
+- `POST /projects/{pid}/architecture/drift/{did}/ignore` — ignore drift
+
+---
+
+## FM-084 — Architecture Rule Engine
+
+**Title**: Define architectural rules and evaluate them against the graph  
+**Priority**: P0  
+**Depends on**: FM-081
+
+### Scope
+
+- `ArchitectureRule` model with 5 categories (import_rule, layer_rule, dependency_rule, ownership_rule, boundary_rule), rule_config JSON, severity, enabled flag
+- `ArchitectureRuleResult` model recording evaluation outcomes (pass/fail, message, violating node/edge IDs)
+- `create_rule()` / `list_rules()` — rule CRUD
+- `evaluate_rule()` — run a rule against the current graph
+- Category-specific evaluators: `_evaluate_import_rule()`, `_evaluate_layer_rule()`, `_evaluate_dependency_rule()`, `_evaluate_ownership_rule()`
+
+### Files Created
+
+- `apps/api/app/services/architecture_rule_service.py`
+
+### Endpoints (4)
+
+- `POST /projects/{pid}/architecture/rules` — create rule
+- `GET /projects/{pid}/architecture/rules` — list rules
+- `POST /projects/{pid}/architecture/rules/{rid}/evaluate` — evaluate rule
+- `GET /projects/{pid}/architecture/rule-results` — list results
+
+---
+
+## FM-085 — Architecture Dashboard Frontend
+
+**Title**: Dashboard page, API client, TypeScript types, and sidebar navigation for architecture intelligence  
+**Priority**: P0  
+**Depends on**: FM-081–084
+
+### Scope
+
+- **Dashboard page** (`/dashboard/architecture`) — displays graph stats, drift summary, rule results, recommendations, and structural health score with stat cards and severity badges
+- **API client** (`apps/web/lib/architecture.ts`) — 12 functions: fetchArchitectureGraph, fetchArchitectureNodes, fetchArchitectureEdges, fetchArchitectureSnapshots, mapTopology, detectDrift, fetchDrifts, fetchArchitectureRules, fetchRuleResults, generateDesignDoc, analyseImpact, fetchRecommendations, fetchHealthScore
+- **TypeScript types** — packages/schemas/src/architecture.ts (19 interfaces + 8 type unions), apps/web/types/architecture.ts (re-exports)
+- **Sidebar navigation** — "Architecture" link in sidebar pointing to `/dashboard/architecture`
+
+### Files Created
+
+- `apps/web/app/dashboard/architecture/page.tsx`
+- `apps/web/lib/architecture.ts`
+- `apps/web/types/architecture.ts`
+- `packages/schemas/src/architecture.ts`
+
+---
+
+## FM-086 — Design Doc Synthesis
+
+**Title**: Generate Markdown architecture documents from graph data  
+**Priority**: P1  
+**Depends on**: FM-081
+
+### Scope
+
+- `generate_design_doc()` — query project's architecture graph + drift + rule results and produce a structured Markdown design summary
+- Includes: node inventory, layer breakdown, edge statistics, drift summary, rule violation highlights
+- Returns `DesignDocRead` schema with title, content, generated_at
+
+### Files Created
+
+- `apps/api/app/services/design_doc_service.py`
+
+### Endpoints (1)
+
+- `POST /projects/{pid}/architecture/design-doc` — generate design doc
+
+---
+
+## FM-087 — Change Impact Analysis
+
+**Title**: BFS-based reverse traversal to compute blast radius for proposed changes  
+**Priority**: P1  
+**Depends on**: FM-081
+
+### Scope
+
+- `ChangeImpactAssessment` model with target_node/path/key, severity (none/low/medium/high/critical), blast_radius count, impacted_nodes/services lists, rationale, confidence_score
+- `analyse_impact()` — BFS reverse traversal from target node through incoming edges; counts impacted nodes; escalates severity at thresholds (≥10 deps → HIGH, ≥20 → CRITICAL)
+- Stores assessment in DB and returns result
+
+### Files Created
+
+- `apps/api/app/services/impact_analysis_service.py`
+
+### Endpoints (1)
+
+- `POST /projects/{pid}/architecture/impact-analysis` — analyze impact
+
+---
+
+## FM-088 — Refactor Recommendations
+
+**Title**: Analyze architecture graph for structural issues and suggest refactoring  
+**Priority**: P1  
+**Depends on**: FM-081, FM-083, FM-084
+
+### Scope
+
+- `generate_recommendations()` — analyze graph for:
+  - **God modules** — nodes with excessive fan-in (many incoming edges)
+  - **Circular dependencies** — cycles detected via edge traversal
+  - **Isolated nodes** — nodes with no edges (disconnected components)
+  - **Drift backlogs** — open drifts that haven't been resolved
+  - **Rule violation backlogs** — accumulated failed rule evaluations
+- Returns `RefactorRecommendationList` with type, title, description, severity, affected nodes
+
+### Files Created
+
+- `apps/api/app/services/refactor_recommendation_service.py`
+
+### Endpoints (1)
+
+- `GET /projects/{pid}/architecture/recommendations` — get recommendations
+
+---
+
+## FM-089 — Architecture Approval Workflow
+
+**Title**: Auto-create approval requests when change impact severity is HIGH or CRITICAL  
+**Priority**: P1  
+**Depends on**: FM-087
+
+### Scope
+
+- `maybe_create_approval()` — checks a `ChangeImpactAssessment`'s severity; if HIGH or CRITICAL, auto-creates an `ApprovalRequest` with architecture context
+- `list_architecture_approvals()` — retrieve approval requests whose titles contain "Architecture" or "Impact"
+- Integrates with existing approval_service for the actual approval workflow
+
+### Files Created
+
+- `apps/api/app/services/architecture_approval_service.py`
+
+### Endpoints (2)
+
+- `POST /projects/{pid}/architecture/approvals` — request approval (auto-creates if severity warrants)
+- `GET /projects/{pid}/architecture/approvals` — list architecture approvals
+
+---
+
+## FM-090 — Structural Health Score
+
+**Title**: Composite 0–100 score aggregating architecture quality indicators  
+**Priority**: P1  
+**Depends on**: FM-081, FM-083, FM-084
+
+### Scope
+
+- `compute_health_score()` — calculates a weighted score from:
+  - **Coverage** — % of nodes documented/classified
+  - **Drift penalty** — deductions for open drifts (weighted by severity)
+  - **Rule compliance** — % of rule evaluations that pass
+  - **Isolation ratio** — proportion of disconnected nodes
+- Returns `StructuralHealthScore` with overall score, letter grade, and `HealthScoreDetails` breakdown
+
+### Files Created
+
+- `apps/api/app/services/structural_health_service.py`
+
+### Endpoints (1)
+
+- `GET /projects/{pid}/architecture/health-score` — get health score
+
+---
+
 ## FM Tracker
 
-| FM     | Title                                     | Status         |
-| ------ | ----------------------------------------- | -------------- |
-| FM-071 | Advanced Frontend Parity I                | ✅ Complete    |
-| FM-072 | Advanced Frontend Parity II               | ✅ Complete    |
-| FM-073 | Platform Admin Frontend Parity            | ✅ Complete    |
-| FM-074 | Real Authentication Integration           | ✅ Complete    |
-| FM-075 | Route-Level RBAC Enforcement Hardening    | ✅ Complete    |
-| FM-076 | CI/CD Pipeline and Quality Gates          | ✅ Complete    |
-| FM-077 | Real-Time UX Integration                  | ✅ Complete    |
-| FM-078 | Observability and Runtime Instrumentation | ✅ Complete    |
-| FM-079 | Monorepo Package Extraction               | ✅ Complete    |
-| FM-080 | Production Deployment Foundation          | ✅ Complete    |
+| FM     | Title                                     | Status      |
+| ------ | ----------------------------------------- | ----------- |
+| FM-071 | Advanced Frontend Parity I                | ✅ Complete |
+| FM-072 | Advanced Frontend Parity II               | ✅ Complete |
+| FM-073 | Platform Admin Frontend Parity            | ✅ Complete |
+| FM-074 | Real Authentication Integration           | ✅ Complete |
+| FM-075 | Route-Level RBAC Enforcement Hardening    | ✅ Complete |
+| FM-076 | CI/CD Pipeline and Quality Gates          | ✅ Complete |
+| FM-077 | Real-Time UX Integration                  | ✅ Complete |
+| FM-078 | Observability and Runtime Instrumentation | ✅ Complete |
+| FM-079 | Monorepo Package Extraction               | ✅ Complete |
+| FM-080 | Production Deployment Foundation          | ✅ Complete |
+
+### Architecture Intelligence (FM-081–FM-090)
+
+| FM     | Title                           | Status      |
+| ------ | ------------------------------- | ----------- |
+| FM-081 | Architecture Graph Foundation   | ✅ Complete |
+| FM-082 | Topology Mapping Service        | ✅ Complete |
+| FM-083 | Drift Detection Engine          | ✅ Complete |
+| FM-084 | Architecture Rule Engine        | ✅ Complete |
+| FM-085 | Architecture Dashboard Frontend | ✅ Complete |
+| FM-086 | Design Doc Synthesis            | ✅ Complete |
+| FM-087 | Change Impact Analysis          | ✅ Complete |
+| FM-088 | Refactor Recommendations        | ✅ Complete |
+| FM-089 | Architecture Approval Workflow  | ✅ Complete |
+| FM-090 | Structural Health Score         | ✅ Complete |
 
 ---
 
@@ -613,4 +913,14 @@ FM-080 (production) — benefits from FM-076 + FM-078
 
 ## Success Condition
 
-By the end of FM-080, ForgeMind becomes significantly more usable end-to-end, more secure, and much closer to production-grade operation.
+By the end of FM-090, ForgeMind is a fully navigable, production-hardened AI execution platform with:
+
+- Complete frontend parity across all backend subsystems
+- Real authentication and enforced RBAC
+- CI/CD and automated quality gates
+- Runtime observability with metrics and tracing
+- Shared monorepo packages with real code
+- Production deployment foundation
+- **Architecture intelligence** — graph-based structural analysis, drift detection, rule enforcement, impact analysis, refactor recommendations, and a composite structural health score
+
+**All 90 tasks are complete. 482 tests passing.**

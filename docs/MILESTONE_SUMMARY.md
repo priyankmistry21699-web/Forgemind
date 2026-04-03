@@ -1,14 +1,14 @@
 # ForgeMind — Milestone Summary
 
-> Last updated: 2026-03-31 (after FM-070 — code operations enhancements complete)
+> Last updated: 2026-04-03 (after FM-090 — architecture intelligence complete)
 
 ---
 
 ## Current State
 
-**ForgeMind is an operator-centered AI execution platform with adaptive multi-agent orchestration, governance, cost tracking, trust scoring, execution replay, council decision-making, cross-run knowledge, external repo integration, production hardening, team collaboration, real-time streaming, code operations, and a repo-aware code-change-capable execution engine with file exploration, sync metadata, artifact-to-code mapping, enhanced patch proposals, annotation-based reviews, branch strategy management, PR draft generation, approval gates, and sandboxed code execution.**
+**ForgeMind is an operator-centered AI execution platform with adaptive multi-agent orchestration, governance, cost tracking, trust scoring, execution replay, council decision-making, cross-run knowledge, external repo integration, production hardening, team collaboration, real-time streaming, code operations, a repo-aware code-change-capable execution engine, full frontend parity, real authentication with RBAC enforcement, CI/CD pipeline, observability, production deployment foundation, shared monorepo packages, and an architecture intelligence subsystem with graph-based structural analysis, topology mapping, drift detection, rule enforcement, design doc synthesis, change impact analysis, refactor recommendations, architecture approval workflow, and structural health scoring.**
 
-It can plan software projects, execute tasks via specialized agents with capability-based composition, surface execution artifacts, require human approval for critical steps, and adapt execution based on failures and feedback. The system has an execution memory layer for rich contextual reasoning, auto-retry with agent re-routing, connector-aware orchestration, credential vault management, configurable governance policies, LLM cost tracking, audit export, heuristic trust/risk scoring, deterministic execution replay, multi-agent council decisions, project-level knowledge bases, external repository connections, production-grade security middleware, workspace-based multi-tenancy with RBAC memberships, notification engine with delivery configs, escalation rules, activity feeds with user presence, and a full code operations pipeline (patch proposals, change reviews, branch strategies, PR drafts, repo action approvals, and sandbox execution).
+It can plan software projects, execute tasks via specialized agents with capability-based composition, surface execution artifacts, require human approval for critical steps, and adapt execution based on failures and feedback. The system has an execution memory layer for rich contextual reasoning, auto-retry with agent re-routing, connector-aware orchestration, credential vault management, configurable governance policies, LLM cost tracking, audit export, heuristic trust/risk scoring, deterministic execution replay, multi-agent council decisions, project-level knowledge bases, external repository connections, production-grade security middleware, workspace-based multi-tenancy with RBAC memberships, notification engine with delivery configs, escalation rules, activity feeds with user presence, a full code operations pipeline (patch proposals, change reviews, branch strategies, PR drafts, repo action approvals, and sandbox execution), full frontend parity across all backend subsystems, real JWT authentication with RBAC enforcement, CI/CD with GitHub Actions, observability with metrics and tracing, shared monorepo packages, a production deployment foundation, and an architecture intelligence layer that models codebases as directed graphs, detects architectural drift, enforces rules, analyzes change impact, generates design docs and refactor recommendations, and computes structural health scores.
 
 ---
 
@@ -86,24 +86,32 @@ It can plan software projects, execute tasks via specialized agents with capabil
 
 ## Completed Milestones
 
-| Milestone                                    | Tasks                       | Focus                                                                   |
-| -------------------------------------------- | --------------------------- | ----------------------------------------------------------------------- |
-| **1 — Platform Foundation**                  | FM-001 to FM-005            | Monorepo, FastAPI, Next.js, Docker, DB setup                            |
-| **2 — Backend Core**                         | FM-006 to FM-011 (+FM-010A) | Models, migrations, CRUD, task DAG, orchestration                       |
-| **3 — Frontend MVP**                         | FM-012 to FM-015A           | Dashboard, forms, task display, validation                              |
-| **4 — AI Planning Intelligence**             | FM-016 to FM-020A           | Detail page, planner persistence, LiteLLM, real planning, quality gate  |
-| **5 — Execution Foundations**                | FM-021 to FM-025            | Artifacts, agent registry, execution service, worker, fixed agents      |
-| **6 — Controlled Execution & Observability** | FM-026 to FM-030            | Approval workflow, event log, run view, approval inbox, UX polish       |
-| **7 — Operator Control & Interaction**       | FM-031 to FM-035            | Artifact detail, retry/cancel, chatbot, handoff refinement, UX polish   |
-| **8 — Adaptive Multi-Agent Foundations**     | FM-036 to FM-040            | Composition, handoff, connectors, execution memory, adaptive loop       |
-| **9 — Connector & Retry Intelligence**       | FM-041 to FM-045            | Connector readiness, credential vault, retry v2, chatbot v2, eval suite |
-| **Pre-release Infrastructure**               | (5 features)                | Run lifecycle, cost tracking, governance, audit export, trust scoring   |
-| **10 — Platform Intelligence & Hardening**   | FM-046 to FM-050            | Replay, council, knowledge, repos, production hardening                |
-| **11 — Team Collaboration & Real-Time**      | FM-051 to FM-060            | Workspaces, RBAC, notifications, streaming, escalation, activity, hardening |
-| **12 — Repository & Code Execution**         | FM-061 to FM-069            | Code mapping, patches, reviews, branches, PRs, sandbox execution       |
-| **13 — Code Ops Enhancements**               | FM-061 to FM-070 (enhanced) | Sync metadata, file explorer, artifact mapping, enhanced patches/reviews, branch strategy, PR draft gen, approval gates, sandbox runner, frontend pages |
+| Milestone                                    | Tasks                       | Focus                                                                                                                                                          |
+| -------------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1 — Platform Foundation**                  | FM-001 to FM-005            | Monorepo, FastAPI, Next.js, Docker, DB setup                                                                                                                   |
+| **2 — Backend Core**                         | FM-006 to FM-011 (+FM-010A) | Models, migrations, CRUD, task DAG, orchestration                                                                                                              |
+| **3 — Frontend MVP**                         | FM-012 to FM-015A           | Dashboard, forms, task display, validation                                                                                                                     |
+| **4 — AI Planning Intelligence**             | FM-016 to FM-020A           | Detail page, planner persistence, LiteLLM, real planning, quality gate                                                                                         |
+| **5 — Execution Foundations**                | FM-021 to FM-025            | Artifacts, agent registry, execution service, worker, fixed agents                                                                                             |
+| **6 — Controlled Execution & Observability** | FM-026 to FM-030            | Approval workflow, event log, run view, approval inbox, UX polish                                                                                              |
+| **7 — Operator Control & Interaction**       | FM-031 to FM-035            | Artifact detail, retry/cancel, chatbot, handoff refinement, UX polish                                                                                          |
+| **8 — Adaptive Multi-Agent Foundations**     | FM-036 to FM-040            | Composition, handoff, connectors, execution memory, adaptive loop                                                                                              |
+| **9 — Connector & Retry Intelligence**       | FM-041 to FM-045            | Connector readiness, credential vault, retry v2, chatbot v2, eval suite                                                                                        |
+| **Pre-release Infrastructure**               | (5 features)                | Run lifecycle, cost tracking, governance, audit export, trust scoring                                                                                          |
+| **10 — Platform Intelligence & Hardening**   | FM-046 to FM-050            | Replay, council, knowledge, repos, production hardening                                                                                                        |
+| **11 — Team Collaboration & Real-Time**      | FM-051 to FM-060            | Workspaces, RBAC, notifications, streaming, escalation, activity, hardening                                                                                    |
+| **12 — Repository & Code Execution**         | FM-061 to FM-069            | Code mapping, patches, reviews, branches, PRs, sandbox execution                                                                                               |
+| **13 — Code Ops Enhancements**               | FM-061 to FM-070 (enhanced) | Sync metadata, file explorer, artifact mapping, enhanced patches/reviews, branch strategy, PR draft gen, approval gates, sandbox runner, frontend pages        |
+| **14 — Advanced Frontend Parity I**          | FM-071                      | Frontend pages for Trust, Replay, Council, Governance                                                                                                          |
+| **15 — Advanced Frontend Parity II**         | FM-072                      | Frontend pages for Costs, Audit, Knowledge, Credential Vault                                                                                                   |
+| **16 — Platform Admin Frontend Parity**      | FM-073                      | Frontend pages for Connectors, Agents, Settings                                                                                                                |
+| **17 — Auth & RBAC Hardening**               | FM-074 to FM-075            | Real authentication, route-level RBAC enforcement                                                                                                              |
+| **18 — CI/CD & Automation**                  | FM-076                      | GitHub Actions CI pipeline with lint, test, typecheck, build                                                                                                   |
+| **19 — Real-Time & Observability**           | FM-077 to FM-078            | SSE consumption, live updates, metrics endpoint, tracing                                                                                                       |
+| **20 — Platform Maturity**                   | FM-079 to FM-080            | Monorepo package extraction, production deployment foundation                                                                                                  |
+| **21 — Architecture Intelligence**           | FM-081 to FM-090            | Architecture graph, topology mapping, drift detection, rule engine, dashboard, design docs, impact analysis, refactor recommendations, approvals, health score |
 
-**Total tasks completed: 70** (FM-001 through FM-070 including FM-010A, FM-015A, FM-020A, plus 5 pre-release infrastructure features)
+**Total tasks completed: 90** (FM-001 through FM-090 including FM-010A, FM-015A, FM-020A, plus 5 pre-release infrastructure features)
 
 ---
 
@@ -304,42 +312,51 @@ ForgeMind now adds:
 ForgeMind transforms from a collaborative AI operations platform into a **repo-aware, code-change-capable execution platform**:
 
 ### FM-061: Repo Sync Metadata
+
 - SyncStatus enum (IDLE, SYNCING, SUCCESS, FAILED) + 10 new columns on RepoConnection
 - `refresh_sync_metadata()` and `get_sync_status()` service methods
 - `GET /repos/{id}/sync-status` and `POST /repos/{id}/refresh-sync` endpoints
 
 ### FM-062: File Tree Explorer
+
 - `get_file_tree()` with directory browsing, `get_file_content()` with size limits (1MB), `get_file_metadata()`, `build_context_snippet()`
-- Path traversal protection, MAX_TREE_ENTRIES (500), language detection via _LANG_MAP
+- Path traversal protection, MAX_TREE_ENTRIES (500), language detection via \_LANG_MAP
 - `GET /repos/{id}/tree`, `GET /repos/{id}/file`, `GET /repos/{id}/file-meta` endpoints
 - Frontend: Code Explorer page with split-panel tree browser and file viewer
 
 ### FM-063: Code Artifact Mapping
+
 - ChangeType enum (CREATE, MODIFY, DELETE, CONCEPTUAL)
 - 5 new columns on Artifact: repo_connection_id (FK), target_path, target_module, change_type, target_metadata
 
 ### FM-064: Patch Proposal Engine
+
 - PatchFormat enum (UNIFIED, SIDE_BY_SIDE, RAW), ReadinessState enum (INCOMPLETE, NEEDS_REVIEW, READY, BLOCKED)
 - 5 new columns on PatchProposal: target_files, patch_format, proposed_by_agent, readiness_state, linked_artifact_ids
 
 ### FM-065: Change Review Workspace
+
 - 4 new columns on ChangeReview: file_path, line_start, line_end, suggestion
 - Inline code annotation support for file-level review comments
 - Frontend: Review workspace page with diff viewer, file annotations, and suggestion rendering
 
 ### FM-066: Branch Strategy Manager
+
 - BranchMode enum (DIRECT, FEATURE_BRANCH, REVIEW_BRANCH)
 - branch_mode, target_branch_template, last_generated_branch on RepoConnection
 
 ### FM-067: PR Draft Generation
+
 - `generate_pr_draft()` service auto-builds PR title/body/checklist from patch proposals
 - `POST /projects/{id}/pr-drafts/generate` endpoint with PRDraftGenerateRequest schema
 
 ### FM-068: Repo Action Approval Gates
+
 - `check_approval_gate()` service queries latest approval status per action type
 - `GET /projects/{id}/repo-approvals/check` endpoint
 
 ### FM-069: Code Execution Sandbox
+
 - Command allowlist (python, pip, pytest, echo, cat, ls, etc.) with shell injection prevention
 - `_validate_command()` blocks dangerous patterns (&&, ||, ;, |, `, $()
 - `run_sandbox_execution()` with asyncio subprocess, timeout enforcement, output capture
@@ -347,6 +364,7 @@ ForgeMind transforms from a collaborative AI operations platform into a **repo-a
 - Frontend: Sandbox page with command runner, execution list, and output viewer
 
 ### FM-070: Code Ops Consolidation
+
 - Frontend pages: Code Explorer, Review Workspace, Sandbox Viewer
 - Documentation updates: ARCHITECTURE.md, MILESTONE_SUMMARY.md, TECHNICAL_DEBT.md
 - Handoff response documents for FM-061–FM-070
@@ -358,6 +376,110 @@ ForgeMind transforms from a collaborative AI operations platform into a **repo-a
 **Total test suite: 303 tests (all passing)**
 
 > **ForgeMind is now a repo-aware, code-change-capable AI execution platform with 70 features across 13 milestones.**
+
+---
+
+## Productization & Frontend Parity (post FM-073)
+
+ForgeMind now adds:
+
+1. **Advanced Frontend Parity I (FM-071)** — Dashboard pages for Trust (risk level badges, factor display), Replay (snapshot list, trace explorer, comparison view), Council (session list, vote breakdown, decision method display), and Governance (policy list, trigger/action filtering, enable/disable toggle)
+2. **Advanced Frontend Parity II (FM-072)** — Dashboard pages for Costs (run/project summaries, token breakdowns), Audit (summary view, JSON/CSV export, action filtering), Knowledge (project knowledge list, type filtering, relevance metadata), and Credential Vault (metadata-only display, connector binding, expiry/scope visibility)
+3. **Platform Admin Frontend Parity (FM-073)** — Dashboard pages for Connectors (catalog, readiness states, project linkage), Agents (registry, capabilities, status), and Settings (user preferences, notification config); all sidebar links enabled
+
+> **ForgeMind now has complete frontend parity — every backend subsystem is surfaced in the dashboard.**
+
+---
+
+## Auth & RBAC Hardening (post FM-075)
+
+ForgeMind now adds:
+
+1. **Real Authentication (FM-074)** — Production-grade JWT authentication replacing the dev stub; real login/logout flow; token verification against identity provider; user identity binding to backend user model; dev fallback only in explicit dev mode
+2. **Route-Level RBAC (FM-075)** — Auth required on all 164 non-public endpoints; workspace/project membership checks; admin-only action protection; consistent 401/403/404 error semantics; permission matrix tests
+
+> **ForgeMind now has production-grade authentication with enforced role-based access control.**
+
+---
+
+## CI/CD, Real-Time & Observability (post FM-078)
+
+ForgeMind now adds:
+
+1. **CI/CD Pipeline (FM-076)** — GitHub Actions workflow with Python lint (ruff), pytest, TypeScript typecheck, ESLint, and build verification; pushes and PRs trigger CI
+2. **Real-Time UX (FM-077)** — Frontend SSE consumption for live run updates, notification streaming, activity feed, and escalation alerts; reconnect and heartbeat handling
+3. **Observability (FM-078)** — Prometheus metrics endpoint, request latency/error counters, worker task execution metrics, sandbox telemetry, consistent request IDs
+
+> **ForgeMind now has automated quality gates, live frontend updates, and runtime observability.**
+
+---
+
+## Platform Maturity (post FM-080)
+
+ForgeMind now adds:
+
+1. **Monorepo Packages (FM-079)** — 4 real shared packages: @forgemind/types, forgemind-utils, forgemind-security, forgemind-core; extracted from app code for cleaner imports and reduced duplication
+2. **Production Deployment (FM-080)** — Multi-stage Docker builds, production Docker Compose with 6 services, nginx reverse proxy with TLS, deployment README, environment variable documentation, health endpoint guidance
+
+**Total test suite: 413 tests (all passing)**
+
+> **ForgeMind is now a production-deployable, CI-protected, observable AI execution platform with 80 features across 20 milestones.**
+
+---
+
+## Architecture Intelligence (post FM-090)
+
+ForgeMind now adds:
+
+1. **Architecture Graph Foundation (FM-081)** — ArchitectureNode (12 types), ArchitectureEdge (10 types), ArchitectureSnapshot models; full CRUD with graph queries, neighbor traversal; migration 0022 with 7 tables and 11 DB enum types
+2. **Topology Mapping Service (FM-082)** — Filesystem scanner that infers nodes/edges from Python/TypeScript source; import parsing, layer classification (route/service/model/schema/middleware/utility/config/test/migration/component/page), topology summary
+3. **Drift Detection Engine (FM-083)** — Compare current graph against snapshots or conventions; detect cross-layer imports, undocumented components, new/removed nodes; ArchitectureDrift model with severity (info/warning/error/critical) and resolve/ignore workflow
+4. **Architecture Rule Engine (FM-084)** — Define rules across 5 categories (import/layer/dependency/ownership/boundary); evaluate against graph; ArchitectureRule and ArchitectureRuleResult models with pass/fail tracking
+5. **Architecture Dashboard Frontend (FM-085)** — Full dashboard page at `/dashboard/architecture` with stat cards, drift summary, rule results, health score donut; 12-function API client; TypeScript types in packages/schemas; sidebar navigation link
+6. **Design Doc Synthesis (FM-086)** — Generate Markdown architecture summary from graph data, drift records, and rule violations; node inventory, layer breakdown, edge statistics
+7. **Change Impact Analysis (FM-087)** — BFS reverse traversal to compute blast radius; ChangeImpactAssessment model with severity escalation (≥10 deps → HIGH, ≥20 → CRITICAL); impacted nodes/services lists
+8. **Refactor Recommendations (FM-088)** — Detect god-modules (high fan-in), circular dependencies, isolated nodes, drift backlogs, rule violation backlogs; actionable recommendation list with severity
+9. **Architecture Approval Workflow (FM-089)** — Auto-create ApprovalRequest when impact severity is HIGH or CRITICAL; list architecture-related approvals; integrates with existing approval workflow
+10. **Structural Health Score (FM-090)** — Composite 0–100 score from coverage, drift penalty, rule compliance, and isolation ratio; letter grade; detailed breakdown via HealthScoreDetails
+
+**Database additions:** Migration 0022 (7 tables, 11 enum types)
+**New services:** architecture_service, topology_mapper_service, drift_detection_service, architecture_rule_service, design_doc_service, impact_analysis_service, refactor_recommendation_service, architecture_approval_service, structural_health_service
+**New route file:** architecture.py with 27 endpoints
+**Frontend additions:** 1 dashboard page, 1 API client (12 functions), TypeScript types (19 interfaces + 8 type unions)
+**Test additions:** ~69 architecture-specific tests
+**Total test suite: 482 tests (all passing)**
+
+> **ForgeMind is now a structurally self-aware AI execution platform with graph-based architecture intelligence, 90 features across 21 milestones.**
+
+## FM-071 to FM-080 — ✅ COMPLETE
+
+| ID     | Feature                                   | Status      |
+| ------ | ----------------------------------------- | ----------- |
+| FM-071 | Advanced Frontend Parity I                | ✅ Complete |
+| FM-072 | Advanced Frontend Parity II               | ✅ Complete |
+| FM-073 | Platform Admin Frontend Parity            | ✅ Complete |
+| FM-074 | Real Authentication Integration           | ✅ Complete |
+| FM-075 | Route-Level RBAC Enforcement Hardening    | ✅ Complete |
+| FM-076 | CI/CD Pipeline and Quality Gates          | ✅ Complete |
+| FM-077 | Real-Time UX Integration                  | ✅ Complete |
+| FM-078 | Observability and Runtime Instrumentation | ✅ Complete |
+| FM-079 | Monorepo Package Extraction               | ✅ Complete |
+| FM-080 | Production Deployment Foundation          | ✅ Complete |
+
+## FM-081 to FM-090 — ✅ COMPLETE
+
+| ID     | Feature                         | Status      |
+| ------ | ------------------------------- | ----------- |
+| FM-081 | Architecture Graph Foundation   | ✅ Complete |
+| FM-082 | Topology Mapping Service        | ✅ Complete |
+| FM-083 | Drift Detection Engine          | ✅ Complete |
+| FM-084 | Architecture Rule Engine        | ✅ Complete |
+| FM-085 | Architecture Dashboard Frontend | ✅ Complete |
+| FM-086 | Design Doc Synthesis            | ✅ Complete |
+| FM-087 | Change Impact Analysis          | ✅ Complete |
+| FM-088 | Refactor Recommendations        | ✅ Complete |
+| FM-089 | Architecture Approval Workflow  | ✅ Complete |
+| FM-090 | Structural Health Score         | ✅ Complete |
 
 ## FM-046 to FM-050 — ✅ COMPLETE
 
@@ -372,31 +494,31 @@ ForgeMind transforms from a collaborative AI operations platform into a **repo-a
 
 ## FM-051 to FM-059 — ✅ COMPLETE
 
-| ID      | Feature                              | Status      |
-| ------- | ------------------------------------ | ----------- |
-| FM-051  | Workspace Model & Multi-Tenant Shell | ✅ Complete |
-| FM-052  | Workspace Member Roles               | ✅ Complete |
-| FM-053  | Project-Level Member & Permissions   | ✅ Complete |
-| FM-054  | SSE Streaming Foundation             | ✅ Complete |
-| FM-055  | In-App Notification Engine           | ✅ Complete |
-| FM-056  | Notification Delivery Config         | ✅ Complete |
-| FM-057  | Escalation Rule Engine               | ✅ Complete |
-| FM-058  | Activity Feed & Audit Extension      | ✅ Complete |
-| FM-059  | User Presence Tracking               | ✅ Complete |
+| ID     | Feature                              | Status      |
+| ------ | ------------------------------------ | ----------- |
+| FM-051 | Workspace Model & Multi-Tenant Shell | ✅ Complete |
+| FM-052 | Workspace Member Roles               | ✅ Complete |
+| FM-053 | Project-Level Member & Permissions   | ✅ Complete |
+| FM-054 | SSE Streaming Foundation             | ✅ Complete |
+| FM-055 | In-App Notification Engine           | ✅ Complete |
+| FM-056 | Notification Delivery Config         | ✅ Complete |
+| FM-057 | Escalation Rule Engine               | ✅ Complete |
+| FM-058 | Activity Feed & Audit Extension      | ✅ Complete |
+| FM-059 | User Presence Tracking               | ✅ Complete |
 
 ## FM-061 to FM-069 — ✅ COMPLETE
 
-| ID      | Feature                              | Status      |
-| ------- | ------------------------------------ | ----------- |
-| FM-061  | Code Mapping Model                   | ✅ Complete |
-| FM-062  | Patch Proposal Model                 | ✅ Complete |
-| FM-063  | Change Review Workflow               | ✅ Complete |
-| FM-064  | Branch Strategy Configuration        | ✅ Complete |
-| FM-065  | PR Draft Composer                    | ✅ Complete |
-| FM-066  | Repo Action Approval Gate            | ✅ Complete |
-| FM-067  | Sandbox Execution Engine             | ✅ Complete |
-| FM-068  | Code Ops REST API                    | ✅ Complete |
-| FM-069  | Code Ops Integration Tests           | ✅ Complete |
+| ID     | Feature                       | Status      |
+| ------ | ----------------------------- | ----------- |
+| FM-061 | Code Mapping Model            | ✅ Complete |
+| FM-062 | Patch Proposal Model          | ✅ Complete |
+| FM-063 | Change Review Workflow        | ✅ Complete |
+| FM-064 | Branch Strategy Configuration | ✅ Complete |
+| FM-065 | PR Draft Composer             | ✅ Complete |
+| FM-066 | Repo Action Approval Gate     | ✅ Complete |
+| FM-067 | Sandbox Execution Engine      | ✅ Complete |
+| FM-068 | Code Ops REST API             | ✅ Complete |
+| FM-069 | Code Ops Integration Tests    | ✅ Complete |
 
 ---
 

@@ -3,6 +3,7 @@
 ## Purpose
 
 This diagram explains the entire ForgeMind platform as one connected system:
+
 - product surface
 - frontend
 - backend API
@@ -44,6 +45,7 @@ subgraph FE[Next.js Frontend - apps/web]
   FE_CODE[Code Explorer]
   FE_REVIEW[Review Workspace]
   FE_SANDBOX[Sandbox Page]
+  FE_ARCHITECTURE[Architecture Dashboard]
 
   FE_COMP_LAYOUT[components/layout/*]
   FE_COMP_PROJECTS[components/projects/*]
@@ -110,6 +112,7 @@ subgraph API[FastAPI Backend - apps/api/app]
   R_ACTIVITY[activity routes]
 
   R_CODEOPS[code_ops routes]
+  R_ARCH[architecture routes]
 end
 
 FE_LIB --> API_ROUTER
@@ -147,6 +150,7 @@ API_ROUTER --> R_NOTIFICATIONS
 API_ROUTER --> R_ESCALATION
 API_ROUTER --> R_ACTIVITY
 API_ROUTER --> R_CODEOPS
+API_ROUTER --> R_ARCH
 
 %% =========================================================
 %% CORE SERVICES
@@ -187,6 +191,16 @@ subgraph SVC[Service Layer - apps/api/app/services]
   S_USERACT[user_activity_service]
 
   S_CODEOPS[code_ops_service]
+
+  S_ARCH[architecture_service]
+  S_TOPO[topology_mapper_service]
+  S_DRIFT[drift_detection_service]
+  S_ARCHRULE[architecture_rule_service]
+  S_DESIGNDOC[design_doc_service]
+  S_IMPACT[impact_analysis_service]
+  S_REFACTOR[refactor_recommendation_service]
+  S_ARCHAPPROVAL[architecture_approval_service]
+  S_HEALTH[structural_health_service]
 end
 
 R_PROJECTS --> S_PROJECT
@@ -228,6 +242,16 @@ R_ACTIVITY --> S_USERACT
 R_CODEOPS --> S_CODEOPS
 R_CODEOPS --> S_REPO
 R_CODEOPS --> S_APPROVAL
+
+R_ARCH --> S_ARCH
+R_ARCH --> S_TOPO
+R_ARCH --> S_DRIFT
+R_ARCH --> S_ARCHRULE
+R_ARCH --> S_DESIGNDOC
+R_ARCH --> S_IMPACT
+R_ARCH --> S_REFACTOR
+R_ARCH --> S_ARCHAPPROVAL
+R_ARCH --> S_HEALTH
 
 %% =========================================================
 %% WORKER / AGENTS
@@ -456,6 +480,7 @@ S_CODEOPS --> S_APPROVAL
 ## System Layers Explained
 
 ### 1. Frontend Layer (`apps/web`)
+
 The frontend is the operator control plane. It provides all user-facing workflows:
 
 - **Dashboard** — top-level operational summary
@@ -472,6 +497,7 @@ The frontend is the operator control plane. It provides all user-facing workflow
 - **Sandbox** — controlled validation surface
 
 Frontend folders:
+
 - `app/` — route pages
 - `components/` — reusable UI
 - `lib/` — API client wrappers
@@ -480,26 +506,32 @@ Frontend folders:
 ---
 
 ### 2. API Layer (`apps/api/app/api/routes`)
+
 The API layer is thin and route-oriented. Its job is:
+
 - request validation
 - auth/authz entry
 - service delegation
 - response shaping
 
 It exposes route groups for:
+
 - platform core (`projects`, `planner`, `tasks`, `runs`, `artifacts`)
 - execution intelligence (`chat`, `composition`, `memory`, `retry`)
 - governance (`approvals`, `governance`, `audit`, `trust`, `council`)
 - collaboration (`workspaces`, `members`, `streaming`, `notifications`, `escalation`, `activity`)
 - repo/code-ops (`repos`, `code_ops`)
+- architecture intelligence (`architecture`)
 - operational support (`health`, `events`, `lifecycle`, `costs`)
 
 ---
 
 ### 3. Service Layer (`apps/api/app/services`)
+
 This is the real business-logic core.
 
 #### Core execution services
+
 - `project_service` — project CRUD / listing
 - `planner_service` — prompt → structured plan
 - `task_service` — task retrieval / DAG / readiness
@@ -509,6 +541,7 @@ This is the real business-logic core.
 - `event_service` — append-only execution events
 
 #### Intelligence services
+
 - `chat_service` — run assistant
 - `composition_service` — capability-based agent selection
 - `run_memory_service` — contextual summary + failure analysis
@@ -516,11 +549,25 @@ This is the real business-logic core.
 - `adaptive_orchestrator` — smarter orchestration paths
 
 #### Connector / repo services
+
 - `connector_service` — connector recommendation/readiness
 - `repo_service` — repo connections / health / metadata
 - `code_ops_service` — mapping, patches, review, branch strategy, PR drafts
 
+#### Architecture intelligence services
+
+- `architecture_service` — architecture graph CRUD (nodes, edges, snapshots)
+- `topology_mapper_service` — filesystem → graph inference (import parsing, layer classification)
+- `drift_detection_service` — snapshot comparison + convention drift detection
+- `architecture_rule_service` — rule definition, evaluation, result recording
+- `design_doc_service` — Markdown architecture doc synthesis
+- `impact_analysis_service` — BFS blast-radius computation
+- `refactor_recommendation_service` — structural issue detection (god-modules, cycles, isolation)
+- `architecture_approval_service` — auto-approval for high-impact changes
+- `structural_health_service` — composite 0–100 health scoring
+
 #### Governance services
+
 - `approval_service` — human approval workflow
 - `governance_service` — policy-based rules
 - `cost_tracking_service` — model/token/cost accounting
@@ -531,6 +578,7 @@ This is the real business-logic core.
 - `audit_export_service` — export operational trails
 
 #### Collaboration services
+
 - `workspace_service` — workspace CRUD
 - `membership_service` — workspace/project membership
 - `authz_service` — centralized permission matrix
@@ -544,9 +592,11 @@ This is the real business-logic core.
 ---
 
 ### 4. Worker Layer (`apps/worker`)
+
 The worker is the runtime engine that executes tasks outside normal request flow.
 
 #### Main responsibilities
+
 - poll for ready work
 - choose agent
 - build task context
@@ -557,21 +607,25 @@ The worker is the runtime engine that executes tasks outside normal request flow
 - invalidate memory caches
 
 #### Agents
+
 - `architect_agent.py`
 - `coder_agent.py`
 - `reviewer_agent.py`
 - `tester_agent.py`
 
 #### Base/registry
+
 - `base.py` — shared prompting + handoff context
 - `registry.py` — dispatch resolution
 
 ---
 
 ### 5. Model Layer (`apps/api/app/models`)
+
 These are the persisted domain objects.
 
 #### Core domain
+
 - `User`
 - `Project`
 - `Run`
@@ -583,6 +637,7 @@ These are the persisted domain objects.
 - `ExecutionEvent`
 
 #### Connector/governance domain
+
 - `Connector`
 - `ProjectConnectorLink`
 - `CredentialVault`
@@ -596,6 +651,7 @@ These are the persisted domain objects.
 - `RepoConnection`
 
 #### Collaboration domain
+
 - `Workspace`
 - `WorkspaceMember`
 - `ProjectMember`
@@ -607,15 +663,27 @@ These are the persisted domain objects.
 - `UserPresence`
 
 #### Code-ops domain
+
 - `CodeMapping`
 - `PatchProposal`
 - `ChangeReview`
 - `BranchStrategy`
 - `PRDraft`
 
+#### Architecture intelligence domain
+
+- `ArchitectureNode`
+- `ArchitectureEdge`
+- `ArchitectureSnapshot`
+- `ArchitectureDrift`
+- `ArchitectureRule`
+- `ArchitectureRuleResult`
+- `ChangeImpactAssessment`
+
 ---
 
 ### 6. Core Infrastructure
+
 Core app infrastructure lives in `apps/api/app/core`.
 
 - `config.py` — settings/environment
@@ -628,7 +696,9 @@ Core app infrastructure lives in `apps/api/app/core`.
 ---
 
 ### 7. Persistence / Infra
+
 ForgeMind depends on:
+
 - **PostgreSQL** — main relational persistence
 - **Redis** — worker/runtime support
 - **MinIO** — object-storage-style local support where needed
@@ -639,6 +709,7 @@ ForgeMind depends on:
 ## End-to-End Product Flows
 
 ### A. Planning Flow
+
 1. User opens dashboard
 2. User submits prompt
 3. `planner_service` creates:
@@ -649,6 +720,7 @@ ForgeMind depends on:
 4. frontend shows planner output + run context
 
 ### B. Execution Flow
+
 1. worker polls for ready tasks
 2. composition/agent logic resolves best agent
 3. agent executes
@@ -658,6 +730,7 @@ ForgeMind depends on:
 7. run page updates via API / stream
 
 ### C. Approval / Governance Flow
+
 1. execution or policy detects gated action
 2. approval request is created
 3. operator reviews in approval inbox
@@ -665,6 +738,7 @@ ForgeMind depends on:
 5. execution resumes or remains blocked
 
 ### D. Chat / Memory Flow
+
 1. user asks question on run page
 2. chat service assembles run summary + memory
 3. memory layer pulls:
@@ -676,6 +750,7 @@ ForgeMind depends on:
 4. LLM generates operator-facing answer
 
 ### E. Collaboration Flow
+
 1. workspaces define tenant/team boundary
 2. workspace roles control permissions
 3. project membership controls scoped involvement
@@ -685,6 +760,7 @@ ForgeMind depends on:
 7. run streaming provides live updates
 
 ### F. Repo / Code-Ops Flow
+
 1. project links to repo/workspace
 2. code mapping ties artifacts to file paths
 3. patch proposals are generated
@@ -694,17 +770,32 @@ ForgeMind depends on:
 7. repo-sensitive actions can be approval-gated
 8. sandbox validates code proposals safely
 
+### G. Architecture Intelligence Flow
+
+1. topology mapper scans project source code
+2. architecture nodes/edges inferred from imports and file structure
+3. snapshots capture point-in-time graph state
+4. drift detection compares current graph against snapshots/conventions
+5. rules define architectural constraints (import, layer, dependency, ownership, boundary)
+6. rule evaluation records pass/fail results with violating references
+7. impact analysis computes blast radius for proposed changes
+8. high-impact changes auto-create approval requests
+9. refactor recommendations surface structural issues
+10. structural health score aggregates quality indicators (0–100)
+
 ---
 
 ## File/Folder Role Map
 
 ### Frontend
+
 - `apps/web/app/dashboard/...` — page routes
 - `apps/web/components/...` — UI modules
 - `apps/web/lib/...` — frontend API functions
 - `apps/web/types/...` — TS types
 
 ### Backend API
+
 - `apps/api/app/api/routes/...` — route handlers
 - `apps/api/app/services/...` — domain logic
 - `apps/api/app/models/...` — SQLAlchemy models
@@ -713,14 +804,17 @@ ForgeMind depends on:
 - `apps/api/app/db/...` — session/base registration
 
 ### Worker
+
 - `apps/worker/worker/main.py` — execution loop
 - `apps/worker/worker/agents/...` — agent implementations
 
 ### Tests
+
 - `apps/api/tests/...` — API/service/integration tests
 - `apps/api/evals/...` — eval/quality benchmarks
 
 ### Docs
+
 - `docs/MILESTONE_SUMMARY.md` — capability summary
 - `docs/ARCHITECTURE.md` — architecture snapshot
 - `docs/TECHNICAL_DEBT.md` — debt register
@@ -730,6 +824,6 @@ ForgeMind depends on:
 
 ## What ForgeMind Is, In One Sentence
 
-ForgeMind is a **workspace-aware, approval-governed, multi-agent AI execution platform** that can plan projects, orchestrate execution, manage human approvals, maintain operational memory, collaborate across teams, integrate with repositories, generate code-change proposals, review them, and validate them in a controlled sandbox.
+ForgeMind is a **workspace-aware, approval-governed, multi-agent AI execution platform** that can plan projects, orchestrate execution, manage human approvals, maintain operational memory, collaborate across teams, integrate with repositories, generate code-change proposals, review them, validate them in a controlled sandbox, and analyze its own architecture for structural health, drift, and compliance.
 
 ---

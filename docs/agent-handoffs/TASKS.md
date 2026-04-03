@@ -152,28 +152,37 @@
 
 - FM-073 Frontend pages for Connectors, Agents, Settings (3 dashboard pages, 2 lib clients, 2 type files, sidebar links enabled)
 
-## Done
-
 ### Milestone 17 — Auth & RBAC Hardening (FM-074 to FM-075)
 
 - ✅ FM-074 Real authentication integration (replace stub auth, real login flow, token verification)
 - ✅ FM-075 Route-level RBAC enforcement hardening (auth on all 164 non-public endpoints, permission matrix, RBAC checks)
 
-## Backlog
+### Milestone 18 — CI/CD & Automation (FM-076)
 
-### Milestone 18 — CI/CD & Automation (FM-076) ✅ Done
-
-- FM-076 ✅ CI/CD pipeline and quality gates (GitHub Actions: lint, test, typecheck, build)
+- ✅ FM-076 CI/CD pipeline and quality gates (GitHub Actions: lint, test, typecheck, build)
 
 ### Milestone 19 — Real-Time & Observability (FM-077 to FM-078)
 
-- FM-077 ✅ Real-time UX integration (SSE consumption, live updates, reconnect handling)
-- FM-078 ✅ Observability and runtime instrumentation (metrics endpoint, tracing, request IDs)
+- ✅ FM-077 Real-time UX integration (SSE consumption, live updates, reconnect handling)
+- ✅ FM-078 Observability and runtime instrumentation (metrics endpoint, tracing, request IDs)
 
 ### Milestone 20 — Platform Maturity (FM-079 to FM-080)
 
-- FM-079 ✅ Monorepo package extraction (4 real packages: @forgemind/types, forgemind-utils, forgemind-security, forgemind-core)
-- FM-080 ✅ Production deployment foundation (prod Dockerfiles, prod compose, nginx, deployment README, env docs)
+- ✅ FM-079 Monorepo package extraction (4 real packages: @forgemind/types, forgemind-utils, forgemind-security, forgemind-core)
+- ✅ FM-080 Production deployment foundation (prod Dockerfiles, prod compose, nginx, deployment README, env docs)
+
+### Milestone 21 — Architecture Intelligence (FM-081 to FM-090)
+
+- ✅ FM-081 Architecture graph foundation (ArchitectureNode/Edge/Snapshot models, CRUD service + 12 endpoints, migration 0022)
+- ✅ FM-082 Topology mapping service (filesystem scanner, Python/TS import parsing, layer classification, topology summary)
+- ✅ FM-083 Drift detection engine (snapshot comparison, convention drift, drift resolve/ignore, 4 endpoints)
+- ✅ FM-084 Architecture rule engine (5 rule categories, evaluators, rule results, 4 endpoints)
+- ✅ FM-085 Architecture dashboard frontend (page, 12-function API client, TypeScript types, sidebar nav link)
+- ✅ FM-086 Design doc synthesis (Markdown generation from graph/drift/rules, 1 endpoint)
+- ✅ FM-087 Change impact analysis (BFS reverse traversal, blast radius, severity scoring, ChangeImpactAssessment model)
+- ✅ FM-088 Refactor recommendations (god-module, circular dep, isolated node, drift/violation backlog detection)
+- ✅ FM-089 Architecture approval workflow (auto-approval for HIGH/CRITICAL impacts, architecture approval listing)
+- ✅ FM-090 Structural health score (composite 0–100 score, coverage/drift/compliance/isolation breakdown)
 
 ## Blocked
 

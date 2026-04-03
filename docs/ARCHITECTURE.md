@@ -1,6 +1,6 @@
 # ForgeMind — System Architecture
 
-> Last updated: 2026-03-31 (after FM-070 — code operations enhancements complete)
+> Last updated: 2026-04-03 (after FM-090 — architecture intelligence complete)
 
 ---
 
@@ -73,17 +73,17 @@ ForgeMind is an **operator-centered AI execution platform** that dynamically ass
 
 ### Testing
 
-| Component   | Technology                   | Purpose                        |
-| ----------- | ---------------------------- | ------------------------------ |
-| Framework   | pytest (>=8.0.0)             | Test runner                    |
-| Async       | pytest-asyncio               | Async test support             |
-| HTTP Client | httpx (AsyncClient)          | API integration tests          |
-| Test DB     | aiosqlite (in-memory SQLite) | Fast isolated test database    |
-| Total Tests | **303** (all passing)        | 279 prior + 24 FM-061–069 enhanced |
+| Component   | Technology                   | Purpose                                    |
+| ----------- | ---------------------------- | ------------------------------------------ |
+| Framework   | pytest (>=8.0.0)             | Test runner                                |
+| Async       | pytest-asyncio               | Async test support                         |
+| HTTP Client | httpx (AsyncClient)          | API integration tests                      |
+| Test DB     | aiosqlite (in-memory SQLite) | Fast isolated test database                |
+| Total Tests | **482** (all passing)        | 303 prior + 110 FM-071–080 + 69 FM-081–090 |
 
 ---
 
-## Database Models (20 Total + 5 New Enums)
+## Database Models (27 Total + 14 New Enums)
 
 All models defined in `apps/api/app/models/` and registered in `apps/api/app/db/base.py`.
 
@@ -146,98 +146,115 @@ All models defined in `apps/api/app/models/` and registered in `apps/api/app/db/
 
 ### Model Details
 
-| #   | Model                    | Table                     | Key Columns                                                                                                                 | Relationships                                   |
-| --- | ------------------------ | ------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| 1   | **User**                 | `users`                   | id(UUID), email(unique), display_name, clerk_id, is_active                                                                  | 1:N → Projects                                  |
-| 2   | **Project**              | `projects`                | id(UUID), name, description, status(6 states), owner_id(FK), workspace_id(FK, nullable)                                    | N:1 → User/Workspace, 1:N → Runs/Artifacts      |
-| 3   | **Run**                  | `runs`                    | id(UUID), run_number, status(6 states), trigger, project_id(FK)                                                             | N:1 → Project, 1:N → Tasks, 1:1 → PlannerResult |
-| 4   | **Task**                 | `tasks`                   | id(UUID), title, task_type, status(7 states), depends_on(UUID[]), run_id(FK), assigned_agent_slug, max_retries, retry_count | N:1 → Run, self-ref parent/children             |
-| 5   | **PlannerResult**        | `planner_results`         | id(UUID), run_id(FK, unique), overview, architecture_summary, recommended_stack(JSON), assumptions(JSON), next_steps(JSON)  | N:1 → Run                                       |
-| 6   | **Artifact**             | `artifacts`               | id(UUID), title, artifact_type(7 types), content, meta(JSON), version, project_id(FK), run_id(FK), task_id(FK)              | N:1 → Project/Run/Task                          |
-| 7   | **Agent**                | `agents`                  | id(UUID), name, slug(unique), status(3 states), capabilities(JSON), supported_task_types(JSON)                              | —                                               |
-| 8   | **ApprovalRequest**      | `approval_requests`       | id(UUID), status(3 states), title, project_id(FK), run_id(FK), task_id(FK), decided_by, decision_comment                    | N:1 → Project/Run/Task/Artifact                 |
-| 9   | **ExecutionEvent**       | `execution_events`        | id(UUID), event_type(10 types), summary, metadata\_(JSON), agent_slug                                                       | N:1 → Project/Run/Task/Artifact                 |
-| 10  | **Connector**            | `connectors`              | id(UUID), name, slug(unique), connector_type, status(3 states), capabilities(JSON), config(JSON)                            | —                                               |
-| 11  | **ProjectConnectorLink** | `project_connector_links` | id(UUID), project_id(FK), connector_id(FK), priority(3 levels), readiness(4 states), blocker_reason                         | N:1 → Project/Connector                         |
-| 12  | **CredentialVault**      | `credential_vault`        | id(UUID), name, env_key(unique), connector_id(FK), status(4 states), secret_type, scopes(JSON), expires_at                  | N:1 → Connector/Project                         |
-| 13  | **CostRecord**           | `cost_records`            | id(UUID), model_name, prompt_tokens, completion_tokens, total_tokens, cost_usd, caller                                      | N:1 → Project/Run/Task                          |
-| 14  | **GovernancePolicy**     | `governance_policies`     | id(UUID), name, trigger(5 types), action(4 types), rules(JSON), project_id(FK), enabled, priority                           | —                                               |
-| 15  | **TrustScore**           | `trust_scores`            | id(UUID), entity_type(3 types), entity_id, trust_score(0-1), confidence, risk_level(4 levels), factors(JSON)                | —                                               |
-| 16  | **ReplaySnapshot**       | `replay_snapshots`        | id(UUID), task_id(FK), run_id(FK), project_id(FK), agent_slug, input/output_snapshot(JSON), replay_hash(SHA256), is_replay  | N:1 → Task/Run/Project, self-ref original       |
-| 17  | **CouncilSession**       | `council_sessions`        | id(UUID), project_id(FK), topic, status(5 states), decision_method(4 types), final_decision, decision_metadata(JSON)        | N:1 → Project, 1:N → CouncilVotes               |
-| 18  | **CouncilVote**          | `council_votes`           | id(UUID), session_id(FK), agent_slug, decision(4 types), reasoning, confidence(0-1), weight(float)                          | N:1 → CouncilSession                             |
-| 19  | **ProjectKnowledge**     | `project_knowledge`       | id(UUID), project_id(FK), knowledge_type(7 types), title, content, tags(JSON), relevance_score, usage_count                 | N:1 → Project                                    |
-| 20  | **RepoConnection**       | `repo_connections`        | id(UUID), project_id(FK), provider(4 types), repo_url, repo_name, status(4 states), default_branch, last_synced_at, **+base_branch, target_branch, linked_paths(JSON), last_sync_status(enum), last_sync_error, last_synced_commit, provider_metadata(JSON), branch_mode(enum), target_branch_template, last_generated_branch** | N:1 → Project |
+| #   | Model                      | Table                       | Key Columns                                                                                                                                                                                                                                                                                                                     | Relationships                                   |
+| --- | -------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| 1   | **User**                   | `users`                     | id(UUID), email(unique), display_name, clerk_id, is_active                                                                                                                                                                                                                                                                      | 1:N → Projects                                  |
+| 2   | **Project**                | `projects`                  | id(UUID), name, description, status(6 states), owner_id(FK), workspace_id(FK, nullable)                                                                                                                                                                                                                                         | N:1 → User/Workspace, 1:N → Runs/Artifacts      |
+| 3   | **Run**                    | `runs`                      | id(UUID), run_number, status(6 states), trigger, project_id(FK)                                                                                                                                                                                                                                                                 | N:1 → Project, 1:N → Tasks, 1:1 → PlannerResult |
+| 4   | **Task**                   | `tasks`                     | id(UUID), title, task_type, status(7 states), depends_on(UUID[]), run_id(FK), assigned_agent_slug, max_retries, retry_count                                                                                                                                                                                                     | N:1 → Run, self-ref parent/children             |
+| 5   | **PlannerResult**          | `planner_results`           | id(UUID), run_id(FK, unique), overview, architecture_summary, recommended_stack(JSON), assumptions(JSON), next_steps(JSON)                                                                                                                                                                                                      | N:1 → Run                                       |
+| 6   | **Artifact**               | `artifacts`                 | id(UUID), title, artifact_type(7 types), content, meta(JSON), version, project_id(FK), run_id(FK), task_id(FK)                                                                                                                                                                                                                  | N:1 → Project/Run/Task                          |
+| 7   | **Agent**                  | `agents`                    | id(UUID), name, slug(unique), status(3 states), capabilities(JSON), supported_task_types(JSON)                                                                                                                                                                                                                                  | —                                               |
+| 8   | **ApprovalRequest**        | `approval_requests`         | id(UUID), status(3 states), title, project_id(FK), run_id(FK), task_id(FK), decided_by, decision_comment                                                                                                                                                                                                                        | N:1 → Project/Run/Task/Artifact                 |
+| 9   | **ExecutionEvent**         | `execution_events`          | id(UUID), event_type(10 types), summary, metadata\_(JSON), agent_slug                                                                                                                                                                                                                                                           | N:1 → Project/Run/Task/Artifact                 |
+| 10  | **Connector**              | `connectors`                | id(UUID), name, slug(unique), connector_type, status(3 states), capabilities(JSON), config(JSON)                                                                                                                                                                                                                                | —                                               |
+| 11  | **ProjectConnectorLink**   | `project_connector_links`   | id(UUID), project_id(FK), connector_id(FK), priority(3 levels), readiness(4 states), blocker_reason                                                                                                                                                                                                                             | N:1 → Project/Connector                         |
+| 12  | **CredentialVault**        | `credential_vault`          | id(UUID), name, env_key(unique), connector_id(FK), status(4 states), secret_type, scopes(JSON), expires_at                                                                                                                                                                                                                      | N:1 → Connector/Project                         |
+| 13  | **CostRecord**             | `cost_records`              | id(UUID), model_name, prompt_tokens, completion_tokens, total_tokens, cost_usd, caller                                                                                                                                                                                                                                          | N:1 → Project/Run/Task                          |
+| 14  | **GovernancePolicy**       | `governance_policies`       | id(UUID), name, trigger(5 types), action(4 types), rules(JSON), project_id(FK), enabled, priority                                                                                                                                                                                                                               | —                                               |
+| 15  | **TrustScore**             | `trust_scores`              | id(UUID), entity_type(3 types), entity_id, trust_score(0-1), confidence, risk_level(4 levels), factors(JSON)                                                                                                                                                                                                                    | —                                               |
+| 16  | **ReplaySnapshot**         | `replay_snapshots`          | id(UUID), task_id(FK), run_id(FK), project_id(FK), agent_slug, input/output_snapshot(JSON), replay_hash(SHA256), is_replay                                                                                                                                                                                                      | N:1 → Task/Run/Project, self-ref original       |
+| 17  | **CouncilSession**         | `council_sessions`          | id(UUID), project_id(FK), topic, status(5 states), decision_method(4 types), final_decision, decision_metadata(JSON)                                                                                                                                                                                                            | N:1 → Project, 1:N → CouncilVotes               |
+| 18  | **CouncilVote**            | `council_votes`             | id(UUID), session_id(FK), agent_slug, decision(4 types), reasoning, confidence(0-1), weight(float)                                                                                                                                                                                                                              | N:1 → CouncilSession                            |
+| 19  | **ProjectKnowledge**       | `project_knowledge`         | id(UUID), project_id(FK), knowledge_type(7 types), title, content, tags(JSON), relevance_score, usage_count                                                                                                                                                                                                                     | N:1 → Project                                   |
+| 20  | **RepoConnection**         | `repo_connections`          | id(UUID), project_id(FK), provider(4 types), repo_url, repo_name, status(4 states), default_branch, last_synced_at, **+base_branch, target_branch, linked_paths(JSON), last_sync_status(enum), last_sync_error, last_synced_commit, provider_metadata(JSON), branch_mode(enum), target_branch_template, last_generated_branch** | N:1 → Project                                   |
+| 21  | **ArchitectureNode**       | `architecture_nodes`        | id(UUID), workspace_id(FK), project_id(FK), repo_id(FK), node_type(12 types), key, name, path, language, metadata\_(JSON), source_type(3 types), status(3 states)                                                                                                                                                               | N:1 → Project/Workspace                         |
+| 22  | **ArchitectureEdge**       | `architecture_edges`        | id(UUID), workspace_id(FK), project_id(FK), from_node_id(FK), to_node_id(FK), edge_type(10 types), confidence_score, metadata\_(JSON), source_type                                                                                                                                                                              | N:1 → Project, N:1 → ArchitectureNode×2         |
+| 23  | **ArchitectureSnapshot**   | `architecture_snapshots`    | id(UUID), workspace_id(FK), project_id(FK), name, source, summary, node_count, edge_count, snapshot_data(JSON), generated_at                                                                                                                                                                                                    | N:1 → Project                                   |
+| 24  | **ArchitectureDrift**      | `architecture_drifts`       | id(UUID), project_id(FK), drift_type, severity(4 levels), title, description, source_snapshot_id(FK), status(3 states), metadata\_(JSON)                                                                                                                                                                                        | N:1 → Project/Snapshot                          |
+| 25  | **ArchitectureRule**       | `architecture_rules`        | id(UUID), project_id(FK), name, description, category(5 types), rule_config(JSON), enabled, severity                                                                                                                                                                                                                            | N:1 → Project                                   |
+| 26  | **ArchitectureRuleResult** | `architecture_rule_results` | id(UUID), rule_id(FK), project_id(FK), status(pass/fail), message, details(JSON), violating_node_ids, violating_edge_ids                                                                                                                                                                                                        | N:1 → Rule/Project                              |
+| 27  | **ChangeImpactAssessment** | `change_impact_assessments` | id(UUID), project_id(FK), target_node_id(FK), target_path, target_key, severity(5 levels), blast_radius, impacted_nodes(JSON), impacted_services(JSON), rationale, confidence_score                                                                                                                                             | N:1 → Project/Node                              |
 
 ### Status Enums
 
-| Model                    | States                                                         |
-| ------------------------ | -------------------------------------------------------------- |
-| Project                  | DRAFT, PLANNING, ACTIVE, PAUSED, COMPLETED, FAILED             |
-| Run                      | PENDING, PLANNING, RUNNING, PAUSED, COMPLETED, FAILED          |
-| Task                     | PENDING, BLOCKED, READY, RUNNING, COMPLETED, FAILED, SKIPPED   |
-| Agent                    | ACTIVE, INACTIVE, DEPRECATED                                   |
-| Approval                 | PENDING, APPROVED, REJECTED                                    |
-| Connector                | AVAILABLE, CONFIGURED, UNAVAILABLE                             |
-| ConnectorLink readiness  | MISSING, CONFIGURED, BLOCKED, READY                            |
-| CredentialVault          | ACTIVE, EXPIRED, MISSING, REVOKED                              |
-| GovernancePolicy trigger | TASK_TYPE, COST_THRESHOLD, ARTIFACT_TYPE, AGENT_ACTION, CUSTOM |
-| GovernancePolicy action  | REQUIRE_APPROVAL, AUTO_APPROVE, BLOCK, NOTIFY                  |
-| TrustScore risk_level    | LOW, MEDIUM, HIGH, CRITICAL                                    |
-| CouncilSession status    | CONVENED, DELIBERATING, DECIDED, DEADLOCKED, ESCALATED         |
-| CouncilSession method    | CONSENSUS, MAJORITY, SUPERMAJORITY, WEIGHTED                   |
-| CouncilVote decision     | APPROVE, REJECT, ABSTAIN, MODIFY                               |
-| ProjectKnowledge type    | PATTERN, DECISION, LESSON_LEARNED, DEPENDENCY, BEST_PRACTICE, ARCHITECTURE, CONSTRAINT |
-| RepoConnection provider  | GITHUB, GITLAB, BITBUCKET, LOCAL                               |
-| RepoConnection status    | CONNECTED, DISCONNECTED, ERROR, PENDING                        |
-| SyncStatus (FM-061)      | IDLE, SYNCING, SUCCESS, FAILED                                 |
-| BranchMode (FM-066)      | DIRECT, FEATURE_BRANCH, REVIEW_BRANCH                          |
-| ChangeType (FM-063)      | CREATE, MODIFY, DELETE, CONCEPTUAL                             |
-| PatchFormat (FM-064)     | UNIFIED, SIDE_BY_SIDE, RAW                                     |
-| ReadinessState (FM-064)  | INCOMPLETE, NEEDS_REVIEW, READY, BLOCKED                       |
+| Model                     | States                                                                                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Project                   | DRAFT, PLANNING, ACTIVE, PAUSED, COMPLETED, FAILED                                                      |
+| Run                       | PENDING, PLANNING, RUNNING, PAUSED, COMPLETED, FAILED                                                   |
+| Task                      | PENDING, BLOCKED, READY, RUNNING, COMPLETED, FAILED, SKIPPED                                            |
+| Agent                     | ACTIVE, INACTIVE, DEPRECATED                                                                            |
+| Approval                  | PENDING, APPROVED, REJECTED                                                                             |
+| Connector                 | AVAILABLE, CONFIGURED, UNAVAILABLE                                                                      |
+| ConnectorLink readiness   | MISSING, CONFIGURED, BLOCKED, READY                                                                     |
+| CredentialVault           | ACTIVE, EXPIRED, MISSING, REVOKED                                                                       |
+| GovernancePolicy trigger  | TASK_TYPE, COST_THRESHOLD, ARTIFACT_TYPE, AGENT_ACTION, CUSTOM                                          |
+| GovernancePolicy action   | REQUIRE_APPROVAL, AUTO_APPROVE, BLOCK, NOTIFY                                                           |
+| TrustScore risk_level     | LOW, MEDIUM, HIGH, CRITICAL                                                                             |
+| CouncilSession status     | CONVENED, DELIBERATING, DECIDED, DEADLOCKED, ESCALATED                                                  |
+| CouncilSession method     | CONSENSUS, MAJORITY, SUPERMAJORITY, WEIGHTED                                                            |
+| CouncilVote decision      | APPROVE, REJECT, ABSTAIN, MODIFY                                                                        |
+| ProjectKnowledge type     | PATTERN, DECISION, LESSON_LEARNED, DEPENDENCY, BEST_PRACTICE, ARCHITECTURE, CONSTRAINT                  |
+| RepoConnection provider   | GITHUB, GITLAB, BITBUCKET, LOCAL                                                                        |
+| RepoConnection status     | CONNECTED, DISCONNECTED, ERROR, PENDING                                                                 |
+| SyncStatus (FM-061)       | IDLE, SYNCING, SUCCESS, FAILED                                                                          |
+| BranchMode (FM-066)       | DIRECT, FEATURE_BRANCH, REVIEW_BRANCH                                                                   |
+| ChangeType (FM-063)       | CREATE, MODIFY, DELETE, CONCEPTUAL                                                                      |
+| PatchFormat (FM-064)      | UNIFIED, SIDE_BY_SIDE, RAW                                                                              |
+| ReadinessState (FM-064)   | INCOMPLETE, NEEDS_REVIEW, READY, BLOCKED                                                                |
+| NodeType (FM-081)         | SERVICE, MODULE, ROUTE, MODEL, SCHEMA, MIDDLEWARE, UTILITY, CONFIG, TEST, MIGRATION, COMPONENT, PAGE    |
+| EdgeType (FM-081)         | IMPORTS, CALLS, DEPENDS_ON, EXTENDS, IMPLEMENTS, COMPOSES, ROUTES_TO, READS_FROM, WRITES_TO, CONFIGURES |
+| SourceType (FM-081)       | MANUAL, SCANNED, INFERRED                                                                               |
+| NodeStatus (FM-081)       | ACTIVE, DEPRECATED, REMOVED                                                                             |
+| DriftSeverity (FM-083)    | INFO, WARNING, ERROR, CRITICAL                                                                          |
+| DriftStatus (FM-083)      | OPEN, RESOLVED, IGNORED                                                                                 |
+| RuleCategory (FM-084)     | IMPORT_RULE, LAYER_RULE, DEPENDENCY_RULE, OWNERSHIP_RULE, BOUNDARY_RULE                                 |
+| RuleResultStatus (FM-084) | PASS, FAIL                                                                                              |
+| ImpactSeverity (FM-087)   | NONE, LOW, MEDIUM, HIGH, CRITICAL                                                                       |
 
 ---
 
-## API Routes (26 Routers)
+## API Routes (33 Routers)
 
 All routers registered in `apps/api/app/api/router.py` and mounted via `app.include_router(api_router)` in `main.py`.
 
 ### Route Map
 
-| #   | Route File            | Prefix              | Key Endpoints                                                                                                                                                                       | Tags        |
-| --- | --------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| 1   | `health.py`           | `/`                 | `GET /health`, `GET /health/ready`                                                                                                                                                  | health      |
-| 2   | `projects.py`         | `/`                 | `POST /projects`, `GET /projects`, `GET /projects/{id}`, `PATCH /projects/{id}`                                                                                                     | projects    |
-| 3   | `planner.py`          | `/planner`          | `POST /planner/intake`                                                                                                                                                              | planner     |
-| 4   | `planner_results.py`  | `/planner`          | Planner result queries                                                                                                                                                              | planner     |
-| 5   | `tasks.py`            | `/`                 | `GET /runs/{id}/tasks`, `GET /runs/{id}/tasks/ready`, `GET /tasks/{id}`, `PATCH /tasks/{id}/status`, `POST /tasks/{id}/claim`, `POST /tasks/{id}/complete`, `POST /tasks/{id}/fail` | tasks       |
-| 6   | `runs.py`             | `/`                 | `GET /projects/{id}/runs`, `GET /projects/{id}/runs/latest`, `GET /runs/{id}`                                                                                                       | runs        |
-| 7   | `artifacts.py`        | `/`                 | `POST /projects/{id}/artifacts`, `GET /projects/{id}/artifacts`, `GET /artifacts/{id}`, `PATCH /artifacts/{id}`, `DELETE /artifacts/{id}`                                           | artifacts   |
-| 8   | `agents.py`           | `/`                 | `GET /agents`, `GET /agents/{id}`                                                                                                                                                   | agents      |
-| 9   | `approvals.py`        | `/approvals`        | `GET /approvals`, `GET /approvals/{id}`, `POST /approvals/{id}/decide`                                                                                                              | approvals   |
-| 10  | `events.py`           | `/events`           | `GET /events`                                                                                                                                                                       | events      |
-| 11  | `chat.py`             | `/`                 | `POST /runs/{id}/chat`                                                                                                                                                              | chat        |
-| 12  | `composition.py`      | `/`                 | `GET /composition/capabilities`, `GET /runs/{id}/composition`                                                                                                                       | composition |
-| 13  | `connectors.py`       | `/`                 | `GET /connectors`, `GET /runs/{id}/connectors/requirements`                                                                                                                         | connectors  |
-| 14  | `memory.py`           | `/runs/{id}/memory` | `GET .../summary`, `GET .../failures`, `GET .../context`                                                                                                                            | memory      |
-| 15  | `credential_vault.py` | `/vault`            | Credential CRUD                                                                                                                                                                     | vault       |
-| 16  | `retry.py`            | `/retry`            | Retry policy endpoints                                                                                                                                                              | retry       |
-| 17  | `run_lifecycle.py`    | `/lifecycle`        | `GET /lifecycle/runs/{id}/health`, `POST .../auto-complete`, `POST .../auto-fail`, `GET /lifecycle/runs/health/scan`                                                                | lifecycle   |
-| 18  | `costs.py`            | `/costs`            | `GET /costs/runs/{id}/summary`, `GET /costs/projects/{id}/summary`, `GET /costs/breakdown`, `GET /costs`                                                                            | costs       |
-| 19  | `governance.py`       | `/governance`       | `POST /governance/policies`, `GET /governance/policies`, `GET /governance/policies/{id}`, `PATCH ...`, `DELETE ...`                                                                 | governance  |
-| 20  | `audit.py`            | `/audit`            | `GET /audit/export/json`, `GET /audit/export/csv`, `GET /audit/summary`                                                                                                             | audit       |
-| 21  | `trust.py`            | `/trust`            | `POST /trust/tasks/{id}/assess`, `POST /trust/runs/{id}/assess`, `GET /trust/runs/{id}/risk-summary`, `GET /trust/scores`, `GET /trust/{type}/{id}`                                 | trust       |
-| 22  | `replay.py`           | `/`                 | `GET /runs/{id}/trace`, `GET /tasks/{id}/snapshots`, `POST /replay/snapshots`, `GET /replay/snapshots/{id}`, `POST /replay/snapshots/{id}/replay`, `GET /replay/compare`             | replay      |
-| 23  | `council.py`          | `/council`          | `POST /council/sessions`, `GET /council/sessions`, `GET /council/sessions/{id}`, `POST .../vote`, `POST .../resolve`, `POST .../escalate`                                           | council     |
-| 24  | `knowledge.py`        | `/`                 | `POST /projects/{id}/knowledge`, `GET /projects/{id}/knowledge`, `GET /knowledge/{id}`, `DELETE /knowledge/{id}`, `POST /runs/{id}/extract-knowledge`, `GET .../knowledge/context`   | knowledge   |
-| 25  | `repos.py`            | `/`                 | `POST /projects/{id}/repos`, `GET /projects/{id}/repos`, `GET /repos/{id}`, `PATCH /repos/{id}`, `DELETE /repos/{id}`, `POST /repos/{id}/health`, `POST /repos/{id}/sync`, **`GET /repos/{id}/sync-status`, `POST /repos/{id}/refresh-sync`, `GET /repos/{id}/tree`, `GET /repos/{id}/file`, `GET /repos/{id}/file-meta`** | repos |
-| 26  | `workspaces.py`       | `/`                 | `POST /workspaces`, `GET /workspaces`, `GET /workspaces/{id}`, `PATCH /workspaces/{id}`                                                                                              | workspaces  |
-| 27  | `members.py`          | `/`                 | Workspace/project member CRUD                                                                                                                                                         | members     |
-| 28  | `notifications.py`    | `/`                 | `POST /notifications`, `GET /notifications`, `POST /{id}/read`, `POST /read-all`, delivery config CRUD                                                                                | notifications|
-| 29  | `streaming.py`        | `/`                 | `GET /stream/events`, `GET /runs/{id}/stream`                                                                                                                                         | streaming   |
-| 30  | `escalation.py`       | `/`                 | `POST /projects/{id}/escalation/rules`, `GET .../rules`, `GET .../events`, rule CRUD                                                                                                  | escalation  |
-| 31  | `activity.py`         | `/`                 | Activity feed CRUD, presence CRUD, `GET /workspaces/{id}/activity`, `GET /users/{id}/context`                                                                                         | activity    |
-| 32  | `code_ops.py`         | `/`                 | Code mapping, patch proposals, change reviews, branch strategies, PR drafts, repo action approvals, sandbox executions, **+PR draft generation, approval gate check, sandbox run**       | code_ops    |
+| #   | Route File            | Prefix              | Key Endpoints                                                                                                                                                                                                                                                                                                              | Tags          |
+| --- | --------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| 1   | `health.py`           | `/`                 | `GET /health`, `GET /health/ready`                                                                                                                                                                                                                                                                                         | health        |
+| 2   | `projects.py`         | `/`                 | `POST /projects`, `GET /projects`, `GET /projects/{id}`, `PATCH /projects/{id}`                                                                                                                                                                                                                                            | projects      |
+| 3   | `planner.py`          | `/planner`          | `POST /planner/intake`                                                                                                                                                                                                                                                                                                     | planner       |
+| 4   | `planner_results.py`  | `/planner`          | Planner result queries                                                                                                                                                                                                                                                                                                     | planner       |
+| 5   | `tasks.py`            | `/`                 | `GET /runs/{id}/tasks`, `GET /runs/{id}/tasks/ready`, `GET /tasks/{id}`, `PATCH /tasks/{id}/status`, `POST /tasks/{id}/claim`, `POST /tasks/{id}/complete`, `POST /tasks/{id}/fail`                                                                                                                                        | tasks         |
+| 6   | `runs.py`             | `/`                 | `GET /projects/{id}/runs`, `GET /projects/{id}/runs/latest`, `GET /runs/{id}`                                                                                                                                                                                                                                              | runs          |
+| 7   | `artifacts.py`        | `/`                 | `POST /projects/{id}/artifacts`, `GET /projects/{id}/artifacts`, `GET /artifacts/{id}`, `PATCH /artifacts/{id}`, `DELETE /artifacts/{id}`                                                                                                                                                                                  | artifacts     |
+| 8   | `agents.py`           | `/`                 | `GET /agents`, `GET /agents/{id}`                                                                                                                                                                                                                                                                                          | agents        |
+| 9   | `approvals.py`        | `/approvals`        | `GET /approvals`, `GET /approvals/{id}`, `POST /approvals/{id}/decide`                                                                                                                                                                                                                                                     | approvals     |
+| 10  | `events.py`           | `/events`           | `GET /events`                                                                                                                                                                                                                                                                                                              | events        |
+| 11  | `chat.py`             | `/`                 | `POST /runs/{id}/chat`                                                                                                                                                                                                                                                                                                     | chat          |
+| 12  | `composition.py`      | `/`                 | `GET /composition/capabilities`, `GET /runs/{id}/composition`                                                                                                                                                                                                                                                              | composition   |
+| 13  | `connectors.py`       | `/`                 | `GET /connectors`, `GET /runs/{id}/connectors/requirements`                                                                                                                                                                                                                                                                | connectors    |
+| 14  | `memory.py`           | `/runs/{id}/memory` | `GET .../summary`, `GET .../failures`, `GET .../context`                                                                                                                                                                                                                                                                   | memory        |
+| 15  | `credential_vault.py` | `/vault`            | Credential CRUD                                                                                                                                                                                                                                                                                                            | vault         |
+| 16  | `retry.py`            | `/retry`            | Retry policy endpoints                                                                                                                                                                                                                                                                                                     | retry         |
+| 17  | `run_lifecycle.py`    | `/lifecycle`        | `GET /lifecycle/runs/{id}/health`, `POST .../auto-complete`, `POST .../auto-fail`, `GET /lifecycle/runs/health/scan`                                                                                                                                                                                                       | lifecycle     |
+| 18  | `costs.py`            | `/costs`            | `GET /costs/runs/{id}/summary`, `GET /costs/projects/{id}/summary`, `GET /costs/breakdown`, `GET /costs`                                                                                                                                                                                                                   | costs         |
+| 19  | `governance.py`       | `/governance`       | `POST /governance/policies`, `GET /governance/policies`, `GET /governance/policies/{id}`, `PATCH ...`, `DELETE ...`                                                                                                                                                                                                        | governance    |
+| 20  | `audit.py`            | `/audit`            | `GET /audit/export/json`, `GET /audit/export/csv`, `GET /audit/summary`                                                                                                                                                                                                                                                    | audit         |
+| 21  | `trust.py`            | `/trust`            | `POST /trust/tasks/{id}/assess`, `POST /trust/runs/{id}/assess`, `GET /trust/runs/{id}/risk-summary`, `GET /trust/scores`, `GET /trust/{type}/{id}`                                                                                                                                                                        | trust         |
+| 22  | `replay.py`           | `/`                 | `GET /runs/{id}/trace`, `GET /tasks/{id}/snapshots`, `POST /replay/snapshots`, `GET /replay/snapshots/{id}`, `POST /replay/snapshots/{id}/replay`, `GET /replay/compare`                                                                                                                                                   | replay        |
+| 23  | `council.py`          | `/council`          | `POST /council/sessions`, `GET /council/sessions`, `GET /council/sessions/{id}`, `POST .../vote`, `POST .../resolve`, `POST .../escalate`                                                                                                                                                                                  | council       |
+| 24  | `knowledge.py`        | `/`                 | `POST /projects/{id}/knowledge`, `GET /projects/{id}/knowledge`, `GET /knowledge/{id}`, `DELETE /knowledge/{id}`, `POST /runs/{id}/extract-knowledge`, `GET .../knowledge/context`                                                                                                                                         | knowledge     |
+| 25  | `repos.py`            | `/`                 | `POST /projects/{id}/repos`, `GET /projects/{id}/repos`, `GET /repos/{id}`, `PATCH /repos/{id}`, `DELETE /repos/{id}`, `POST /repos/{id}/health`, `POST /repos/{id}/sync`, **`GET /repos/{id}/sync-status`, `POST /repos/{id}/refresh-sync`, `GET /repos/{id}/tree`, `GET /repos/{id}/file`, `GET /repos/{id}/file-meta`** | repos         |
+| 26  | `workspaces.py`       | `/`                 | `POST /workspaces`, `GET /workspaces`, `GET /workspaces/{id}`, `PATCH /workspaces/{id}`                                                                                                                                                                                                                                    | workspaces    |
+| 27  | `members.py`          | `/`                 | Workspace/project member CRUD                                                                                                                                                                                                                                                                                              | members       |
+| 28  | `notifications.py`    | `/`                 | `POST /notifications`, `GET /notifications`, `POST /{id}/read`, `POST /read-all`, delivery config CRUD                                                                                                                                                                                                                     | notifications |
+| 29  | `streaming.py`        | `/`                 | `GET /stream/events`, `GET /runs/{id}/stream`                                                                                                                                                                                                                                                                              | streaming     |
+| 30  | `escalation.py`       | `/`                 | `POST /projects/{id}/escalation/rules`, `GET .../rules`, `GET .../events`, rule CRUD                                                                                                                                                                                                                                       | escalation    |
+| 31  | `activity.py`         | `/`                 | Activity feed CRUD, presence CRUD, `GET /workspaces/{id}/activity`, `GET /users/{id}/context`                                                                                                                                                                                                                              | activity      |
+| 32  | `code_ops.py`         | `/`                 | Code mapping, patch proposals, change reviews, branch strategies, PR drafts, repo action approvals, sandbox executions, **+PR draft generation, approval gate check, sandbox run**                                                                                                                                         | code_ops      |
+| 33  | `architecture.py`     | `/`                 | Node CRUD (5), edge CRUD (3), graph query, neighbors, snapshots (2), topology map, drift detect/list/resolve/ignore (4), rules CRUD + evaluate (4), design doc, impact analysis, recommendations, approvals (2), health score — **27 endpoints**                                                                           | architecture  |
 
 ---
 
@@ -277,26 +294,40 @@ All business logic lives in `apps/api/app/services/`. Routes are thin — they d
 
 ### Intelligence & Hardening Services (FM-046–050)
 
-| Service                  | Key Functions                                                    | Purpose                               |
-| ------------------------ | ---------------------------------------------------------------- | ------------------------------------- |
-| `replay_service.py`      | capture_snapshot, get_execution_trace, replay, compare           | Deterministic execution replay        |
-| `council_service.py`     | convene, cast_vote, resolve (4 methods), escalate                | Multi-agent council decisions          |
-| `knowledge_service.py`   | create, extract_from_run, get_context, list, delete              | Cross-run project knowledge base      |
-| `repo_service.py`        | CRUD connections, check_health, sync, **refresh_sync_metadata, get_sync_status, get_file_tree, get_file_content, get_file_metadata, build_context_snippet** | External repo integration + file explorer |
+| Service                | Key Functions                                                                                                                                               | Purpose                                   |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `replay_service.py`    | capture_snapshot, get_execution_trace, replay, compare                                                                                                      | Deterministic execution replay            |
+| `council_service.py`   | convene, cast_vote, resolve (4 methods), escalate                                                                                                           | Multi-agent council decisions             |
+| `knowledge_service.py` | create, extract_from_run, get_context, list, delete                                                                                                         | Cross-run project knowledge base          |
+| `repo_service.py`      | CRUD connections, check_health, sync, **refresh_sync_metadata, get_sync_status, get_file_tree, get_file_content, get_file_metadata, build_context_snippet** | External repo integration + file explorer |
 
 ### Collaboration & Real-Time Services (FM-051–060)
 
-| Service                           | Key Functions                                                    | Purpose                               |
-| --------------------------------- | ---------------------------------------------------------------- | ------------------------------------- |
-| `workspace_service.py`            | create, get, list, update                                        | Workspace CRUD                        |
-| `membership_service.py`           | add/remove workspace & project members, workspace validation     | RBAC membership management            |
-| `notification_service.py`         | create, list, mark read, mark all read, delivery config CRUD     | In-app notification engine            |
-| `notification_delivery_service.py`| deliver_notification, webhook/slack/email channels                | External notification delivery        |
-| `escalation_service.py`           | create/list/update rules, trigger/list events                    | Escalation rule engine                |
-| `activity_service.py`             | create/list activities, upsert/get/list presence                 | Activity feed + user presence         |
-| `authz_service.py`                | check_workspace/project_permission, permission matrices          | RBAC authorization checks             |
-| `stream_service.py`               | subscribe/unsubscribe run/global, publish, SSE generators        | In-memory pub/sub for real-time SSE   |
-| `user_activity_service.py`        | touch_user_activity, get_active_users, get_assignment_context    | User presence & assignment tracking   |
+| Service                            | Key Functions                                                 | Purpose                             |
+| ---------------------------------- | ------------------------------------------------------------- | ----------------------------------- |
+| `workspace_service.py`             | create, get, list, update                                     | Workspace CRUD                      |
+| `membership_service.py`            | add/remove workspace & project members, workspace validation  | RBAC membership management          |
+| `notification_service.py`          | create, list, mark read, mark all read, delivery config CRUD  | In-app notification engine          |
+| `notification_delivery_service.py` | deliver_notification, webhook/slack/email channels            | External notification delivery      |
+| `escalation_service.py`            | create/list/update rules, trigger/list events                 | Escalation rule engine              |
+| `activity_service.py`              | create/list activities, upsert/get/list presence              | Activity feed + user presence       |
+| `authz_service.py`                 | check_workspace/project_permission, permission matrices       | RBAC authorization checks           |
+| `stream_service.py`                | subscribe/unsubscribe run/global, publish, SSE generators     | In-memory pub/sub for real-time SSE |
+| `user_activity_service.py`         | touch_user_activity, get_active_users, get_assignment_context | User presence & assignment tracking |
+
+### Architecture Intelligence Services (FM-081–090)
+
+| Service                              | Key Functions                                                                            | Purpose                              |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- | ------------------------------------ |
+| `architecture_service.py`            | create/get/list/update/delete node, create/list/delete edge, graph, neighbors, snapshots | Architecture graph CRUD              |
+| `topology_mapper_service.py`         | parse_python/typescript_imports, classify_layer, scan_directory, map_topology            | Filesystem → graph inference         |
+| `drift_detection_service.py`         | detect_drift, list_drifts, resolve_drift, ignore_drift                                   | Architectural drift detection        |
+| `architecture_rule_service.py`       | create_rule, list_rules, evaluate_rule, list_rule_results                                | Rule definition & evaluation         |
+| `design_doc_service.py`              | generate_design_doc                                                                      | Markdown doc synthesis from graph    |
+| `impact_analysis_service.py`         | analyse_impact                                                                           | BFS blast-radius computation         |
+| `refactor_recommendation_service.py` | generate_recommendations                                                                 | Structural issue detection           |
+| `architecture_approval_service.py`   | maybe_create_approval, list_architecture_approvals                                       | High-impact change approval workflow |
+| `structural_health_service.py`       | compute_health_score                                                                     | Composite 0–100 health scoring       |
 
 ---
 
@@ -304,61 +335,63 @@ All business logic lives in `apps/api/app/services/`. Routes are thin — they d
 
 All request/response models in `apps/api/app/schemas/`.
 
-| Schema File          | Models                                                                                                           | Purpose                    |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| `project.py`         | ProjectCreate, ProjectUpdate, ProjectRead, ProjectList                                                           | Project DTOs               |
-| `task.py`            | TaskRead, TaskList, TaskStatusUpdate, ReadyTasksResponse, TaskClaimRequest, TaskCompleteRequest, TaskFailRequest | Task DTOs                  |
-| `run.py`             | RunRead, RunList                                                                                                 | Run DTOs                   |
-| `artifact.py`        | ArtifactRead, ArtifactList, ArtifactCreate, ArtifactUpdate                                                       | Artifact DTOs              |
-| `agent.py`           | AgentRead, AgentList                                                                                             | Agent DTOs                 |
-| `approval.py`        | ApprovalRead, ApprovalList, ApprovalCreate, ApprovalDecision                                                     | Approval DTOs              |
-| `connector.py`       | ConnectorRead, ConnectorList, ConnectorRecommendation, ProjectConnectorLinkCreate/Read, ProjectReadinessSummary  | Connector + readiness DTOs |
-| `execution_event.py` | ExecutionEventRead, ExecutionEventList                                                                           | Event DTOs                 |
-| `planner_result.py`  | PlannerResultRead, PlannerResponse                                                                               | Planner output DTOs        |
-| `prompt_intake.py`   | PromptIntakeRequest, PromptIntakeResponse                                                                        | NL prompt intake DTOs      |
-| `cost.py`            | CostRecordRead, CostRecordList                                                                                   | Cost tracking DTOs         |
-| `governance.py`      | GovernancePolicyRead/List/Create/Update                                                                          | Governance DTOs            |
-| `trust.py`           | TrustScoreRead, TrustScoreList                                                                                   | Trust score DTOs           |
-| `replay.py`          | ReplaySnapshotRead/Create/List, ReplayRequest, ReplayCompare, ExecutionTrace                                     | Replay & trace DTOs        |
-| `council.py`         | CouncilSessionRead/List, ConveneCouncilRequest, CastVoteRequest, CouncilVoteRead, CouncilDecisionResult          | Council decision DTOs       |
-| `knowledge.py`       | ProjectKnowledgeRead/Create/List, KnowledgeExtractionResult, KnowledgeContext                                    | Knowledge base DTOs         |
-| `repo.py`            | RepoConnectionRead/Create/Update/List, RepoBranchInfo, RepoSyncResult                                            | Repo integration DTOs       |
-| `workspace.py`       | WorkspaceCreate/Update/Read/List                                                                                  | Workspace DTOs              |
-| `membership.py`      | WorkspaceMemberCreate/Update/Read/List, ProjectMemberCreate/Update/Read/List                                      | Membership DTOs             |
-| `notification.py`    | NotificationCreate/Read/List, DeliveryConfigCreate/Read/List                                                      | Notification DTOs           |
-| `escalation.py`      | EscalationRuleCreate/Update/Read/List, EscalationEventRead/List                                                   | Escalation DTOs             |
-| `activity.py`        | ActivityFeedEntryCreate/Read, ActivityFeedList, PresenceUpdate/Read/List                                          | Activity & presence DTOs    |
-| `code_ops.py`        | CodeMapping/PatchProposal/ChangeReview/BranchStrategy/PRDraft/RepoActionApproval/SandboxExecution CRUD schemas, **PRDraftGenerateRequest, SandboxRunRequest** | Code operations DTOs |
+| Schema File          | Models                                                                                                                                                                                                                                                                                                                                                                                                                           | Purpose                        |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `project.py`         | ProjectCreate, ProjectUpdate, ProjectRead, ProjectList                                                                                                                                                                                                                                                                                                                                                                           | Project DTOs                   |
+| `task.py`            | TaskRead, TaskList, TaskStatusUpdate, ReadyTasksResponse, TaskClaimRequest, TaskCompleteRequest, TaskFailRequest                                                                                                                                                                                                                                                                                                                 | Task DTOs                      |
+| `run.py`             | RunRead, RunList                                                                                                                                                                                                                                                                                                                                                                                                                 | Run DTOs                       |
+| `artifact.py`        | ArtifactRead, ArtifactList, ArtifactCreate, ArtifactUpdate                                                                                                                                                                                                                                                                                                                                                                       | Artifact DTOs                  |
+| `agent.py`           | AgentRead, AgentList                                                                                                                                                                                                                                                                                                                                                                                                             | Agent DTOs                     |
+| `approval.py`        | ApprovalRead, ApprovalList, ApprovalCreate, ApprovalDecision                                                                                                                                                                                                                                                                                                                                                                     | Approval DTOs                  |
+| `connector.py`       | ConnectorRead, ConnectorList, ConnectorRecommendation, ProjectConnectorLinkCreate/Read, ProjectReadinessSummary                                                                                                                                                                                                                                                                                                                  | Connector + readiness DTOs     |
+| `execution_event.py` | ExecutionEventRead, ExecutionEventList                                                                                                                                                                                                                                                                                                                                                                                           | Event DTOs                     |
+| `planner_result.py`  | PlannerResultRead, PlannerResponse                                                                                                                                                                                                                                                                                                                                                                                               | Planner output DTOs            |
+| `prompt_intake.py`   | PromptIntakeRequest, PromptIntakeResponse                                                                                                                                                                                                                                                                                                                                                                                        | NL prompt intake DTOs          |
+| `cost.py`            | CostRecordRead, CostRecordList                                                                                                                                                                                                                                                                                                                                                                                                   | Cost tracking DTOs             |
+| `governance.py`      | GovernancePolicyRead/List/Create/Update                                                                                                                                                                                                                                                                                                                                                                                          | Governance DTOs                |
+| `trust.py`           | TrustScoreRead, TrustScoreList                                                                                                                                                                                                                                                                                                                                                                                                   | Trust score DTOs               |
+| `replay.py`          | ReplaySnapshotRead/Create/List, ReplayRequest, ReplayCompare, ExecutionTrace                                                                                                                                                                                                                                                                                                                                                     | Replay & trace DTOs            |
+| `council.py`         | CouncilSessionRead/List, ConveneCouncilRequest, CastVoteRequest, CouncilVoteRead, CouncilDecisionResult                                                                                                                                                                                                                                                                                                                          | Council decision DTOs          |
+| `knowledge.py`       | ProjectKnowledgeRead/Create/List, KnowledgeExtractionResult, KnowledgeContext                                                                                                                                                                                                                                                                                                                                                    | Knowledge base DTOs            |
+| `repo.py`            | RepoConnectionRead/Create/Update/List, RepoBranchInfo, RepoSyncResult                                                                                                                                                                                                                                                                                                                                                            | Repo integration DTOs          |
+| `workspace.py`       | WorkspaceCreate/Update/Read/List                                                                                                                                                                                                                                                                                                                                                                                                 | Workspace DTOs                 |
+| `membership.py`      | WorkspaceMemberCreate/Update/Read/List, ProjectMemberCreate/Update/Read/List                                                                                                                                                                                                                                                                                                                                                     | Membership DTOs                |
+| `notification.py`    | NotificationCreate/Read/List, DeliveryConfigCreate/Read/List                                                                                                                                                                                                                                                                                                                                                                     | Notification DTOs              |
+| `escalation.py`      | EscalationRuleCreate/Update/Read/List, EscalationEventRead/List                                                                                                                                                                                                                                                                                                                                                                  | Escalation DTOs                |
+| `activity.py`        | ActivityFeedEntryCreate/Read, ActivityFeedList, PresenceUpdate/Read/List                                                                                                                                                                                                                                                                                                                                                         | Activity & presence DTOs       |
+| `code_ops.py`        | CodeMapping/PatchProposal/ChangeReview/BranchStrategy/PRDraft/RepoActionApproval/SandboxExecution CRUD schemas, **PRDraftGenerateRequest, SandboxRunRequest**                                                                                                                                                                                                                                                                    | Code operations DTOs           |
+| `architecture.py`    | ArchitectureNodeCreate/Read/List/Update, ArchitectureEdgeCreate/Read/List, ArchitectureSnapshotRead/List, ArchitectureGraphRead, NeighborRead, TopologyMapRequest, TopologySummary, ArchitectureDriftRead/List, ArchitectureRuleCreate/Read/List, ArchitectureRuleResultRead/List, DesignDocRead/List, ImpactAnalysisRequest, ChangeImpactAssessmentRead, RefactorRecommendation/List, HealthScoreDetails, StructuralHealthScore | Architecture intelligence DTOs |
 
 ---
 
-## Database Migrations (20 Total)
+## Database Migrations (22 Total)
 
 All migrations in `apps/api/alembic/versions/` using Alembic.
 
-| #   | Revision | Description                  | Tables Added/Changed                                             |
-| --- | -------- | ---------------------------- | ---------------------------------------------------------------- |
-| 1   | 0001     | Initial schema               | users, projects, runs, tasks, agents, artifacts, planner_results |
-| 2   | 0002     | Planner results              | planner_results table                                            |
-| 3   | 0003     | Artifact storage             | artifacts table with versioning                                  |
-| 4   | 0004     | Agent registry               | agents table with capabilities                                   |
-| 5   | 0005     | Task execution columns       | +assigned_agent_slug, +error_message on tasks                    |
-| 6   | 0006     | Approval requests            | approval_requests table                                          |
-| 7   | 0007     | Execution events             | execution_events table (append-only)                             |
-| 8   | 0008     | Connector registry           | connectors table                                                 |
-| 9   | 0009     | Connector readiness (FM-041) | project_connector_links table                                    |
-| 10  | 0010     | Credential vault (FM-042)    | credential_vault table                                           |
-| 11  | 0011     | Retry columns (FM-043)       | +max_retries, +retry_count on tasks                              |
-| 12  | 0012     | Cost tracking                | cost_records table                                               |
-| 13  | 0013     | Governance policies          | governance_policies table                                        |
-| 14  | 0014     | Trust scores                 | trust_scores table                                               |
-| 15  | 0015     | Replay snapshots (FM-046)    | replay_snapshots table                                           |
-| 16  | 0016     | Council tables (FM-047A)     | council_sessions + council_votes tables                          |
-| 17  | 0017     | Project knowledge (FM-048)   | project_knowledge table                                          |
-| 18  | 0018     | Repo connections (FM-049)    | repo_connections table                                           |
-| 19  | 0019     | Collaboration + code ops     | workspaces, workspace_members, project_members, notifications, notification_delivery_configs, escalation_rules, escalation_events, activity_feed_entries, user_presences, code_mappings, patch_proposals, change_reviews, branch_strategies, pr_drafts, repo_action_approvals, sandbox_executions |
-| 20  | 0020     | Project workspace FK (FM-051)| +workspace_id (nullable FK) on projects table                    |
-| 21  | 0021     | Code ops enhancements (FM-061–069)| +10 columns on repo_connections, +5 on artifacts, +5 on patch_proposals, +4 on change_reviews, +4 on sandbox_executions; 5 new enum types |
+| #   | Revision | Description                        | Tables Added/Changed                                                                                                                                                                                                                                                                              |
+| --- | -------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | 0001     | Initial schema                     | users, projects, runs, tasks, agents, artifacts, planner_results                                                                                                                                                                                                                                  |
+| 2   | 0002     | Planner results                    | planner_results table                                                                                                                                                                                                                                                                             |
+| 3   | 0003     | Artifact storage                   | artifacts table with versioning                                                                                                                                                                                                                                                                   |
+| 4   | 0004     | Agent registry                     | agents table with capabilities                                                                                                                                                                                                                                                                    |
+| 5   | 0005     | Task execution columns             | +assigned_agent_slug, +error_message on tasks                                                                                                                                                                                                                                                     |
+| 6   | 0006     | Approval requests                  | approval_requests table                                                                                                                                                                                                                                                                           |
+| 7   | 0007     | Execution events                   | execution_events table (append-only)                                                                                                                                                                                                                                                              |
+| 8   | 0008     | Connector registry                 | connectors table                                                                                                                                                                                                                                                                                  |
+| 9   | 0009     | Connector readiness (FM-041)       | project_connector_links table                                                                                                                                                                                                                                                                     |
+| 10  | 0010     | Credential vault (FM-042)          | credential_vault table                                                                                                                                                                                                                                                                            |
+| 11  | 0011     | Retry columns (FM-043)             | +max_retries, +retry_count on tasks                                                                                                                                                                                                                                                               |
+| 12  | 0012     | Cost tracking                      | cost_records table                                                                                                                                                                                                                                                                                |
+| 13  | 0013     | Governance policies                | governance_policies table                                                                                                                                                                                                                                                                         |
+| 14  | 0014     | Trust scores                       | trust_scores table                                                                                                                                                                                                                                                                                |
+| 15  | 0015     | Replay snapshots (FM-046)          | replay_snapshots table                                                                                                                                                                                                                                                                            |
+| 16  | 0016     | Council tables (FM-047A)           | council_sessions + council_votes tables                                                                                                                                                                                                                                                           |
+| 17  | 0017     | Project knowledge (FM-048)         | project_knowledge table                                                                                                                                                                                                                                                                           |
+| 18  | 0018     | Repo connections (FM-049)          | repo_connections table                                                                                                                                                                                                                                                                            |
+| 19  | 0019     | Collaboration + code ops           | workspaces, workspace_members, project_members, notifications, notification_delivery_configs, escalation_rules, escalation_events, activity_feed_entries, user_presences, code_mappings, patch_proposals, change_reviews, branch_strategies, pr_drafts, repo_action_approvals, sandbox_executions |
+| 20  | 0020     | Project workspace FK (FM-051)      | +workspace_id (nullable FK) on projects table                                                                                                                                                                                                                                                     |
+| 21  | 0021     | Code ops enhancements (FM-061–069) | +10 columns on repo_connections, +5 on artifacts, +5 on patch_proposals, +4 on change_reviews, +4 on sandbox_executions; 5 new enum types                                                                                                                                                         |
+| 22  | 0022     | Architecture tables (FM-081–090)   | architecture_nodes, architecture_edges, architecture_snapshots, architecture_drifts, architecture_rules, architecture_rule_results, change_impact_assessments; 11 new enum types                                                                                                                  |
 
 ---
 
@@ -372,7 +405,7 @@ FastAPI app created
   → CORS middleware added (allow_origins from settings)
   → RateLimitMiddleware added (100 req/60s per IP, production only)
   → RequestLoggingMiddleware added (timing + X-Request-ID headers)
-  → All 34 routers mounted via api_router
+  → All 35 routers mounted via api_router
   → Lifespan startup:
       → seed_default_agents() — creates 5 core agents
         (Planner, Architect, Coder, Reviewer, Tester)
@@ -454,32 +487,33 @@ Settings defined in `apps/api/app/core/config.py` via Pydantic `BaseSettings`:
 
 ### Backend Tests (`apps/api/tests/`)
 
-| Test File             | Focus                   | Coverage                                             |
-| --------------------- | ----------------------- | ---------------------------------------------------- |
-| `test_health.py`      | Health endpoints        | Liveness + readiness                                 |
-| `test_projects.py`    | Project CRUD            | Create, list, get, update                            |
-| `test_planner.py`     | Planner service         | NL prompt → plan, fallback stub                      |
-| `test_tasks.py`       | Task DAG                | State transitions, ready-task, DAG                   |
-| `test_runs.py`        | Run management          | Creation, listing, status                            |
-| `test_agents.py`      | Agent registry          | Seed, list, get                                      |
-| `test_artifacts.py`   | Artifact storage        | Versioning, CRUD, filtering                          |
-| `test_approvals.py`   | Approval workflow       | Create, list, approve/reject                         |
-| `test_events.py`      | Event logging           | Emit, list, filter                                   |
-| `test_chat.py`        | Execution chatbot       | Topic detection, context, fallback                   |
-| `test_composition.py` | Agent composition       | Team assembly, scoring                               |
-| `test_connectors.py`  | Connector registry      | List, recommendations, readiness                     |
-| `test_memory.py`      | Execution memory        | Summaries, failure analysis                          |
-| `test_schemas.py`     | Pydantic schemas        | Validation                                           |
-| `test_fm046_050.py`   | Infrastructure features | Lifecycle, cost, governance, audit, trust (46 tests) |
-| `test_fm046_050_v2.py`| FM-046–050 new features | Replay, council, knowledge, repos, hardening (34 tests) |
-| `test_workspaces.py`  | Workspace CRUD          | Create, list, get, update, delete workspaces             |
-| `test_members.py`     | Membership management   | Workspace + project member CRUD                          |
-| `test_streaming.py`   | SSE streaming           | Event generator output + route registration              |
-| `test_notifications.py`| Notification system     | Create, list, mark read, delivery config                 |
-| `test_escalation.py`  | Escalation engine       | Rules CRUD + escalation events                           |
-| `test_activity.py`    | Activity & presence     | Activity feed + user presence upsert                     |
-| `test_code_ops.py`    | Code operations         | Mappings, patches, reviews, branches, PRs, approvals, sandbox |
-| `test_code_ops_enhanced.py` | FM-061–069 enhancements | Sync metadata, file tree, artifact mapping, patches, reviews, PR drafts, approval gates, sandbox runner (24 tests) |
+| Test File                        | Focus                                | Coverage                                                                                                                                       |
+| -------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `test_health.py`                 | Health endpoints                     | Liveness + readiness                                                                                                                           |
+| `test_projects.py`               | Project CRUD                         | Create, list, get, update                                                                                                                      |
+| `test_planner.py`                | Planner service                      | NL prompt → plan, fallback stub                                                                                                                |
+| `test_tasks.py`                  | Task DAG                             | State transitions, ready-task, DAG                                                                                                             |
+| `test_runs.py`                   | Run management                       | Creation, listing, status                                                                                                                      |
+| `test_agents.py`                 | Agent registry                       | Seed, list, get                                                                                                                                |
+| `test_artifacts.py`              | Artifact storage                     | Versioning, CRUD, filtering                                                                                                                    |
+| `test_approvals.py`              | Approval workflow                    | Create, list, approve/reject                                                                                                                   |
+| `test_events.py`                 | Event logging                        | Emit, list, filter                                                                                                                             |
+| `test_chat.py`                   | Execution chatbot                    | Topic detection, context, fallback                                                                                                             |
+| `test_composition.py`            | Agent composition                    | Team assembly, scoring                                                                                                                         |
+| `test_connectors.py`             | Connector registry                   | List, recommendations, readiness                                                                                                               |
+| `test_memory.py`                 | Execution memory                     | Summaries, failure analysis                                                                                                                    |
+| `test_schemas.py`                | Pydantic schemas                     | Validation                                                                                                                                     |
+| `test_fm046_050.py`              | Infrastructure features              | Lifecycle, cost, governance, audit, trust (46 tests)                                                                                           |
+| `test_fm046_050_v2.py`           | FM-046–050 new features              | Replay, council, knowledge, repos, hardening (34 tests)                                                                                        |
+| `test_workspaces.py`             | Workspace CRUD                       | Create, list, get, update, delete workspaces                                                                                                   |
+| `test_members.py`                | Membership management                | Workspace + project member CRUD                                                                                                                |
+| `test_streaming.py`              | SSE streaming                        | Event generator output + route registration                                                                                                    |
+| `test_notifications.py`          | Notification system                  | Create, list, mark read, delivery config                                                                                                       |
+| `test_escalation.py`             | Escalation engine                    | Rules CRUD + escalation events                                                                                                                 |
+| `test_activity.py`               | Activity & presence                  | Activity feed + user presence upsert                                                                                                           |
+| `test_code_ops.py`               | Code operations                      | Mappings, patches, reviews, branches, PRs, approvals, sandbox                                                                                  |
+| `test_code_ops_enhanced.py`      | FM-061–069 enhancements              | Sync metadata, file tree, artifact mapping, patches, reviews, PR drafts, approval gates, sandbox runner (24 tests)                             |
+| `test_fm081_090_architecture.py` | FM-081–090 architecture intelligence | Graph CRUD, topology mapping, drift detection, rules, design docs, impact analysis, recommendations, approvals, RBAC, health score (~69 tests) |
 
 ### Evaluation Tests (`apps/api/evals/`)
 
@@ -498,7 +532,10 @@ Settings defined in `apps/api/app/core/config.py` via Pydantic `BaseSettings`:
 | FM-046–050 feature tests           | 34      |
 | FM-051–069 feature tests           | 67      |
 | FM-061–069 enhanced tests          | 24      |
-| **Total**                          | **303** |
+| FM-071–080 feature tests           | 110     |
+| FM-081–090 architecture tests      | 69      |
+| Quality evals                      | 27      |
+| **Total**                          | **482** |
 
 ---
 
@@ -510,8 +547,8 @@ forgemind/
 │   ├── api/                          # FastAPI backend
 │   │   ├── app/
 │   │   │   ├── api/
-│   │   │   │   ├── router.py         # Main router (34 routers)
-│   │   │   │   └── routes/           # Route handlers (32 files)
+│   │   │   │   ├── router.py         # Main router (35 routers)
+│   │   │   │   └── routes/           # Route handlers (33 files)
 │   │   │   ├── core/
 │   │   │   │   ├── config.py         # Settings (Pydantic BaseSettings)
 │   │   │   │   ├── auth.py           # JWT authentication (prod)
@@ -521,15 +558,15 @@ forgemind/
 │   │   │   │   ├── error_handlers.py # Global error handlers
 │   │   │   │   └── llm.py            # LiteLLM wrapper
 │   │   │   ├── db/
-│   │   │   │   ├── base.py           # Model registry (36 models)
+│   │   │   │   ├── base.py           # Model registry (43 models)
 │   │   │   │   └── session.py        # Async engine + session factory
-│   │   │   ├── models/               # SQLAlchemy models (26 files)
-│   │   │   ├── schemas/              # Pydantic schemas (23 files)
-│   │   │   ├── services/             # Business logic (30+ services)
+│   │   │   ├── models/               # SQLAlchemy models (27 files)
+│   │   │   ├── schemas/              # Pydantic schemas (24 files)
+│   │   │   ├── services/             # Business logic (40+ services)
 │   │   │   └── main.py              # FastAPI app factory
 │   │   ├── alembic/
-│   │   │   └── versions/             # 21 migrations
-│   │   ├── tests/                    # 303 tests (24 files)
+│   │   │   └── versions/             # 22 migrations
+│   │   ├── tests/                    # 482 tests (25 files)
 │   │   ├── evals/                    # 23 eval tests
 │   │   ├── alembic.ini
 │   │   └── requirements.txt
@@ -544,8 +581,9 @@ forgemind/
 │   ├── TECHNICAL_DEBT.md             # Known tech debt (TD-001–TD-009)
 │   └── agent-handoffs/               # Per-task implementation records
 ├── docker-compose.yml                # 5 services
-├── FORGEMIND_ROADMAP.md              # Original roadmap
-├── FORGEMIND_ROADMAP_V2.md           # Current roadmap (v2)
+├── FORGEMIND_ROADMAP.md              # Original roadmap (legacy)
+├── FORGEMIND_ROADMAP_V2.md           # Expanded roadmap (legacy)
+├── FORGEMIND_ROADMAP_V3.md           # Current roadmap (FM-071–090)
 └── README.md                         # Project overview + Mermaid diagrams
 ```
 
@@ -553,20 +591,20 @@ forgemind/
 
 ## Security Architecture
 
-| Area             | Implementation                                                                    |
-| ---------------- | --------------------------------------------------------------------------------- |
-| Authentication   | JWT via python-jose (`get_current_user_id()` dependency); dev-mode stub fallback  |
-| Authorization    | Owner-based (extensible to RBAC)                                                  |
-| Rate Limiting    | Token bucket per IP (100 req/60s default, production only)                        |
-| Request Logging  | Middleware with timing, unique X-Request-ID headers per request                   |
-| Error Handling   | Global handlers for HTTP, validation, and unhandled exceptions (consistent JSON)  |
-| Secret Storage   | Env-key references (no plaintext secrets in DB)                                   |
-| CORS             | Configurable allowed origins                                                      |
-| Input Validation | Pydantic model validation on all inputs                                           |
-| State Machine    | Task transitions validated in service layer                                       |
-| Audit            | Append-only ExecutionEvent table                                                  |
-| Governance       | Configurable policies with 5 triggers and 4 actions, custom JSON rules engine     |
-| Trust            | Heuristic scoring per task/run/artifact                                           |
+| Area             | Implementation                                                                   |
+| ---------------- | -------------------------------------------------------------------------------- |
+| Authentication   | JWT via python-jose (`get_current_user_id()` dependency); dev-mode stub fallback |
+| Authorization    | Owner-based (extensible to RBAC)                                                 |
+| Rate Limiting    | Token bucket per IP (100 req/60s default, production only)                       |
+| Request Logging  | Middleware with timing, unique X-Request-ID headers per request                  |
+| Error Handling   | Global handlers for HTTP, validation, and unhandled exceptions (consistent JSON) |
+| Secret Storage   | Env-key references (no plaintext secrets in DB)                                  |
+| CORS             | Configurable allowed origins                                                     |
+| Input Validation | Pydantic model validation on all inputs                                          |
+| State Machine    | Task transitions validated in service layer                                      |
+| Audit            | Append-only ExecutionEvent table                                                 |
+| Governance       | Configurable policies with 5 triggers and 4 actions, custom JSON rules engine    |
+| Trust            | Heuristic scoring per task/run/artifact                                          |
 
 ---
 
@@ -590,14 +628,14 @@ forgemind/
 
 ## Completed: Platform Intelligence & Hardening (FM-046–050)
 
-| ID      | Feature                             | Description                                                                            | Status      |
-| ------- | ----------------------------------- | -------------------------------------------------------------------------------------- | ----------- |
-| FM-046  | Run Replay & Trace Inspection       | Snapshot capture, deterministic SHA-256 hashing, replay, side-by-side diff comparison  | ✅ Complete |
-| FM-047A | Multi-Agent Council Engine          | 4 decision methods (consensus/majority/supermajority/weighted), deadlock escalation     | ✅ Complete |
-| FM-047  | Policy-Based Approval Rules         | Multi-trigger evaluation, custom JSON rules engine, council integration                | ✅ Complete |
-| FM-048  | Multi-Run Memory & Knowledge Base   | Auto-extraction from runs, 7 knowledge types, relevance scoring, context injection     | ✅ Complete |
-| FM-049  | External Repo/Workspace Integration | GitHub/GitLab/Bitbucket/local providers, health checks, sync operations                | ✅ Complete |
-| FM-050  | Production Hardening Pass           | JWT auth, token bucket rate limiter, request logging, global error handlers             | ✅ Complete |
+| ID      | Feature                             | Description                                                                           | Status      |
+| ------- | ----------------------------------- | ------------------------------------------------------------------------------------- | ----------- |
+| FM-046  | Run Replay & Trace Inspection       | Snapshot capture, deterministic SHA-256 hashing, replay, side-by-side diff comparison | ✅ Complete |
+| FM-047A | Multi-Agent Council Engine          | 4 decision methods (consensus/majority/supermajority/weighted), deadlock escalation   | ✅ Complete |
+| FM-047  | Policy-Based Approval Rules         | Multi-trigger evaluation, custom JSON rules engine, council integration               | ✅ Complete |
+| FM-048  | Multi-Run Memory & Knowledge Base   | Auto-extraction from runs, 7 knowledge types, relevance scoring, context injection    | ✅ Complete |
+| FM-049  | External Repo/Workspace Integration | GitHub/GitLab/Bitbucket/local providers, health checks, sync operations               | ✅ Complete |
+| FM-050  | Production Hardening Pass           | JWT auth, token bucket rate limiter, request logging, global error handlers           | ✅ Complete |
 
 > **All 50 tasks across 10 milestones are complete. 185 tests passing.**
 
@@ -605,36 +643,74 @@ forgemind/
 
 ## Completed: Team Collaboration & Real-Time (FM-051–060)
 
-| ID      | Feature                              | Description                                                                                | Status      |
-| ------- | ------------------------------------ | ------------------------------------------------------------------------------------------ | ----------- |
-| FM-051  | Workspace Model & Multi-Tenant Shell | Workspace entity with slug, status, owner, settings JSON; CRUD API                        | ✅ Complete |
-| FM-052  | Workspace Member Roles               | WorkspaceMember with 5 roles (owner/admin/operator/reviewer/viewer); unique constraints    | ✅ Complete |
-| FM-053  | Project-Level Member & Permissions   | ProjectMember with 4 roles + is_approver/is_reviewer flags; per-project RBAC               | ✅ Complete |
-| FM-054  | SSE Streaming Foundation             | Server-Sent Events heartbeat endpoint for real-time updates                                | ✅ Complete |
-| FM-055  | In-App Notification Engine           | Notification model with 12 types, 4 priority levels; mark read/read-all                   | ✅ Complete |
-| FM-056  | Notification Delivery Config         | Per-user delivery channel config (slack/email/webhook) with status management              | ✅ Complete |
-| FM-057  | Escalation Rule Engine               | Configurable escalation rules with 6 triggers, 5 actions, cooldown; event logging          | ✅ Complete |
-| FM-058  | Activity Feed & Audit Extension      | ActivityFeedEntry with 15 activity types, project/workspace scoping, resource linking      | ✅ Complete |
-| FM-059  | User Presence Tracking               | UserPresence model with status, current resource tracking, last_seen; upsert semantics     | ✅ Complete |
+| ID     | Feature                              | Description                                                                             | Status      |
+| ------ | ------------------------------------ | --------------------------------------------------------------------------------------- | ----------- |
+| FM-051 | Workspace Model & Multi-Tenant Shell | Workspace entity with slug, status, owner, settings JSON; CRUD API                      | ✅ Complete |
+| FM-052 | Workspace Member Roles               | WorkspaceMember with 5 roles (owner/admin/operator/reviewer/viewer); unique constraints | ✅ Complete |
+| FM-053 | Project-Level Member & Permissions   | ProjectMember with 4 roles + is_approver/is_reviewer flags; per-project RBAC            | ✅ Complete |
+| FM-054 | SSE Streaming Foundation             | Server-Sent Events heartbeat endpoint for real-time updates                             | ✅ Complete |
+| FM-055 | In-App Notification Engine           | Notification model with 12 types, 4 priority levels; mark read/read-all                 | ✅ Complete |
+| FM-056 | Notification Delivery Config         | Per-user delivery channel config (slack/email/webhook) with status management           | ✅ Complete |
+| FM-057 | Escalation Rule Engine               | Configurable escalation rules with 6 triggers, 5 actions, cooldown; event logging       | ✅ Complete |
+| FM-058 | Activity Feed & Audit Extension      | ActivityFeedEntry with 15 activity types, project/workspace scoping, resource linking   | ✅ Complete |
+| FM-059 | User Presence Tracking               | UserPresence model with status, current resource tracking, last_seen; upsert semantics  | ✅ Complete |
 
 ---
 
 ## Completed: Repository & Code Execution (FM-061–069)
 
-| ID      | Feature                              | Description                                                                                | Status      |
-| ------- | ------------------------------------ | ------------------------------------------------------------------------------------------ | ----------- |
-| FM-061  | Code Mapping Model                   | CodeMapping linking artifacts to file paths with language detection and metadata            | ✅ Complete |
-| FM-062  | Patch Proposal Model                 | PatchProposal with diff content, target branch, 6 statuses, rationale tracking             | ✅ Complete |
-| FM-063  | Change Review Workflow               | ChangeReview with 3 decisions (approved/changes_requested/commented) linked to patches      | ✅ Complete |
-| FM-064  | Branch Strategy Configuration        | BranchStrategy with base/pattern/PR target, auto-create flag, config JSON per project      | ✅ Complete |
-| FM-065  | PR Draft Composer                    | PRDraft with 5 statuses, reviewer/checklist/linked artifact JSON, source/target branches   | ✅ Complete |
-| FM-066  | Repo Action Approval Gate            | RepoActionApproval with 5 action types, decision workflow, context tracking                | ✅ Complete |
-| FM-067  | Sandbox Execution Engine             | SandboxExecution with command, environment, timeout, 5 statuses, stdout/stderr/exit_code   | ✅ Complete |
-| FM-068  | Code Ops REST API                    | Full REST API for all code operations models (~20 endpoints)                               | ✅ Complete |
-| FM-069  | Code Ops Integration Tests           | Comprehensive test coverage for all code operations (17 tests)                             | ✅ Complete |
+| ID     | Feature                       | Description                                                                              | Status      |
+| ------ | ----------------------------- | ---------------------------------------------------------------------------------------- | ----------- |
+| FM-061 | Code Mapping Model            | CodeMapping linking artifacts to file paths with language detection and metadata         | ✅ Complete |
+| FM-062 | Patch Proposal Model          | PatchProposal with diff content, target branch, 6 statuses, rationale tracking           | ✅ Complete |
+| FM-063 | Change Review Workflow        | ChangeReview with 3 decisions (approved/changes_requested/commented) linked to patches   | ✅ Complete |
+| FM-064 | Branch Strategy Configuration | BranchStrategy with base/pattern/PR target, auto-create flag, config JSON per project    | ✅ Complete |
+| FM-065 | PR Draft Composer             | PRDraft with 5 statuses, reviewer/checklist/linked artifact JSON, source/target branches | ✅ Complete |
+| FM-066 | Repo Action Approval Gate     | RepoActionApproval with 5 action types, decision workflow, context tracking              | ✅ Complete |
+| FM-067 | Sandbox Execution Engine      | SandboxExecution with command, environment, timeout, 5 statuses, stdout/stderr/exit_code | ✅ Complete |
+| FM-068 | Code Ops REST API             | Full REST API for all code operations models (~20 endpoints)                             | ✅ Complete |
+| FM-069 | Code Ops Integration Tests    | Comprehensive test coverage for all code operations (17 tests)                           | ✅ Complete |
 
 > **All 69 tasks across 12 milestones are complete. 252 tests passing.**
 
 ---
 
-_This document reflects the architecture as of the latest commit on `main` (all features complete)._
+## Completed: Productization & Frontend Parity (FM-071–080)
+
+| ID     | Feature                                   | Description                                                                            | Status      |
+| ------ | ----------------------------------------- | -------------------------------------------------------------------------------------- | ----------- |
+| FM-071 | Advanced Frontend Parity I                | Dashboard pages for Trust, Replay, Council, Governance                                 | ✅ Complete |
+| FM-072 | Advanced Frontend Parity II               | Dashboard pages for Costs, Audit, Knowledge, Credential Vault                          | ✅ Complete |
+| FM-073 | Platform Admin Frontend Parity            | Dashboard pages for Connectors, Agents, Settings; sidebar links enabled                | ✅ Complete |
+| FM-074 | Real Authentication Integration           | Production JWT auth replacing dev stub; real login/logout; token verification          | ✅ Complete |
+| FM-075 | Route-Level RBAC Enforcement Hardening    | Auth on all 164 non-public endpoints; permission matrix; consistent error semantics    | ✅ Complete |
+| FM-076 | CI/CD Pipeline and Quality Gates          | GitHub Actions: Python lint, pytest, TS typecheck, ESLint, build verification          | ✅ Complete |
+| FM-077 | Real-Time UX Integration                  | Frontend SSE consumption, live run updates, reconnect handling                         | ✅ Complete |
+| FM-078 | Observability and Runtime Instrumentation | Prometheus metrics, request latency/error counters, worker metrics, request IDs        | ✅ Complete |
+| FM-079 | Monorepo Package Extraction               | 4 real packages: @forgemind/types, forgemind-utils, forgemind-security, forgemind-core | ✅ Complete |
+| FM-080 | Production Deployment Foundation          | Multi-stage Docker builds, prod compose, nginx reverse proxy, deployment docs          | ✅ Complete |
+
+> **All 80 tasks across 20 milestones are complete. 413 tests passing.**
+
+---
+
+## Completed: Architecture Intelligence (FM-081–090)
+
+| ID     | Feature                         | Description                                                                            | Status      |
+| ------ | ------------------------------- | -------------------------------------------------------------------------------------- | ----------- |
+| FM-081 | Architecture Graph Foundation   | 7 models, 9 enums, 28 schemas, graph CRUD service, 12 endpoints, migration 0022        | ✅ Complete |
+| FM-082 | Topology Mapping Service        | Filesystem scanner, Python/TS import parsing, layer classification, topology summary   | ✅ Complete |
+| FM-083 | Drift Detection Engine          | Snapshot comparison, convention drift, cross-layer violations, resolve/ignore workflow | ✅ Complete |
+| FM-084 | Architecture Rule Engine        | 5 rule categories, evaluators, pass/fail results with violating node/edge tracking     | ✅ Complete |
+| FM-085 | Architecture Dashboard Frontend | Dashboard page, 12-function API client, TypeScript types, sidebar nav link             | ✅ Complete |
+| FM-086 | Design Doc Synthesis            | Markdown generation from graph, drift records, rule violations                         | ✅ Complete |
+| FM-087 | Change Impact Analysis          | BFS reverse traversal, blast radius, severity escalation, ChangeImpactAssessment model | ✅ Complete |
+| FM-088 | Refactor Recommendations        | God-module, circular dep, isolated node, drift/violation backlog detection             | ✅ Complete |
+| FM-089 | Architecture Approval Workflow  | Auto-approval for HIGH/CRITICAL impacts, architecture approval listing                 | ✅ Complete |
+| FM-090 | Structural Health Score         | Composite 0–100 score: coverage, drift penalty, compliance, isolation ratio            | ✅ Complete |
+
+> **All 90 tasks across 21 milestones are complete. 482 tests passing.**
+
+---
+
+_This document reflects the architecture as of the latest commit on `main` (all features through FM-090 complete)._
