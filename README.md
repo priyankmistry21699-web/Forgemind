@@ -184,6 +184,19 @@ flowchart TD
 - **Structural health score** — composite 0–100 score with letter grade (A–F)
 - **Full dashboard** — dedicated frontend page with 12-function API client and TypeScript types
 
+### 💻 ForgeMind Local — Developer Workstation Mode
+
+- **Local CLI** — `forgemind` command with 10 command groups: `init`, `status`, `attach`, `ask`, `exec`, `patch`, `pr`, `ide`, `snapshot`
+- **Repo attach & indexing** — file tree scanning, language detection (30+ extensions), build file + entrypoint detection, JSON manifest
+- **Local chat over codebase** — keyword search + file snippet reading, rule-based Q&A, optional LLM integration via LiteLLM
+- **Execution sandbox** — blocked pattern detection (fork bombs, rm -rf, etc.), safe command allowlist, policy enforcement (safe/permissive/locked), timeout + logging
+- **Patch workflow** — generate unified diffs from git, list/preview/apply/reject patches, metadata tracking
+- **PR preparation** — git diff analysis, subsystem classification, risk notes, test checklist, full PR markdown generation
+- **IDE/editor integration** — VS Code tasks.json generator with 10 ForgeMind tasks, settings.json integration
+- **Offline-first state** — local cache with TTL, deferred sync queue, mode management (offline/hybrid/remote)
+- **Handoff snapshots** — export/import zip bundles with config, manifest, patches, run logs, and bundle manifests
+- **41 tests** covering all local modules: config, indexing, chat, execution, patches, PR, IDE, state, handoff
+
 ---
 
 ## 🏗️ Architecture
@@ -415,6 +428,48 @@ flowchart TD
     style PR fill:#ea580c,stroke:#fb923c,color:#fff
     style GATE fill:#dc2626,stroke:#ef4444,color:#fff
     style SANDBOX fill:#d97706,stroke:#fbbf24,color:#fff
+```
+
+### ForgeMind Local — Developer Workstation
+
+```mermaid
+flowchart TD
+    DEV["🧑‍💻 Developer Workstation\nTerminal · VS Code · IDE"]
+
+    subgraph LOCAL["💻 FORGEMIND LOCAL CLI"]
+        direction TB
+        INIT["⚡ Init & Config\n.forgemind/config.yaml\nDirectories · Mode · Policy"]
+        INDEX["📂 Repo Attach & Indexing\nFile tree scan · Language detection\nBuild files · Entrypoints · Manifest"]
+        CHAT["💬 Local Chat\nKeyword search · File snippets\nRule-based Q&A · Optional LLM"]
+        EXEC["🖥️ Execution Sandbox\nBlocked patterns · Safe allowlist\nPolicy: safe / permissive / locked\nTimeout · Run logging"]
+        PATCH["📝 Patch Workflow\nGenerate · List · Preview\nApply · Reject · Metadata"]
+        PR["📋 PR Preparation\nDiff analysis · Subsystem classification\nRisk notes · Test checklist · Markdown"]
+        IDE["🔧 IDE Integration\nVS Code tasks.json\n10 ForgeMind tasks"]
+        STATE["📦 Offline State\nCache with TTL · Sync queue\nMode: offline / hybrid / remote"]
+        SNAP["📸 Handoff Snapshots\nExport zip bundle\nImport with manifest"]
+    end
+
+    DEV --> INIT
+    INIT --> INDEX
+    INDEX --> CHAT
+    INDEX --> EXEC
+    INDEX --> PATCH
+    PATCH --> PR
+    INIT --> IDE
+    INIT --> STATE
+    STATE --> SNAP
+
+    style DEV fill:#1e3a5f,stroke:#4a90d9,color:#fff,stroke-width:2px
+    style LOCAL fill:#0d1117,stroke:#10b981,color:#fff,stroke-width:2px
+    style INIT fill:#059669,stroke:#34d399,color:#fff
+    style INDEX fill:#2563eb,stroke:#60a5fa,color:#fff
+    style CHAT fill:#7c3aed,stroke:#a78bfa,color:#fff
+    style EXEC fill:#dc2626,stroke:#ef4444,color:#fff
+    style PATCH fill:#ea580c,stroke:#fb923c,color:#fff
+    style PR fill:#d97706,stroke:#fbbf24,color:#fff
+    style IDE fill:#0891b2,stroke:#22d3ee,color:#fff
+    style STATE fill:#6366f1,stroke:#818cf8,color:#fff
+    style SNAP fill:#be185d,stroke:#ec4899,color:#fff
 ```
 
 ### Data Model
@@ -817,6 +872,30 @@ The worker is the runtime engine that executes tasks outside normal request flow
 </details>
 
 <details>
+<summary><b>💻 4b. Local CLI — <code>apps/local</code></b></summary>
+
+A standalone Python CLI tool (`forgemind` command) that turns any git repo into a ForgeMind-aware workspace **without requiring the server stack**.
+
+| Module               | Purpose                                                           |
+| -------------------- | ----------------------------------------------------------------- |
+| `config.py`          | `LocalConfig` dataclass, YAML I/O, `.forgemind/` dir management   |
+| `cli.py`             | Click CLI with 10 command groups                                  |
+| `repo_index.py`      | File tree scanner, language detection (30+ ext), manifest builder |
+| `local_chat.py`      | Keyword search + file snippets + optional LLM Q&A                 |
+| `local_exec.py`      | Bounded subprocess execution with safety policy                   |
+| `local_patch.py`     | Generate/preview/apply/reject unified diffs                       |
+| `local_pr.py`        | PR markdown from git diff, subsystem classification, risk notes   |
+| `ide_integration.py` | VS Code tasks.json generator (10 ForgeMind tasks)                 |
+| `local_state.py`     | Cache with TTL, sync queue, mode management                       |
+| `local_handoff.py`   | Export/import zip snapshot bundles                                |
+
+**Modes:** `offline` (fully local) · `hybrid` (local-first, sync when available) · `remote` (server-connected)
+
+**Execution policies:** `safe` (allowlist only) · `permissive` (anything not blocked) · `locked` (no execution)
+
+</details>
+
+<details>
 <summary><b>🗃️ 5. Model Layer — <code>apps/api/app/models</code> — 36+ Tables</b></summary>
 
 **🔧 Core domain:**
@@ -967,7 +1046,25 @@ The worker is the runtime engine that executes tasks outside normal request flow
 
 </details>
 
-> **ForgeMind in one sentence:** A workspace-aware, approval-governed, multi-agent AI execution platform that can plan projects, orchestrate execution, manage human approvals, maintain operational memory, collaborate across teams, integrate with repositories, generate code-change proposals, review them, validate them in a controlled sandbox, and continuously analyze architecture health with drift detection, impact analysis, and refactor recommendations.
+<details>
+<summary><b>🅷 ForgeMind Local — Developer Workstation Flow</b></summary>
+
+```
+1. Developer runs `forgemind init` in a repo root — creates .forgemind/ config and directories
+2. `forgemind attach` scans repo tree → builds JSON manifest (language, build files, entrypoints)
+3. `forgemind ask "where is X?"` → keyword search over manifest + file content, rule-based or LLM answer
+4. `forgemind exec "pytest -v"` → safety policy check (blocked/safe/permissive) → bounded subprocess → logged result
+5. `forgemind patch generate "fix bug"` → git diff → .patch file + metadata JSON
+6. `forgemind patch preview <id>` / `forgemind patch apply <id>` / `forgemind patch reject <id>`
+7. `forgemind pr prepare` → analyze git diff, classify subsystems, generate PR markdown with risk notes + test checklist
+8. `forgemind ide setup` → generates .vscode/tasks.json with 10 ForgeMind tasks
+9. Offline mode: cache results with TTL, queue sync events for later replay
+10. `forgemind snapshot export/import` → zip bundle with config, manifest, patches, run logs
+```
+
+</details>
+
+> **ForgeMind in one sentence:** A workspace-aware, approval-governed, multi-agent AI execution platform that can plan projects, orchestrate execution, manage human approvals, maintain operational memory, collaborate across teams, integrate with repositories, generate code-change proposals, review them, validate them in a controlled sandbox, continuously analyze architecture health with drift detection, impact analysis, and refactor recommendations — and now run as a **local developer workstation companion** with CLI-driven repo indexing, codebase Q&A, bounded execution, patch workflows, PR preparation, IDE integration, offline resilience, and handoff snapshots.
 
 ---
 
@@ -1122,6 +1219,23 @@ forgemind/
 │               ├── reviewer_agent.py
 │               ├── tester_agent.py
 │               └── registry.py    #    Agent dispatch registry
+│
+├── 💻 apps/local/                 # 💻 ForgeMind Local CLI
+│   ├── pyproject.toml             #    Package config (click, rich, pyyaml, gitpython, watchdog)
+│   ├── forgemind_local/
+│   │   ├── __init__.py            #    Package init (v0.1.0)
+│   │   ├── config.py              #    LocalConfig dataclass, YAML I/O, directory management
+│   │   ├── cli.py                 #    Click CLI — 10 command groups
+│   │   ├── repo_index.py          #    File tree scanner, language detection, manifest builder
+│   │   ├── local_chat.py          #    Codebase Q&A — keyword search + optional LLM
+│   │   ├── local_exec.py          #    Bounded execution sandbox with safety policy
+│   │   ├── local_patch.py         #    Patch generate/preview/apply/reject workflow
+│   │   ├── local_pr.py            #    PR markdown generation from git diff
+│   │   ├── ide_integration.py     #    VS Code tasks.json/settings.json generator
+│   │   ├── local_state.py         #    Cache, sync queue, mode management
+│   │   └── local_handoff.py       #    Export/import snapshot zip bundles
+│   └── tests/
+│       └── test_local.py          #    41 tests covering FM-091 → FM-099
 │
 ├── 📚 docs/
 │   ├── ARCHITECTURE.md            #    Full system architecture reference
@@ -1545,7 +1659,7 @@ make test
 
 ## 📊 Milestone Progress
 
-### Completed: 21 Milestones — 90 Tasks ✅
+### Completed: 22 Milestones — 100 Tasks ✅
 
 | #   | Milestone                                      | Tasks                      | Status      |
 | --- | ---------------------------------------------- | -------------------------- | ----------- |
@@ -1570,6 +1684,7 @@ make test
 | 19  | **Real-Time & Observability**                  | FM-077 → FM-078            | ✅ Complete |
 | 20  | **Platform Maturity**                          | FM-079 → FM-080            | ✅ Complete |
 | 21  | **Architecture Intelligence**                  | FM-081 → FM-090            | ✅ Complete |
+| 22  | **ForgeMind Local — Developer Workstation**    | FM-091 → FM-100            | ✅ Complete |
 
 <details>
 <summary><strong>Milestone 1 — Platform Foundation</strong></summary>
@@ -1779,6 +1894,21 @@ make test
 - FM-090: Structural health score — composite 0–100 score with letter grade
 </details>
 
+<details>
+<summary><strong>Milestone 22 — ForgeMind Local — Developer Workstation</strong></summary>
+
+- FM-091: Local foundation — `LocalConfig` dataclass, `.forgemind/` directories, YAML config, Click CLI entry point
+- FM-092: Repo attach & indexing — file tree scanner, 30+ language extensions, build file + entrypoint detection, JSON manifest
+- FM-093: Local chat over codebase — keyword search, file snippet reading, rule-based Q&A, optional LiteLLM integration
+- FM-094: Local execution sandbox — blocked pattern detection, safe command allowlist, 3 policies (safe/permissive/locked), timeout enforcement, run logging
+- FM-095: Local patch workflow — generate unified diffs from git, list/preview/apply/reject patches, metadata tracking
+- FM-096: Local PR preparation — git diff analysis, subsystem classification (API/Services/Models/Frontend/Config/etc.), risk notes, test checklist, PR markdown generation
+- FM-097: IDE/editor integration — VS Code tasks.json generator with 10 ForgeMind tasks, settings.json integration, merge with existing config
+- FM-098: Offline-first state — local cache with TTL-based expiry, deferred sync queue, mode management (offline/hybrid/remote), online check
+- FM-099: Local handoff/snapshot — export zip bundles (config + manifest + patches + run logs + bundle manifest), import with non-destructive merge, bundle inspection
+- FM-100: Local hardening — 41 tests covering all FM-091→FM-099 modules (config, indexing, chat, execution, patches, PR, IDE, state, handoff)
+</details>
+
 ---
 
 ## 🧩 Technical Decisions
@@ -1802,7 +1932,7 @@ make test
 
 **Built with ❤️ by [Priyank Mistry](https://github.com/priyankmistry21699-web)**
 
-_ForgeMind v1.0.0 — 90 tasks completed across 21 milestones · 482 tests passing_
+_ForgeMind v1.1.0 — 100 tasks completed across 22 milestones · 523 tests passing_
 
 </div>
 

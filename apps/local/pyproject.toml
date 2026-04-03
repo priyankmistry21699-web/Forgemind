@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "forgemind-local"
+version = "0.1.0"
+description = "ForgeMind Local — developer workstation companion for local repo intelligence, patching, and PR preparation"
+requires-python = ">=3.11"
+dependencies = [
+    "click>=8.1.0",
+    "rich>=13.0.0",
+    "pyyaml>=6.0",
+    "gitpython>=3.1.40",
+    "watchdog>=4.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+llm = [
+    "litellm>=1.30.0",
+]
+
+[project.scripts]
+forgemind = "forgemind_local.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["forgemind_local*"]
