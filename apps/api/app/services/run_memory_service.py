@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.run import Run
 from app.models.task import Task, TaskStatus
 from app.models.artifact import Artifact
-from app.models.execution_event import ExecutionEvent, EventType
+from app.models.execution_event import ExecutionEvent
 from app.models.approval_request import ApprovalRequest
 
 logger = logging.getLogger(__name__)
@@ -95,22 +95,22 @@ async def _build_run_summary(
     for t in tasks:
         status_counts[t.status.value] = status_counts.get(t.status.value, 0) + 1
         if t.status == TaskStatus.FAILED:
-            failed_tasks.append({
-                "task_id": str(t.id),
-                "title": t.title,
-                "task_type": t.task_type,
-                "error_message": t.error_message,
-                "agent": t.assigned_agent_slug,
-            })
+            failed_tasks.append(
+                {
+                    "task_id": str(t.id),
+                    "title": t.title,
+                    "task_type": t.task_type,
+                    "error_message": t.error_message,
+                    "agent": t.assigned_agent_slug,
+                }
+            )
 
     total_tasks = len(tasks)
     completed_tasks = status_counts.get("completed", 0)
     progress = completed_tasks / total_tasks if total_tasks > 0 else 0.0
 
     # Artifacts
-    art_result = await db.execute(
-        select(Artifact).where(Artifact.run_id == run_id)
-    )
+    art_result = await db.execute(select(Artifact).where(Artifact.run_id == run_id))
     artifacts = list(art_result.scalars().all())
     artifact_types: dict[str, int] = {}
     for a in artifacts:
@@ -125,9 +125,7 @@ async def _build_run_summary(
     approvals = list(approval_result.scalars().all())
     approval_counts: dict[str, int] = {}
     for ap in approvals:
-        approval_counts[ap.status.value] = (
-            approval_counts.get(ap.status.value, 0) + 1
-        )
+        approval_counts[ap.status.value] = approval_counts.get(ap.status.value, 0) + 1
 
     # Events (counts by type + latest 10)
     event_count_result = await db.execute(
@@ -206,7 +204,6 @@ async def get_failure_analysis(
         select(Task).where(Task.run_id == run_id).order_by(Task.order_index)
     )
     tasks = list(task_result.scalars().all())
-    task_map = {str(t.id): t for t in tasks}
 
     # Find blocking failures — failed tasks that have downstream dependents
     blocking: list[dict[str, Any]] = []
@@ -215,10 +212,12 @@ async def get_failure_analysis(
         for t in tasks:
             if t.depends_on and uuid.UUID(tid) in t.depends_on:
                 if t.status in (TaskStatus.BLOCKED, TaskStatus.PENDING):
-                    blocking.append({
-                        **ft,
-                        "blocks": [str(t.id)],
-                    })
+                    blocking.append(
+                        {
+                            **ft,
+                            "blocks": [str(t.id)],
+                        }
+                    )
                     break
 
     # Generate suggested actions
@@ -231,7 +230,10 @@ async def get_failure_analysis(
         suggestions.append(
             "Failed tasks are not blocking downstream work. Review errors and retry if needed."
         )
-    if summary.get("approval_summary", {}).get("status_counts", {}).get("pending", 0) > 0:
+    if (
+        summary.get("approval_summary", {}).get("status_counts", {}).get("pending", 0)
+        > 0
+    ):
         suggestions.append("Pending approvals may be blocking execution progress.")
     if not failed:
         suggestions.append("No failures detected. Execution is proceeding normally.")
@@ -265,7 +267,9 @@ def build_context_for_chat(summary: dict[str, Any]) -> str:
     if failures:
         parts.append(f"=== Failures ({len(failures)}) ===")
         for f in failures:
-            parts.append(f"  - {f['title']} ({f['task_type']}): {f.get('error_message', 'unknown error')}")
+            parts.append(
+                f"  - {f['title']} ({f['task_type']}): {f.get('error_message', 'unknown error')}"
+            )
         parts.append("")
 
     # Artifacts

@@ -3,11 +3,10 @@
 FM-047: Records LLM cost and token usage per request, linked to tasks/runs.
 """
 
-import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, DateTime, Enum, ForeignKey, Integer, Float, func
+from sqlalchemy import String, DateTime, ForeignKey, Integer, Float, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 

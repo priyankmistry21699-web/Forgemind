@@ -26,11 +26,14 @@ class TeamComposition(BaseModel):
 
 class CapabilityReport(BaseModel):
     """Available capability groups and taxonomy."""
+
     capability_groups: dict[str, list[str]]
 
 
 @router.get("/composition/capabilities", response_model=CapabilityReport)
-async def list_capabilities(user_id: uuid.UUID = Depends(get_current_user_id)) -> CapabilityReport:
+async def list_capabilities(
+    user_id: uuid.UUID = Depends(get_current_user_id),
+) -> CapabilityReport:
     """List all known capability groups and their skills."""
     return CapabilityReport(
         capability_groups=composition_service.CAPABILITY_TAXONOMY,

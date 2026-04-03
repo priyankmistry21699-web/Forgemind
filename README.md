@@ -839,16 +839,16 @@ The worker is the runtime engine that executes tasks outside normal request flow
 <details>
 <summary><b>🏗️ 6. Core Infrastructure — <code>apps/api/app/core</code></b></summary>
 
-| Module                     | Purpose                                             |
-| -------------------------- | --------------------------------------------------- |
-| `config.py`                | Settings / environment                              |
-| `auth.py`                  | JWT authentication (production)                     |
-| `authz_deps.py`            | RBAC dependency injection for routes                |
-| `rate_limit.py`            | Per-IP token bucket (100 req / 60s)                 |
-| `logging_middleware.py`    | Request tracing + unique request IDs                |
-| `error_handlers.py`        | Uniform JSON error responses                        |
-| `metrics.py`               | Prometheus metrics endpoint + counters              |
-| `llm.py`                   | LiteLLM wrapper (GPT-4o · Claude · Gemini · Ollama) |
+| Module                  | Purpose                                             |
+| ----------------------- | --------------------------------------------------- |
+| `config.py`             | Settings / environment                              |
+| `auth.py`               | JWT authentication (production)                     |
+| `authz_deps.py`         | RBAC dependency injection for routes                |
+| `rate_limit.py`         | Per-IP token bucket (100 req / 60s)                 |
+| `logging_middleware.py` | Request tracing + unique request IDs                |
+| `error_handlers.py`     | Uniform JSON error responses                        |
+| `metrics.py`            | Prometheus metrics endpoint + counters              |
+| `llm.py`                | LiteLLM wrapper (GPT-4o · Claude · Gemini · Ollama) |
 
 </details>
 
@@ -1444,27 +1444,27 @@ Base URL: `http://localhost:8000`
 
 ### Architecture Intelligence
 
-| Method | Endpoint                                       | Description                  |
-| ------ | ---------------------------------------------- | ---------------------------- |
-| `POST` | `/projects/{id}/architecture/scan`             | Scan project topology        |
-| `GET`  | `/projects/{id}/architecture/graph`            | Get architecture graph       |
-| `GET`  | `/projects/{id}/architecture/components`       | List components              |
-| `GET`  | `/projects/{id}/architecture/dependencies`     | List dependencies            |
-| `GET`  | `/projects/{id}/architecture/layers`           | List architecture layers     |
-| `POST` | `/projects/{id}/architecture/drift/detect`     | Run drift detection          |
-| `GET`  | `/projects/{id}/architecture/drift`            | List drift records           |
-| `PATCH`| `/architecture/drift/{id}/resolve`             | Resolve drift record         |
-| `POST` | `/projects/{id}/architecture/rules`            | Create architecture rule     |
-| `GET`  | `/projects/{id}/architecture/rules`            | List architecture rules      |
-| `POST` | `/projects/{id}/architecture/rules/evaluate`   | Evaluate rules               |
-| `POST` | `/projects/{id}/architecture/impact`           | Analyze change impact        |
-| `POST` | `/projects/{id}/architecture/recommendations`  | Get refactor recommendations |
-| `POST` | `/projects/{id}/architecture/design-doc`       | Generate design document     |
-| `POST` | `/projects/{id}/architecture/health`           | Compute health score         |
-| `GET`  | `/projects/{id}/architecture/health/history`   | Health score history         |
-| `POST` | `/projects/{id}/architecture/approvals`        | Create architecture approval |
-| `GET`  | `/projects/{id}/architecture/approvals`        | List architecture approvals  |
-| `PATCH`| `/architecture/approvals/{id}/decide`          | Decide architecture approval |
+| Method  | Endpoint                                      | Description                  |
+| ------- | --------------------------------------------- | ---------------------------- |
+| `POST`  | `/projects/{id}/architecture/scan`            | Scan project topology        |
+| `GET`   | `/projects/{id}/architecture/graph`           | Get architecture graph       |
+| `GET`   | `/projects/{id}/architecture/components`      | List components              |
+| `GET`   | `/projects/{id}/architecture/dependencies`    | List dependencies            |
+| `GET`   | `/projects/{id}/architecture/layers`          | List architecture layers     |
+| `POST`  | `/projects/{id}/architecture/drift/detect`    | Run drift detection          |
+| `GET`   | `/projects/{id}/architecture/drift`           | List drift records           |
+| `PATCH` | `/architecture/drift/{id}/resolve`            | Resolve drift record         |
+| `POST`  | `/projects/{id}/architecture/rules`           | Create architecture rule     |
+| `GET`   | `/projects/{id}/architecture/rules`           | List architecture rules      |
+| `POST`  | `/projects/{id}/architecture/rules/evaluate`  | Evaluate rules               |
+| `POST`  | `/projects/{id}/architecture/impact`          | Analyze change impact        |
+| `POST`  | `/projects/{id}/architecture/recommendations` | Get refactor recommendations |
+| `POST`  | `/projects/{id}/architecture/design-doc`      | Generate design document     |
+| `POST`  | `/projects/{id}/architecture/health`          | Compute health score         |
+| `GET`   | `/projects/{id}/architecture/health/history`  | Health score history         |
+| `POST`  | `/projects/{id}/architecture/approvals`       | Create architecture approval |
+| `GET`   | `/projects/{id}/architecture/approvals`       | List architecture approvals  |
+| `PATCH` | `/architecture/approvals/{id}/decide`         | Decide architecture approval |
 
 > Full interactive docs at `http://localhost:8000/docs` (Swagger UI)
 

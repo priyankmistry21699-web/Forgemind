@@ -174,6 +174,7 @@ async def refresh_credential_statuses(db: AsyncSession) -> int:
         # Check expiry
         if is_set and cred.expires_at:
             from datetime import datetime, timezone
+
             if cred.expires_at < datetime.now(timezone.utc):
                 new_status = SecretStatus.EXPIRED
 

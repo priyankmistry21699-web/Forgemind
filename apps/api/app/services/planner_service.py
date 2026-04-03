@@ -25,7 +25,15 @@ logger = logging.getLogger(__name__)
 MAX_PHASES = 8
 MAX_TITLE_LEN = 500
 MAX_DESCRIPTION_LEN = 2000
-ALLOWED_TASK_TYPES = {"planning", "codegen", "verification", "testing", "deployment", "architecture", "review"}
+ALLOWED_TASK_TYPES = {
+    "planning",
+    "codegen",
+    "verification",
+    "testing",
+    "deployment",
+    "architecture",
+    "review",
+}
 DEFAULT_TASK_TYPE = "generic"
 
 # Maps task_type → preferred agent slug for execution
@@ -149,14 +157,18 @@ def _normalize_phases(raw: Any) -> list[dict[str, Any]]:
         if task_type in APPROVAL_CHECKPOINT_TYPES:
             requires_approval = True
 
-        normalized.append({
-            "title": title.strip()[:MAX_TITLE_LEN],
-            "description": str(phase.get("description", ""))[:MAX_DESCRIPTION_LEN] if phase.get("description") else None,
-            "task_type": task_type,
-            "agent_hint": agent_hint,
-            "requires_approval": requires_approval,
-            "order_index": i,
-        })
+        normalized.append(
+            {
+                "title": title.strip()[:MAX_TITLE_LEN],
+                "description": str(phase.get("description", ""))[:MAX_DESCRIPTION_LEN]
+                if phase.get("description")
+                else None,
+                "task_type": task_type,
+                "agent_hint": agent_hint,
+                "requires_approval": requires_approval,
+                "order_index": i,
+            }
+        )
 
         if len(normalized) >= MAX_PHASES:
             break
@@ -171,9 +183,15 @@ def _normalize_plan(raw: dict[str, Any]) -> dict[str, Any]:
     and frontend rendering.
     """
     return {
-        "project_name": str(raw["project_name"]).strip()[:255] if isinstance(raw.get("project_name"), str) else None,
-        "overview": str(raw["overview"]).strip() if isinstance(raw.get("overview"), str) else None,
-        "architecture_summary": str(raw["architecture_summary"]).strip() if isinstance(raw.get("architecture_summary"), str) else None,
+        "project_name": str(raw["project_name"]).strip()[:255]
+        if isinstance(raw.get("project_name"), str)
+        else None,
+        "overview": str(raw["overview"]).strip()
+        if isinstance(raw.get("overview"), str)
+        else None,
+        "architecture_summary": str(raw["architecture_summary"]).strip()
+        if isinstance(raw.get("architecture_summary"), str)
+        else None,
         "recommended_stack": _coerce_to_string_dict(raw.get("recommended_stack")),
         "assumptions": _coerce_to_string_list(raw.get("assumptions")),
         "phases": _normalize_phases(raw.get("phases")),
@@ -198,11 +216,46 @@ def _build_stub_plan(prompt: str) -> dict[str, Any]:
             "Real planning will be implemented when an LLM API key is configured.",
         ],
         "phases": [
-            {"title": "Analyse requirements from prompt", "description": "Parse and understand the user's request.", "task_type": "planning", "agent_hint": "planner", "requires_approval": False, "order_index": 0},
-            {"title": "Design system architecture", "description": "Define components, interfaces, and data flow.", "task_type": "architecture", "agent_hint": "architect", "requires_approval": True, "order_index": 1},
-            {"title": "Generate project scaffold", "description": "Create initial project structure and boilerplate.", "task_type": "codegen", "agent_hint": "coder", "requires_approval": False, "order_index": 2},
-            {"title": "Review generated output", "description": "Validate the scaffold against requirements.", "task_type": "review", "agent_hint": "reviewer", "requires_approval": True, "order_index": 3},
-            {"title": "Create test plan", "description": "Define test strategy and initial test cases.", "task_type": "testing", "agent_hint": "tester", "requires_approval": False, "order_index": 4},
+            {
+                "title": "Analyse requirements from prompt",
+                "description": "Parse and understand the user's request.",
+                "task_type": "planning",
+                "agent_hint": "planner",
+                "requires_approval": False,
+                "order_index": 0,
+            },
+            {
+                "title": "Design system architecture",
+                "description": "Define components, interfaces, and data flow.",
+                "task_type": "architecture",
+                "agent_hint": "architect",
+                "requires_approval": True,
+                "order_index": 1,
+            },
+            {
+                "title": "Generate project scaffold",
+                "description": "Create initial project structure and boilerplate.",
+                "task_type": "codegen",
+                "agent_hint": "coder",
+                "requires_approval": False,
+                "order_index": 2,
+            },
+            {
+                "title": "Review generated output",
+                "description": "Validate the scaffold against requirements.",
+                "task_type": "review",
+                "agent_hint": "reviewer",
+                "requires_approval": True,
+                "order_index": 3,
+            },
+            {
+                "title": "Create test plan",
+                "description": "Define test strategy and initial test cases.",
+                "task_type": "testing",
+                "agent_hint": "tester",
+                "requires_approval": False,
+                "order_index": 4,
+            },
         ],
         "next_steps": [
             "Configure an LLM API key",
@@ -223,13 +276,23 @@ async def _generate_plan(prompt: str) -> dict[str, Any]:
         system=PLANNER_SYSTEM_PROMPT,
     )
 
-    if raw and isinstance(raw, dict) and isinstance(raw.get("phases"), list) and len(raw.get("phases", [])) > 0:
+    if (
+        raw
+        and isinstance(raw, dict)
+        and isinstance(raw.get("phases"), list)
+        and len(raw.get("phases", [])) > 0
+    ):
         normalized = _normalize_plan(raw)
         # After normalization, phases may be empty if all were invalid
         if normalized["phases"]:
-            logger.info("LLM planner returned valid result with %d phases", len(normalized["phases"]))
+            logger.info(
+                "LLM planner returned valid result with %d phases",
+                len(normalized["phases"]),
+            )
             return normalized
-        logger.warning("LLM planner returned phases but all were invalid after normalization")
+        logger.warning(
+            "LLM planner returned phases but all were invalid after normalization"
+        )
 
     logger.info("LLM planner unavailable or returned invalid result — using stub")
     return _build_stub_plan(prompt)
@@ -249,7 +312,6 @@ async def plan_from_prompt(
 
     # 0. Generate the plan (LLM with normalization, or stub)
     plan = await _generate_plan(prompt)
-    is_stub = plan.get("overview", "").startswith("Stub planning result")
 
     # 1. Create the project
     name = project_name or plan.get("project_name") or prompt[:80].strip()
@@ -279,7 +341,10 @@ async def plan_from_prompt(
 
     tasks: list[Task] = []
     for i, phase in enumerate(phases):
-        description = phase.get("description") or f"Auto-generated task ({phase.get('task_type', 'generic')})"
+        description = (
+            phase.get("description")
+            or f"Auto-generated task ({phase.get('task_type', 'generic')})"
+        )
         if phase.get("requires_approval"):
             description += " [requires approval]"
 

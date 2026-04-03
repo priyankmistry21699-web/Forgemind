@@ -5,19 +5,24 @@ Supports import, layer, ownership, dependency, and boundary rules.
 """
 
 import uuid
-from datetime import datetime, timezone
 
 from sqlalchemy import select, func as sa_func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.architecture import (
-    ArchitectureRule, ArchitectureRuleResult,
-    ArchitectureNode, ArchitectureEdge,
-    RuleCategory, RuleResultStatus, DriftSeverity, NodeStatus,
+    ArchitectureRule,
+    ArchitectureRuleResult,
+    ArchitectureNode,
+    ArchitectureEdge,
+    RuleCategory,
+    RuleResultStatus,
+    DriftSeverity,
+    NodeStatus,
 )
 
 
 # ── Rule CRUD ────────────────────────────────────────────────────
+
 
 async def create_rule(
     db: AsyncSession,
@@ -62,9 +67,9 @@ async def list_rules(
     if category:
         query = query.where(ArchitectureRule.category == category)
 
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(ArchitectureRule.created_at.desc()).offset(offset).limit(limit)
     )
@@ -72,6 +77,7 @@ async def list_rules(
 
 
 # ── Rule evaluation ──────────────────────────────────────────────
+
 
 async def evaluate_rule(
     db: AsyncSession,
@@ -97,9 +103,7 @@ async def evaluate_rule(
     node_map = {n.id: n for n in nodes}
 
     edges_result = await db.execute(
-        select(ArchitectureEdge).where(
-            ArchitectureEdge.project_id == project_id
-        )
+        select(ArchitectureEdge).where(ArchitectureEdge.project_id == project_id)
     )
     edges = list(edges_result.scalars().all())
 
@@ -135,16 +139,19 @@ async def list_rule_results(
     if status:
         query = query.where(ArchitectureRuleResult.status == status)
 
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
-        query.order_by(ArchitectureRuleResult.evaluated_at.desc()).offset(offset).limit(limit)
+        query.order_by(ArchitectureRuleResult.evaluated_at.desc())
+        .offset(offset)
+        .limit(limit)
     )
     return list(result.scalars().all()), total
 
 
 # ── Evaluators ───────────────────────────────────────────────────
+
 
 def _evaluate_import_rule(
     rule: ArchitectureRule,
@@ -228,7 +235,9 @@ def _evaluate_layer_rule(
         to_layer = (to_node.metadata_ or {}).get("layer", "other")
 
         if (from_layer, to_layer) in forbidden:
-            violations.append(f"{from_node.key} ({from_layer}) -> {to_node.key} ({to_layer})")
+            violations.append(
+                f"{from_node.key} ({from_layer}) -> {to_node.key} ({to_layer})"
+            )
             violating_edge_ids.append(str(edge.id))
 
     if violations:

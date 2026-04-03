@@ -4,7 +4,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, Text, DateTime, Enum, ForeignKey, func
+from sqlalchemy import String, DateTime, Enum, ForeignKey, func
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -36,9 +36,7 @@ class ExecutionEvent(Base):
         index=True,
     )
     summary: Mapped[str] = mapped_column(String(1000), nullable=False)
-    metadata_: Mapped[dict | None] = mapped_column(
-        "metadata", JSON, nullable=True
-    )
+    metadata_: Mapped[dict | None] = mapped_column("metadata", JSON, nullable=True)
 
     # Context linkage — all optional to support various event sources
     project_id: Mapped[uuid.UUID | None] = mapped_column(
@@ -63,9 +61,7 @@ class ExecutionEvent(Base):
         ForeignKey("artifacts.id", ondelete="SET NULL"),
         nullable=True,
     )
-    agent_slug: Mapped[str | None] = mapped_column(
-        String(50), nullable=True
-    )
+    agent_slug: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

@@ -2,8 +2,6 @@
 
 import uuid
 
-import pytest
-
 
 class TestListRuns:
     """GET /projects/{project_id}/runs"""
@@ -23,9 +21,7 @@ class TestListRuns:
         assert data["items"][0]["run_number"] == 1
 
     async def test_list_runs_pagination(self, client, sample_project):
-        resp = await client.get(
-            f"/projects/{sample_project.id}/runs?skip=0&limit=5"
-        )
+        resp = await client.get(f"/projects/{sample_project.id}/runs?skip=0&limit=5")
         assert resp.status_code == 200
 
 

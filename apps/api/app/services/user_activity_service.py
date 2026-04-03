@@ -6,7 +6,7 @@ FM-059: Tracks user presence, recent activity, and assignment awareness.
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.activity import UserPresence
@@ -85,20 +85,36 @@ async def get_user_assignment_context(
     presence = presence_result.scalar_one_or_none()
 
     # Count memberships
-    ws_count = (await db.execute(
-        select(WorkspaceMember).where(WorkspaceMember.user_id == user_id)
-    )).scalars().all()
+    ws_count = (
+        (
+            await db.execute(
+                select(WorkspaceMember).where(WorkspaceMember.user_id == user_id)
+            )
+        )
+        .scalars()
+        .all()
+    )
 
-    proj_count = (await db.execute(
-        select(ProjectMember).where(ProjectMember.user_id == user_id)
-    )).scalars().all()
+    proj_count = (
+        (
+            await db.execute(
+                select(ProjectMember).where(ProjectMember.user_id == user_id)
+            )
+        )
+        .scalars()
+        .all()
+    )
 
     return {
         "user_id": str(user_id),
         "status": presence.status if presence else "offline",
-        "last_seen_at": presence.last_seen_at.isoformat() if presence and presence.last_seen_at else None,
+        "last_seen_at": presence.last_seen_at.isoformat()
+        if presence and presence.last_seen_at
+        else None,
         "current_resource_type": presence.current_resource_type if presence else None,
-        "current_resource_id": str(presence.current_resource_id) if presence and presence.current_resource_id else None,
+        "current_resource_id": str(presence.current_resource_id)
+        if presence and presence.current_resource_id
+        else None,
         "workspace_memberships": len(ws_count),
         "project_memberships": len(proj_count),
     }

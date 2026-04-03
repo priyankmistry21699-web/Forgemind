@@ -4,18 +4,23 @@ FM-081: Core CRUD and graph query operations for the architecture model.
 """
 
 import uuid
-from datetime import datetime, timezone
 
 from sqlalchemy import select, func as sa_func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.architecture import (
-    ArchitectureNode, ArchitectureEdge, ArchitectureSnapshot,
-    NodeType, EdgeType, SourceType, NodeStatus,
+    ArchitectureNode,
+    ArchitectureEdge,
+    ArchitectureSnapshot,
+    NodeType,
+    EdgeType,
+    SourceType,
+    NodeStatus,
 )
 
 
 # ── Nodes ────────────────────────────────────────────────────────
+
 
 async def create_node(
     db: AsyncSession,
@@ -51,9 +56,7 @@ async def create_node(
     return node
 
 
-async def get_node(
-    db: AsyncSession, node_id: uuid.UUID
-) -> ArchitectureNode | None:
+async def get_node(db: AsyncSession, node_id: uuid.UUID) -> ArchitectureNode | None:
     result = await db.execute(
         select(ArchitectureNode).where(ArchitectureNode.id == node_id)
     )
@@ -69,17 +72,15 @@ async def list_nodes(
     limit: int = 200,
     offset: int = 0,
 ) -> tuple[list[ArchitectureNode], int]:
-    query = select(ArchitectureNode).where(
-        ArchitectureNode.project_id == project_id
-    )
+    query = select(ArchitectureNode).where(ArchitectureNode.project_id == project_id)
     if node_type:
         query = query.where(ArchitectureNode.node_type == node_type)
     if status:
         query = query.where(ArchitectureNode.status == status)
 
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(ArchitectureNode.created_at.desc()).offset(offset).limit(limit)
     )
@@ -102,9 +103,7 @@ async def update_node(
     return node
 
 
-async def delete_node(
-    db: AsyncSession, node_id: uuid.UUID
-) -> bool:
+async def delete_node(db: AsyncSession, node_id: uuid.UUID) -> bool:
     node = await get_node(db, node_id)
     if node is None:
         return False
@@ -114,6 +113,7 @@ async def delete_node(
 
 
 # ── Edges ────────────────────────────────────────────────────────
+
 
 async def create_edge(
     db: AsyncSession,
@@ -151,24 +151,20 @@ async def list_edges(
     limit: int = 500,
     offset: int = 0,
 ) -> tuple[list[ArchitectureEdge], int]:
-    query = select(ArchitectureEdge).where(
-        ArchitectureEdge.project_id == project_id
-    )
+    query = select(ArchitectureEdge).where(ArchitectureEdge.project_id == project_id)
     if edge_type:
         query = query.where(ArchitectureEdge.edge_type == edge_type)
 
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(ArchitectureEdge.created_at.desc()).offset(offset).limit(limit)
     )
     return list(result.scalars().all()), total
 
 
-async def delete_edge(
-    db: AsyncSession, edge_id: uuid.UUID
-) -> bool:
+async def delete_edge(db: AsyncSession, edge_id: uuid.UUID) -> bool:
     result = await db.execute(
         select(ArchitectureEdge).where(ArchitectureEdge.id == edge_id)
     )
@@ -195,6 +191,7 @@ async def get_neighbors(
 
 # ── Graph queries ────────────────────────────────────────────────
 
+
 async def get_full_graph(
     db: AsyncSession, project_id: uuid.UUID
 ) -> tuple[list[ArchitectureNode], list[ArchitectureEdge]]:
@@ -206,14 +203,13 @@ async def get_full_graph(
         )
     )
     edges_result = await db.execute(
-        select(ArchitectureEdge).where(
-            ArchitectureEdge.project_id == project_id
-        )
+        select(ArchitectureEdge).where(ArchitectureEdge.project_id == project_id)
     )
     return list(nodes_result.scalars().all()), list(edges_result.scalars().all())
 
 
 # ── Snapshots ────────────────────────────────────────────────────
+
 
 async def create_snapshot(
     db: AsyncSession,
@@ -292,10 +288,12 @@ async def list_snapshots(
     query = select(ArchitectureSnapshot).where(
         ArchitectureSnapshot.project_id == project_id
     )
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
-        query.order_by(ArchitectureSnapshot.generated_at.desc()).offset(offset).limit(limit)
+        query.order_by(ArchitectureSnapshot.generated_at.desc())
+        .offset(offset)
+        .limit(limit)
     )
     return list(result.scalars().all()), total

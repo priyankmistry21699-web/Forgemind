@@ -1,4 +1,5 @@
 """Tests for workspace endpoints (FM-051)."""
+
 import uuid
 import pytest
 from httpx import AsyncClient
@@ -6,11 +7,14 @@ from httpx import AsyncClient
 
 @pytest.mark.asyncio
 class TestWorkspaces:
-
     async def test_create_workspace(self, client: AsyncClient):
-        resp = await client.post("/workspaces", json={
-            "name": "Acme Corp", "slug": "acme-corp",
-        })
+        resp = await client.post(
+            "/workspaces",
+            json={
+                "name": "Acme Corp",
+                "slug": "acme-corp",
+            },
+        )
         assert resp.status_code == 201
         data = resp.json()
         assert data["name"] == "Acme Corp"
@@ -42,7 +46,9 @@ class TestWorkspaces:
         assert resp.status_code == 404
 
     async def test_update_workspace(self, client: AsyncClient):
-        create = await client.post("/workspaces", json={"name": "Old", "slug": "upd-ws"})
+        create = await client.post(
+            "/workspaces", json={"name": "Old", "slug": "upd-ws"}
+        )
         ws_id = create.json()["id"]
         resp = await client.patch(f"/workspaces/{ws_id}", json={"name": "New"})
         assert resp.status_code == 200

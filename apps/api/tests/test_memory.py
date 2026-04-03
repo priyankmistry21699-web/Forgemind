@@ -2,8 +2,6 @@
 
 import uuid
 
-import pytest
-
 
 class TestRunSummary:
     """GET /runs/{run_id}/memory/summary"""
@@ -20,9 +18,7 @@ class TestRunSummary:
         assert resp.status_code == 404
 
     async def test_summary_with_refresh(self, client, sample_run):
-        resp = await client.get(
-            f"/runs/{sample_run.id}/memory/summary?refresh=true"
-        )
+        resp = await client.get(f"/runs/{sample_run.id}/memory/summary?refresh=true")
         assert resp.status_code == 200
 
 

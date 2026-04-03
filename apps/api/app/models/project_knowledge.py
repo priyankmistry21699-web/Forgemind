@@ -16,13 +16,13 @@ from app.db.base_class import Base
 
 
 class KnowledgeType(str, enum.Enum):
-    PATTERN = "pattern"                # Reusable design pattern discovered
-    DECISION = "decision"              # Key decision made during a run
+    PATTERN = "pattern"  # Reusable design pattern discovered
+    DECISION = "decision"  # Key decision made during a run
     LESSON_LEARNED = "lesson_learned"  # Failure/success insight
-    DEPENDENCY = "dependency"          # Discovered dependency/requirement
-    BEST_PRACTICE = "best_practice"    # Verified best practice
-    ARCHITECTURE = "architecture"      # Architecture insight
-    CONSTRAINT = "constraint"          # Known constraint or limitation
+    DEPENDENCY = "dependency"  # Discovered dependency/requirement
+    BEST_PRACTICE = "best_practice"  # Verified best practice
+    ARCHITECTURE = "architecture"  # Architecture insight
+    CONSTRAINT = "constraint"  # Known constraint or limitation
 
 
 class ProjectKnowledge(Base):

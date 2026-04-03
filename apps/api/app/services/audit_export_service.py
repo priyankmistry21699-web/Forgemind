@@ -120,9 +120,16 @@ async def export_events_csv(
 
     output = io.StringIO()
     fieldnames = [
-        "id", "event_type", "summary", "metadata",
-        "project_id", "run_id", "task_id", "artifact_id",
-        "agent_slug", "created_at",
+        "id",
+        "event_type",
+        "summary",
+        "metadata",
+        "project_id",
+        "run_id",
+        "task_id",
+        "artifact_id",
+        "agent_slug",
+        "created_at",
     ]
     writer = csv.DictWriter(output, fieldnames=fieldnames)
     writer.writeheader()
@@ -132,6 +139,7 @@ async def export_events_csv(
         # Convert metadata dict to string for CSV
         if row["metadata"] is not None:
             import json
+
             row["metadata"] = json.dumps(row["metadata"])
         writer.writerow(row)
 
@@ -145,9 +153,7 @@ async def get_audit_summary(
     run_id: uuid.UUID | None = None,
 ) -> dict[str, Any]:
     """Get audit trail summary with event type breakdown."""
-    events = await _fetch_events(
-        db, project_id=project_id, run_id=run_id
-    )
+    events = await _fetch_events(db, project_id=project_id, run_id=run_id)
 
     type_counts: dict[str, int] = {}
     for e in events:

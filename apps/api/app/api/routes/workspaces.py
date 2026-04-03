@@ -5,7 +5,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user_id
 from app.db.session import get_db
-from app.schemas.workspace import WorkspaceCreate, WorkspaceUpdate, WorkspaceRead, WorkspaceList
+from app.schemas.workspace import (
+    WorkspaceCreate,
+    WorkspaceUpdate,
+    WorkspaceRead,
+    WorkspaceList,
+)
 from app.services import workspace_service
 from app.services.authz_service import check_workspace_permission, Action
 
@@ -22,8 +27,12 @@ async def create_workspace(
     if existing:
         raise HTTPException(status_code=409, detail="Slug already in use")
     ws = await workspace_service.create_workspace(
-        db, name=data.name, slug=data.slug, owner_id=owner_id,
-        description=data.description, settings=data.settings,
+        db,
+        name=data.name,
+        slug=data.slug,
+        owner_id=owner_id,
+        description=data.description,
+        settings=data.settings,
     )
     return WorkspaceRead.model_validate(ws)
 
@@ -36,7 +45,10 @@ async def list_workspaces(
     owner_id: uuid.UUID = Depends(get_current_user_id),
 ) -> WorkspaceList:
     items, total = await workspace_service.list_workspaces(
-        db, owner_id, limit=limit, offset=offset,
+        db,
+        owner_id,
+        limit=limit,
+        offset=offset,
     )
     return WorkspaceList(
         items=[WorkspaceRead.model_validate(w) for w in items],
@@ -66,7 +78,9 @@ async def update_workspace(
 ) -> WorkspaceRead:
     await check_workspace_permission(db, workspace_id, user_id, Action.WORKSPACE_UPDATE)
     ws = await workspace_service.update_workspace(
-        db, workspace_id, **data.model_dump(exclude_unset=True),
+        db,
+        workspace_id,
+        **data.model_dump(exclude_unset=True),
     )
     if ws is None:
         raise HTTPException(status_code=404, detail="Workspace not found")

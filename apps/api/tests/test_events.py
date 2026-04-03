@@ -1,9 +1,5 @@
 """Tests for Execution Event API endpoints."""
 
-import uuid
-
-import pytest
-
 
 class TestListEvents:
     """GET /events"""

@@ -5,8 +5,6 @@ Failures are logged, never fatal to the request flow.
 """
 
 import logging
-import uuid
-from datetime import datetime, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -103,20 +101,30 @@ async def _deliver_webhook(
 
     payload = {
         "notification_id": str(notification.id),
-        "type": notification.notification_type.value if hasattr(notification.notification_type, 'value') else str(notification.notification_type),
-        "priority": notification.priority.value if hasattr(notification.priority, 'value') else str(notification.priority),
+        "type": notification.notification_type.value
+        if hasattr(notification.notification_type, "value")
+        else str(notification.notification_type),
+        "priority": notification.priority.value
+        if hasattr(notification.priority, "value")
+        else str(notification.priority),
         "title": notification.title,
         "body": notification.body,
         "resource_type": notification.resource_type,
-        "resource_id": str(notification.resource_id) if notification.resource_id else None,
-        "created_at": notification.created_at.isoformat() if notification.created_at else None,
+        "resource_id": str(notification.resource_id)
+        if notification.resource_id
+        else None,
+        "created_at": notification.created_at.isoformat()
+        if notification.created_at
+        else None,
     }
 
     async with httpx.AsyncClient(timeout=10.0) as client:
         resp = await client.post(webhook_url, json=payload)
         resp.raise_for_status()
 
-    logger.info("Webhook delivered: notification=%s, url=%s", notification.id, webhook_url)
+    logger.info(
+        "Webhook delivered: notification=%s, url=%s", notification.id, webhook_url
+    )
     return {
         "channel": "webhook",
         "status": "delivered",
@@ -148,7 +156,11 @@ async def _deliver_slack(
         "high": "⚠️",
         "urgent": "🚨",
     }
-    priority_str = notification.priority.value if hasattr(notification.priority, 'value') else str(notification.priority)
+    priority_str = (
+        notification.priority.value
+        if hasattr(notification.priority, "value")
+        else str(notification.priority)
+    )
     emoji = priority_emoji.get(priority_str, "📋")
 
     payload = {

@@ -13,10 +13,8 @@ Run with: python -m pytest evals/test_quality_evals.py -v
 import json
 import uuid
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
 
 import pytest
-import pytest_asyncio
 
 # Load eval benchmarks
 EVAL_DATA_PATH = Path(__file__).parent / "datasets" / "eval_benchmarks.json"
@@ -27,6 +25,7 @@ with open(EVAL_DATA_PATH) as f:
 # =====================================================================
 # Topic Detection Evals
 # =====================================================================
+
 
 class TestTopicDetectionEvals:
     """Verify that chat_service.detect_topics correctly identifies topics."""
@@ -54,6 +53,7 @@ class TestTopicDetectionEvals:
 # Connector Recommendation Evals
 # =====================================================================
 
+
 class TestConnectorRecommendationEvals:
     """Verify connector recommendations match expected outputs."""
 
@@ -71,7 +71,6 @@ class TestConnectorRecommendationEvals:
         )
 
         rec_slugs = {r["slug"] for r in recs}
-        rec_by_slug = {r["slug"]: r for r in recs}
         props = eval_case["expected_properties"]
 
         # Check required connectors are present
@@ -80,7 +79,9 @@ class TestConnectorRecommendationEvals:
                 connector_name = key.replace("includes_", "")
                 assert connector_name in rec_slugs or any(
                     connector_name in s for s in rec_slugs
-                ), f"Expected connector '{connector_name}' in recommendations, got {rec_slugs}"
+                ), (
+                    f"Expected connector '{connector_name}' in recommendations, got {rec_slugs}"
+                )
 
             if key.endswith("_priority"):
                 connector_name = key.replace("_priority", "")
@@ -96,13 +97,18 @@ class TestConnectorRecommendationEvals:
 # Retry Policy Evals
 # =====================================================================
 
+
 class TestRetryPolicyEvals:
     """Verify retry policy selection logic."""
 
     @pytest.mark.parametrize(
         "eval_case",
         [e for e in EVAL_DATA["retry_evals"] if e["category"] == "policy_selection"],
-        ids=[e["id"] for e in EVAL_DATA["retry_evals"] if e["category"] == "policy_selection"],
+        ids=[
+            e["id"]
+            for e in EVAL_DATA["retry_evals"]
+            if e["category"] == "policy_selection"
+        ],
     )
     def test_policy_selection(self, eval_case):
         from app.services.adaptive_retry_service import (
@@ -149,7 +155,9 @@ class TestRetryPolicyEvals:
 
         # Create minimal project + run + task for the test
         project = Project(
-            name="Eval Project", description="Eval", owner_id=uuid.UUID("00000000-0000-0000-0000-000000000001")
+            name="Eval Project",
+            description="Eval",
+            owner_id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
         )
         db_session.add(project)
         await db_session.flush()
@@ -185,6 +193,7 @@ class TestRetryPolicyEvals:
 # Chatbot Stub Response Quality Evals
 # =====================================================================
 
+
 class TestChatbotStubEvals:
     """Verify chatbot stub responses contain expected information."""
 
@@ -213,15 +222,16 @@ class TestChatbotStubEvals:
 
         topics = ["failure"]
         result = _build_stub_response(context, "Why did it fail?", topics, [])
-        assert "failed" in result.lower() or "error" in result.lower() or "ModuleNotFoundError" in result
+        assert (
+            "failed" in result.lower()
+            or "error" in result.lower()
+            or "ModuleNotFoundError" in result
+        )
 
     def test_approval_stub_shows_pending(self):
         from app.services.chat_service import _build_stub_response
 
-        context = (
-            "=== Approvals (1) ===\n"
-            "  pending: 1\n"
-        )
+        context = "=== Approvals (1) ===\n  pending: 1\n"
 
         topics = ["approval"]
         result = _build_stub_response(context, "Any pending approvals?", topics, [])
@@ -244,10 +254,7 @@ class TestChatbotStubEvals:
     def test_retry_stub_uses_extra_sections(self):
         from app.services.chat_service import _build_stub_response
 
-        extra = [
-            "=== Retry Status ===\n"
-            "  Failed: 2 | Retried: 1 | Exhausted: 1"
-        ]
+        extra = ["=== Retry Status ===\n  Failed: 2 | Retried: 1 | Exhausted: 1"]
 
         topics = ["retry"]
         result = _build_stub_response("", "Can I retry?", topics, extra)

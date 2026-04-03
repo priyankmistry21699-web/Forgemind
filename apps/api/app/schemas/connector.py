@@ -30,6 +30,7 @@ class ConnectorList(BaseModel):
 
 class ConnectorRecommendation(BaseModel):
     """A recommended connector for a project."""
+
     connector_slug: str
     connector_name: str
     reason: str
@@ -39,8 +40,10 @@ class ConnectorRecommendation(BaseModel):
 
 # ── FM-041: Connector Readiness Schemas ──────────────────────────
 
+
 class ProjectConnectorLinkCreate(BaseModel):
     """Create a connector link for a project."""
+
     connector_slug: str
     priority: ConnectorPriority = ConnectorPriority.RECOMMENDED
     config_snapshot: dict | None = None
@@ -48,6 +51,7 @@ class ProjectConnectorLinkCreate(BaseModel):
 
 class ProjectConnectorLinkRead(BaseModel):
     """Read a project-connector link with readiness state."""
+
     id: uuid.UUID
     project_id: uuid.UUID
     connector_id: uuid.UUID
@@ -65,6 +69,7 @@ class ProjectConnectorLinkRead(BaseModel):
 
 class ProjectConnectorReadinessUpdate(BaseModel):
     """Update the readiness state of a project-connector link."""
+
     readiness: ConnectorReadiness
     blocker_reason: str | None = None
     config_snapshot: dict | None = None
@@ -72,6 +77,7 @@ class ProjectConnectorReadinessUpdate(BaseModel):
 
 class ProjectReadinessSummary(BaseModel):
     """Readiness summary for all connectors in a project."""
+
     links: list[ProjectConnectorLinkRead]
     total: int
     ready_count: int
@@ -83,6 +89,7 @@ class ProjectReadinessSummary(BaseModel):
 
 class RunConnectorBlocker(BaseModel):
     """A connector that is blocking a run from proceeding."""
+
     connector_slug: str
     connector_name: str
     priority: str

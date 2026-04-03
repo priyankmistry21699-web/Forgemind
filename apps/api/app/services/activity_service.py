@@ -9,6 +9,7 @@ from app.models.activity import ActivityFeedEntry, UserPresence
 
 # ── Activity Feed (FM-058) ───────────────────────────────────────
 
+
 async def create_activity(
     db: AsyncSession,
     *,
@@ -50,9 +51,9 @@ async def list_activities(
         query = query.where(ActivityFeedEntry.project_id == project_id)
     if workspace_id:
         query = query.where(ActivityFeedEntry.workspace_id == workspace_id)
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(ActivityFeedEntry.created_at.desc()).offset(offset).limit(limit)
     )
@@ -60,6 +61,7 @@ async def list_activities(
 
 
 # ── Presence (FM-059) ───────────────────────────────────────────
+
 
 async def upsert_presence(
     db: AsyncSession,
@@ -91,9 +93,7 @@ async def upsert_presence(
     return p
 
 
-async def get_presence(
-    db: AsyncSession, user_id: uuid.UUID
-) -> UserPresence | None:
+async def get_presence(db: AsyncSession, user_id: uuid.UUID) -> UserPresence | None:
     result = await db.execute(
         select(UserPresence).where(UserPresence.user_id == user_id)
     )
@@ -107,9 +107,9 @@ async def list_presence(
     offset: int = 0,
 ) -> tuple[list[UserPresence], int]:
     query = select(UserPresence)
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(UserPresence.last_seen_at.desc()).offset(offset).limit(limit)
     )

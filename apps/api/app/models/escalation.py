@@ -7,7 +7,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, Text, Integer, DateTime, Enum, ForeignKey, func
+from sqlalchemy import String, Integer, DateTime, Enum, ForeignKey, func
 from sqlalchemy.dialects.postgresql import UUID, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -53,9 +53,7 @@ class EscalationRule(Base):
         nullable=False,
     )
     rules: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    cooldown_minutes: Mapped[int] = mapped_column(
-        Integer, default=30, nullable=False
-    )
+    cooldown_minutes: Mapped[int] = mapped_column(Integer, default=30, nullable=False)
     is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(

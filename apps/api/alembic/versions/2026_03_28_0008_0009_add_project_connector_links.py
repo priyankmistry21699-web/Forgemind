@@ -43,7 +43,9 @@ def upgrade() -> None:
         ),
         sa.Column(
             "readiness",
-            sa.Enum("missing", "configured", "blocked", "ready", name="connector_readiness"),
+            sa.Enum(
+                "missing", "configured", "blocked", "ready", name="connector_readiness"
+            ),
             nullable=False,
             server_default="missing",
         ),

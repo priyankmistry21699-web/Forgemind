@@ -94,8 +94,13 @@ async def update_policy(
         return None
 
     allowed_fields = {
-        "name", "description", "trigger", "action",
-        "rules", "enabled", "priority",
+        "name",
+        "description",
+        "trigger",
+        "action",
+        "rules",
+        "enabled",
+        "priority",
     }
     for key, value in updates.items():
         if key in allowed_fields and value is not None:
@@ -143,8 +148,13 @@ async def evaluate_task_approval(
     policies = await list_policies(db, project_id=project_id)
 
     for policy in policies:
-        if _policy_matches(policy, task_type=task_type, cost_usd=cost_usd,
-                           agent_slug=agent_slug, artifact_type=artifact_type):
+        if _policy_matches(
+            policy,
+            task_type=task_type,
+            cost_usd=cost_usd,
+            agent_slug=agent_slug,
+            artifact_type=artifact_type,
+        ):
             logger.info(
                 "Policy '%s' (trigger=%s) matched -> %s",
                 policy.name,
@@ -186,8 +196,9 @@ def _policy_matches(
 
     elif policy.trigger == PolicyTrigger.CUSTOM:
         # Custom conditions evaluated from rules JSON
-        return _evaluate_custom_rules(rules, task_type=task_type,
-                                      cost_usd=cost_usd, agent_slug=agent_slug)
+        return _evaluate_custom_rules(
+            rules, task_type=task_type, cost_usd=cost_usd, agent_slug=agent_slug
+        )
 
     return False
 
@@ -275,7 +286,11 @@ async def evaluate_approval_with_council(
 
     needs_council = False
     # If action is REQUIRE_APPROVAL and there are cost concerns, suggest council
-    if action == PolicyAction.REQUIRE_APPROVAL and cost_usd is not None and cost_usd > 0.5:
+    if (
+        action == PolicyAction.REQUIRE_APPROVAL
+        and cost_usd is not None
+        and cost_usd > 0.5
+    ):
         needs_council = True
 
     return {
@@ -284,9 +299,8 @@ async def evaluate_approval_with_council(
         "task_type": task_type,
         "project_id": str(project_id),
         "explanation": f"Policy evaluation: {action.value}"
-                       + (" (council recommended)" if needs_council else ""),
+        + (" (council recommended)" if needs_council else ""),
     }
-
 
 
 async def evaluate_cost_threshold(

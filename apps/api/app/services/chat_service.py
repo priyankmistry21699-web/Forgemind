@@ -11,7 +11,6 @@ FM-044 enhancements:
 
 import uuid
 import logging
-from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -44,6 +43,7 @@ Use structured formatting (bullets, headers) for complex answers.
 # Topic detection
 # ---------------------------------------------------------------------------
 
+
 class ChatTopic:
     BLOCKER = "blocker"
     FAILURE = "failure"
@@ -62,8 +62,22 @@ TOPIC_KEYWORDS: dict[str, list[str]] = {
     ChatTopic.APPROVAL: ["approv", "pending", "review", "sign-off", "gate"],
     ChatTopic.ARTIFACT: ["artifact", "output", "result", "deliverable", "produced"],
     ChatTopic.RETRY: ["retry", "rerun", "again", "attempt", "revision", "redo"],
-    ChatTopic.CONNECTOR: ["connector", "credential", "integration", "token", "secret", "oauth"],
-    ChatTopic.NEXT_STEP: ["next", "what should", "recommend", "suggest", "do now", "plan"],
+    ChatTopic.CONNECTOR: [
+        "connector",
+        "credential",
+        "integration",
+        "token",
+        "secret",
+        "oauth",
+    ],
+    ChatTopic.NEXT_STEP: [
+        "next",
+        "what should",
+        "recommend",
+        "suggest",
+        "do now",
+        "plan",
+    ],
     ChatTopic.STATUS: ["status", "progress", "how far", "overview", "summary"],
 }
 
@@ -81,6 +95,7 @@ def detect_topics(message: str) -> list[str]:
 # ---------------------------------------------------------------------------
 # Context builders
 # ---------------------------------------------------------------------------
+
 
 async def _build_run_context(db: AsyncSession, run_id: uuid.UUID) -> str:
     """Assemble a text context from the run memory service."""
@@ -109,10 +124,16 @@ async def _build_connector_context(db: AsyncSession, run_id: uuid.UUID) -> str:
         f"  Ready: {readiness['ready_count']} | Configured: {readiness['configured_count']} "
         f"| Blocked: {readiness['blocked_count']} | Missing: {readiness['missing_count']}"
     )
-    lines.append(f"  All required ready: {'Yes' if readiness['all_required_ready'] else 'NO'}")
+    lines.append(
+        f"  All required ready: {'Yes' if readiness['all_required_ready'] else 'NO'}"
+    )
 
     for link in readiness["links"]:
-        status_marker = "OK" if link["readiness"].value == "ready" else link["readiness"].value.upper()
+        status_marker = (
+            "OK"
+            if link["readiness"].value == "ready"
+            else link["readiness"].value.upper()
+        )
         lines.append(
             f"  - [{status_marker}] {link['connector_name']} ({link['connector_slug']}) "
             f"— {link['priority'].value}"
@@ -149,9 +170,7 @@ async def _build_retry_context(db: AsyncSession, run_id: uuid.UUID) -> str:
     return "\n".join(lines)
 
 
-async def _build_next_step_suggestions(
-    db: AsyncSession, run_id: uuid.UUID
-) -> str:
+async def _build_next_step_suggestions(db: AsyncSession, run_id: uuid.UUID) -> str:
     """Generate next-step suggestions based on run state."""
     summary = await run_memory_service.get_run_summary(db, run_id)
     if "error" in summary:
@@ -160,9 +179,13 @@ async def _build_next_step_suggestions(
     suggestions: list[str] = []
 
     # Check approvals
-    pending_approvals = summary.get("approval_summary", {}).get("status_counts", {}).get("pending", 0)
+    pending_approvals = (
+        summary.get("approval_summary", {}).get("status_counts", {}).get("pending", 0)
+    )
     if pending_approvals > 0:
-        suggestions.append(f"Review {pending_approvals} pending approval(s) to unblock execution")
+        suggestions.append(
+            f"Review {pending_approvals} pending approval(s) to unblock execution"
+        )
 
     # Check failures
     failures = summary.get("failure_context", [])
@@ -171,9 +194,13 @@ async def _build_next_step_suggestions(
         retryable = [f for f in retry_status["failed_tasks"] if f["can_retry"]]
         exhausted = retry_status["exhausted_tasks"]
         if retryable:
-            suggestions.append(f"Retry {len(retryable)} failed task(s) that have retries available")
+            suggestions.append(
+                f"Retry {len(retryable)} failed task(s) that have retries available"
+            )
         if exhausted:
-            suggestions.append(f"Create revision tasks for {len(exhausted)} task(s) that exhausted retries")
+            suggestions.append(
+                f"Create revision tasks for {len(exhausted)} task(s) that exhausted retries"
+            )
 
     # Check connector blockers
     blockers = await connector_service.get_run_connector_blockers(db, run_id)
@@ -195,7 +222,9 @@ async def _build_next_step_suggestions(
         if ready > 0:
             suggestions.append(f"{ready} task(s) are READY for agent assignment")
         elif running > 0:
-            suggestions.append(f"{running} task(s) currently running — monitor progress")
+            suggestions.append(
+                f"{running} task(s) currently running — monitor progress"
+            )
         else:
             suggestions.append("Check task dependencies and resolve any blockers")
 
@@ -211,6 +240,7 @@ async def _build_next_step_suggestions(
 # ---------------------------------------------------------------------------
 # Main chat function
 # ---------------------------------------------------------------------------
+
 
 async def chat_about_run(
     db: AsyncSession,
@@ -277,20 +307,32 @@ def _build_stub_response(
     extra_sections: list[str],
 ) -> str:
     """Generate an enhanced rule-based response when LLM is unavailable."""
-    lower = question.lower()
-
     if ChatTopic.BLOCKER in topics:
-        lines = [l for l in context.split("\n") if "[blocked]" in l.lower() or "MISSING" in l or "BLOCKED" in l]
+        lines = [
+            line
+            for line in context.split("\n")
+            if "[blocked]" in line.lower() or "MISSING" in line or "BLOCKED" in line
+        ]
         if lines:
-            return "The following items are currently blocking progress:\n" + "\n".join(lines[:10])
+            return "The following items are currently blocking progress:\n" + "\n".join(
+                lines[:10]
+            )
         return "No tasks or connectors are currently blocked."
 
     if ChatTopic.FAILURE in topics:
-        lines = [l for l in context.split("\n") if "[failed]" in l.lower() or "ERROR:" in l or "Error:" in l]
+        lines = [
+            line
+            for line in context.split("\n")
+            if "[failed]" in line.lower() or "ERROR:" in line or "Error:" in line
+        ]
         if lines:
             result = "Failed items:\n" + "\n".join(lines[:10])
             # Add retry guidance
-            retry_lines = [l for l in context.split("\n") if "retry" in l.lower() or "retries" in l.lower()]
+            retry_lines = [
+                line
+                for line in context.split("\n")
+                if "retry" in line.lower() or "retries" in line.lower()
+            ]
             if retry_lines:
                 result += "\n\nRetry context:\n" + "\n".join(retry_lines[:5])
             return result
@@ -303,7 +345,11 @@ def _build_stub_response(
         return "No retry information available for this run."
 
     if ChatTopic.APPROVAL in topics:
-        lines = [l for l in context.split("\n") if "[pending]" in l.lower() or "pending" in l.lower()]
+        lines = [
+            line
+            for line in context.split("\n")
+            if "[pending]" in line.lower() or "pending" in line.lower()
+        ]
         if lines:
             return "Pending approvals:\n" + "\n".join(lines[:10])
         return "No pending approvals."
@@ -315,7 +361,18 @@ def _build_stub_response(
         return "No connector information available."
 
     if ChatTopic.ARTIFACT in topics:
-        lines = [l for l in context.split("\n") if "] " in l and ("architecture" in l.lower() or "implementation" in l.lower() or "review" in l.lower() or "test_report" in l.lower() or "plan_summary" in l.lower())]
+        lines = [
+            line
+            for line in context.split("\n")
+            if "] " in line
+            and (
+                "architecture" in line.lower()
+                or "implementation" in line.lower()
+                or "review" in line.lower()
+                or "test_report" in line.lower()
+                or "plan_summary" in line.lower()
+            )
+        ]
         if lines:
             return "Artifacts produced:\n" + "\n".join(lines[:10])
         return "No artifacts have been produced yet."

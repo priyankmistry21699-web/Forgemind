@@ -35,9 +35,24 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("factors", JSON, nullable=True),
-        sa.Column("project_id", UUID(as_uuid=True), sa.ForeignKey("projects.id", ondelete="CASCADE"), nullable=True),
-        sa.Column("run_id", UUID(as_uuid=True), sa.ForeignKey("runs.id", ondelete="CASCADE"), nullable=True),
-        sa.Column("assessed_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "project_id",
+            UUID(as_uuid=True),
+            sa.ForeignKey("projects.id", ondelete="CASCADE"),
+            nullable=True,
+        ),
+        sa.Column(
+            "run_id",
+            UUID(as_uuid=True),
+            sa.ForeignKey("runs.id", ondelete="CASCADE"),
+            nullable=True,
+        ),
+        sa.Column(
+            "assessed_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.func.now(),
+            nullable=False,
+        ),
     )
     op.create_index("ix_trust_scores_entity_type", "trust_scores", ["entity_type"])
     op.create_index("ix_trust_scores_entity_id", "trust_scores", ["entity_id"])

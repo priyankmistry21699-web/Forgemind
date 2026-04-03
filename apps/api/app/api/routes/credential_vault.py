@@ -12,7 +12,6 @@ from app.schemas.credential_vault import (
     CredentialVaultRead,
     CredentialVaultUpdate,
     CredentialVaultList,
-    CredentialCheckResult,
 )
 from app.services import credential_vault_service
 from app.services.authz_service import check_project_permission, Action
@@ -30,9 +29,7 @@ async def _resolve_connector_slug(
     """Helper to resolve connector slug from ID."""
     if connector_id is None:
         return None
-    result = await db.execute(
-        select(Connector).where(Connector.id == connector_id)
-    )
+    result = await db.execute(select(Connector).where(Connector.id == connector_id))
     connector = result.scalar_one_or_none()
     return connector.slug if connector else None
 
@@ -49,7 +46,9 @@ async def create_credential(
 ) -> CredentialVaultRead:
     """Register a new credential in the vault."""
     if body.project_id is not None:
-        await check_project_permission(db, body.project_id, user_id, Action.PROJECT_UPDATE)
+        await check_project_permission(
+            db, body.project_id, user_id, Action.PROJECT_UPDATE
+        )
     credential = await credential_vault_service.create_credential(
         db,
         name=body.name,

@@ -5,11 +5,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.metrics import inc_counter
 from app.models.notification import (
-    Notification, NotificationDeliveryConfig,
+    Notification,
+    NotificationDeliveryConfig,
 )
 
 
 # ── Notifications (FM-055) ───────────────────────────────────────
+
 
 async def create_notification(
     db: AsyncSession,
@@ -36,7 +38,10 @@ async def create_notification(
     db.add(n)
     await db.flush()
     await db.refresh(n)
-    inc_counter("notification_created_total", labels={"type": notification_type, "priority": priority})
+    inc_counter(
+        "notification_created_total",
+        labels={"type": notification_type, "priority": priority},
+    )
     return n
 
 
@@ -53,18 +58,22 @@ async def list_notifications(
     if unread_only:
         query = query.where(Notification.is_read == False)  # noqa: E712
 
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
 
-    unread_count = (await db.execute(
-        select(sa_func.count()).select_from(
-            select(Notification).where(
-                Notification.user_id == user_id,
-                Notification.is_read == False,  # noqa: E712
-            ).subquery()
+    unread_count = (
+        await db.execute(
+            select(sa_func.count()).select_from(
+                select(Notification)
+                .where(
+                    Notification.user_id == user_id,
+                    Notification.is_read == False,  # noqa: E712
+                )
+                .subquery()
+            )
         )
-    )).scalar_one()
+    ).scalar_one()
 
     result = await db.execute(
         query.order_by(Notification.created_at.desc()).offset(offset).limit(limit)
@@ -100,6 +109,7 @@ async def mark_all_read(db: AsyncSession, user_id: uuid.UUID) -> int:
 
 # ── Delivery Config (FM-056) ────────────────────────────────────
 
+
 async def create_delivery_config(
     db: AsyncSession,
     *,
@@ -127,8 +137,8 @@ async def list_delivery_configs(
     query = select(NotificationDeliveryConfig).where(
         NotificationDeliveryConfig.user_id == user_id
     )
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(query.order_by(NotificationDeliveryConfig.created_at))
     return list(result.scalars().all()), total

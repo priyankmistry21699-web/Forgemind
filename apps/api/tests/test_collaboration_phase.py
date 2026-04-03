@@ -16,7 +16,6 @@ import asyncio
 import uuid
 
 import pytest
-import pytest_asyncio
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,6 +23,7 @@ STUB_USER_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 
 
 # ── FM-051: Workspace-scoped projects ────────────────────────────
+
 
 class TestWorkspaceScopedProjects:
     """Verify projects can be linked to workspaces."""
@@ -41,21 +41,22 @@ class TestWorkspaceScopedProjects:
     async def test_create_project_with_workspace(self, client: AsyncClient):
         """Create a workspace then a project linked to it."""
         # Create workspace
-        ws_resp = await client.post("/workspaces", json={
-            "name": "Test WS", "slug": "test-ws-proj"
-        })
+        ws_resp = await client.post(
+            "/workspaces", json={"name": "Test WS", "slug": "test-ws-proj"}
+        )
         assert ws_resp.status_code == 201
         ws_id = ws_resp.json()["id"]
 
         # Create project with workspace_id
-        proj_resp = await client.post("/projects", json={
-            "name": "WS Project", "workspace_id": ws_id
-        })
+        proj_resp = await client.post(
+            "/projects", json={"name": "WS Project", "workspace_id": ws_id}
+        )
         assert proj_resp.status_code == 201
         assert proj_resp.json()["workspace_id"] == ws_id
 
 
 # ── FM-052: Authorization service ────────────────────────────────
+
 
 class TestAuthzService:
     """Test the authorization permission helpers."""
@@ -64,7 +65,9 @@ class TestAuthzService:
     async def test_workspace_permission_matrix(self, db_session: AsyncSession):
         """Verify permission matrix returns correct allowed roles."""
         from app.services.authz_service import (
-            Action, WORKSPACE_PERMISSIONS, is_workspace_action_allowed,
+            Action,
+            WORKSPACE_PERMISSIONS,
+            is_workspace_action_allowed,
         )
         from app.models.membership import WorkspaceRole
 
@@ -74,21 +77,32 @@ class TestAuthzService:
 
         # Viewer can only view
         assert is_workspace_action_allowed(WorkspaceRole.VIEWER, Action.WORKSPACE_VIEW)
-        assert not is_workspace_action_allowed(WorkspaceRole.VIEWER, Action.WORKSPACE_UPDATE)
-        assert not is_workspace_action_allowed(WorkspaceRole.VIEWER, Action.WORKSPACE_DELETE)
+        assert not is_workspace_action_allowed(
+            WorkspaceRole.VIEWER, Action.WORKSPACE_UPDATE
+        )
+        assert not is_workspace_action_allowed(
+            WorkspaceRole.VIEWER, Action.WORKSPACE_DELETE
+        )
 
     @pytest.mark.asyncio
     async def test_project_permission_matrix(self, db_session: AsyncSession):
         """Verify project permission matrix."""
         from app.services.authz_service import (
-            Action, is_project_action_allowed,
+            Action,
+            is_project_action_allowed,
         )
         from app.models.membership import ProjectRole
 
         # Lead can do everything
-        for action in [Action.PROJECT_UPDATE, Action.PROJECT_DELETE,
-                       Action.PROJECT_MANAGE_MEMBERS, Action.PROJECT_VIEW,
-                       Action.PROJECT_RUN, Action.PROJECT_APPROVE, Action.PROJECT_REVIEW]:
+        for action in [
+            Action.PROJECT_UPDATE,
+            Action.PROJECT_DELETE,
+            Action.PROJECT_MANAGE_MEMBERS,
+            Action.PROJECT_VIEW,
+            Action.PROJECT_RUN,
+            Action.PROJECT_APPROVE,
+            Action.PROJECT_REVIEW,
+        ]:
             assert is_project_action_allowed(ProjectRole.LEAD, action)
 
         # Viewer can only view
@@ -96,7 +110,9 @@ class TestAuthzService:
         assert not is_project_action_allowed(ProjectRole.VIEWER, Action.PROJECT_UPDATE)
 
     @pytest.mark.asyncio
-    async def test_check_workspace_permission_not_member(self, db_session: AsyncSession):
+    async def test_check_workspace_permission_not_member(
+        self, db_session: AsyncSession
+    ):
         """Non-member should get 404."""
         from app.services.authz_service import check_workspace_permission, Action
         from fastapi import HTTPException
@@ -108,14 +124,18 @@ class TestAuthzService:
         assert exc_info.value.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_check_workspace_permission_authorized(self, db_session: AsyncSession):
+    async def test_check_workspace_permission_authorized(
+        self, db_session: AsyncSession
+    ):
         """Owner (auto-enrolled) should pass permission check."""
         from app.services.authz_service import check_workspace_permission, Action
         from app.services import workspace_service
         from app.models.membership import WorkspaceRole
 
         ws = await workspace_service.create_workspace(
-            db_session, name="Auth WS", slug="auth-ws-test",
+            db_session,
+            name="Auth WS",
+            slug="auth-ws-test",
             owner_id=STUB_USER_ID,
         )
         # Owner is auto-enrolled — no need to add manually
@@ -134,11 +154,15 @@ class TestAuthzService:
 
         OTHER = uuid.UUID("00000000-0000-0000-0000-000000000099")
         ws = await workspace_service.create_workspace(
-            db_session, name="Auth WS2", slug="auth-ws-forbidden",
+            db_session,
+            name="Auth WS2",
+            slug="auth-ws-forbidden",
             owner_id=STUB_USER_ID,
         )
         await membership_service.add_workspace_member(
-            db_session, workspace_id=ws.id, user_id=OTHER,
+            db_session,
+            workspace_id=ws.id,
+            user_id=OTHER,
             role=WorkspaceRole.VIEWER,
         )
 
@@ -151,12 +175,15 @@ class TestAuthzService:
 
 # ── FM-053: Workspace membership validation ──────────────────────
 
+
 class TestProjectMembershipValidation:
     """Verify workspace membership is validated before project assignment."""
 
     @pytest.mark.asyncio
     async def test_add_project_member_no_workspace_check_when_no_workspace(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         """Projects without workspace_id should skip the check."""
         from app.services import membership_service
@@ -165,13 +192,16 @@ class TestProjectMembershipValidation:
         OTHER = uuid.UUID("00000000-0000-0000-0000-000000000099")
         # sample_project has no workspace_id, should work fine
         member = await membership_service.add_project_member(
-            db_session, project_id=sample_project.id,
-            user_id=OTHER, role=ProjectRole.LEAD,
+            db_session,
+            project_id=sample_project.id,
+            user_id=OTHER,
+            role=ProjectRole.LEAD,
         )
         assert member.role.value == "lead"
 
 
 # ── FM-054: Stream service pub/sub ───────────────────────────────
+
 
 class TestStreamService:
     """Test the in-memory event pub/sub for SSE streaming."""
@@ -180,7 +210,9 @@ class TestStreamService:
     async def test_subscribe_and_publish(self):
         """Subscriber should receive published events."""
         from app.services.stream_service import (
-            subscribe_run, unsubscribe_run, publish_run_event,
+            subscribe_run,
+            unsubscribe_run,
+            publish_run_event,
         )
 
         run_id = uuid.uuid4()
@@ -207,7 +239,9 @@ class TestStreamService:
     async def test_global_subscriber_receives_events(self):
         """Global subscribers should get all run events."""
         from app.services.stream_service import (
-            subscribe_global, unsubscribe_global, publish_run_event,
+            subscribe_global,
+            unsubscribe_global,
+            publish_run_event,
         )
 
         queue = subscribe_global()
@@ -224,6 +258,7 @@ class TestStreamService:
     async def test_run_scoped_sse_route_exists(self, client: AsyncClient):
         """The /runs/{run_id}/stream endpoint should be registered."""
         from app.main import create_app
+
         app = create_app()
         routes = [r.path for r in app.routes]
         assert "/runs/{run_id}/stream" in routes
@@ -232,7 +267,8 @@ class TestStreamService:
     async def test_run_event_generator_yields(self):
         """Run event generator should yield events."""
         from app.services.stream_service import (
-            run_event_generator, publish_run_event,
+            run_event_generator,
+            publish_run_event,
         )
 
         run_id = uuid.uuid4()
@@ -251,6 +287,7 @@ class TestStreamService:
 
 # ── FM-056: Notification delivery service ────────────────────────
 
+
 class TestNotificationDeliveryService:
     """Test external notification delivery."""
 
@@ -258,7 +295,11 @@ class TestNotificationDeliveryService:
     async def test_deliver_with_no_configs(self, db_session: AsyncSession):
         """No delivery configs means empty results."""
         from app.services.notification_delivery_service import deliver_notification
-        from app.models.notification import Notification, NotificationType, NotificationPriority
+        from app.models.notification import (
+            Notification,
+            NotificationType,
+            NotificationPriority,
+        )
 
         notif = Notification(
             user_id=STUB_USER_ID,
@@ -277,8 +318,12 @@ class TestNotificationDeliveryService:
         """Email delivery stub should succeed."""
         from app.services.notification_delivery_service import _deliver_email
         from app.models.notification import (
-            Notification, NotificationType, NotificationPriority,
-            NotificationDeliveryConfig, DeliveryChannel, DeliveryStatus,
+            Notification,
+            NotificationType,
+            NotificationPriority,
+            NotificationDeliveryConfig,
+            DeliveryChannel,
+            DeliveryStatus,
         )
 
         notif = Notification(
@@ -309,8 +354,12 @@ class TestNotificationDeliveryService:
         """Webhook with no URL should fail gracefully."""
         from app.services.notification_delivery_service import _deliver_webhook
         from app.models.notification import (
-            Notification, NotificationType, NotificationPriority,
-            NotificationDeliveryConfig, DeliveryChannel, DeliveryStatus,
+            Notification,
+            NotificationType,
+            NotificationPriority,
+            NotificationDeliveryConfig,
+            DeliveryChannel,
+            DeliveryStatus,
         )
 
         notif = Notification(
@@ -338,15 +387,16 @@ class TestNotificationDeliveryService:
 
 # ── FM-058: Workspace activity endpoint ──────────────────────────
 
+
 class TestWorkspaceActivity:
     """Test workspace-scoped activity feed."""
 
     @pytest.mark.asyncio
     async def test_workspace_activity_empty(self, client: AsyncClient):
         """Empty workspace activity should return empty list."""
-        ws_resp = await client.post("/workspaces", json={
-            "name": "Activity WS", "slug": "activity-ws-test"
-        })
+        ws_resp = await client.post(
+            "/workspaces", json={"name": "Activity WS", "slug": "activity-ws-test"}
+        )
         ws_id = ws_resp.json()["id"]
 
         resp = await client.get(f"/workspaces/{ws_id}/activity")
@@ -357,17 +407,20 @@ class TestWorkspaceActivity:
     @pytest.mark.asyncio
     async def test_workspace_activity_with_entries(self, client: AsyncClient):
         """Activity should be filterable by workspace."""
-        ws_resp = await client.post("/workspaces", json={
-            "name": "Activity WS2", "slug": "activity-ws-entries"
-        })
+        ws_resp = await client.post(
+            "/workspaces", json={"name": "Activity WS2", "slug": "activity-ws-entries"}
+        )
         ws_id = ws_resp.json()["id"]
 
         # Create an activity entry for this workspace
-        await client.post("/activity", json={
-            "activity_type": "run_started",
-            "summary": "Test run started",
-            "workspace_id": ws_id,
-        })
+        await client.post(
+            "/activity",
+            json={
+                "activity_type": "run_started",
+                "summary": "Test run started",
+                "workspace_id": ws_id,
+            },
+        )
 
         resp = await client.get(f"/workspaces/{ws_id}/activity")
         assert resp.status_code == 200
@@ -376,6 +429,7 @@ class TestWorkspaceActivity:
 
 
 # ── FM-059: User activity service & context ──────────────────────
+
 
 class TestUserActivityService:
     """Test user presence tracking and assignment context."""
@@ -386,7 +440,8 @@ class TestUserActivityService:
         from app.services.user_activity_service import touch_user_activity
 
         presence = await touch_user_activity(
-            db_session, STUB_USER_ID,
+            db_session,
+            STUB_USER_ID,
             resource_type="project",
             resource_id=uuid.uuid4(),
         )
@@ -400,7 +455,9 @@ class TestUserActivityService:
 
         p1 = await touch_user_activity(db_session, STUB_USER_ID)
         p2 = await touch_user_activity(
-            db_session, STUB_USER_ID, resource_type="run",
+            db_session,
+            STUB_USER_ID,
+            resource_type="run",
         )
         assert p2.current_resource_type == "run"
         assert p1.user_id == p2.user_id
@@ -426,6 +483,7 @@ class TestUserActivityService:
 
 # ── FM-060: Integration flows ────────────────────────────────────
 
+
 class TestCollaborationIntegration:
     """End-to-end collaboration integration tests."""
 
@@ -433,23 +491,24 @@ class TestCollaborationIntegration:
     async def test_full_workspace_project_flow(self, client: AsyncClient):
         """Create workspace → add member → create project in workspace → list activity."""
         # 1. Create workspace (owner auto-enrolled as member)
-        ws_resp = await client.post("/workspaces", json={
-            "name": "Integration WS", "slug": "integ-ws-flow"
-        })
+        ws_resp = await client.post(
+            "/workspaces", json={"name": "Integration WS", "slug": "integ-ws-flow"}
+        )
         assert ws_resp.status_code == 201
         ws_id = ws_resp.json()["id"]
 
         # 2. Add another user as member
         other_user = "00000000-0000-0000-0000-000000000099"
-        mem_resp = await client.post(f"/workspaces/{ws_id}/members", json={
-            "user_id": other_user, "role": "admin"
-        })
+        mem_resp = await client.post(
+            f"/workspaces/{ws_id}/members",
+            json={"user_id": other_user, "role": "admin"},
+        )
         assert mem_resp.status_code == 201
 
         # 3. Create project in workspace
-        proj_resp = await client.post("/projects", json={
-            "name": "WS Project", "workspace_id": ws_id
-        })
+        proj_resp = await client.post(
+            "/projects", json={"name": "WS Project", "workspace_id": ws_id}
+        )
         assert proj_resp.status_code == 201
         assert proj_resp.json()["workspace_id"] == ws_id
 
@@ -462,11 +521,14 @@ class TestCollaborationIntegration:
     async def test_notification_create_and_read_flow(self, client: AsyncClient):
         """Create notification → list → mark read → verify unread count."""
         # Create (user_id comes from auth stub, not the body)
-        n_resp = await client.post("/notifications", json={
-            "notification_type": "approval_required",
-            "title": "Review needed",
-            "priority": "high",
-        })
+        n_resp = await client.post(
+            "/notifications",
+            json={
+                "notification_type": "approval_required",
+                "title": "Review needed",
+                "priority": "high",
+            },
+        )
         assert n_resp.status_code == 201
         n_id = n_resp.json()["id"]
 
@@ -496,16 +558,21 @@ class TestCollaborationIntegration:
         assert rule_resp.status_code == 201
 
         # Events should be empty initially
-        events_resp = await client.get(f"/projects/{sample_project.id}/escalation/events")
+        events_resp = await client.get(
+            f"/projects/{sample_project.id}/escalation/events"
+        )
         assert events_resp.status_code == 200
 
     @pytest.mark.asyncio
     async def test_presence_update_and_retrieve(self, client: AsyncClient):
         """Update presence → get presence."""
-        await client.put("/presence", json={
-            "status": "online",
-            "current_resource_type": "project",
-        })
+        await client.put(
+            "/presence",
+            json={
+                "status": "online",
+                "current_resource_type": "project",
+            },
+        )
 
         resp = await client.get(f"/presence/{STUB_USER_ID}")
         assert resp.status_code == 200
@@ -515,10 +582,13 @@ class TestCollaborationIntegration:
     async def test_delivery_config_management(self, client: AsyncClient):
         """Create delivery config → list configs."""
         # Create webhook config
-        config_resp = await client.post("/notifications/delivery", json={
-            "channel": "webhook",
-            "config": {"url": "https://example.com/hook"},
-        })
+        config_resp = await client.post(
+            "/notifications/delivery",
+            json={
+                "channel": "webhook",
+                "config": {"url": "https://example.com/hook"},
+            },
+        )
         assert config_resp.status_code == 201
 
         # List configs

@@ -9,16 +9,14 @@ FM-050: Trust Scoring & Risk Assessment
 
 import uuid
 import pytest
-import pytest_asyncio
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.run import Run, RunStatus
 from app.models.task import Task, TaskStatus
 from app.models.execution_event import ExecutionEvent, EventType
-from app.models.cost_record import CostRecord
-from app.models.governance_policy import GovernancePolicy, PolicyTrigger, PolicyAction
-from app.models.trust_score import TrustScore, RiskLevel, EntityType
+from app.models.governance_policy import PolicyTrigger, PolicyAction
+from app.models.trust_score import RiskLevel
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -30,9 +28,7 @@ class TestRunHealthCheck:
     """Test run health computation."""
 
     @pytest.mark.asyncio
-    async def test_healthy_running_run(
-        self, db_session: AsyncSession, sample_project
-    ):
+    async def test_healthy_running_run(self, db_session: AsyncSession, sample_project):
         """A running run with no failures should be healthy."""
         from app.services import run_lifecycle_service
 
@@ -41,8 +37,10 @@ class TestRunHealthCheck:
         await db_session.flush()
 
         task = Task(
-            title="Build feature", task_type="coding",
-            status=TaskStatus.RUNNING, run_id=run.id,
+            title="Build feature",
+            task_type="coding",
+            status=TaskStatus.RUNNING,
+            run_id=run.id,
         )
         db_session.add(task)
         await db_session.flush()
@@ -63,13 +61,13 @@ class TestRunHealthCheck:
         assert health["progress"] == 0.0
 
     @pytest.mark.asyncio
-    async def test_completed_run_health(
-        self, db_session: AsyncSession, sample_project
-    ):
+    async def test_completed_run_health(self, db_session: AsyncSession, sample_project):
         """A completed run should return completed health."""
         from app.services import run_lifecycle_service
 
-        run = Run(run_number=11, project_id=sample_project.id, status=RunStatus.COMPLETED)
+        run = Run(
+            run_number=11, project_id=sample_project.id, status=RunStatus.COMPLETED
+        )
         db_session.add(run)
         await db_session.flush()
 
@@ -88,15 +86,23 @@ class TestRunHealthCheck:
         db_session.add(run)
         await db_session.flush()
 
-        t1 = Task(title="T1", task_type="coding", status=TaskStatus.COMPLETED, run_id=run.id)
-        t2 = Task(title="T2", task_type="coding", status=TaskStatus.FAILED, run_id=run.id)
-        t3 = Task(title="T3", task_type="coding", status=TaskStatus.RUNNING, run_id=run.id)
+        t1 = Task(
+            title="T1", task_type="coding", status=TaskStatus.COMPLETED, run_id=run.id
+        )
+        t2 = Task(
+            title="T2", task_type="coding", status=TaskStatus.FAILED, run_id=run.id
+        )
+        t3 = Task(
+            title="T3", task_type="coding", status=TaskStatus.RUNNING, run_id=run.id
+        )
         db_session.add_all([t1, t2, t3])
         await db_session.flush()
 
         event = ExecutionEvent(
-            event_type=EventType.TASK_COMPLETED, summary="T1 done",
-            project_id=sample_project.id, run_id=run.id,
+            event_type=EventType.TASK_COMPLETED,
+            summary="T1 done",
+            project_id=sample_project.id,
+            run_id=run.id,
         )
         db_session.add(event)
         await db_session.flush()
@@ -109,9 +115,7 @@ class TestRunHealthCheck:
         """Health check for nonexistent run returns error."""
         from app.services import run_lifecycle_service
 
-        health = await run_lifecycle_service.get_run_health(
-            db_session, uuid.uuid4()
-        )
+        health = await run_lifecycle_service.get_run_health(db_session, uuid.uuid4())
         assert "error" in health
 
 
@@ -130,10 +134,14 @@ class TestAutoComplete:
         await db_session.flush()
 
         for i in range(3):
-            db_session.add(Task(
-                title=f"Task {i}", task_type="coding",
-                status=TaskStatus.COMPLETED, run_id=run.id,
-            ))
+            db_session.add(
+                Task(
+                    title=f"Task {i}",
+                    task_type="coding",
+                    status=TaskStatus.COMPLETED,
+                    run_id=run.id,
+                )
+            )
         await db_session.flush()
 
         result = await run_lifecycle_service.try_auto_complete_run(db_session, run.id)
@@ -152,14 +160,22 @@ class TestAutoComplete:
         db_session.add(run)
         await db_session.flush()
 
-        db_session.add(Task(
-            title="Done", task_type="coding",
-            status=TaskStatus.COMPLETED, run_id=run.id,
-        ))
-        db_session.add(Task(
-            title="Still going", task_type="coding",
-            status=TaskStatus.RUNNING, run_id=run.id,
-        ))
+        db_session.add(
+            Task(
+                title="Done",
+                task_type="coding",
+                status=TaskStatus.COMPLETED,
+                run_id=run.id,
+            )
+        )
+        db_session.add(
+            Task(
+                title="Still going",
+                task_type="coding",
+                status=TaskStatus.RUNNING,
+                run_id=run.id,
+            )
+        )
         await db_session.flush()
 
         result = await run_lifecycle_service.try_auto_complete_run(db_session, run.id)
@@ -181,16 +197,21 @@ class TestAutoFail:
         await db_session.flush()
 
         t1 = Task(
-            title="Failed blocker", task_type="coding",
-            status=TaskStatus.FAILED, run_id=run.id,
-            retry_count=3, max_retries=3,
+            title="Failed blocker",
+            task_type="coding",
+            status=TaskStatus.FAILED,
+            run_id=run.id,
+            retry_count=3,
+            max_retries=3,
         )
         db_session.add(t1)
         await db_session.flush()
 
         t2 = Task(
-            title="Blocked downstream", task_type="coding",
-            status=TaskStatus.BLOCKED, run_id=run.id,
+            title="Blocked downstream",
+            task_type="coding",
+            status=TaskStatus.BLOCKED,
+            run_id=run.id,
             depends_on=[str(t1.id)],
         )
         db_session.add(t2)
@@ -212,10 +233,14 @@ class TestAutoFail:
         db_session.add(run)
         await db_session.flush()
 
-        db_session.add(Task(
-            title="Active", task_type="coding",
-            status=TaskStatus.RUNNING, run_id=run.id,
-        ))
+        db_session.add(
+            Task(
+                title="Active",
+                task_type="coding",
+                status=TaskStatus.RUNNING,
+                run_id=run.id,
+            )
+        )
         await db_session.flush()
 
         result = await run_lifecycle_service.try_auto_fail_run(db_session, run.id)
@@ -226,9 +251,7 @@ class TestLifecycleAPI:
     """Test lifecycle API endpoints."""
 
     @pytest.mark.asyncio
-    async def test_health_endpoint(
-        self, client: AsyncClient, sample_run
-    ):
+    async def test_health_endpoint(self, client: AsyncClient, sample_run):
         resp = await client.get(f"/lifecycle/runs/{sample_run.id}/health")
         assert resp.status_code == 200
         data = resp.json()
@@ -296,15 +319,21 @@ class TestCostTracking:
         from app.services import cost_tracking_service
 
         await cost_tracking_service.record_usage(
-            db_session, model_name="gpt-4o",
-            prompt_tokens=500, completion_tokens=200,
-            run_id=sample_run.id, project_id=sample_project.id,
+            db_session,
+            model_name="gpt-4o",
+            prompt_tokens=500,
+            completion_tokens=200,
+            run_id=sample_run.id,
+            project_id=sample_project.id,
             caller="planner",
         )
         await cost_tracking_service.record_usage(
-            db_session, model_name="gpt-4o",
-            prompt_tokens=300, completion_tokens=100,
-            run_id=sample_run.id, project_id=sample_project.id,
+            db_session,
+            model_name="gpt-4o",
+            prompt_tokens=300,
+            completion_tokens=100,
+            run_id=sample_run.id,
+            project_id=sample_project.id,
             caller="chat",
         )
 
@@ -322,14 +351,20 @@ class TestCostTracking:
         from app.services import cost_tracking_service
 
         await cost_tracking_service.record_usage(
-            db_session, model_name="gpt-4o",
-            prompt_tokens=100, completion_tokens=50,
-            run_id=sample_run.id, caller="planner",
+            db_session,
+            model_name="gpt-4o",
+            prompt_tokens=100,
+            completion_tokens=50,
+            run_id=sample_run.id,
+            caller="planner",
         )
         await cost_tracking_service.record_usage(
-            db_session, model_name="gpt-4o-mini",
-            prompt_tokens=200, completion_tokens=100,
-            run_id=sample_run.id, caller="chat",
+            db_session,
+            model_name="gpt-4o-mini",
+            prompt_tokens=200,
+            completion_tokens=100,
+            run_id=sample_run.id,
+            caller="chat",
         )
 
         breakdown = await cost_tracking_service.get_cost_breakdown_by_model(
@@ -345,9 +380,7 @@ class TestCostAPI:
     """Test cost API endpoints."""
 
     @pytest.mark.asyncio
-    async def test_run_cost_summary_endpoint(
-        self, client: AsyncClient, sample_run
-    ):
+    async def test_run_cost_summary_endpoint(self, client: AsyncClient, sample_run):
         resp = await client.get(f"/costs/runs/{sample_run.id}/summary")
         assert resp.status_code == 200
         data = resp.json()
@@ -377,9 +410,7 @@ class TestGovernanceService:
     """Test governance policy CRUD and evaluation."""
 
     @pytest.mark.asyncio
-    async def test_create_policy(
-        self, db_session: AsyncSession, sample_project
-    ):
+    async def test_create_policy(self, db_session: AsyncSession, sample_project):
         from app.services import governance_service
 
         policy = await governance_service.create_policy(
@@ -450,9 +481,7 @@ class TestGovernanceService:
         assert action2 == PolicyAction.AUTO_APPROVE
 
     @pytest.mark.asyncio
-    async def test_delete_policy(
-        self, db_session: AsyncSession, sample_project
-    ):
+    async def test_delete_policy(self, db_session: AsyncSession, sample_project):
         from app.services import governance_service
 
         policy = await governance_service.create_policy(
@@ -466,9 +495,7 @@ class TestGovernanceService:
         assert deleted is True
 
     @pytest.mark.asyncio
-    async def test_seed_default_policies(
-        self, db_session: AsyncSession
-    ):
+    async def test_seed_default_policies(self, db_session: AsyncSession):
         from app.services import governance_service
 
         policies = await governance_service.seed_default_policies(db_session)
@@ -482,16 +509,17 @@ class TestGovernanceAPI:
     """Test governance API endpoints."""
 
     @pytest.mark.asyncio
-    async def test_create_policy_endpoint(
-        self, client: AsyncClient, sample_project
-    ):
-        resp = await client.post("/governance/policies", json={
-            "name": "Test Policy",
-            "trigger": "task_type",
-            "action": "require_approval",
-            "rules": {"task_types": ["deploy"]},
-            "project_id": str(sample_project.id),
-        })
+    async def test_create_policy_endpoint(self, client: AsyncClient, sample_project):
+        resp = await client.post(
+            "/governance/policies",
+            json={
+                "name": "Test Policy",
+                "trigger": "task_type",
+                "action": "require_approval",
+                "rules": {"task_types": ["deploy"]},
+                "project_id": str(sample_project.id),
+            },
+        )
         assert resp.status_code == 201
         data = resp.json()
         assert data["name"] == "Test Policy"
@@ -504,9 +532,7 @@ class TestGovernanceAPI:
         assert "items" in data
 
     @pytest.mark.asyncio
-    async def test_evaluate_task_endpoint(
-        self, client: AsyncClient, sample_project
-    ):
+    async def test_evaluate_task_endpoint(self, client: AsyncClient, sample_project):
         resp = await client.get(
             "/governance/evaluate/task",
             params={"task_type": "coding", "project_id": str(sample_project.id)},
@@ -648,14 +674,14 @@ class TestTrustScoring:
     """Test trust scoring heuristics."""
 
     @pytest.mark.asyncio
-    async def test_assess_completed_task(
-        self, db_session: AsyncSession, sample_run
-    ):
+    async def test_assess_completed_task(self, db_session: AsyncSession, sample_run):
         from app.services import trust_scoring_service
 
         task = Task(
-            title="Complete task", task_type="coding",
-            status=TaskStatus.COMPLETED, run_id=sample_run.id,
+            title="Complete task",
+            task_type="coding",
+            status=TaskStatus.COMPLETED,
+            run_id=sample_run.id,
             assigned_agent_slug="coder",
         )
         db_session.add(task)
@@ -672,9 +698,12 @@ class TestTrustScoring:
         from app.services import trust_scoring_service
 
         task = Task(
-            title="Failed task", task_type="coding",
-            status=TaskStatus.FAILED, run_id=sample_run.id,
-            retry_count=3, max_retries=3,
+            title="Failed task",
+            task_type="coding",
+            status=TaskStatus.FAILED,
+            run_id=sample_run.id,
+            retry_count=3,
+            max_retries=3,
             error_message="Something went wrong",
         )
         db_session.add(task)
@@ -685,9 +714,7 @@ class TestTrustScoring:
         assert ts.risk_level in (RiskLevel.HIGH, RiskLevel.CRITICAL)
 
     @pytest.mark.asyncio
-    async def test_assess_run(
-        self, db_session: AsyncSession, sample_project
-    ):
+    async def test_assess_run(self, db_session: AsyncSession, sample_project):
         from app.services import trust_scoring_service
 
         run = Run(run_number=50, project_id=sample_project.id, status=RunStatus.RUNNING)
@@ -695,39 +722,53 @@ class TestTrustScoring:
         await db_session.flush()
 
         for i in range(4):
-            db_session.add(Task(
-                title=f"Task {i}", task_type="coding",
-                status=TaskStatus.COMPLETED, run_id=run.id,
-            ))
-        db_session.add(Task(
-            title="Failed task", task_type="coding",
-            status=TaskStatus.FAILED, run_id=run.id,
-        ))
+            db_session.add(
+                Task(
+                    title=f"Task {i}",
+                    task_type="coding",
+                    status=TaskStatus.COMPLETED,
+                    run_id=run.id,
+                )
+            )
+        db_session.add(
+            Task(
+                title="Failed task",
+                task_type="coding",
+                status=TaskStatus.FAILED,
+                run_id=run.id,
+            )
+        )
         await db_session.flush()
 
         ts = await trust_scoring_service.assess_run(db_session, run.id)
         assert 0.3 < ts.trust_score < 0.9  # Mixed: mostly complete but has failure
 
     @pytest.mark.asyncio
-    async def test_risk_summary(
-        self, db_session: AsyncSession, sample_project
-    ):
+    async def test_risk_summary(self, db_session: AsyncSession, sample_project):
         from app.services import trust_scoring_service
 
         run = Run(run_number=51, project_id=sample_project.id, status=RunStatus.RUNNING)
         db_session.add(run)
         await db_session.flush()
 
-        db_session.add(Task(
-            title="Good task", task_type="coding",
-            status=TaskStatus.COMPLETED, run_id=run.id,
-            assigned_agent_slug="coder",
-        ))
-        db_session.add(Task(
-            title="Bad task", task_type="coding",
-            status=TaskStatus.FAILED, run_id=run.id,
-            error_message="Crash",
-        ))
+        db_session.add(
+            Task(
+                title="Good task",
+                task_type="coding",
+                status=TaskStatus.COMPLETED,
+                run_id=run.id,
+                assigned_agent_slug="coder",
+            )
+        )
+        db_session.add(
+            Task(
+                title="Bad task",
+                task_type="coding",
+                status=TaskStatus.FAILED,
+                run_id=run.id,
+                error_message="Crash",
+            )
+        )
         await db_session.flush()
 
         summary = await trust_scoring_service.get_run_risk_summary(db_session, run.id)
@@ -737,15 +778,15 @@ class TestTrustScoring:
         assert "task_risk_distribution" in summary
 
     @pytest.mark.asyncio
-    async def test_upsert_task_score(
-        self, db_session: AsyncSession, sample_run
-    ):
+    async def test_upsert_task_score(self, db_session: AsyncSession, sample_run):
         """Assessing the same task twice should update, not duplicate."""
         from app.services import trust_scoring_service
 
         task = Task(
-            title="Evolving task", task_type="coding",
-            status=TaskStatus.RUNNING, run_id=sample_run.id,
+            title="Evolving task",
+            task_type="coding",
+            status=TaskStatus.RUNNING,
+            run_id=sample_run.id,
         )
         db_session.add(task)
         await db_session.flush()
@@ -774,9 +815,7 @@ class TestTrustAPI:
     """Test trust scoring API endpoints."""
 
     @pytest.mark.asyncio
-    async def test_assess_task_endpoint(
-        self, client: AsyncClient, sample_task
-    ):
+    async def test_assess_task_endpoint(self, client: AsyncClient, sample_task):
         resp = await client.post(f"/trust/tasks/{sample_task.id}/assess")
         assert resp.status_code == 200
         data = resp.json()
@@ -784,9 +823,7 @@ class TestTrustAPI:
         assert "risk_level" in data
 
     @pytest.mark.asyncio
-    async def test_assess_run_endpoint(
-        self, client: AsyncClient, sample_run
-    ):
+    async def test_assess_run_endpoint(self, client: AsyncClient, sample_run):
         resp = await client.post(f"/trust/runs/{sample_run.id}/assess")
         assert resp.status_code == 200
         data = resp.json()

@@ -32,7 +32,9 @@ async def create_policy(
 ) -> GovernancePolicyRead:
     """Create a new governance policy."""
     if body.project_id is not None:
-        await check_project_permission(db, body.project_id, user_id, Action.PROJECT_UPDATE)
+        await check_project_permission(
+            db, body.project_id, user_id, Action.PROJECT_UPDATE
+        )
     policy = await governance_service.create_policy(
         db,
         name=body.name,
@@ -57,9 +59,7 @@ async def list_policies(
     """List governance policies, optionally filtered by project."""
     if project_id is not None:
         await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
-    policies = await governance_service.list_policies(
-        db, project_id=project_id
-    )
+    policies = await governance_service.list_policies(db, project_id=project_id)
     return GovernancePolicyList(
         items=[GovernancePolicyRead.model_validate(p) for p in policies],
         total=len(policies),
@@ -144,8 +144,11 @@ async def evaluate_task_approval(
     """
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     action = await governance_service.evaluate_task_approval(
-        db, task_type=task_type, project_id=project_id,
-        cost_usd=cost_usd, agent_slug=agent_slug,
+        db,
+        task_type=task_type,
+        project_id=project_id,
+        cost_usd=cost_usd,
+        agent_slug=agent_slug,
     )
     return {
         "task_type": task_type,
@@ -169,8 +172,11 @@ async def evaluate_with_council(
     """
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     return await governance_service.evaluate_approval_with_council(
-        db, task_type=task_type, project_id=project_id,
-        cost_usd=cost_usd, agent_slug=agent_slug,
+        db,
+        task_type=task_type,
+        project_id=project_id,
+        cost_usd=cost_usd,
+        agent_slug=agent_slug,
     )
 
 

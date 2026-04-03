@@ -4,7 +4,6 @@ Validates that production deployment files exist and are well-formed.
 """
 
 import pathlib
-import json
 
 import yaml
 
@@ -18,6 +17,7 @@ def _load_yaml(path: pathlib.Path) -> dict:
 
 
 # ── Production Compose ───────────────────────────────────────
+
 
 def test_prod_compose_exists():
     """docker-compose.prod.yml exists."""
@@ -38,21 +38,20 @@ def test_prod_compose_no_volume_mounts():
         volumes = svc.get("volumes", [])
         for v in volumes:
             if isinstance(v, str) and v.startswith("./apps/"):
-                raise AssertionError(
-                    f"Service '{name}' bind-mounts source code: {v}"
-                )
+                raise AssertionError(f"Service '{name}' bind-mounts source code: {v}")
 
 
 def test_prod_compose_required_env_vars():
     """Production compose enforces critical env vars with :? syntax."""
     content = (_ROOT / "docker-compose.prod.yml").read_text()
-    assert "SECRET_KEY:?" in content or "SECRET_KEY:?SECRET_KEY" in content, \
+    assert "SECRET_KEY:?" in content or "SECRET_KEY:?SECRET_KEY" in content, (
         "SECRET_KEY should be required"
-    assert "POSTGRES_PASSWORD:?" in content, \
-        "POSTGRES_PASSWORD should be required"
+    )
+    assert "POSTGRES_PASSWORD:?" in content, "POSTGRES_PASSWORD should be required"
 
 
 # ── Production Dockerfiles ───────────────────────────────────
+
 
 def test_api_dockerfile_prod_exists():
     """apps/api/Dockerfile.prod exists."""
@@ -86,6 +85,7 @@ def test_api_dockerfile_prod_healthcheck():
 
 # ── Nginx config ─────────────────────────────────────────────
 
+
 def test_nginx_config_exists():
     """deploy/nginx.conf exists."""
     assert (_ROOT / "deploy" / "nginx.conf").exists()
@@ -109,6 +109,7 @@ def test_nginx_config_routes():
 
 
 # ── Deployment docs ──────────────────────────────────────────
+
 
 def test_deployment_readme_exists():
     """docs/DEPLOYMENT.md exists."""

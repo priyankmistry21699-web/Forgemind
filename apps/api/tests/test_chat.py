@@ -1,9 +1,6 @@
 """Tests for Chat API endpoint."""
 
-import uuid
 from unittest.mock import AsyncMock, patch
-
-import pytest
 
 
 class TestChatAboutRun:

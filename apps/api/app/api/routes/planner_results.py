@@ -25,5 +25,7 @@ async def get_planner_result(
     )
     planner_result = result.scalar_one_or_none()
     if planner_result is None:
-        raise HTTPException(status_code=404, detail="No planner result found for this run")
+        raise HTTPException(
+            status_code=404, detail="No planner result found for this run"
+        )
     return planner_result

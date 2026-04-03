@@ -2,7 +2,7 @@
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -71,9 +71,7 @@ async def get_connector_requirements(
     run = run_r.scalar_one_or_none()
     description = None
     if run:
-        proj_r = await db.execute(
-            select(Project).where(Project.id == run.project_id)
-        )
+        proj_r = await db.execute(select(Project).where(Project.id == run.project_id))
         project = proj_r.scalar_one_or_none()
         if project:
             description = project.description

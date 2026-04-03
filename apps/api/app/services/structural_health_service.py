@@ -6,15 +6,18 @@ single 0-100 score with breakdowns.
 """
 
 import uuid
-from collections import defaultdict
 
-from sqlalchemy import select, func as sa_func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.architecture import (
-    ArchitectureNode, ArchitectureEdge,
-    ArchitectureDrift, ArchitectureRuleResult,
-    NodeStatus, DriftStatus, DriftSeverity,
+    ArchitectureNode,
+    ArchitectureEdge,
+    ArchitectureDrift,
+    ArchitectureRuleResult,
+    NodeStatus,
+    DriftStatus,
+    DriftSeverity,
     RuleResultStatus,
 )
 
@@ -86,9 +89,7 @@ async def compute_health_score(
     component_coverage = (declared_count / len(nodes) * 100) if nodes else 100.0
 
     # ── 2. Drift penalty ─────────────────────────────────────────
-    drift_penalty = sum(
-        _DRIFT_WEIGHTS.get(d.severity, 1.0) for d in open_drifts
-    )
+    drift_penalty = sum(_DRIFT_WEIGHTS.get(d.severity, 1.0) for d in open_drifts)
 
     # ── 3. Rule compliance ───────────────────────────────────────
     total_evals = len(all_results)

@@ -28,9 +28,7 @@ class Connector(Base):
         String(50), unique=True, nullable=False, index=True
     )
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    connector_type: Mapped[str] = mapped_column(
-        String(50), nullable=False, index=True
-    )
+    connector_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     status: Mapped[ConnectorStatus] = mapped_column(
         Enum(ConnectorStatus, name="connector_status"),
         default=ConnectorStatus.AVAILABLE,

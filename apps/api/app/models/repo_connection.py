@@ -99,9 +99,7 @@ class RepoConnection(Base):
     )
 
     # Credential reference (env var key for the token)
-    credential_env_key: Mapped[str | None] = mapped_column(
-        String(200), nullable=True
-    )
+    credential_env_key: Mapped[str | None] = mapped_column(String(200), nullable=True)
 
     # Configuration
     config: Mapped[dict | None] = mapped_column(JSON, nullable=True)

@@ -6,7 +6,6 @@ selection beyond the fixed core agents.
 """
 
 import logging
-import uuid
 from typing import Any
 
 from sqlalchemy import select
@@ -47,7 +46,9 @@ def derive_required_capabilities(phases: list[dict[str, Any]]) -> dict[str, int]
             # Try to infer from title/description keywords
             text = f"{phase.get('title', '')} {phase.get('description', '')}".lower()
             for cap_group, skills in CAPABILITY_TAXONOMY.items():
-                if cap_group in text or any(s.replace("_", " ") in text for s in skills):
+                if cap_group in text or any(
+                    s.replace("_", " ") in text for s in skills
+                ):
                     requirements[cap_group] = requirements.get(cap_group, 0) + 1
                     break
     return requirements
@@ -55,9 +56,7 @@ def derive_required_capabilities(phases: list[dict[str, Any]]) -> dict[str, int]
 
 async def get_available_agents(db: AsyncSession) -> list[Agent]:
     """Get all active agents."""
-    result = await db.execute(
-        select(Agent).where(Agent.status == AgentStatus.ACTIVE)
-    )
+    result = await db.execute(select(Agent).where(Agent.status == AgentStatus.ACTIVE))
     return list(result.scalars().all())
 
 

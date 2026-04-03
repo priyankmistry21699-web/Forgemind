@@ -5,6 +5,7 @@ Revises: 0004
 Create Date: 2026-03-26 00:04:00.000000+00:00
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -18,7 +19,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column("tasks", sa.Column("assigned_agent_slug", sa.String(50), nullable=True))
+    op.add_column(
+        "tasks", sa.Column("assigned_agent_slug", sa.String(50), nullable=True)
+    )
     op.add_column("tasks", sa.Column("error_message", sa.Text(), nullable=True))
 
 

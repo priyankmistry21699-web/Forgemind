@@ -27,7 +27,9 @@ async def _event_generator():
 
 
 @router.get("/stream/events")
-async def stream_events(user_id: uuid.UUID = Depends(get_current_user_id)) -> StreamingResponse:
+async def stream_events(
+    user_id: uuid.UUID = Depends(get_current_user_id),
+) -> StreamingResponse:
     """Global SSE stream — heartbeats and cross-run events."""
     return StreamingResponse(
         global_event_generator(),
@@ -37,7 +39,9 @@ async def stream_events(user_id: uuid.UUID = Depends(get_current_user_id)) -> St
 
 
 @router.get("/runs/{run_id}/stream")
-async def stream_run_events(run_id: uuid.UUID, user_id: uuid.UUID = Depends(get_current_user_id)) -> StreamingResponse:
+async def stream_run_events(
+    run_id: uuid.UUID, user_id: uuid.UUID = Depends(get_current_user_id)
+) -> StreamingResponse:
     """Run-scoped SSE stream — real-time task, approval, artifact events."""
     return StreamingResponse(
         run_event_generator(run_id),

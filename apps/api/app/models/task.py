@@ -65,9 +65,7 @@ class Task(Base):
     )
 
     # Execution tracking
-    assigned_agent_slug: Mapped[str | None] = mapped_column(
-        String(50), nullable=True
-    )
+    assigned_agent_slug: Mapped[str | None] = mapped_column(String(50), nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # FM-043: Adaptive retry/revision support

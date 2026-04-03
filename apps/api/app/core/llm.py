@@ -45,7 +45,9 @@ async def llm_completion(
         return None
 
     resolved_model = model or settings.planner_model
-    resolved_temp = temperature if temperature is not None else settings.planner_temperature
+    resolved_temp = (
+        temperature if temperature is not None else settings.planner_temperature
+    )
     resolved_max = max_tokens or settings.planner_max_tokens
 
     messages: list[dict[str, str]] = []
@@ -95,5 +97,7 @@ async def llm_json_completion(
     try:
         return json.loads(raw)
     except (json.JSONDecodeError, TypeError):
-        logger.warning("LLM returned non-JSON content: %s", raw[:200] if raw else "None")
+        logger.warning(
+            "LLM returned non-JSON content: %s", raw[:200] if raw else "None"
+        )
         return None

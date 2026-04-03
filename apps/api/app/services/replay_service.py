@@ -17,8 +17,6 @@ from sqlalchemy import select, func as sa_func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.replay_snapshot import ReplaySnapshot
-from app.models.task import Task
-from app.models.run import Run
 
 logger = logging.getLogger(__name__)
 
@@ -68,9 +66,7 @@ async def capture_snapshot(
     # Compute sequence number
     count_result = await db.execute(
         select(sa_func.count()).select_from(
-            select(ReplaySnapshot)
-            .where(ReplaySnapshot.run_id == run_id)
-            .subquery()
+            select(ReplaySnapshot).where(ReplaySnapshot.run_id == run_id).subquery()
         )
     )
     seq = count_result.scalar_one()
@@ -254,8 +250,6 @@ async def list_snapshots(
     total = count_result.scalar_one()
 
     result = await db.execute(
-        query.order_by(ReplaySnapshot.sequence_number.asc())
-        .offset(offset)
-        .limit(limit)
+        query.order_by(ReplaySnapshot.sequence_number.asc()).offset(offset).limit(limit)
     )
     return list(result.scalars().all()), total

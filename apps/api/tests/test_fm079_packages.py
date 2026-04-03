@@ -3,7 +3,6 @@
 Validates that all 4 extracted packages have real, importable code.
 """
 
-import importlib
 import pathlib
 import json
 
@@ -12,6 +11,7 @@ _ROOT = pathlib.Path(__file__).resolve().parents[3]
 
 
 # ── Package presence ─────────────────────────────────────────────
+
 
 def test_schemas_package_has_source():
     """packages/schemas has real TypeScript source files."""
@@ -27,11 +27,28 @@ def test_schemas_barrel_export():
     index_ts = _ROOT / "packages" / "schemas" / "src" / "index.ts"
     content = index_ts.read_text()
     for module in [
-        "activity", "agent", "approval", "artifact", "audit",
-        "connector", "cost", "council", "escalation", "execution-event",
-        "governance", "knowledge", "notification", "planner",
-        "project-member", "project", "replay", "run", "task",
-        "trust", "vault", "workspace",
+        "activity",
+        "agent",
+        "approval",
+        "artifact",
+        "audit",
+        "connector",
+        "cost",
+        "council",
+        "escalation",
+        "execution-event",
+        "governance",
+        "knowledge",
+        "notification",
+        "planner",
+        "project-member",
+        "project",
+        "replay",
+        "run",
+        "task",
+        "trust",
+        "vault",
+        "workspace",
     ]:
         assert f'from "./{module}"' in content, f"Missing re-export for {module}"
 
@@ -45,6 +62,7 @@ def test_schemas_package_json():
 
 
 # ── Utils package ────────────────────────────────────────────────
+
 
 def test_utils_package_structure():
     """packages/utils has pyproject.toml and forgemind_utils/ with modules."""
@@ -60,7 +78,13 @@ def test_utils_package_structure():
 
 def test_utils_metrics_module():
     """Utils metrics module has core functions."""
-    from forgemind_utils.metrics import inc_counter, get_counter, reset_metrics, render_prometheus
+    from forgemind_utils.metrics import (
+        inc_counter,
+        get_counter,
+        reset_metrics,
+        render_prometheus,
+    )
+
     reset_metrics()
     inc_counter("test_pkg_counter", 5.0)
     assert get_counter("test_pkg_counter") == 5.0
@@ -70,6 +94,7 @@ def test_utils_metrics_module():
 
 
 # ── Security package ─────────────────────────────────────────────
+
 
 def test_security_package_structure():
     """packages/security has pyproject.toml and forgemind_security/ with modules."""
@@ -84,11 +109,17 @@ def test_security_package_structure():
 def test_security_rbac_engine():
     """RBAC permission matrices are importable and correct."""
     from forgemind_security.rbac import (
-        Action, WorkspaceRole, ProjectRole,
-        is_workspace_action_allowed, is_project_action_allowed,
+        Action,
+        WorkspaceRole,
+        ProjectRole,
+        is_workspace_action_allowed,
+        is_project_action_allowed,
     )
+
     assert is_workspace_action_allowed(WorkspaceRole.OWNER, Action.WORKSPACE_DELETE)
-    assert not is_workspace_action_allowed(WorkspaceRole.VIEWER, Action.WORKSPACE_DELETE)
+    assert not is_workspace_action_allowed(
+        WorkspaceRole.VIEWER, Action.WORKSPACE_DELETE
+    )
     assert is_project_action_allowed(ProjectRole.LEAD, Action.PROJECT_RUN)
     assert not is_project_action_allowed(ProjectRole.VIEWER, Action.PROJECT_RUN)
 
@@ -107,6 +138,7 @@ def test_security_jwt_helpers():
 
 # ── Core package ─────────────────────────────────────────────────
 
+
 def test_core_package_structure():
     """packages/core has pyproject.toml and forgemind_core/ with modules."""
     base = _ROOT / "packages" / "core"
@@ -120,9 +152,13 @@ def test_core_package_structure():
 def test_core_constants():
     """Domain constant sets are populated and frozen."""
     from forgemind_core.constants import (
-        PROJECT_STATUSES, RUN_STATUSES, TASK_STATUSES,
-        ARTIFACT_TYPES, AGENT_STATUSES,
+        PROJECT_STATUSES,
+        RUN_STATUSES,
+        TASK_STATUSES,
+        ARTIFACT_TYPES,
+        AGENT_STATUSES,
     )
+
     assert "active" in PROJECT_STATUSES
     assert "running" in RUN_STATUSES
     assert "completed" in TASK_STATUSES
@@ -130,5 +166,11 @@ def test_core_constants():
     assert "deprecated" in AGENT_STATUSES
 
     # Ensure they are frozen (immutable)
-    for s in [PROJECT_STATUSES, RUN_STATUSES, TASK_STATUSES, ARTIFACT_TYPES, AGENT_STATUSES]:
+    for s in [
+        PROJECT_STATUSES,
+        RUN_STATUSES,
+        TASK_STATUSES,
+        ARTIFACT_TYPES,
+        AGENT_STATUSES,
+    ]:
         assert isinstance(s, frozenset)

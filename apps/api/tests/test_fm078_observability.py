@@ -1,11 +1,11 @@
 """FM-078: Observability and metrics tests."""
+
 import pytest
 from httpx import AsyncClient
 
 
 @pytest.mark.asyncio
 class TestMetrics:
-
     async def test_metrics_endpoint_exists(self, client: AsyncClient):
         """The /metrics endpoint should return Prometheus-format text."""
         resp = await client.get("/metrics")
@@ -24,6 +24,7 @@ class TestMetrics:
     async def test_counter_increment(self):
         """Counter should increment correctly."""
         from app.core.metrics import inc_counter, get_counter, reset_metrics
+
         reset_metrics()
 
         inc_counter("test_counter")
@@ -37,6 +38,7 @@ class TestMetrics:
     async def test_labeled_counter(self):
         """Labeled counters should track independently."""
         from app.core.metrics import inc_counter, get_counter, reset_metrics
+
         reset_metrics()
 
         inc_counter("req", labels={"method": "GET", "path": "/a"})
@@ -51,6 +53,7 @@ class TestMetrics:
     async def test_histogram_observation(self):
         """Histogram should bucket observations correctly."""
         from app.core.metrics import observe_histogram, render_prometheus, reset_metrics
+
         reset_metrics()
 
         observe_histogram("test_hist", 0.05)
@@ -66,7 +69,13 @@ class TestMetrics:
 
     async def test_prometheus_format(self):
         """Render should output valid Prometheus text format."""
-        from app.core.metrics import inc_counter, observe_histogram, render_prometheus, reset_metrics
+        from app.core.metrics import (
+            inc_counter,
+            observe_histogram,
+            render_prometheus,
+            reset_metrics,
+        )
+
         reset_metrics()
 
         inc_counter("http_requests_total", labels={"method": "GET", "status": "200"})
@@ -91,6 +100,7 @@ class TestMetrics:
 
 # ── FM-078: Service-level instrumentation tests ─────────────────
 
+
 @pytest.mark.asyncio
 class TestExecutionServiceMetrics:
     """Verify task lifecycle functions emit metrics."""
@@ -107,7 +117,10 @@ class TestExecutionServiceMetrics:
         reset_metrics()
 
         # Setup: project -> run -> task + agent
-        project = Project(name="MetricsProj", owner_id=__import__("uuid").UUID("00000000-0000-0000-0000-000000000001"))
+        project = Project(
+            name="MetricsProj",
+            owner_id=__import__("uuid").UUID("00000000-0000-0000-0000-000000000001"),
+        )
         db_session.add(project)
         await db_session.flush()
 
@@ -115,7 +128,13 @@ class TestExecutionServiceMetrics:
         db_session.add(run)
         await db_session.flush()
 
-        task = Task(title="MetricsTask", task_type="code", status=TaskStatus.READY, order_index=0, run_id=run.id)
+        task = Task(
+            title="MetricsTask",
+            task_type="code",
+            status=TaskStatus.READY,
+            order_index=0,
+            run_id=run.id,
+        )
         db_session.add(task)
         await db_session.flush()
 
@@ -126,7 +145,9 @@ class TestExecutionServiceMetrics:
 
         await execution_service.claim_task(db_session, task.id, "metric-agent")
 
-        assert get_counter("task_claimed_total", labels={"agent": "metric-agent"}) >= 1.0
+        assert (
+            get_counter("task_claimed_total", labels={"agent": "metric-agent"}) >= 1.0
+        )
         reset_metrics()
 
     async def test_complete_task_emits_counter(self, db_session):
@@ -139,7 +160,10 @@ class TestExecutionServiceMetrics:
 
         reset_metrics()
 
-        project = Project(name="MetricsProj2", owner_id=__import__("uuid").UUID("00000000-0000-0000-0000-000000000001"))
+        project = Project(
+            name="MetricsProj2",
+            owner_id=__import__("uuid").UUID("00000000-0000-0000-0000-000000000001"),
+        )
         db_session.add(project)
         await db_session.flush()
 
@@ -147,7 +171,14 @@ class TestExecutionServiceMetrics:
         db_session.add(run)
         await db_session.flush()
 
-        task = Task(title="CompTask", task_type="code", status=TaskStatus.RUNNING, order_index=0, run_id=run.id, assigned_agent_slug="coder")
+        task = Task(
+            title="CompTask",
+            task_type="code",
+            status=TaskStatus.RUNNING,
+            order_index=0,
+            run_id=run.id,
+            assigned_agent_slug="coder",
+        )
         db_session.add(task)
         await db_session.flush()
         await db_session.refresh(task)
@@ -167,7 +198,10 @@ class TestExecutionServiceMetrics:
 
         reset_metrics()
 
-        project = Project(name="MetricsProj3", owner_id=__import__("uuid").UUID("00000000-0000-0000-0000-000000000001"))
+        project = Project(
+            name="MetricsProj3",
+            owner_id=__import__("uuid").UUID("00000000-0000-0000-0000-000000000001"),
+        )
         db_session.add(project)
         await db_session.flush()
 
@@ -175,7 +209,14 @@ class TestExecutionServiceMetrics:
         db_session.add(run)
         await db_session.flush()
 
-        task = Task(title="FailTask", task_type="code", status=TaskStatus.RUNNING, order_index=0, run_id=run.id, assigned_agent_slug="coder")
+        task = Task(
+            title="FailTask",
+            task_type="code",
+            status=TaskStatus.RUNNING,
+            order_index=0,
+            run_id=run.id,
+            assigned_agent_slug="coder",
+        )
         db_session.add(task)
         await db_session.flush()
         await db_session.refresh(task)
@@ -195,7 +236,10 @@ class TestExecutionServiceMetrics:
 
         reset_metrics()
 
-        project = Project(name="MetricsProj4", owner_id=__import__("uuid").UUID("00000000-0000-0000-0000-000000000001"))
+        project = Project(
+            name="MetricsProj4",
+            owner_id=__import__("uuid").UUID("00000000-0000-0000-0000-000000000001"),
+        )
         db_session.add(project)
         await db_session.flush()
 
@@ -203,7 +247,13 @@ class TestExecutionServiceMetrics:
         db_session.add(run)
         await db_session.flush()
 
-        task = Task(title="RetryTask", task_type="code", status=TaskStatus.FAILED, order_index=0, run_id=run.id)
+        task = Task(
+            title="RetryTask",
+            task_type="code",
+            status=TaskStatus.FAILED,
+            order_index=0,
+            run_id=run.id,
+        )
         db_session.add(task)
         await db_session.flush()
         await db_session.refresh(task)
@@ -223,7 +273,10 @@ class TestExecutionServiceMetrics:
 
         reset_metrics()
 
-        project = Project(name="MetricsProj5", owner_id=__import__("uuid").UUID("00000000-0000-0000-0000-000000000001"))
+        project = Project(
+            name="MetricsProj5",
+            owner_id=__import__("uuid").UUID("00000000-0000-0000-0000-000000000001"),
+        )
         db_session.add(project)
         await db_session.flush()
 
@@ -231,7 +284,13 @@ class TestExecutionServiceMetrics:
         db_session.add(run)
         await db_session.flush()
 
-        task = Task(title="CancelTask", task_type="code", status=TaskStatus.READY, order_index=0, run_id=run.id)
+        task = Task(
+            title="CancelTask",
+            task_type="code",
+            status=TaskStatus.READY,
+            order_index=0,
+            run_id=run.id,
+        )
         db_session.add(task)
         await db_session.flush()
         await db_session.refresh(task)
@@ -263,7 +322,13 @@ class TestNotificationServiceMetrics:
             priority="normal",
         )
 
-        assert get_counter("notification_created_total", labels={"type": "task_completed", "priority": "normal"}) >= 1.0
+        assert (
+            get_counter(
+                "notification_created_total",
+                labels={"type": "task_completed", "priority": "normal"},
+            )
+            >= 1.0
+        )
         reset_metrics()
 
     async def test_mark_notification_read_emits_counter(self, db_session):
@@ -302,7 +367,12 @@ class TestNotificationServiceMetrics:
             channel="email",
         )
 
-        assert get_counter("notification_delivery_config_total", labels={"channel": "email"}) >= 1.0
+        assert (
+            get_counter(
+                "notification_delivery_config_total", labels={"channel": "email"}
+            )
+            >= 1.0
+        )
         reset_metrics()
 
 
@@ -326,7 +396,9 @@ class TestSandboxMetrics:
         assert get_counter("sandbox_created_total") >= 1.0
         reset_metrics()
 
-    async def test_complete_sandbox_emits_counter_and_histogram(self, db_session, sample_project):
+    async def test_complete_sandbox_emits_counter_and_histogram(
+        self, db_session, sample_project
+    ):
         """complete_sandbox_execution should emit status counter and duration histogram."""
         from app.core.metrics import get_counter, render_prometheus, reset_metrics
         from app.services import code_ops_service
@@ -348,7 +420,10 @@ class TestSandboxMetrics:
             duration_ms=1500,
         )
 
-        assert get_counter("sandbox_completed_total", labels={"status": "completed"}) >= 1.0
+        assert (
+            get_counter("sandbox_completed_total", labels={"status": "completed"})
+            >= 1.0
+        )
         prom = render_prometheus()
         assert "sandbox_duration_seconds" in prom
         reset_metrics()

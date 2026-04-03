@@ -29,7 +29,9 @@ def _verify_password(password: str, stored: str) -> bool:
     return bcrypt.checkpw(password.encode(), stored.encode())
 
 
-@router.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED
+)
 async def register(
     body: RegisterRequest,
     db: AsyncSession = Depends(get_db),

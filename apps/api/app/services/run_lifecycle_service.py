@@ -12,7 +12,7 @@ import logging
 from datetime import datetime, timezone, timedelta
 from typing import Any
 
-from sqlalchemy import select, func as sa_func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.run import Run, RunStatus
@@ -32,9 +32,9 @@ AUTO_FAIL_EXHAUSTED_RETRIES = True  # Fail run if blocking tasks exhausted retri
 
 class RunHealth:
     HEALTHY = "healthy"
-    DEGRADED = "degraded"       # Some failures but progress possible
-    STUCK = "stuck"             # No progress for extended time
-    CRITICAL = "critical"       # Blocking failures, cannot proceed
+    DEGRADED = "degraded"  # Some failures but progress possible
+    STUCK = "stuck"  # No progress for extended time
+    CRITICAL = "critical"  # Blocking failures, cannot proceed
     COMPLETED = "completed"
     FAILED = "failed"
 
@@ -60,7 +60,9 @@ async def get_run_health(
             "run_id": str(run.id),
             "run_number": run.run_number,
             "status": run.status.value,
-            "health": RunHealth.COMPLETED if run.status == RunStatus.COMPLETED else RunHealth.FAILED,
+            "health": RunHealth.COMPLETED
+            if run.status == RunStatus.COMPLETED
+            else RunHealth.FAILED,
             "progress": 1.0 if run.status == RunStatus.COMPLETED else None,
             "task_breakdown": {},
             "stuck_since": None,
@@ -69,9 +71,7 @@ async def get_run_health(
         }
 
     # Get task breakdown
-    task_result = await db.execute(
-        select(Task).where(Task.run_id == run_id)
-    )
+    task_result = await db.execute(select(Task).where(Task.run_id == run_id))
     tasks = list(task_result.scalars().all())
 
     status_counts: dict[str, int] = {}
@@ -94,8 +94,10 @@ async def get_run_health(
     for ft in failed_tasks:
         ft_id_str = str(ft.id)
         downstream = [
-            t for t in tasks
-            if t.depends_on and (ft.id in t.depends_on or ft_id_str in t.depends_on)
+            t
+            for t in tasks
+            if t.depends_on
+            and (ft.id in t.depends_on or ft_id_str in t.depends_on)
             and t.status in (TaskStatus.BLOCKED, TaskStatus.PENDING)
         ]
         if downstream:
@@ -105,17 +107,17 @@ async def get_run_health(
 
     # Exhausted retries
     exhausted = [
-        t for t in failed_tasks
+        t
+        for t in failed_tasks
         if t.retry_count >= t.max_retries and t.retry_policy != "no_retry"
     ]
     if exhausted:
-        blocking_issues.append(
-            f"{len(exhausted)} task(s) exhausted all retries"
-        )
+        blocking_issues.append(f"{len(exhausted)} task(s) exhausted all retries")
 
     # Stuck detection — check last event timestamp
     stuck_since = None
     from app.models.execution_event import ExecutionEvent
+
     last_event_result = await db.execute(
         select(ExecutionEvent.created_at)
         .where(ExecutionEvent.run_id == run_id)
@@ -149,9 +151,13 @@ async def get_run_health(
     # Suggested actions
     suggested_actions: list[str] = []
     if health == RunHealth.STUCK:
-        suggested_actions.append("Run appears stuck — check for pending approvals or unresolvable blockers")
+        suggested_actions.append(
+            "Run appears stuck — check for pending approvals or unresolvable blockers"
+        )
     if health == RunHealth.CRITICAL:
-        suggested_actions.append("Run is in critical state — retry or create revision tasks for blocking failures")
+        suggested_actions.append(
+            "Run is in critical state — retry or create revision tasks for blocking failures"
+        )
     if failed > 0:
         retryable = [t for t in failed_tasks if t.retry_count < t.max_retries]
         if retryable:
@@ -191,9 +197,7 @@ async def try_auto_complete_run(
     if run.status in (RunStatus.COMPLETED, RunStatus.FAILED):
         return {"completed": False, "reason": f"Run already {run.status.value}"}
 
-    task_result = await db.execute(
-        select(Task).where(Task.run_id == run_id)
-    )
+    task_result = await db.execute(select(Task).where(Task.run_id == run_id))
     tasks = list(task_result.scalars().all())
 
     if not tasks:
@@ -245,9 +249,7 @@ async def try_auto_fail_run(
     if run.status in (RunStatus.COMPLETED, RunStatus.FAILED):
         return {"failed": False, "reason": f"Run already {run.status.value}"}
 
-    task_result = await db.execute(
-        select(Task).where(Task.run_id == run_id)
-    )
+    task_result = await db.execute(select(Task).where(Task.run_id == run_id))
     tasks = list(task_result.scalars().all())
 
     running = [t for t in tasks if t.status == TaskStatus.RUNNING]
@@ -262,8 +264,10 @@ async def try_auto_fail_run(
         if ft.retry_count >= ft.max_retries:
             ft_id_str = str(ft.id)
             downstream = [
-                t for t in tasks
-                if t.depends_on and (ft.id in t.depends_on or ft_id_str in t.depends_on)
+                t
+                for t in tasks
+                if t.depends_on
+                and (ft.id in t.depends_on or ft_id_str in t.depends_on)
                 and t.status in (TaskStatus.BLOCKED, TaskStatus.PENDING)
             ]
             if downstream:
@@ -321,7 +325,12 @@ async def scan_all_runs_health(
         if health.get("health") in (RunHealth.STUCK, RunHealth.CRITICAL):
             try:
                 from app.services import escalation_service
-                trigger_type = "run_stuck" if health["health"] == RunHealth.STUCK else "retry_exhausted"
+
+                trigger_type = (
+                    "run_stuck"
+                    if health["health"] == RunHealth.STUCK
+                    else "retry_exhausted"
+                )
                 await escalation_service.trigger_escalation(
                     db,
                     project_id=run.project_id,
@@ -334,6 +343,8 @@ async def scan_all_runs_health(
                     action_taken=f"Escalation triggered: run health is {health['health']}",
                 )
             except Exception:
-                logger.warning("Escalation trigger failed for run %s", run.id, exc_info=True)
+                logger.warning(
+                    "Escalation trigger failed for run %s", run.id, exc_info=True
+                )
 
     return summaries

@@ -5,6 +5,7 @@ Revises: 0006
 Create Date: 2026-03-26 00:06:00.000000+00:00
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -74,8 +75,12 @@ def upgrade() -> None:
             nullable=False,
         ),
     )
-    op.create_index("ix_execution_events_event_type", "execution_events", ["event_type"])
-    op.create_index("ix_execution_events_project_id", "execution_events", ["project_id"])
+    op.create_index(
+        "ix_execution_events_event_type", "execution_events", ["event_type"]
+    )
+    op.create_index(
+        "ix_execution_events_project_id", "execution_events", ["project_id"]
+    )
     op.create_index("ix_execution_events_run_id", "execution_events", ["run_id"])
 
 

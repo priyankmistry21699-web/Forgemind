@@ -55,6 +55,7 @@ async def emit_event(
     if run_id:
         try:
             from app.services.stream_service import publish_run_event
+
             await publish_run_event(
                 run_id,
                 event_type.value,
@@ -94,9 +95,7 @@ async def list_events(
     total = count_result.scalar_one()
 
     result = await db.execute(
-        query.order_by(ExecutionEvent.created_at.desc())
-        .limit(limit)
-        .offset(offset)
+        query.order_by(ExecutionEvent.created_at.desc()).limit(limit).offset(offset)
     )
     events = list(result.scalars().all())
     return events, total

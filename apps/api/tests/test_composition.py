@@ -1,9 +1,5 @@
 """Tests for Composition API endpoints."""
 
-import uuid
-
-import pytest
-
 
 class TestListCapabilities:
     """GET /composition/capabilities"""

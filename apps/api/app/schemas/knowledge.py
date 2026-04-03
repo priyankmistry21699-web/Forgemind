@@ -46,6 +46,7 @@ class ProjectKnowledgeCreate(BaseModel):
 
 class KnowledgeExtractionResult(BaseModel):
     """Result of automated knowledge extraction from a run."""
+
     run_id: uuid.UUID
     extracted_count: int
     items: list[ProjectKnowledgeRead]
@@ -53,6 +54,7 @@ class KnowledgeExtractionResult(BaseModel):
 
 class KnowledgeContext(BaseModel):
     """Assembled knowledge context for agent enrichment."""
+
     project_id: uuid.UUID
     total_entries: int
     context_text: str

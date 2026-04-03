@@ -8,7 +8,6 @@ import os
 import re
 import uuid
 from collections import defaultdict
-from pathlib import PurePosixPath
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,6 +16,7 @@ from app.services import architecture_service
 
 
 # ── Import parsers ───────────────────────────────────────────────
+
 
 def parse_python_imports(source: str) -> list[str]:
     """Extract import targets from Python source code."""
@@ -86,6 +86,7 @@ def detect_language(path: str) -> str | None:
 
 # ── Topology scanning ───────────────────────────────────────────
 
+
 def scan_directory_structure(
     base_path: str,
     *,
@@ -102,8 +103,16 @@ def scan_directory_structure(
     node_keys: dict[str, int] = {}  # key -> index in nodes list
 
     skip_dirs = {
-        "node_modules", ".git", "__pycache__", ".next", ".venv",
-        "venv", "dist", "build", ".mypy_cache", ".pytest_cache",
+        "node_modules",
+        ".git",
+        "__pycache__",
+        ".next",
+        ".venv",
+        "venv",
+        "dist",
+        "build",
+        ".mypy_cache",
+        ".pytest_cache",
         "egg-info",
     }
 
@@ -112,7 +121,9 @@ def scan_directory_structure(
         return rel
 
     for root, dirs, files in os.walk(base_path):
-        dirs[:] = [d for d in dirs if d not in skip_dirs and not d.endswith(".egg-info")]
+        dirs[:] = [
+            d for d in dirs if d not in skip_dirs and not d.endswith(".egg-info")
+        ]
 
         rel_root = os.path.relpath(root, base_path).replace("\\", "/")
         if rel_root == ".":
@@ -131,15 +142,17 @@ def scan_directory_structure(
             key = _module_key(filepath)
             layer = classify_layer(key)
             node_keys[key] = len(nodes)
-            nodes.append({
-                "node_type": NodeType.MODULE,
-                "key": key,
-                "name": fname,
-                "path": key,
-                "language": lang,
-                "metadata_": {"layer": layer},
-                "source_type": SourceType.INFERRED,
-            })
+            nodes.append(
+                {
+                    "node_type": NodeType.MODULE,
+                    "key": key,
+                    "name": fname,
+                    "path": key,
+                    "language": lang,
+                    "metadata_": {"layer": layer},
+                    "source_type": SourceType.INFERRED,
+                }
+            )
 
             # Parse imports
             try:
@@ -155,12 +168,14 @@ def scan_directory_structure(
                 raw_imports = parse_typescript_imports(source)
 
             for imp in raw_imports:
-                edges.append({
-                    "from_key": key,
-                    "to_import": imp,
-                    "edge_type": EdgeType.IMPORTS,
-                    "source_type": SourceType.INFERRED,
-                })
+                edges.append(
+                    {
+                        "from_key": key,
+                        "to_import": imp,
+                        "edge_type": EdgeType.IMPORTS,
+                        "source_type": SourceType.INFERRED,
+                    }
+                )
 
     # Resolve edges: match import paths to known node keys
     resolved_edges: list[dict] = []
@@ -169,13 +184,15 @@ def scan_directory_structure(
         # Try direct match
         matched_key = _resolve_import(target_import, node_keys, base_path)
         if matched_key:
-            resolved_edges.append({
-                "from_key": edge_raw["from_key"],
-                "to_key": matched_key,
-                "edge_type": edge_raw["edge_type"],
-                "source_type": edge_raw["source_type"],
-                "confidence_score": 0.8,
-            })
+            resolved_edges.append(
+                {
+                    "from_key": edge_raw["from_key"],
+                    "to_key": matched_key,
+                    "edge_type": edge_raw["edge_type"],
+                    "source_type": edge_raw["source_type"],
+                    "confidence_score": 0.8,
+                }
+            )
 
     return nodes, resolved_edges
 
@@ -204,11 +221,13 @@ def _resolve_import(
     # @/ alias (Next.js)
     if import_path.startswith("@/"):
         stripped = import_path[2:]
-        candidates.extend([
-            f"{stripped}.ts",
-            f"{stripped}.tsx",
-            f"{stripped}/index.ts",
-        ])
+        candidates.extend(
+            [
+                f"{stripped}.ts",
+                f"{stripped}.tsx",
+                f"{stripped}/index.ts",
+            ]
+        )
 
     for c in candidates:
         normalized = c.replace("\\", "/").lstrip("/")
@@ -218,9 +237,7 @@ def _resolve_import(
     return None
 
 
-def compute_topology_summary(
-    nodes: list[dict], edges: list[dict]
-) -> dict:
+def compute_topology_summary(nodes: list[dict], edges: list[dict]) -> dict:
     """Compute summary statistics for a topology scan."""
     layers = set()
     for n in nodes:
@@ -238,7 +255,8 @@ def compute_topology_summary(
 
     # Isolated: no edges
     isolated = [
-        n["key"] for n in nodes
+        n["key"]
+        for n in nodes
         if in_degree.get(n["key"], 0) == 0 and out_degree.get(n["key"], 0) == 0
     ]
 
@@ -259,6 +277,7 @@ def compute_topology_summary(
 
 
 # ── DB persistence ───────────────────────────────────────────────
+
 
 async def map_topology(
     db: AsyncSession,

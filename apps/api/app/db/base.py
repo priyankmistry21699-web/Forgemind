@@ -35,11 +35,20 @@ from app.models.notification import Notification, NotificationDeliveryConfig  # 
 from app.models.escalation import EscalationRule, EscalationEvent  # noqa: F401
 from app.models.activity import ActivityFeedEntry, UserPresence  # noqa: F401
 from app.models.code_ops import (  # noqa: F401
-    CodeMapping, PatchProposal, ChangeReview, BranchStrategy,
-    PRDraft, RepoActionApproval, SandboxExecution,
+    CodeMapping,
+    PatchProposal,
+    ChangeReview,
+    BranchStrategy,
+    PRDraft,
+    RepoActionApproval,
+    SandboxExecution,
 )
 from app.models.architecture import (  # noqa: F401
-    ArchitectureNode, ArchitectureEdge, ArchitectureSnapshot,
-    ArchitectureDrift, ArchitectureRule, ArchitectureRuleResult,
+    ArchitectureNode,
+    ArchitectureEdge,
+    ArchitectureSnapshot,
+    ArchitectureDrift,
+    ArchitectureRule,
+    ArchitectureRuleResult,
     ChangeImpactAssessment,
 )

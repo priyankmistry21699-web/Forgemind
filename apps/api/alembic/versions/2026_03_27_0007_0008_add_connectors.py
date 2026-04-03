@@ -24,9 +24,7 @@ def upgrade() -> None:
         sa.Column("name", sa.String(100), nullable=False),
         sa.Column("slug", sa.String(50), nullable=False, unique=True, index=True),
         sa.Column("description", sa.Text, nullable=True),
-        sa.Column(
-            "connector_type", sa.String(50), nullable=False, index=True
-        ),
+        sa.Column("connector_type", sa.String(50), nullable=False, index=True),
         sa.Column(
             "status",
             sa.Enum("available", "configured", "unavailable", name="connector_status"),

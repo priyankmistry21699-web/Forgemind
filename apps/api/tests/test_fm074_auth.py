@@ -7,11 +7,14 @@ from httpx import AsyncClient
 @pytest.mark.asyncio
 class TestAuthRegister:
     async def test_register_success(self, client: AsyncClient):
-        resp = await client.post("/auth/register", json={
-            "email": "newuser@test.com",
-            "password": "securepass123",
-            "display_name": "New User",
-        })
+        resp = await client.post(
+            "/auth/register",
+            json={
+                "email": "newuser@test.com",
+                "password": "securepass123",
+                "display_name": "New User",
+            },
+        )
         assert resp.status_code == 201
         data = resp.json()
         assert "access_token" in data
@@ -32,9 +35,12 @@ class TestAuthRegister:
         assert resp2.status_code == 409
 
     async def test_register_missing_fields(self, client: AsyncClient):
-        resp = await client.post("/auth/register", json={
-            "email": "incomplete@test.com",
-        })
+        resp = await client.post(
+            "/auth/register",
+            json={
+                "email": "incomplete@test.com",
+            },
+        )
         assert resp.status_code == 422
 
 
@@ -42,39 +48,54 @@ class TestAuthRegister:
 class TestAuthLogin:
     async def test_login_success(self, client: AsyncClient):
         # Register first
-        await client.post("/auth/register", json={
-            "email": "login@test.com",
-            "password": "mypassword",
-            "display_name": "Login User",
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "email": "login@test.com",
+                "password": "mypassword",
+                "display_name": "Login User",
+            },
+        )
 
         # Login
-        resp = await client.post("/auth/login", json={
-            "email": "login@test.com",
-            "password": "mypassword",
-        })
+        resp = await client.post(
+            "/auth/login",
+            json={
+                "email": "login@test.com",
+                "password": "mypassword",
+            },
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert "access_token" in data
 
     async def test_login_wrong_password(self, client: AsyncClient):
-        await client.post("/auth/register", json={
-            "email": "wrongpw@test.com",
-            "password": "correctpassword",
-            "display_name": "WP User",
-        })
+        await client.post(
+            "/auth/register",
+            json={
+                "email": "wrongpw@test.com",
+                "password": "correctpassword",
+                "display_name": "WP User",
+            },
+        )
 
-        resp = await client.post("/auth/login", json={
-            "email": "wrongpw@test.com",
-            "password": "incorrectpassword",
-        })
+        resp = await client.post(
+            "/auth/login",
+            json={
+                "email": "wrongpw@test.com",
+                "password": "incorrectpassword",
+            },
+        )
         assert resp.status_code == 401
 
     async def test_login_nonexistent_user(self, client: AsyncClient):
-        resp = await client.post("/auth/login", json={
-            "email": "nobody@test.com",
-            "password": "anything",
-        })
+        resp = await client.post(
+            "/auth/login",
+            json={
+                "email": "nobody@test.com",
+                "password": "anything",
+            },
+        )
         assert resp.status_code == 401
 
 
@@ -82,11 +103,14 @@ class TestAuthLogin:
 class TestAuthMe:
     async def test_get_me_with_token(self, client: AsyncClient):
         # Register to get token
-        reg = await client.post("/auth/register", json={
-            "email": "me@test.com",
-            "password": "mepassword",
-            "display_name": "Me User",
-        })
+        reg = await client.post(
+            "/auth/register",
+            json={
+                "email": "me@test.com",
+                "password": "mepassword",
+                "display_name": "Me User",
+            },
+        )
         token = reg.json()["access_token"]
 
         # Access /auth/me

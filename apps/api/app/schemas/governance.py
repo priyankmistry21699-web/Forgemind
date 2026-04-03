@@ -55,6 +55,7 @@ class GovernancePolicyUpdate(BaseModel):
 
 class PolicyEvaluation(BaseModel):
     """Result of evaluating governance policies."""
+
     task_type: str
     project_id: uuid.UUID
     action: PolicyAction

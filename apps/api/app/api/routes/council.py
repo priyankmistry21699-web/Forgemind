@@ -17,7 +17,6 @@ from app.schemas.council import (
     ConveneCouncilRequest,
     CastVoteRequest,
     CouncilVoteRead,
-    CouncilDecisionResult,
 )
 from app.services import council_service
 from app.services.authz_service import check_project_permission, Action

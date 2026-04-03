@@ -2,8 +2,6 @@
 
 import uuid
 
-import pytest
-
 
 class TestListApprovals:
     """GET /approvals"""

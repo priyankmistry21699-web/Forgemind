@@ -1,7 +1,5 @@
 """Tests for health endpoints — liveness and readiness checks."""
 
-import pytest
-
 
 class TestHealthEndpoints:
     """Test /health and /health/ready."""

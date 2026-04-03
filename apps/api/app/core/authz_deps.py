@@ -16,7 +16,8 @@ from app.models.task import Task
 
 
 async def resolve_workspace_for_project(
-    db: AsyncSession, project_id: uuid.UUID,
+    db: AsyncSession,
+    project_id: uuid.UUID,
 ) -> uuid.UUID:
     """Resolve workspace_id from a project. Raises 404 if project not found."""
     result = await db.execute(
@@ -32,12 +33,11 @@ async def resolve_workspace_for_project(
 
 
 async def resolve_project_for_run(
-    db: AsyncSession, run_id: uuid.UUID,
+    db: AsyncSession,
+    run_id: uuid.UUID,
 ) -> uuid.UUID:
     """Resolve project_id from a run. Raises 404 if run not found."""
-    result = await db.execute(
-        select(Run.project_id).where(Run.id == run_id)
-    )
+    result = await db.execute(select(Run.project_id).where(Run.id == run_id))
     proj_id = result.scalar_one_or_none()
     if proj_id is None:
         raise HTTPException(
@@ -48,11 +48,14 @@ async def resolve_project_for_run(
 
 
 async def resolve_project_for_task(
-    db: AsyncSession, task_id: uuid.UUID,
+    db: AsyncSession,
+    task_id: uuid.UUID,
 ) -> uuid.UUID:
     """Resolve project_id from a task (task → run → project). Raises 404."""
     result = await db.execute(
-        select(Run.project_id).join(Task, Task.run_id == Run.id).where(Task.id == task_id)
+        select(Run.project_id)
+        .join(Task, Task.run_id == Run.id)
+        .where(Task.id == task_id)
     )
     proj_id = result.scalar_one_or_none()
     if proj_id is None:
@@ -64,7 +67,9 @@ async def resolve_project_for_task(
 
 
 async def resolve_project_for_entity(
-    db: AsyncSession, model_class: Any, entity_id: uuid.UUID,
+    db: AsyncSession,
+    model_class: Any,
+    entity_id: uuid.UUID,
 ) -> uuid.UUID | None:
     """Generic resolver: fetch entity's project_id by primary key.
 

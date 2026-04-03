@@ -31,9 +31,7 @@ class Run(Base):
         nullable=False,
         index=True,
     )
-    trigger: Mapped[str] = mapped_column(
-        String(50), default="manual", nullable=False
-    )
+    trigger: Mapped[str] = mapped_column(String(50), default="manual", nullable=False)
 
     project_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

@@ -2,9 +2,6 @@
 
 import uuid
 
-import pytest
-from app.models.task import TaskStatus
-
 
 class TestListTasks:
     """GET /runs/{run_id}/tasks"""
@@ -94,7 +91,7 @@ class TestTaskComplete:
 
     async def test_complete_task_with_artifact(self, client, db_session, sample_task):
         # First claim the task to set it RUNNING
-        from app.models.task import Task, TaskStatus
+        from app.models.task import TaskStatus
 
         sample_task.status = TaskStatus.RUNNING
         sample_task.assigned_agent_slug = "architect"
@@ -117,7 +114,7 @@ class TestTaskFail:
 
     async def test_fail_task(self, client, db_session, sample_task):
         # Set task to RUNNING first
-        from app.models.task import Task, TaskStatus
+        from app.models.task import TaskStatus
 
         sample_task.status = TaskStatus.RUNNING
         sample_task.assigned_agent_slug = "coder"
@@ -138,7 +135,7 @@ class TestTaskRetry:
 
     async def test_retry_failed_task(self, client, db_session, sample_task):
         # Set task to FAILED
-        from app.models.task import Task, TaskStatus
+        from app.models.task import TaskStatus
 
         sample_task.status = TaskStatus.FAILED
         sample_task.error_message = "Previous error"

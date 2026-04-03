@@ -1,12 +1,13 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from app.models.membership import WorkspaceRole, ProjectRole
 
 
 # ── Workspace Members ────────────────────────────────────────────
+
 
 class WorkspaceMemberCreate(BaseModel):
     user_id: uuid.UUID
@@ -34,6 +35,7 @@ class WorkspaceMemberList(BaseModel):
 
 
 # ── Project Members ──────────────────────────────────────────────
+
 
 class ProjectMemberCreate(BaseModel):
     user_id: uuid.UUID

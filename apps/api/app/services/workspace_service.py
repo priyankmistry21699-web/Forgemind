@@ -4,7 +4,7 @@ from typing import Any
 from sqlalchemy import select, func as sa_func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.workspace import Workspace, WorkspaceStatus
+from app.models.workspace import Workspace
 from app.models.membership import WorkspaceMember, WorkspaceRole
 
 
@@ -38,21 +38,13 @@ async def create_workspace(
     return ws
 
 
-async def get_workspace(
-    db: AsyncSession, workspace_id: uuid.UUID
-) -> Workspace | None:
-    result = await db.execute(
-        select(Workspace).where(Workspace.id == workspace_id)
-    )
+async def get_workspace(db: AsyncSession, workspace_id: uuid.UUID) -> Workspace | None:
+    result = await db.execute(select(Workspace).where(Workspace.id == workspace_id))
     return result.scalar_one_or_none()
 
 
-async def get_workspace_by_slug(
-    db: AsyncSession, slug: str
-) -> Workspace | None:
-    result = await db.execute(
-        select(Workspace).where(Workspace.slug == slug)
-    )
+async def get_workspace_by_slug(db: AsyncSession, slug: str) -> Workspace | None:
+    result = await db.execute(select(Workspace).where(Workspace.slug == slug))
     return result.scalar_one_or_none()
 
 
@@ -64,9 +56,9 @@ async def list_workspaces(
     offset: int = 0,
 ) -> tuple[list[Workspace], int]:
     query = select(Workspace).where(Workspace.owner_id == owner_id)
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(Workspace.created_at.desc()).offset(offset).limit(limit)
     )
@@ -90,9 +82,7 @@ async def update_workspace(
     return ws
 
 
-async def delete_workspace(
-    db: AsyncSession, workspace_id: uuid.UUID
-) -> bool:
+async def delete_workspace(db: AsyncSession, workspace_id: uuid.UUID) -> bool:
     ws = await get_workspace(db, workspace_id)
     if ws is None:
         return False

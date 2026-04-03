@@ -15,18 +15,22 @@ from app.schemas.replay import (
     ReplaySnapshotRead,
     ReplaySnapshotList,
     ReplaySnapshotCreate,
-    ReplayRequest,
     ExecutionTrace,
 )
 from app.services import replay_service
 from app.services.authz_service import check_project_permission, Action
-from app.core.authz_deps import resolve_project_for_run, resolve_project_for_task, resolve_project_for_entity
+from app.core.authz_deps import (
+    resolve_project_for_run,
+    resolve_project_for_task,
+    resolve_project_for_entity,
+)
 from app.models.replay_snapshot import ReplaySnapshot
 
 router = APIRouter()
 
 
 # ── Execution Trace ──────────────────────────────────────────────
+
 
 @router.get("/runs/{run_id}/trace", response_model=ExecutionTrace)
 async def get_execution_trace(
@@ -50,6 +54,7 @@ async def get_execution_trace(
 
 # ── Task-level snapshots ────────────────────────────────────────
 
+
 @router.get("/tasks/{task_id}/snapshots", response_model=ReplaySnapshotList)
 async def get_task_snapshots(
     task_id: uuid.UUID,
@@ -67,6 +72,7 @@ async def get_task_snapshots(
 
 
 # ── Snapshot CRUD ────────────────────────────────────────────────
+
 
 @router.get("/replay/snapshots/{snapshot_id}", response_model=ReplaySnapshotRead)
 async def get_snapshot(
@@ -155,6 +161,7 @@ async def list_snapshots(
 
 
 # ── Replay ───────────────────────────────────────────────────────
+
 
 @router.post("/replay/snapshots/{snapshot_id}/replay")
 async def replay_snapshot(

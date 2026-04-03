@@ -4,8 +4,6 @@ import uuid
 from unittest.mock import AsyncMock, patch, MagicMock
 from datetime import datetime, timezone
 
-import pytest
-
 
 def _make_mock_planner_response(project_name="Blog API"):
     """Create mock objects for planner response."""

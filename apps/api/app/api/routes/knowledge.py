@@ -38,7 +38,9 @@ async def create_knowledge(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ProjectKnowledgeRead:
     """Add a knowledge entry to a project."""
-    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_KNOWLEDGE)
+    await check_project_permission(
+        db, project_id, user_id, Action.PROJECT_MANAGE_KNOWLEDGE
+    )
     entry = await knowledge_service.create_knowledge(
         db,
         project_id=project_id,
@@ -69,7 +71,8 @@ async def list_knowledge(
     """List knowledge entries for a project."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     entries, total = await knowledge_service.list_knowledge(
-        db, project_id,
+        db,
+        project_id,
         knowledge_type=knowledge_type,
         limit=limit,
         offset=offset,
@@ -111,7 +114,9 @@ async def delete_knowledge(
     """Delete a knowledge entry."""
     proj_id = await resolve_project_for_entity(db, ProjectKnowledge, knowledge_id)
     if proj_id is not None:
-        await check_project_permission(db, proj_id, user_id, Action.PROJECT_MANAGE_KNOWLEDGE)
+        await check_project_permission(
+            db, proj_id, user_id, Action.PROJECT_MANAGE_KNOWLEDGE
+        )
     deleted = await knowledge_service.delete_knowledge(db, knowledge_id)
     if not deleted:
         raise HTTPException(

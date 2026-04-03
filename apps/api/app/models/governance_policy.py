@@ -8,7 +8,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, Text, DateTime, Enum, ForeignKey, Boolean, Float, func
+from sqlalchemy import String, Text, DateTime, Enum, ForeignKey, Boolean, func
 from sqlalchemy.dialects.postgresql import UUID, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -17,15 +17,17 @@ from app.db.base_class import Base
 
 class PolicyTrigger(str, enum.Enum):
     """What triggers the policy evaluation."""
-    TASK_TYPE = "task_type"           # Matches task type (e.g. "architecture")
-    COST_THRESHOLD = "cost_threshold" # Total run cost exceeds threshold
-    ARTIFACT_TYPE = "artifact_type"   # Artifact of specified type created
-    AGENT_ACTION = "agent_action"     # Specific agent performs action
-    CUSTOM = "custom"                 # Custom condition in rules JSON
+
+    TASK_TYPE = "task_type"  # Matches task type (e.g. "architecture")
+    COST_THRESHOLD = "cost_threshold"  # Total run cost exceeds threshold
+    ARTIFACT_TYPE = "artifact_type"  # Artifact of specified type created
+    AGENT_ACTION = "agent_action"  # Specific agent performs action
+    CUSTOM = "custom"  # Custom condition in rules JSON
 
 
 class PolicyAction(str, enum.Enum):
     """What happens when a policy matches."""
+
     REQUIRE_APPROVAL = "require_approval"
     AUTO_APPROVE = "auto_approve"
     BLOCK = "block"

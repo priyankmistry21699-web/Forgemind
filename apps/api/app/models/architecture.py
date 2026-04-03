@@ -17,6 +17,7 @@ from app.db.base_class import Base
 
 # ── Enums ────────────────────────────────────────────────────────
 
+
 class NodeType(str, enum.Enum):
     WORKSPACE = "workspace"
     PROJECT = "project"
@@ -92,6 +93,7 @@ class ImpactSeverity(str, enum.Enum):
 
 # ── Models ───────────────────────────────────────────────────────
 
+
 class ArchitectureNode(Base):
     __tablename__ = "architecture_nodes"
 
@@ -125,20 +127,25 @@ class ArchitectureNode(Base):
     language: Mapped[str | None] = mapped_column(String(50), nullable=True)
     metadata_: Mapped[dict | None] = mapped_column("metadata", JSON, nullable=True)
     source_type: Mapped[SourceType] = mapped_column(
-        Enum(SourceType, name="arch_source_type"), nullable=False,
+        Enum(SourceType, name="arch_source_type"),
+        nullable=False,
         default=SourceType.INFERRED,
     )
     status: Mapped[NodeStatus] = mapped_column(
-        Enum(NodeStatus, name="arch_node_status"), nullable=False,
-        default=NodeStatus.ACTIVE, index=True,
+        Enum(NodeStatus, name="arch_node_status"),
+        nullable=False,
+        default=NodeStatus.ACTIVE,
+        index=True,
     )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(),
-        onupdate=func.now(), nullable=False,
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
     )
 
     def __repr__(self) -> str:
@@ -179,12 +186,11 @@ class ArchitectureEdge(Base):
     edge_type: Mapped[EdgeType] = mapped_column(
         Enum(EdgeType, name="arch_edge_type"), nullable=False, index=True
     )
-    confidence_score: Mapped[float] = mapped_column(
-        Float, default=1.0, nullable=False
-    )
+    confidence_score: Mapped[float] = mapped_column(Float, default=1.0, nullable=False)
     metadata_: Mapped[dict | None] = mapped_column("metadata", JSON, nullable=True)
     source_type: Mapped[SourceType] = mapped_column(
-        Enum(SourceType, name="arch_edge_source_type"), nullable=False,
+        Enum(SourceType, name="arch_edge_source_type"),
+        nullable=False,
         default=SourceType.INFERRED,
     )
 
@@ -231,6 +237,7 @@ class ArchitectureSnapshot(Base):
 
 # ── FM-083: Drift Detection ─────────────────────────────────────
 
+
 class ArchitectureDrift(Base):
     __tablename__ = "architecture_drifts"
 
@@ -246,7 +253,9 @@ class ArchitectureDrift(Base):
 
     drift_type: Mapped[str] = mapped_column(String(200), nullable=False)
     severity: Mapped[DriftSeverity] = mapped_column(
-        Enum(DriftSeverity, name="drift_severity"), nullable=False, index=True,
+        Enum(DriftSeverity, name="drift_severity"),
+        nullable=False,
+        index=True,
     )
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
@@ -257,8 +266,10 @@ class ArchitectureDrift(Base):
     )
     comparison_target: Mapped[str | None] = mapped_column(String(500), nullable=True)
     status: Mapped[DriftStatus] = mapped_column(
-        Enum(DriftStatus, name="drift_status"), nullable=False,
-        default=DriftStatus.OPEN, index=True,
+        Enum(DriftStatus, name="drift_status"),
+        nullable=False,
+        default=DriftStatus.OPEN,
+        index=True,
     )
     metadata_: Mapped[dict | None] = mapped_column("metadata", JSON, nullable=True)
 
@@ -274,6 +285,7 @@ class ArchitectureDrift(Base):
 
 
 # ── FM-084: Architecture Rules ───────────────────────────────────
+
 
 class ArchitectureRule(Base):
     __tablename__ = "architecture_rules"
@@ -291,12 +303,15 @@ class ArchitectureRule(Base):
     name: Mapped[str] = mapped_column(String(500), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     category: Mapped[RuleCategory] = mapped_column(
-        Enum(RuleCategory, name="arch_rule_category"), nullable=False, index=True,
+        Enum(RuleCategory, name="arch_rule_category"),
+        nullable=False,
+        index=True,
     )
     rule_config: Mapped[dict] = mapped_column(JSON, nullable=False)
     enabled: Mapped[bool] = mapped_column(default=True, nullable=False)
     severity: Mapped[DriftSeverity] = mapped_column(
-        Enum(DriftSeverity, name="arch_rule_severity"), nullable=False,
+        Enum(DriftSeverity, name="arch_rule_severity"),
+        nullable=False,
         default=DriftSeverity.MEDIUM,
     )
 
@@ -304,8 +319,10 @@ class ArchitectureRule(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(),
-        onupdate=func.now(), nullable=False,
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
     )
 
     def __repr__(self) -> str:
@@ -332,7 +349,8 @@ class ArchitectureRuleResult(Base):
     )
 
     status: Mapped[RuleResultStatus] = mapped_column(
-        Enum(RuleResultStatus, name="arch_rule_result_status"), nullable=False,
+        Enum(RuleResultStatus, name="arch_rule_result_status"),
+        nullable=False,
     )
     message: Mapped[str] = mapped_column(Text, nullable=False)
     details: Mapped[dict | None] = mapped_column(JSON, nullable=True)
@@ -348,6 +366,7 @@ class ArchitectureRuleResult(Base):
 
 
 # ── FM-087: Change Impact Assessment ────────────────────────────
+
 
 class ChangeImpactAssessment(Base):
     __tablename__ = "change_impact_assessments"
@@ -371,7 +390,8 @@ class ChangeImpactAssessment(Base):
     target_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     severity: Mapped[ImpactSeverity] = mapped_column(
-        Enum(ImpactSeverity, name="impact_severity"), nullable=False,
+        Enum(ImpactSeverity, name="impact_severity"),
+        nullable=False,
     )
     blast_radius: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     impacted_nodes: Mapped[list | None] = mapped_column(JSON, nullable=True)
@@ -385,4 +405,6 @@ class ChangeImpactAssessment(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<ChangeImpactAssessment {self.severity.value} radius={self.blast_radius}>"
+        return (
+            f"<ChangeImpactAssessment {self.severity.value} radius={self.blast_radius}>"
+        )

@@ -128,13 +128,21 @@ async def adaptive_retry(
     result = await db.execute(select(Task).where(Task.id == task_id))
     task = result.scalar_one_or_none()
     if task is None:
-        return {"success": False, "task_id": str(task_id), "retry_count": 0,
-                "message": "Task not found"}
+        return {
+            "success": False,
+            "task_id": str(task_id),
+            "retry_count": 0,
+            "message": "Task not found",
+        }
 
     check = await can_retry(db, task)
     if not check["can_retry"]:
-        return {"success": False, "task_id": str(task_id),
-                "retry_count": task.retry_count, "message": check["reason"]}
+        return {
+            "success": False,
+            "task_id": str(task_id),
+            "retry_count": task.retry_count,
+            "message": check["reason"],
+        }
 
     # Increment retry count and reset to READY
     task.retry_count += 1
@@ -280,13 +288,15 @@ async def get_retry_status(
                 exhausted_tasks.append(entry)
 
         if task.retry_count > 0:
-            retried_tasks.append({
-                "task_id": str(task.id),
-                "title": task.title,
-                "retry_count": task.retry_count,
-                "max_retries": task.max_retries,
-                "current_status": task.status.value,
-            })
+            retried_tasks.append(
+                {
+                    "task_id": str(task.id),
+                    "title": task.title,
+                    "retry_count": task.retry_count,
+                    "max_retries": task.max_retries,
+                    "current_status": task.status.value,
+                }
+            )
 
     return {
         "total_tasks": len(tasks),

@@ -5,6 +5,7 @@ Revises: 0003
 Create Date: 2026-03-26 00:03:00.000000+00:00
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -19,9 +20,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.execute(
-        "CREATE TYPE agent_status AS ENUM ('active', 'inactive', 'deprecated')"
-    )
+    op.execute("CREATE TYPE agent_status AS ENUM ('active', 'inactive', 'deprecated')")
 
     op.create_table(
         "agents",
@@ -32,7 +31,9 @@ def upgrade() -> None:
         sa.Column(
             "status",
             postgresql.ENUM(
-                "active", "inactive", "deprecated",
+                "active",
+                "inactive",
+                "deprecated",
                 name="agent_status",
                 create_type=False,
             ),

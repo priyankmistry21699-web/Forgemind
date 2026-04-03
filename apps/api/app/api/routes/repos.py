@@ -17,7 +17,6 @@ from app.schemas.repo import (
     RepoConnectionList,
     RepoConnectionCreate,
     RepoConnectionUpdate,
-    RepoSyncResult,
     FileTreeResult,
     FileContentResult,
     RepoSyncMetadata,
@@ -117,7 +116,8 @@ async def update_connection(
     if proj_id is not None:
         await check_project_permission(db, proj_id, user_id, Action.PROJECT_UPDATE)
     conn = await repo_service.update_connection(
-        db, connection_id,
+        db,
+        connection_id,
         **body.model_dump(exclude_unset=True),
     )
     if conn is None:
@@ -190,6 +190,7 @@ async def sync_connection(
 
 # ── FM-061: Sync metadata ───────────────────────────────────────
 
+
 @router.get("/repos/{connection_id}/sync-status", response_model=RepoSyncMetadata)
 async def get_sync_status(
     connection_id: uuid.UUID,
@@ -221,7 +222,9 @@ async def refresh_sync_metadata(
     if proj_id is not None:
         await check_project_permission(db, proj_id, user_id, Action.PROJECT_UPDATE)
     result = await repo_service.refresh_sync_metadata(
-        db, connection_id, commit_sha=commit_sha,
+        db,
+        connection_id,
+        commit_sha=commit_sha,
     )
     if "error" in result:
         raise HTTPException(
@@ -233,6 +236,7 @@ async def refresh_sync_metadata(
 
 
 # ── FM-062: File tree & code content ────────────────────────────
+
 
 @router.get("/repos/{connection_id}/tree", response_model=FileTreeResult)
 async def get_file_tree(

@@ -29,60 +29,119 @@ def upgrade() -> None:
     sync_status = sa.Enum("idle", "syncing", "success", "failed", name="sync_status")
     sync_status.create(op.get_bind(), checkfirst=True)
 
-    branch_mode = sa.Enum("direct", "feature_branch", "review_branch", name="branch_mode")
+    branch_mode = sa.Enum(
+        "direct", "feature_branch", "review_branch", name="branch_mode"
+    )
     branch_mode.create(op.get_bind(), checkfirst=True)
 
-    change_type = sa.Enum("create", "modify", "delete", "conceptual", name="change_type")
+    change_type = sa.Enum(
+        "create", "modify", "delete", "conceptual", name="change_type"
+    )
     change_type.create(op.get_bind(), checkfirst=True)
 
     patch_format = sa.Enum("unified", "side_by_side", "raw", name="patch_format")
     patch_format.create(op.get_bind(), checkfirst=True)
 
-    readiness_state = sa.Enum("incomplete", "needs_review", "ready", "blocked", name="readiness_state")
+    readiness_state = sa.Enum(
+        "incomplete", "needs_review", "ready", "blocked", name="readiness_state"
+    )
     readiness_state.create(op.get_bind(), checkfirst=True)
 
     # ── repo_connections: FM-061 sync metadata + FM-066 branch strategy ──
-    op.add_column("repo_connections", sa.Column("base_branch", sa.String(200), nullable=True))
-    op.add_column("repo_connections", sa.Column("target_branch", sa.String(200), nullable=True))
+    op.add_column(
+        "repo_connections", sa.Column("base_branch", sa.String(200), nullable=True)
+    )
+    op.add_column(
+        "repo_connections", sa.Column("target_branch", sa.String(200), nullable=True)
+    )
     op.add_column("repo_connections", sa.Column("linked_paths", JSON, nullable=True))
-    op.add_column("repo_connections", sa.Column("last_sync_status", sync_status, nullable=True))
-    op.add_column("repo_connections", sa.Column("last_sync_error", sa.Text(), nullable=True))
-    op.add_column("repo_connections", sa.Column("last_synced_commit", sa.String(100), nullable=True))
-    op.add_column("repo_connections", sa.Column("provider_metadata", JSON, nullable=True))
-    op.add_column("repo_connections", sa.Column("branch_mode", branch_mode, nullable=True))
-    op.add_column("repo_connections", sa.Column("target_branch_template", sa.String(200), nullable=True))
-    op.add_column("repo_connections", sa.Column("last_generated_branch", sa.String(200), nullable=True))
+    op.add_column(
+        "repo_connections", sa.Column("last_sync_status", sync_status, nullable=True)
+    )
+    op.add_column(
+        "repo_connections", sa.Column("last_sync_error", sa.Text(), nullable=True)
+    )
+    op.add_column(
+        "repo_connections",
+        sa.Column("last_synced_commit", sa.String(100), nullable=True),
+    )
+    op.add_column(
+        "repo_connections", sa.Column("provider_metadata", JSON, nullable=True)
+    )
+    op.add_column(
+        "repo_connections", sa.Column("branch_mode", branch_mode, nullable=True)
+    )
+    op.add_column(
+        "repo_connections",
+        sa.Column("target_branch_template", sa.String(200), nullable=True),
+    )
+    op.add_column(
+        "repo_connections",
+        sa.Column("last_generated_branch", sa.String(200), nullable=True),
+    )
 
     # ── artifacts: FM-063 code mapping fields ────────────────────
-    op.add_column("artifacts", sa.Column(
-        "repo_connection_id", UUID(as_uuid=True),
-        sa.ForeignKey("repo_connections.id", ondelete="SET NULL"), nullable=True,
-    ))
+    op.add_column(
+        "artifacts",
+        sa.Column(
+            "repo_connection_id",
+            UUID(as_uuid=True),
+            sa.ForeignKey("repo_connections.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
+    )
     op.add_column("artifacts", sa.Column("target_path", sa.String(1000), nullable=True))
-    op.add_column("artifacts", sa.Column("target_module", sa.String(500), nullable=True))
+    op.add_column(
+        "artifacts", sa.Column("target_module", sa.String(500), nullable=True)
+    )
     op.add_column("artifacts", sa.Column("change_type", change_type, nullable=True))
     op.add_column("artifacts", sa.Column("target_metadata", JSON, nullable=True))
 
     # ── patch_proposals: FM-064 enhancements ─────────────────────
     op.add_column("patch_proposals", sa.Column("target_files", JSON, nullable=True))
-    op.add_column("patch_proposals", sa.Column("patch_format", patch_format, nullable=True))
-    op.add_column("patch_proposals", sa.Column("proposed_by_agent", sa.String(200), nullable=True))
-    op.add_column("patch_proposals", sa.Column("readiness_state", readiness_state, nullable=True))
-    op.add_column("patch_proposals", sa.Column("linked_artifact_ids", JSON, nullable=True))
+    op.add_column(
+        "patch_proposals", sa.Column("patch_format", patch_format, nullable=True)
+    )
+    op.add_column(
+        "patch_proposals", sa.Column("proposed_by_agent", sa.String(200), nullable=True)
+    )
+    op.add_column(
+        "patch_proposals", sa.Column("readiness_state", readiness_state, nullable=True)
+    )
+    op.add_column(
+        "patch_proposals", sa.Column("linked_artifact_ids", JSON, nullable=True)
+    )
 
     # ── change_reviews: FM-065 file annotations ──────────────────
-    op.add_column("change_reviews", sa.Column("file_path", sa.String(1000), nullable=True))
-    op.add_column("change_reviews", sa.Column("line_start", sa.Integer(), nullable=True))
+    op.add_column(
+        "change_reviews", sa.Column("file_path", sa.String(1000), nullable=True)
+    )
+    op.add_column(
+        "change_reviews", sa.Column("line_start", sa.Integer(), nullable=True)
+    )
     op.add_column("change_reviews", sa.Column("line_end", sa.Integer(), nullable=True))
     op.add_column("change_reviews", sa.Column("suggestion", sa.Text(), nullable=True))
 
     # ── sandbox_executions: FM-069 runner safety ─────────────────
-    op.add_column("sandbox_executions", sa.Column("approval_id", UUID(as_uuid=True), nullable=True))
-    op.add_column("sandbox_executions", sa.Column("allowed_commands", JSON, nullable=True))
-    op.add_column("sandbox_executions", sa.Column("resource_limits", JSON, nullable=True))
-    op.add_column("sandbox_executions", sa.Column(
-        "isolated", sa.Boolean(), server_default=sa.text("true"), nullable=False,
-    ))
+    op.add_column(
+        "sandbox_executions",
+        sa.Column("approval_id", UUID(as_uuid=True), nullable=True),
+    )
+    op.add_column(
+        "sandbox_executions", sa.Column("allowed_commands", JSON, nullable=True)
+    )
+    op.add_column(
+        "sandbox_executions", sa.Column("resource_limits", JSON, nullable=True)
+    )
+    op.add_column(
+        "sandbox_executions",
+        sa.Column(
+            "isolated",
+            sa.Boolean(),
+            server_default=sa.text("true"),
+            nullable=False,
+        ),
+    )
 
 
 def downgrade() -> None:

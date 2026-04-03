@@ -37,13 +37,30 @@ MAX_TREE_ENTRIES = 500
 
 # FM-062: Common language extension map
 _LANG_MAP: dict[str, str] = {
-    ".py": "python", ".js": "javascript", ".ts": "typescript",
-    ".tsx": "typescript", ".jsx": "javascript", ".java": "java",
-    ".go": "go", ".rs": "rust", ".rb": "ruby", ".cpp": "cpp",
-    ".c": "c", ".cs": "csharp", ".php": "php", ".swift": "swift",
-    ".kt": "kotlin", ".sql": "sql", ".sh": "shell", ".yml": "yaml",
-    ".yaml": "yaml", ".json": "json", ".md": "markdown", ".html": "html",
-    ".css": "css", ".scss": "scss",
+    ".py": "python",
+    ".js": "javascript",
+    ".ts": "typescript",
+    ".tsx": "typescript",
+    ".jsx": "javascript",
+    ".java": "java",
+    ".go": "go",
+    ".rs": "rust",
+    ".rb": "ruby",
+    ".cpp": "cpp",
+    ".c": "c",
+    ".cs": "csharp",
+    ".php": "php",
+    ".swift": "swift",
+    ".kt": "kotlin",
+    ".sql": "sql",
+    ".sh": "shell",
+    ".yml": "yaml",
+    ".yaml": "yaml",
+    ".json": "json",
+    ".md": "markdown",
+    ".html": "html",
+    ".css": "css",
+    ".scss": "scss",
 }
 
 
@@ -107,9 +124,7 @@ async def list_connections(
     offset: int = 0,
 ) -> tuple[list[RepoConnection], int]:
     """List repo connections for a project."""
-    query = select(RepoConnection).where(
-        RepoConnection.project_id == project_id
-    )
+    query = select(RepoConnection).where(RepoConnection.project_id == project_id)
 
     count_result = await db.execute(
         select(sa_func.count()).select_from(query.subquery())
@@ -117,9 +132,7 @@ async def list_connections(
     total = count_result.scalar_one()
 
     result = await db.execute(
-        query.order_by(RepoConnection.created_at.desc())
-        .offset(offset)
-        .limit(limit)
+        query.order_by(RepoConnection.created_at.desc()).offset(offset).limit(limit)
     )
     return list(result.scalars().all()), total
 
@@ -135,13 +148,19 @@ async def update_connection(
         return None
 
     allowed_fields = {
-        "default_branch", "credential_env_key", "config",
-        "workspace_path", "status",
+        "default_branch",
+        "credential_env_key",
+        "config",
+        "workspace_path",
+        "status",
         # FM-061
-        "base_branch", "target_branch", "linked_paths",
+        "base_branch",
+        "target_branch",
+        "linked_paths",
         "provider_metadata",
         # FM-066
-        "branch_mode", "target_branch_template",
+        "branch_mode",
+        "target_branch_template",
     }
     for key, value in updates.items():
         if key in allowed_fields and value is not None:
@@ -183,13 +202,17 @@ async def check_connection_health(
     else:
         if conn.credential_env_key:
             if not os.environ.get(conn.credential_env_key, "").strip():
-                issues.append(f"Credential env var '{conn.credential_env_key}' is not set")
+                issues.append(
+                    f"Credential env var '{conn.credential_env_key}' is not set"
+                )
                 healthy = False
         else:
             issues.append("No credential configured")
             healthy = False
 
-    new_status = RepoConnectionStatus.CONNECTED if healthy else RepoConnectionStatus.ERROR
+    new_status = (
+        RepoConnectionStatus.CONNECTED if healthy else RepoConnectionStatus.ERROR
+    )
     conn.status = new_status
     if healthy:
         conn.last_synced_at = datetime.now(timezone.utc)
@@ -229,13 +252,17 @@ async def sync_connection(
     return {
         "repo_id": str(connection_id),
         "status": "synced" if health.get("healthy") else "error",
-        "message": "Repository synced successfully" if health.get("healthy")
-                   else f"Sync failed: {', '.join(health.get('issues', []))}",
-        "synced_at": conn.last_synced_at.isoformat() if conn and conn.last_synced_at else None,
+        "message": "Repository synced successfully"
+        if health.get("healthy")
+        else f"Sync failed: {', '.join(health.get('issues', []))}",
+        "synced_at": conn.last_synced_at.isoformat()
+        if conn and conn.last_synced_at
+        else None,
     }
 
 
 # ── FM-061: Sync metadata refresh ──────────────────────────────
+
 
 async def refresh_sync_metadata(
     db: AsyncSession,
@@ -260,9 +287,13 @@ async def refresh_sync_metadata(
 
     return {
         "connection_id": str(connection_id),
-        "last_sync_status": conn.last_sync_status.value if conn.last_sync_status else None,
+        "last_sync_status": conn.last_sync_status.value
+        if conn.last_sync_status
+        else None,
         "last_synced_commit": conn.last_synced_commit,
-        "last_synced_at": conn.last_synced_at.isoformat() if conn.last_synced_at else None,
+        "last_synced_at": conn.last_synced_at.isoformat()
+        if conn.last_synced_at
+        else None,
     }
 
 
@@ -277,14 +308,19 @@ async def get_sync_status(
 
     return {
         "connection_id": str(connection_id),
-        "last_sync_status": conn.last_sync_status.value if conn.last_sync_status else None,
+        "last_sync_status": conn.last_sync_status.value
+        if conn.last_sync_status
+        else None,
         "last_sync_error": conn.last_sync_error,
         "last_synced_commit": conn.last_synced_commit,
-        "last_synced_at": conn.last_synced_at.isoformat() if conn.last_synced_at else None,
+        "last_synced_at": conn.last_synced_at.isoformat()
+        if conn.last_synced_at
+        else None,
     }
 
 
 # ── FM-062: File tree and code context ──────────────────────────
+
 
 def _detect_language(file_path: str) -> str | None:
     ext = Path(file_path).suffix.lower()
@@ -364,7 +400,9 @@ async def get_file_content(
 
     file_size = target.stat().st_size
     if file_size > MAX_FILE_SIZE_BYTES:
-        return {"error": f"File too large ({file_size} bytes, max {MAX_FILE_SIZE_BYTES})"}
+        return {
+            "error": f"File too large ({file_size} bytes, max {MAX_FILE_SIZE_BYTES})"
+        }
 
     try:
         content = target.read_text(encoding="utf-8", errors="replace")
@@ -410,7 +448,9 @@ async def get_file_metadata(
         "is_directory": target.is_dir(),
         "size": stat.st_size,
         "language": _detect_language(path) if target.is_file() else None,
-        "modified_at": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
+        "modified_at": datetime.fromtimestamp(
+            stat.st_mtime, tz=timezone.utc
+        ).isoformat(),
     }
 
 

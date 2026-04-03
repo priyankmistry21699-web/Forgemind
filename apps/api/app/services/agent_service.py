@@ -15,14 +15,22 @@ DEFAULT_AGENTS = [
         "name": "Planner",
         "slug": "planner",
         "description": "Analyzes prompts and generates structured project plans with phased task breakdowns.",
-        "capabilities": ["prompt_analysis", "plan_generation", "architecture_recommendation"],
+        "capabilities": [
+            "prompt_analysis",
+            "plan_generation",
+            "architecture_recommendation",
+        ],
         "supported_task_types": ["planning"],
     },
     {
         "name": "Architect",
         "slug": "architect",
         "description": "Produces architecture documents, system design notes, and stack recommendations.",
-        "capabilities": ["architecture_design", "system_modeling", "tech_stack_selection"],
+        "capabilities": [
+            "architecture_design",
+            "system_modeling",
+            "tech_stack_selection",
+        ],
         "supported_task_types": ["architecture"],
     },
     {
@@ -98,9 +106,7 @@ async def get_agent_by_slug(db: AsyncSession, slug: str) -> Agent | None:
 
 async def resolve_agent_for_task_type(db: AsyncSession, task_type: str) -> Agent | None:
     """Find the first active agent that supports the given task type."""
-    result = await db.execute(
-        select(Agent).where(Agent.status == AgentStatus.ACTIVE)
-    )
+    result = await db.execute(select(Agent).where(Agent.status == AgentStatus.ACTIVE))
     agents = list(result.scalars().all())
     for agent in agents:
         if agent.supported_task_types and task_type in agent.supported_task_types:

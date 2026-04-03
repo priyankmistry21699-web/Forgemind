@@ -6,7 +6,7 @@ FM-046: Pydantic models for replay snapshots and trace inspection.
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class ReplaySnapshotRead(BaseModel):
@@ -56,11 +56,13 @@ class ReplaySnapshotCreate(BaseModel):
 
 class ReplayRequest(BaseModel):
     """Request to replay a specific snapshot."""
+
     snapshot_id: uuid.UUID
 
 
 class ReplayCompare(BaseModel):
     """Comparison between original and replayed execution."""
+
     original: ReplaySnapshotRead
     replay: ReplaySnapshotRead
     output_match: bool
@@ -69,6 +71,7 @@ class ReplayCompare(BaseModel):
 
 class ExecutionTrace(BaseModel):
     """Full execution trace for a run — ordered sequence of snapshots."""
+
     run_id: uuid.UUID
     total_steps: int
     snapshots: list[ReplaySnapshotRead]

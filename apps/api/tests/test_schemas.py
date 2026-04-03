@@ -8,13 +8,18 @@ from pydantic import ValidationError
 
 from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectRead
 from app.schemas.run import RunRead
-from app.schemas.task import TaskRead, TaskStatusUpdate, TaskClaimRequest, TaskFailRequest
-from app.schemas.artifact import ArtifactCreate, ArtifactRead, ArtifactUpdate
+from app.schemas.task import (
+    TaskRead,
+    TaskStatusUpdate,
+    TaskClaimRequest,
+    TaskFailRequest,
+)
+from app.schemas.artifact import ArtifactCreate, ArtifactUpdate
 from app.schemas.agent import AgentRead
 from app.schemas.approval import ApprovalCreate, ApprovalDecision
 from app.schemas.execution_event import ExecutionEventRead
 from app.schemas.prompt_intake import PromptIntakeRequest
-from app.schemas.connector import ConnectorRead, ConnectorRecommendation
+from app.schemas.connector import ConnectorRecommendation
 from app.schemas.planner_result import PlannerResultRead
 
 

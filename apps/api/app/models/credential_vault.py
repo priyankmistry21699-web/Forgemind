@@ -17,10 +17,10 @@ from app.db.base_class import Base
 
 
 class SecretStatus(str, enum.Enum):
-    ACTIVE = "active"           # Secret is set and usable
-    EXPIRED = "expired"         # Secret has expired, needs rotation
-    MISSING = "missing"         # Secret env var not found
-    REVOKED = "revoked"         # Secret manually revoked
+    ACTIVE = "active"  # Secret is set and usable
+    EXPIRED = "expired"  # Secret has expired, needs rotation
+    MISSING = "missing"  # Secret env var not found
+    REVOKED = "revoked"  # Secret manually revoked
 
 
 class CredentialVault(Base):
@@ -68,9 +68,7 @@ class CredentialVault(Base):
     last_rotated_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    metadata_: Mapped[dict | None] = mapped_column(
-        "metadata", JSON, nullable=True
-    )
+    metadata_: Mapped[dict | None] = mapped_column("metadata", JSON, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

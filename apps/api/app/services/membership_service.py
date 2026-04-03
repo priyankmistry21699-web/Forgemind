@@ -6,12 +6,15 @@ from sqlalchemy import select, func as sa_func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.membership import (
-    WorkspaceMember, WorkspaceRole,
-    ProjectMember, ProjectRole,
+    WorkspaceMember,
+    WorkspaceRole,
+    ProjectMember,
+    ProjectRole,
 )
 
 
 # ── Workspace members ────────────────────────────────────────────
+
 
 async def add_workspace_member(
     db: AsyncSession,
@@ -52,12 +55,10 @@ async def list_workspace_members(
     limit: int = 100,
     offset: int = 0,
 ) -> tuple[list[WorkspaceMember], int]:
-    query = select(WorkspaceMember).where(
-        WorkspaceMember.workspace_id == workspace_id
-    )
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    query = select(WorkspaceMember).where(WorkspaceMember.workspace_id == workspace_id)
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(WorkspaceMember.created_at).offset(offset).limit(limit)
     )
@@ -94,6 +95,7 @@ async def remove_workspace_member(
 
 # ── Project members ──────────────────────────────────────────────
 
+
 async def add_project_member(
     db: AsyncSession,
     *,
@@ -105,9 +107,8 @@ async def add_project_member(
 ) -> ProjectMember:
     # FM-053: Validate workspace membership before project assignment
     from app.models.project import Project
-    proj_result = await db.execute(
-        select(Project).where(Project.id == project_id)
-    )
+
+    proj_result = await db.execute(select(Project).where(Project.id == project_id))
     project = proj_result.scalar_one_or_none()
     if project and project.workspace_id:
         ws_member = await get_workspace_member(db, project.workspace_id, user_id)
@@ -152,9 +153,9 @@ async def list_project_members(
     offset: int = 0,
 ) -> tuple[list[ProjectMember], int]:
     query = select(ProjectMember).where(ProjectMember.project_id == project_id)
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(ProjectMember.created_at).offset(offset).limit(limit)
     )

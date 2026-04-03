@@ -11,7 +11,10 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from app.models.repo_connection import (
-    RepoProvider, RepoConnectionStatus, SyncStatus, BranchMode,
+    RepoProvider,
+    RepoConnectionStatus,
+    SyncStatus,
+    BranchMode,
 )
 
 
@@ -122,6 +125,7 @@ class FileContentResult(BaseModel):
 
 class RepoSyncMetadata(BaseModel):
     """FM-061: Sync status summary."""
+
     connection_id: uuid.UUID
     last_sync_status: SyncStatus | None
     last_sync_error: str | None

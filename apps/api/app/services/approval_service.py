@@ -37,6 +37,7 @@ async def create_approval(
     # FM-055: Create notification for approval request
     try:
         from app.services import notification_service
+
         await notification_service.create_notification(
             db,
             user_id=approval.project_id,  # placeholder - should route to project reviewers
@@ -48,11 +49,14 @@ async def create_approval(
             resource_id=approval.id,
         )
     except Exception:
-        logger.warning("Failed to create notification for approval %s", approval.id, exc_info=True)
+        logger.warning(
+            "Failed to create notification for approval %s", approval.id, exc_info=True
+        )
 
     # FM-054: Publish stream event
     try:
         from app.services.stream_service import publish_run_event
+
         if approval.run_id:
             await publish_run_event(
                 approval.run_id,
@@ -60,7 +64,9 @@ async def create_approval(
                 {"approval_id": str(approval.id), "title": approval.title},
             )
     except Exception:
-        logger.debug("Stream publish failed for approval %s", approval.id, exc_info=True)
+        logger.debug(
+            "Stream publish failed for approval %s", approval.id, exc_info=True
+        )
 
     return approval
 
@@ -107,9 +113,7 @@ async def list_approvals(
     total = count_result.scalar_one()
 
     result = await db.execute(
-        query.order_by(ApprovalRequest.created_at.desc())
-        .limit(limit)
-        .offset(offset)
+        query.order_by(ApprovalRequest.created_at.desc()).limit(limit).offset(offset)
     )
     approvals = list(result.scalars().all())
     return approvals, total
@@ -160,7 +164,12 @@ async def resolve_approval(
     # FM-055: Notify about resolution
     try:
         from app.services import notification_service
-        ntype = "approval_granted" if decision.status == ApprovalStatus.APPROVED else "approval_denied"
+
+        ntype = (
+            "approval_granted"
+            if decision.status == ApprovalStatus.APPROVED
+            else "approval_denied"
+        )
         await notification_service.create_notification(
             db,
             user_id=approval.project_id,  # placeholder
@@ -172,11 +181,16 @@ async def resolve_approval(
             resource_id=approval.id,
         )
     except Exception:
-        logger.warning("Failed to create notification for resolved approval %s", approval.id, exc_info=True)
+        logger.warning(
+            "Failed to create notification for resolved approval %s",
+            approval.id,
+            exc_info=True,
+        )
 
     # FM-054: Publish stream event
     try:
         from app.services.stream_service import publish_run_event
+
         if approval.run_id:
             await publish_run_event(
                 approval.run_id,
@@ -187,7 +201,9 @@ async def resolve_approval(
                 },
             )
     except Exception:
-        logger.debug("Stream publish failed for resolved approval %s", approval.id, exc_info=True)
+        logger.debug(
+            "Stream publish failed for resolved approval %s", approval.id, exc_info=True
+        )
 
     await db.refresh(approval)
     return approval

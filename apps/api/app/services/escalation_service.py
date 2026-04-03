@@ -9,6 +9,7 @@ from app.models.escalation import EscalationRule, EscalationEvent
 
 # ── Rules ────────────────────────────────────────────────────────
 
+
 async def create_rule(
     db: AsyncSession,
     *,
@@ -35,9 +36,7 @@ async def create_rule(
     return rule
 
 
-async def get_rule(
-    db: AsyncSession, rule_id: uuid.UUID
-) -> EscalationRule | None:
+async def get_rule(db: AsyncSession, rule_id: uuid.UUID) -> EscalationRule | None:
     result = await db.execute(
         select(EscalationRule).where(EscalationRule.id == rule_id)
     )
@@ -51,12 +50,10 @@ async def list_rules(
     limit: int = 50,
     offset: int = 0,
 ) -> tuple[list[EscalationRule], int]:
-    query = select(EscalationRule).where(
-        EscalationRule.project_id == project_id
-    )
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    query = select(EscalationRule).where(EscalationRule.project_id == project_id)
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(EscalationRule.created_at.desc()).offset(offset).limit(limit)
     )
@@ -80,9 +77,7 @@ async def update_rule(
     return rule
 
 
-async def delete_rule(
-    db: AsyncSession, rule_id: uuid.UUID
-) -> bool:
+async def delete_rule(db: AsyncSession, rule_id: uuid.UUID) -> bool:
     rule = await get_rule(db, rule_id)
     if rule is None:
         return False
@@ -92,6 +87,7 @@ async def delete_rule(
 
 
 # ── Events ───────────────────────────────────────────────────────
+
 
 async def trigger_escalation(
     db: AsyncSession,
@@ -120,12 +116,10 @@ async def list_events(
     limit: int = 50,
     offset: int = 0,
 ) -> tuple[list[EscalationEvent], int]:
-    query = select(EscalationEvent).where(
-        EscalationEvent.project_id == project_id
-    )
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    query = select(EscalationEvent).where(EscalationEvent.project_id == project_id)
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(EscalationEvent.created_at.desc()).offset(offset).limit(limit)
     )

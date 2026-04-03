@@ -24,6 +24,7 @@ from app.db.base_class import Base
 
 # ── Enums ────────────────────────────────────────────────────────
 
+
 class PatchStatus(str, enum.Enum):
     DRAFT = "draft"
     PROPOSED = "proposed"
@@ -35,6 +36,7 @@ class PatchStatus(str, enum.Enum):
 
 class PatchFormat(str, enum.Enum):
     """FM-064: Format of the diff content."""
+
     UNIFIED = "unified"
     SIDE_BY_SIDE = "side_by_side"
     RAW = "raw"
@@ -42,6 +44,7 @@ class PatchFormat(str, enum.Enum):
 
 class ReadinessState(str, enum.Enum):
     """FM-064: How ready a patch is for application."""
+
     INCOMPLETE = "incomplete"
     NEEDS_REVIEW = "needs_review"
     READY = "ready"
@@ -80,8 +83,10 @@ class SandboxStatus(str, enum.Enum):
 
 # ── Models ───────────────────────────────────────────────────────
 
+
 class CodeMapping(Base):
     """FM-061: Maps artifacts to files in the repo."""
+
     __tablename__ = "code_mappings"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -100,9 +105,7 @@ class CodeMapping(Base):
     )
     file_path: Mapped[str] = mapped_column(String(1000), nullable=False)
     language: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    metadata_: Mapped[dict | None] = mapped_column(
-        "metadata", JSON, nullable=True
-    )
+    metadata_: Mapped[dict | None] = mapped_column("metadata", JSON, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -111,6 +114,7 @@ class CodeMapping(Base):
 
 class PatchProposal(Base):
     """FM-062/064: AI-generated code patches for review."""
+
     __tablename__ = "patch_proposals"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -163,6 +167,7 @@ class PatchProposal(Base):
 
 class ChangeReview(Base):
     """FM-063/065/066: Review comments on patches with file-level annotations."""
+
     __tablename__ = "change_reviews"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -198,6 +203,7 @@ class ChangeReview(Base):
 
 class BranchStrategy(Base):
     """FM-064: Per-project branch configuration."""
+
     __tablename__ = "branch_strategies"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -236,6 +242,7 @@ class BranchStrategy(Base):
 
 class PRDraft(Base):
     """FM-065: Generated pull request drafts."""
+
     __tablename__ = "pr_drafts"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -281,6 +288,7 @@ class PRDraft(Base):
 
 class RepoActionApproval(Base):
     """FM-067: Approval gates for repo-level actions."""
+
     __tablename__ = "repo_action_approvals"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -323,6 +331,7 @@ class RepoActionApproval(Base):
 
 class SandboxExecution(Base):
     """FM-068/069: Sandboxed code execution with safety controls."""
+
     __tablename__ = "sandbox_executions"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -334,9 +343,7 @@ class SandboxExecution(Base):
         nullable=False,
         index=True,
     )
-    task_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), nullable=True
-    )
+    task_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     patch_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), nullable=True
     )

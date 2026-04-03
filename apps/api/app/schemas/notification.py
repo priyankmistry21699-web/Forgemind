@@ -4,12 +4,15 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from app.models.notification import (
-    NotificationType, NotificationPriority,
-    DeliveryChannel, DeliveryStatus,
+    NotificationType,
+    NotificationPriority,
+    DeliveryChannel,
+    DeliveryStatus,
 )
 
 
 # ── Notifications ────────────────────────────────────────────────
+
 
 class NotificationCreate(BaseModel):
     notification_type: NotificationType
@@ -44,6 +47,7 @@ class NotificationList(BaseModel):
 
 
 # ── Delivery Config ──────────────────────────────────────────────
+
 
 class DeliveryConfigCreate(BaseModel):
     channel: DeliveryChannel

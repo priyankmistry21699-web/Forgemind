@@ -23,7 +23,9 @@ def subscribe_run(run_id: uuid.UUID) -> asyncio.Queue:
     """Subscribe to events for a specific run. Returns a Queue to await on."""
     queue: asyncio.Queue = asyncio.Queue(maxsize=100)
     _subscribers[run_id].append(queue)
-    logger.debug("New subscriber for run %s (total: %d)", run_id, len(_subscribers[run_id]))
+    logger.debug(
+        "New subscriber for run %s (total: %d)", run_id, len(_subscribers[run_id])
+    )
     return queue
 
 

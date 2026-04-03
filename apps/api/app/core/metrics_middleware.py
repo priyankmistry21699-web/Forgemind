@@ -29,16 +29,27 @@ class MetricsMiddleware(BaseHTTPMiddleware):
             labels = {"method": method, "path": path, "status": status}
 
             inc_counter("http_requests_total", labels=labels)
-            observe_histogram("http_request_duration_seconds", elapsed, labels={"method": method, "path": path})
+            observe_histogram(
+                "http_request_duration_seconds",
+                elapsed,
+                labels={"method": method, "path": path},
+            )
 
             if response.status_code >= 500:
-                inc_counter("http_errors_total", labels={"method": method, "path": path, "status": status})
+                inc_counter(
+                    "http_errors_total",
+                    labels={"method": method, "path": path, "status": status},
+                )
 
             return response
-        except Exception as exc:
+        except Exception:
             elapsed = time.perf_counter() - start
             labels = {"method": method, "path": path, "status": "500"}
             inc_counter("http_requests_total", labels=labels)
             inc_counter("http_errors_total", labels=labels)
-            observe_histogram("http_request_duration_seconds", elapsed, labels={"method": method, "path": path})
+            observe_histogram(
+                "http_request_duration_seconds",
+                elapsed,
+                labels={"method": method, "path": path},
+            )
             raise

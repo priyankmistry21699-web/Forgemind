@@ -12,8 +12,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.architecture import (
-    ArchitectureNode, ArchitectureEdge, ArchitectureDrift,
-    ArchitectureRuleResult, NodeStatus, DriftStatus, RuleResultStatus,
+    ArchitectureNode,
+    ArchitectureEdge,
+    ArchitectureDrift,
+    ArchitectureRuleResult,
+    NodeStatus,
+    DriftStatus,
+    RuleResultStatus,
 )
 
 
@@ -35,9 +40,7 @@ async def generate_design_doc(
     node_map = {n.id: n for n in nodes}
 
     edges_result = await db.execute(
-        select(ArchitectureEdge).where(
-            ArchitectureEdge.project_id == project_id
-        )
+        select(ArchitectureEdge).where(ArchitectureEdge.project_id == project_id)
     )
     edges = list(edges_result.scalars().all())
 
@@ -129,7 +132,9 @@ async def generate_design_doc(
         sections.append("drift")
         content_parts.append("## Open Drift Findings\n")
         for d in drifts[:20]:
-            content_parts.append(f"- [{d.severity.value.upper()}] **{d.title}** — {d.description[:200]}")
+            content_parts.append(
+                f"- [{d.severity.value.upper()}] **{d.title}** — {d.description[:200]}"
+            )
         content_parts.append("")
 
     # Rule violations

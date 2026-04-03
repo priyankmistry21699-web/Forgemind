@@ -95,9 +95,7 @@ async def _promote_ready_tasks(db: AsyncSession, run_id: uuid.UUID) -> None:
 
     # Get all blocked tasks in this run
     blocked_result = await db.execute(
-        select(Task).where(
-            Task.run_id == run_id, Task.status == TaskStatus.BLOCKED
-        )
+        select(Task).where(Task.run_id == run_id, Task.status == TaskStatus.BLOCKED)
     )
     blocked_tasks = list(blocked_result.scalars().all())
 

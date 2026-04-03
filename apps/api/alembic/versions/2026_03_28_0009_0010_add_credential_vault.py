@@ -44,7 +44,9 @@ def upgrade() -> None:
             nullable=False,
             server_default="missing",
         ),
-        sa.Column("secret_type", sa.String(50), nullable=False, server_default="api_key"),
+        sa.Column(
+            "secret_type", sa.String(50), nullable=False, server_default="api_key"
+        ),
         sa.Column("scopes", postgresql.JSON, nullable=True),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("last_rotated_at", sa.DateTime(timezone=True), nullable=True),

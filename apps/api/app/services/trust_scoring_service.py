@@ -13,7 +13,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.task import Task, TaskStatus
 from app.models.run import Run, RunStatus
-from app.models.artifact import Artifact
 from app.models.trust_score import TrustScore, RiskLevel, EntityType
 
 logger = logging.getLogger(__name__)
@@ -62,7 +61,11 @@ async def assess_task(
         TaskStatus.FAILED: 0.1,
     }
     status_score = status_scores.get(task.status, 0.3)
-    factors["status"] = {"value": task.status.value, "score": status_score, "weight": 0.4}
+    factors["status"] = {
+        "value": task.status.value,
+        "score": status_score,
+        "weight": 0.4,
+    }
     score_components.append(status_score * 0.4)
 
     # Factor 2: Retry burden (weight: 0.25)
@@ -98,7 +101,9 @@ async def assess_task(
     score_components.append(error_score * 0.2)
 
     trust = round(sum(score_components), 3)
-    confidence = 0.7 if task.status in (TaskStatus.COMPLETED, TaskStatus.FAILED) else 0.5
+    confidence = (
+        0.7 if task.status in (TaskStatus.COMPLETED, TaskStatus.FAILED) else 0.5
+    )
 
     # Upsert trust score
     existing = await db.execute(
@@ -164,7 +169,11 @@ async def assess_run(
         RunStatus.FAILED: 0.1,
     }
     run_score = run_status_scores.get(run.status, 0.3)
-    factors["run_status"] = {"value": run.status.value, "score": run_score, "weight": 0.3}
+    factors["run_status"] = {
+        "value": run.status.value,
+        "score": run_score,
+        "weight": 0.3,
+    }
     score_components.append(run_score * 0.3)
 
     # Factor 2: Task completion ratio (weight: 0.4)
@@ -282,20 +291,24 @@ async def get_run_risk_summary(
     task_scores = []
     for task in tasks:
         ts = await assess_task(db, task.id)
-        task_scores.append({
-            "task_id": str(task.id),
-            "title": task.title,
-            "trust_score": ts.trust_score,
-            "risk_level": ts.risk_level.value,
-            "confidence": ts.confidence,
-        })
+        task_scores.append(
+            {
+                "task_id": str(task.id),
+                "title": task.title,
+                "trust_score": ts.trust_score,
+                "risk_level": ts.risk_level.value,
+                "confidence": ts.confidence,
+            }
+        )
 
     # Sort by trust (lowest first = highest risk first)
     task_scores.sort(key=lambda x: x["trust_score"])
 
     risk_distribution: dict[str, int] = {}
     for ts in task_scores:
-        risk_distribution[ts["risk_level"]] = risk_distribution.get(ts["risk_level"], 0) + 1
+        risk_distribution[ts["risk_level"]] = (
+            risk_distribution.get(ts["risk_level"], 0) + 1
+        )
 
     return {
         "run_id": str(run_id),

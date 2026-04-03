@@ -17,22 +17,24 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy import event, text
+from sqlalchemy import text
 
 from app.db.base_class import Base
 
 # ── Patch PostgreSQL types for SQLite compatibility ──────────────
 # Must happen BEFORE models are imported so the compiler is registered.
 from sqlalchemy.dialects.postgresql import ARRAY, UUID as PG_UUID, JSON as PG_JSON
-from sqlalchemy import Uuid, JSON, String
+from sqlalchemy import Uuid, JSON
 from sqlalchemy.ext.compiler import compiles
+
 
 @compiles(ARRAY, "sqlite")
 def _compile_array_sqlite(type_, compiler, **kw):
     return "JSON"
 
+
 # Import all models so metadata is populated
-from app.db.base import *  # noqa: F401, F403
+from app.db.base import *  # noqa: E402, F401, F403
 
 
 def _patch_metadata_for_sqlite():
@@ -199,7 +201,9 @@ async def sample_task(db_session: AsyncSession, sample_run):
 
 
 @pytest_asyncio.fixture
-async def sample_artifact(db_session: AsyncSession, sample_project, sample_run, sample_task):
+async def sample_artifact(
+    db_session: AsyncSession, sample_project, sample_run, sample_task
+):
     """Create and return a sample artifact."""
     from app.models.artifact import Artifact, ArtifactType
 
@@ -219,7 +223,9 @@ async def sample_artifact(db_session: AsyncSession, sample_project, sample_run, 
 
 
 @pytest_asyncio.fixture
-async def sample_approval(db_session: AsyncSession, sample_project, sample_run, sample_task):
+async def sample_approval(
+    db_session: AsyncSession, sample_project, sample_run, sample_task
+):
     """Create and return a pending approval request."""
     from app.models.approval_request import ApprovalRequest, ApprovalStatus
 
@@ -245,7 +251,11 @@ async def sample_planner_result(db_session: AsyncSession, sample_run):
     pr = PlannerResult(
         run_id=sample_run.id,
         overview="Test planner overview — build an API",
-        recommended_stack={"language": "Python", "framework": "FastAPI", "database": "PostgreSQL"},
+        recommended_stack={
+            "language": "Python",
+            "framework": "FastAPI",
+            "database": "PostgreSQL",
+        },
         assumptions=["Users have Python 3.12+", "PostgreSQL is available"],
         next_steps=["Set up project", "Build API endpoints"],
     )

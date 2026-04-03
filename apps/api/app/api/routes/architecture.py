@@ -64,6 +64,7 @@ router = APIRouter()
 
 # ── FM-081: Architecture Graph Foundation ────────────────────────
 
+
 @router.post(
     "/projects/{project_id}/architecture/nodes",
     response_model=ArchitectureNodeRead,
@@ -75,7 +76,9 @@ async def create_node(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ArchitectureNodeRead:
-    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE)
+    await check_project_permission(
+        db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE
+    )
     node = await architecture_service.create_node(
         db,
         project_id=project_id,
@@ -108,7 +111,11 @@ async def list_nodes(
 ) -> ArchitectureNodeList:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     nodes, total = await architecture_service.list_nodes(
-        db, project_id, node_type=node_type, limit=limit, offset=offset,
+        db,
+        project_id,
+        node_type=node_type,
+        limit=limit,
+        offset=offset,
     )
     return ArchitectureNodeList(
         items=[ArchitectureNodeRead.model_validate(n) for n in nodes],
@@ -129,7 +136,9 @@ async def get_node(
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     node = await architecture_service.get_node(db, node_id)
     if node is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Node not found"
+        )
     return ArchitectureNodeRead.model_validate(node)
 
 
@@ -144,12 +153,18 @@ async def update_node(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ArchitectureNodeRead:
-    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE)
+    await check_project_permission(
+        db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE
+    )
     node = await architecture_service.update_node(
-        db, node_id, **body.model_dump(exclude_unset=True),
+        db,
+        node_id,
+        **body.model_dump(exclude_unset=True),
     )
     if node is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Node not found"
+        )
     await db.commit()
     return ArchitectureNodeRead.model_validate(node)
 
@@ -164,14 +179,19 @@ async def delete_node(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> None:
-    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE)
+    await check_project_permission(
+        db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE
+    )
     ok = await architecture_service.delete_node(db, node_id)
     if not ok:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Node not found"
+        )
     await db.commit()
 
 
 # -- Edges --
+
 
 @router.post(
     "/projects/{project_id}/architecture/edges",
@@ -184,7 +204,9 @@ async def create_edge(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ArchitectureEdgeRead:
-    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE)
+    await check_project_permission(
+        db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE
+    )
     edge = await architecture_service.create_edge(
         db,
         project_id=project_id,
@@ -214,7 +236,11 @@ async def list_edges(
 ) -> ArchitectureEdgeList:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     edges, total = await architecture_service.list_edges(
-        db, project_id, edge_type=edge_type, limit=limit, offset=offset,
+        db,
+        project_id,
+        edge_type=edge_type,
+        limit=limit,
+        offset=offset,
     )
     return ArchitectureEdgeList(
         items=[ArchitectureEdgeRead.model_validate(e) for e in edges],
@@ -232,14 +258,19 @@ async def delete_edge(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> None:
-    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE)
+    await check_project_permission(
+        db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE
+    )
     ok = await architecture_service.delete_edge(db, edge_id)
     if not ok:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Edge not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Edge not found"
+        )
     await db.commit()
 
 
 # -- Graph & Neighbors --
+
 
 @router.get(
     "/projects/{project_id}/architecture/graph",
@@ -274,7 +305,9 @@ async def get_neighbors(
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     node = await architecture_service.get_node(db, node_id)
     if node is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Node not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Node not found"
+        )
     incoming, outgoing = await architecture_service.get_neighbors(db, node_id)
     return NeighborRead(
         node=ArchitectureNodeRead.model_validate(node),
@@ -284,6 +317,7 @@ async def get_neighbors(
 
 
 # -- Snapshots --
+
 
 @router.post(
     "/projects/{project_id}/architecture/snapshots",
@@ -296,8 +330,12 @@ async def create_snapshot(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ArchitectureSnapshotRead:
-    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE)
-    snap = await architecture_service.create_snapshot(db, project_id=project_id, name=name)
+    await check_project_permission(
+        db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE
+    )
+    snap = await architecture_service.create_snapshot(
+        db, project_id=project_id, name=name
+    )
     await db.commit()
     return ArchitectureSnapshotRead.model_validate(snap)
 
@@ -315,7 +353,10 @@ async def list_snapshots(
 ) -> ArchitectureSnapshotList:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await architecture_service.list_snapshots(
-        db, project_id, limit=limit, offset=offset,
+        db,
+        project_id,
+        limit=limit,
+        offset=offset,
     )
     return ArchitectureSnapshotList(
         items=[ArchitectureSnapshotRead.model_validate(s) for s in items],
@@ -324,6 +365,7 @@ async def list_snapshots(
 
 
 # ── FM-082: Topology Mapping ────────────────────────────────────
+
 
 @router.post(
     "/projects/{project_id}/architecture/topology/map",
@@ -335,7 +377,9 @@ async def map_topology(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> TopologySummary:
-    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE)
+    await check_project_permission(
+        db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE
+    )
     summary = await topology_mapper_service.map_topology(
         db,
         project_id=project_id,
@@ -349,6 +393,7 @@ async def map_topology(
 
 # ── FM-083: Drift Detection ─────────────────────────────────────
 
+
 @router.post(
     "/projects/{project_id}/architecture/drift/detect",
     response_model=ArchitectureDriftList,
@@ -359,9 +404,13 @@ async def detect_drift(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ArchitectureDriftList:
-    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE)
+    await check_project_permission(
+        db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE
+    )
     drifts = await drift_detection_service.detect_drift(
-        db, project_id=project_id, snapshot_id=snapshot_id,
+        db,
+        project_id=project_id,
+        snapshot_id=snapshot_id,
     )
     await db.commit()
     return ArchitectureDriftList(
@@ -384,7 +433,11 @@ async def list_drifts(
 ) -> ArchitectureDriftList:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await drift_detection_service.list_drifts(
-        db, project_id, status=status_filter, limit=limit, offset=offset,
+        db,
+        project_id,
+        status=status_filter,
+        limit=limit,
+        offset=offset,
     )
     return ArchitectureDriftList(
         items=[ArchitectureDriftRead.model_validate(d) for d in items],
@@ -402,10 +455,14 @@ async def resolve_drift(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ArchitectureDriftRead:
-    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE)
+    await check_project_permission(
+        db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE
+    )
     drift = await drift_detection_service.resolve_drift(db, drift_id)
     if drift is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Drift not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Drift not found"
+        )
     await db.commit()
     return ArchitectureDriftRead.model_validate(drift)
 
@@ -420,15 +477,20 @@ async def ignore_drift(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ArchitectureDriftRead:
-    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE)
+    await check_project_permission(
+        db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE
+    )
     drift = await drift_detection_service.ignore_drift(db, drift_id)
     if drift is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Drift not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Drift not found"
+        )
     await db.commit()
     return ArchitectureDriftRead.model_validate(drift)
 
 
 # ── FM-084: Architecture Rules ──────────────────────────────────
+
 
 @router.post(
     "/projects/{project_id}/architecture/rules",
@@ -441,7 +503,9 @@ async def create_rule(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ArchitectureRuleRead:
-    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE)
+    await check_project_permission(
+        db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE
+    )
     rule = await architecture_rule_service.create_rule(
         db,
         project_id=project_id,
@@ -469,7 +533,10 @@ async def list_rules(
 ) -> ArchitectureRuleList:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await architecture_rule_service.list_rules(
-        db, project_id=project_id, limit=limit, offset=offset,
+        db,
+        project_id=project_id,
+        limit=limit,
+        offset=offset,
     )
     return ArchitectureRuleList(
         items=[ArchitectureRuleRead.model_validate(r) for r in items],
@@ -487,11 +554,17 @@ async def evaluate_rule(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ArchitectureRuleResultRead:
-    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE)
+    await check_project_permission(
+        db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE
+    )
     try:
-        result = await architecture_rule_service.evaluate_rule(db, rule_id=rule_id, project_id=project_id)
+        result = await architecture_rule_service.evaluate_rule(
+            db, rule_id=rule_id, project_id=project_id
+        )
     except ValueError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Rule not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Rule not found"
+        )
     await db.commit()
     return ArchitectureRuleResultRead.model_validate(result)
 
@@ -509,7 +582,10 @@ async def list_rule_results(
 ) -> ArchitectureRuleResultList:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await architecture_rule_service.list_rule_results(
-        db, project_id, limit=limit, offset=offset,
+        db,
+        project_id,
+        limit=limit,
+        offset=offset,
     )
     return ArchitectureRuleResultList(
         items=[ArchitectureRuleResultRead.model_validate(r) for r in items],
@@ -518,6 +594,7 @@ async def list_rule_results(
 
 
 # ── FM-086: Design Doc Synthesis ────────────────────────────────
+
 
 @router.post(
     "/projects/{project_id}/architecture/design-doc",
@@ -535,6 +612,7 @@ async def generate_design_doc(
 
 # ── FM-087: Change Impact Analysis ──────────────────────────────
 
+
 @router.post(
     "/projects/{project_id}/architecture/impact-analysis",
     response_model=ChangeImpactAssessmentRead,
@@ -546,7 +624,9 @@ async def analyse_impact(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ChangeImpactAssessmentRead:
-    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE)
+    await check_project_permission(
+        db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE
+    )
     assessment = await impact_analysis_service.analyse_impact(
         db,
         project_id=project_id,
@@ -560,6 +640,7 @@ async def analyse_impact(
 
 # ── FM-088: Refactor Recommendations ────────────────────────────
 
+
 @router.get(
     "/projects/{project_id}/architecture/recommendations",
     response_model=RefactorRecommendationList,
@@ -571,7 +652,8 @@ async def get_recommendations(
 ) -> RefactorRecommendationList:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     recs = await refactor_recommendation_service.generate_recommendations(
-        db, project_id=project_id,
+        db,
+        project_id=project_id,
     )
     return RefactorRecommendationList(
         items=[RefactorRecommendation(**r) for r in recs],
@@ -580,6 +662,7 @@ async def get_recommendations(
 
 
 # ── FM-089: Architecture Approval Workflow ──────────────────────
+
 
 @router.post(
     "/projects/{project_id}/architecture/approvals",
@@ -592,9 +675,12 @@ async def request_architecture_approval(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ApprovalRead | None:
-    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE)
+    await check_project_permission(
+        db, project_id, user_id, Action.PROJECT_MANAGE_ARCHITECTURE
+    )
     approval = await architecture_approval_service.maybe_create_approval(
-        db, assessment_id=assessment_id,
+        db,
+        assessment_id=assessment_id,
     )
     if approval is None:
         return None
@@ -615,7 +701,10 @@ async def list_architecture_approvals(
 ) -> ApprovalList:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await architecture_approval_service.list_architecture_approvals(
-        db, project_id=project_id, limit=limit, offset=offset,
+        db,
+        project_id=project_id,
+        limit=limit,
+        offset=offset,
     )
     return ApprovalList(
         items=[ApprovalRead.model_validate(a) for a in items],
@@ -624,6 +713,7 @@ async def list_architecture_approvals(
 
 
 # ── FM-090: Structural Health Score ─────────────────────────────
+
 
 @router.get(
     "/projects/{project_id}/architecture/health-score",
@@ -636,6 +726,7 @@ async def get_health_score(
 ) -> StructuralHealthScore:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     score = await structural_health_service.compute_health_score(
-        db, project_id=project_id,
+        db,
+        project_id=project_id,
     )
     return StructuralHealthScore(**score)

@@ -8,7 +8,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, Text, DateTime, Enum, ForeignKey, Float, Integer, func
+from sqlalchemy import String, Text, DateTime, Enum, ForeignKey, Float, func
 from sqlalchemy.dialects.postgresql import UUID, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -16,25 +16,25 @@ from app.db.base_class import Base
 
 
 class CouncilStatus(str, enum.Enum):
-    CONVENED = "convened"          # Council has been assembled
+    CONVENED = "convened"  # Council has been assembled
     DELIBERATING = "deliberating"  # Agents are providing opinions
-    DECIDED = "decided"            # Consensus/majority reached
-    DEADLOCKED = "deadlocked"     # No consensus could be reached
-    ESCALATED = "escalated"       # Escalated to human review
+    DECIDED = "decided"  # Consensus/majority reached
+    DEADLOCKED = "deadlocked"  # No consensus could be reached
+    ESCALATED = "escalated"  # Escalated to human review
 
 
 class DecisionMethod(str, enum.Enum):
-    CONSENSUS = "consensus"        # All agents must agree
-    MAJORITY = "majority"          # >50% agreement
-    SUPERMAJORITY = "supermajority" # >=2/3 agreement
-    WEIGHTED = "weighted"          # Trust-score-weighted vote
+    CONSENSUS = "consensus"  # All agents must agree
+    MAJORITY = "majority"  # >50% agreement
+    SUPERMAJORITY = "supermajority"  # >=2/3 agreement
+    WEIGHTED = "weighted"  # Trust-score-weighted vote
 
 
 class VoteDecision(str, enum.Enum):
     APPROVE = "approve"
     REJECT = "reject"
     ABSTAIN = "abstain"
-    MODIFY = "modify"             # Approve with modifications
+    MODIFY = "modify"  # Approve with modifications
 
 
 class CouncilSession(Base):

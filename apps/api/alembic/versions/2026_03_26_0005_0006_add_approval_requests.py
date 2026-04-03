@@ -5,6 +5,7 @@ Revises: 0005
 Create Date: 2026-03-26 00:05:00.000000+00:00
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -18,7 +19,9 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 approval_status_enum = postgresql.ENUM(
-    "pending", "approved", "rejected",
+    "pending",
+    "approved",
+    "rejected",
     name="approval_status",
     create_type=False,
 )

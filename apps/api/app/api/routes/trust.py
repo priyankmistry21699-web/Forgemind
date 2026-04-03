@@ -33,9 +33,7 @@ async def assess_task(
         await db.commit()
         return TrustScoreRead.model_validate(ts)
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
 @router.post("/runs/{run_id}/assess", response_model=TrustScoreRead)
@@ -52,9 +50,7 @@ async def assess_run(
         await db.commit()
         return TrustScoreRead.model_validate(ts)
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
 @router.get("/runs/{run_id}/risk-summary")
@@ -69,9 +65,7 @@ async def get_run_risk_summary(
     try:
         return await trust_scoring_service.get_run_risk_summary(db, run_id)
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
 @router.get("/scores", response_model=TrustScoreList)

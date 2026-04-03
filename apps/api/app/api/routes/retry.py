@@ -58,6 +58,7 @@ async def check_retry(
 ) -> RetryCheckResponse:
     """Check whether a task can be retried and get context."""
     from app.services.task_service import get_task
+
     task = await get_task(db, task_id)
     result = await adaptive_retry_service.can_retry(db, task)
     return RetryCheckResponse(**result)

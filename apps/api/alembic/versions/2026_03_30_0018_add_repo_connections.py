@@ -19,18 +19,51 @@ def upgrade() -> None:
     op.create_table(
         "repo_connections",
         sa.Column("id", UUID(as_uuid=True), primary_key=True),
-        sa.Column("project_id", UUID(as_uuid=True), sa.ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True),
-        sa.Column("provider", sa.Enum("github", "gitlab", "bitbucket", "local", name="repo_provider"), nullable=False),
+        sa.Column(
+            "project_id",
+            UUID(as_uuid=True),
+            sa.ForeignKey("projects.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        ),
+        sa.Column(
+            "provider",
+            sa.Enum("github", "gitlab", "bitbucket", "local", name="repo_provider"),
+            nullable=False,
+        ),
         sa.Column("repo_url", sa.String(500), nullable=False),
         sa.Column("repo_name", sa.String(200), nullable=False),
-        sa.Column("default_branch", sa.String(100), nullable=False, server_default="main"),
-        sa.Column("status", sa.Enum("connected", "disconnected", "error", "pending", name="repo_connection_status"), nullable=False, index=True),
+        sa.Column(
+            "default_branch", sa.String(100), nullable=False, server_default="main"
+        ),
+        sa.Column(
+            "status",
+            sa.Enum(
+                "connected",
+                "disconnected",
+                "error",
+                "pending",
+                name="repo_connection_status",
+            ),
+            nullable=False,
+            index=True,
+        ),
         sa.Column("credential_env_key", sa.String(200), nullable=True),
         sa.Column("config", JSON, nullable=True),
         sa.Column("workspace_path", sa.String(500), nullable=True),
         sa.Column("last_synced_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.func.now(),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.func.now(),
+            nullable=False,
+        ),
     )
 
 

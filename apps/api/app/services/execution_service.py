@@ -98,7 +98,9 @@ async def complete_task(
     if artifact_title and artifact_content:
         # Resolve artifact type
         try:
-            a_type = ArtifactType(artifact_type) if artifact_type else ArtifactType.OTHER
+            a_type = (
+                ArtifactType(artifact_type) if artifact_type else ArtifactType.OTHER
+            )
         except ValueError:
             a_type = ArtifactType.OTHER
 

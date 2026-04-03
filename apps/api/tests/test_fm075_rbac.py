@@ -26,8 +26,10 @@ from app.services.authz_service import (
     is_project_action_allowed,
 )
 from app.models.membership import (
-    WorkspaceMember, WorkspaceRole,
-    ProjectMember, ProjectRole,
+    WorkspaceMember,
+    WorkspaceRole,
+    ProjectMember,
+    ProjectRole,
 )
 
 # ── Reuse conftest fixtures (client, db_session, seed_stub_user) ──
@@ -50,13 +52,20 @@ async def workspace_with_members(db_session: AsyncSession):
 
     # Stub user is OWNER
     owner_member = WorkspaceMember(
-        workspace_id=ws.id, user_id=STUB_USER_ID, role=WorkspaceRole.OWNER,
+        workspace_id=ws.id,
+        user_id=STUB_USER_ID,
+        role=WorkspaceRole.OWNER,
     )
     db_session.add(owner_member)
 
     # Create additional users with different roles
     users = {}
-    for role in [WorkspaceRole.ADMIN, WorkspaceRole.OPERATOR, WorkspaceRole.REVIEWER, WorkspaceRole.VIEWER]:
+    for role in [
+        WorkspaceRole.ADMIN,
+        WorkspaceRole.OPERATOR,
+        WorkspaceRole.REVIEWER,
+        WorkspaceRole.VIEWER,
+    ]:
         user = User(
             email=f"{role.value}@test.dev",
             display_name=f"Test {role.value.title()}",
@@ -64,7 +73,9 @@ async def workspace_with_members(db_session: AsyncSession):
         db_session.add(user)
         await db_session.flush()
         member = WorkspaceMember(
-            workspace_id=ws.id, user_id=user.id, role=role,
+            workspace_id=ws.id,
+            user_id=user.id,
+            role=role,
         )
         db_session.add(member)
         users[role] = user
@@ -91,7 +102,9 @@ async def project_with_members(db_session: AsyncSession, workspace_with_members)
 
     # Stub user is LEAD
     lead_member = ProjectMember(
-        project_id=proj.id, user_id=STUB_USER_ID, role=ProjectRole.LEAD,
+        project_id=proj.id,
+        user_id=STUB_USER_ID,
+        role=ProjectRole.LEAD,
     )
     db_session.add(lead_member)
 
@@ -104,7 +117,9 @@ async def project_with_members(db_session: AsyncSession, workspace_with_members)
         db_session.add(user)
         await db_session.flush()
         member = ProjectMember(
-            project_id=proj.id, user_id=user.id, role=role,
+            project_id=proj.id,
+            user_id=user.id,
+            role=role,
         )
         db_session.add(member)
         users[role] = user
@@ -123,13 +138,17 @@ class TestPermissionMatrix:
         """All workspace actions have permission entries."""
         ws_actions = [a for a in Action if a.value.startswith("workspace:")]
         for action in ws_actions:
-            assert action in WORKSPACE_PERMISSIONS, f"Missing permission entry for {action}"
+            assert action in WORKSPACE_PERMISSIONS, (
+                f"Missing permission entry for {action}"
+            )
 
     def test_project_permissions_complete(self):
         """All project actions have permission entries."""
         proj_actions = [a for a in Action if a.value.startswith("project:")]
         for action in proj_actions:
-            assert action in PROJECT_PERMISSIONS, f"Missing permission entry for {action}"
+            assert action in PROJECT_PERMISSIONS, (
+                f"Missing permission entry for {action}"
+            )
 
     def test_owner_has_all_workspace_permissions(self):
         """OWNER should have all workspace permissions."""
@@ -147,8 +166,9 @@ class TestPermissionMatrix:
             if action == Action.WORKSPACE_VIEW:
                 assert WorkspaceRole.VIEWER in roles
             else:
-                assert WorkspaceRole.VIEWER not in roles, \
+                assert WorkspaceRole.VIEWER not in roles, (
                     f"VIEWER should not have {action}"
+                )
 
     def test_viewer_read_only_project(self):
         """VIEWER should only be able to view projects."""
@@ -156,8 +176,9 @@ class TestPermissionMatrix:
             if action == Action.PROJECT_VIEW:
                 assert ProjectRole.VIEWER in roles
             else:
-                assert ProjectRole.VIEWER not in roles, \
+                assert ProjectRole.VIEWER not in roles, (
                     f"VIEWER should not have {action}"
+                )
 
     def test_new_actions_exist(self):
         """FM-075 new actions should exist."""
@@ -170,7 +191,9 @@ class TestPermissionMatrix:
     def test_pure_check_functions(self):
         """is_workspace_action_allowed / is_project_action_allowed work."""
         assert is_workspace_action_allowed(WorkspaceRole.OWNER, Action.WORKSPACE_DELETE)
-        assert not is_workspace_action_allowed(WorkspaceRole.VIEWER, Action.WORKSPACE_DELETE)
+        assert not is_workspace_action_allowed(
+            WorkspaceRole.VIEWER, Action.WORKSPACE_DELETE
+        )
         assert is_project_action_allowed(ProjectRole.LEAD, Action.PROJECT_RUN)
         assert not is_project_action_allowed(ProjectRole.VIEWER, Action.PROJECT_RUN)
 
@@ -181,7 +204,10 @@ class TestWorkspaceRBAC:
     async def test_owner_can_update(self, db_session, workspace_with_members):
         ws, _ = workspace_with_members
         role = await check_workspace_permission(
-            db_session, ws.id, STUB_USER_ID, Action.WORKSPACE_UPDATE,
+            db_session,
+            ws.id,
+            STUB_USER_ID,
+            Action.WORKSPACE_UPDATE,
         )
         assert role == WorkspaceRole.OWNER
 
@@ -189,9 +215,13 @@ class TestWorkspaceRBAC:
         ws, users = workspace_with_members
         viewer = users[WorkspaceRole.VIEWER]
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             await check_workspace_permission(
-                db_session, ws.id, viewer.id, Action.WORKSPACE_UPDATE,
+                db_session,
+                ws.id,
+                viewer.id,
+                Action.WORKSPACE_UPDATE,
             )
         assert exc_info.value.status_code == 403
 
@@ -199,9 +229,13 @@ class TestWorkspaceRBAC:
         ws, _ = workspace_with_members
         random_user = uuid.uuid4()
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             await check_workspace_permission(
-                db_session, ws.id, random_user, Action.WORKSPACE_VIEW,
+                db_session,
+                ws.id,
+                random_user,
+                Action.WORKSPACE_VIEW,
             )
         assert exc_info.value.status_code == 404
 
@@ -209,17 +243,26 @@ class TestWorkspaceRBAC:
         ws, users = workspace_with_members
         admin = users[WorkspaceRole.ADMIN]
         role = await check_workspace_permission(
-            db_session, ws.id, admin.id, Action.WORKSPACE_MANAGE_MEMBERS,
+            db_session,
+            ws.id,
+            admin.id,
+            Action.WORKSPACE_MANAGE_MEMBERS,
         )
         assert role == WorkspaceRole.ADMIN
 
-    async def test_operator_cannot_manage_members(self, db_session, workspace_with_members):
+    async def test_operator_cannot_manage_members(
+        self, db_session, workspace_with_members
+    ):
         ws, users = workspace_with_members
         operator = users[WorkspaceRole.OPERATOR]
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             await check_workspace_permission(
-                db_session, ws.id, operator.id, Action.WORKSPACE_MANAGE_MEMBERS,
+                db_session,
+                ws.id,
+                operator.id,
+                Action.WORKSPACE_MANAGE_MEMBERS,
             )
         assert exc_info.value.status_code == 403
 
@@ -227,9 +270,13 @@ class TestWorkspaceRBAC:
         ws, users = workspace_with_members
         admin = users[WorkspaceRole.ADMIN]
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             await check_workspace_permission(
-                db_session, ws.id, admin.id, Action.WORKSPACE_DELETE,
+                db_session,
+                ws.id,
+                admin.id,
+                Action.WORKSPACE_DELETE,
             )
         assert exc_info.value.status_code == 403
 
@@ -240,7 +287,10 @@ class TestProjectRBAC:
     async def test_lead_can_approve(self, db_session, project_with_members):
         proj, _ = project_with_members
         role = await check_project_permission(
-            db_session, proj.id, STUB_USER_ID, Action.PROJECT_APPROVE,
+            db_session,
+            proj.id,
+            STUB_USER_ID,
+            Action.PROJECT_APPROVE,
         )
         assert role == ProjectRole.LEAD
 
@@ -248,7 +298,10 @@ class TestProjectRBAC:
         proj, users = project_with_members
         reviewer = users[ProjectRole.REVIEWER]
         role = await check_project_permission(
-            db_session, proj.id, reviewer.id, Action.PROJECT_REVIEW,
+            db_session,
+            proj.id,
+            reviewer.id,
+            Action.PROJECT_REVIEW,
         )
         assert role == ProjectRole.REVIEWER
 
@@ -256,9 +309,13 @@ class TestProjectRBAC:
         proj, users = project_with_members
         viewer = users[ProjectRole.VIEWER]
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             await check_project_permission(
-                db_session, proj.id, viewer.id, Action.PROJECT_RUN,
+                db_session,
+                proj.id,
+                viewer.id,
+                Action.PROJECT_RUN,
             )
         assert exc_info.value.status_code == 403
 
@@ -266,9 +323,13 @@ class TestProjectRBAC:
         proj, _ = project_with_members
         random_user = uuid.uuid4()
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             await check_project_permission(
-                db_session, proj.id, random_user, Action.PROJECT_VIEW,
+                db_session,
+                proj.id,
+                random_user,
+                Action.PROJECT_VIEW,
             )
         assert exc_info.value.status_code == 404
 
@@ -276,7 +337,10 @@ class TestProjectRBAC:
         proj, users = project_with_members
         operator = users[ProjectRole.OPERATOR]
         role = await check_project_permission(
-            db_session, proj.id, operator.id, Action.PROJECT_EXECUTE_CODE,
+            db_session,
+            proj.id,
+            operator.id,
+            Action.PROJECT_EXECUTE_CODE,
         )
         assert role == ProjectRole.OPERATOR
 
@@ -287,11 +351,14 @@ class TestRouteAuthEnforcement:
     async def test_workspace_endpoints_have_auth(self, client: AsyncClient):
         """All workspace CRUD endpoints should succeed with stub auth (dev mode)."""
         # Create workspace (stub user is authed in dev mode)
-        resp = await client.post("/workspaces", json={
-            "name": "Auth Test WS", "slug": "auth-test-ws",
-        })
+        resp = await client.post(
+            "/workspaces",
+            json={
+                "name": "Auth Test WS",
+                "slug": "auth-test-ws",
+            },
+        )
         assert resp.status_code == 201
-        ws_id = resp.json()["id"]
 
         # List should work
         resp = await client.get("/workspaces")
@@ -299,9 +366,12 @@ class TestRouteAuthEnforcement:
 
     async def test_project_endpoints_have_auth(self, client: AsyncClient):
         """Project endpoints should succeed with stub auth."""
-        resp = await client.post("/projects", json={
-            "name": "Auth Test Proj",
-        })
+        resp = await client.post(
+            "/projects",
+            json={
+                "name": "Auth Test Proj",
+            },
+        )
         assert resp.status_code == 201
 
         resp = await client.get("/projects")
@@ -346,11 +416,14 @@ class TestRouteAuthEnforcement:
 
     async def test_auth_endpoints_remain_public(self, client: AsyncClient):
         """Auth register/login should NOT require auth."""
-        resp = await client.post("/auth/register", json={
-            "email": "rbac-test@test.dev",
-            "password": "testpass123",
-            "display_name": "RBAC Test",
-        })
+        resp = await client.post(
+            "/auth/register",
+            json={
+                "email": "rbac-test@test.dev",
+                "password": "testpass123",
+                "display_name": "RBAC Test",
+            },
+        )
         assert resp.status_code == 201
 
 
@@ -366,7 +439,9 @@ class TestRoleResolution:
         role = await get_workspace_role(db_session, ws.id, admin.id)
         assert role == WorkspaceRole.ADMIN
 
-    async def test_get_workspace_role_nonmember(self, db_session, workspace_with_members):
+    async def test_get_workspace_role_nonmember(
+        self, db_session, workspace_with_members
+    ):
         ws, _ = workspace_with_members
         role = await get_workspace_role(db_session, ws.id, uuid.uuid4())
         assert role is None
@@ -404,7 +479,9 @@ async def viewer_project(db_session: AsyncSession):
     await db_session.flush()
 
     lead = ProjectMember(
-        project_id=proj.id, user_id=STUB_USER_ID, role=ProjectRole.LEAD,
+        project_id=proj.id,
+        user_id=STUB_USER_ID,
+        role=ProjectRole.LEAD,
     )
     db_session.add(lead)
 
@@ -413,7 +490,9 @@ async def viewer_project(db_session: AsyncSession):
     await db_session.flush()
 
     viewer_member = ProjectMember(
-        project_id=proj.id, user_id=viewer.id, role=ProjectRole.VIEWER,
+        project_id=proj.id,
+        user_id=viewer.id,
+        role=ProjectRole.VIEWER,
     )
     db_session.add(viewer_member)
     await db_session.commit()
@@ -441,8 +520,12 @@ async def viewer_task(db_session: AsyncSession, viewer_run):
     from app.models.task import Task, TaskStatus
 
     task = Task(
-        title="Viewer Test Task", description="t", task_type="coding",
-        status=TaskStatus.READY, order_index=0, run_id=viewer_run.id,
+        title="Viewer Test Task",
+        description="t",
+        task_type="coding",
+        status=TaskStatus.READY,
+        order_index=0,
+        run_id=viewer_run.id,
     )
     db_session.add(task)
     await db_session.flush()
@@ -455,7 +538,9 @@ class TestRouteRBACEnforcement:
 
     # ── Projects ─────────────────────────────────────────────────
 
-    async def test_viewer_cannot_update_project(self, client: AsyncClient, viewer_project):
+    async def test_viewer_cannot_update_project(
+        self, client: AsyncClient, viewer_project
+    ):
         proj, _, token = viewer_project
         resp = await client.patch(
             f"/projects/{proj.id}",
@@ -484,7 +569,9 @@ class TestRouteRBACEnforcement:
 
     # ── Tasks ────────────────────────────────────────────────────
 
-    async def test_viewer_can_list_tasks(self, client: AsyncClient, viewer_run, viewer_project):
+    async def test_viewer_can_list_tasks(
+        self, client: AsyncClient, viewer_run, viewer_project
+    ):
         _, _, token = viewer_project
         resp = await client.get(
             f"/runs/{viewer_run.id}/tasks",
@@ -492,7 +579,9 @@ class TestRouteRBACEnforcement:
         )
         assert resp.status_code == 200
 
-    async def test_viewer_cannot_claim_task(self, client: AsyncClient, viewer_task, viewer_project):
+    async def test_viewer_cannot_claim_task(
+        self, client: AsyncClient, viewer_task, viewer_project
+    ):
         _, _, token = viewer_project
         resp = await client.post(
             f"/tasks/{viewer_task.id}/claim",
@@ -501,7 +590,9 @@ class TestRouteRBACEnforcement:
         )
         assert resp.status_code == 403
 
-    async def test_viewer_cannot_cancel_task(self, client: AsyncClient, viewer_task, viewer_project):
+    async def test_viewer_cannot_cancel_task(
+        self, client: AsyncClient, viewer_task, viewer_project
+    ):
         _, _, token = viewer_project
         resp = await client.post(
             f"/tasks/{viewer_task.id}/cancel",
@@ -512,7 +603,9 @@ class TestRouteRBACEnforcement:
 
     # ── Knowledge ────────────────────────────────────────────────
 
-    async def test_viewer_cannot_create_knowledge(self, client: AsyncClient, viewer_project):
+    async def test_viewer_cannot_create_knowledge(
+        self, client: AsyncClient, viewer_project
+    ):
         proj, _, token = viewer_project
         resp = await client.post(
             f"/projects/{proj.id}/knowledge",
@@ -535,7 +628,9 @@ class TestRouteRBACEnforcement:
 
     # ── Escalation ───────────────────────────────────────────────
 
-    async def test_viewer_cannot_create_escalation_rule(self, client: AsyncClient, viewer_project):
+    async def test_viewer_cannot_create_escalation_rule(
+        self, client: AsyncClient, viewer_project
+    ):
         proj, _, token = viewer_project
         resp = await client.post(
             f"/projects/{proj.id}/escalation/rules",
@@ -550,7 +645,9 @@ class TestRouteRBACEnforcement:
 
     # ── Code Ops ─────────────────────────────────────────────────
 
-    async def test_viewer_cannot_create_patch(self, client: AsyncClient, viewer_project):
+    async def test_viewer_cannot_create_patch(
+        self, client: AsyncClient, viewer_project
+    ):
         proj, _, token = viewer_project
         resp = await client.post(
             f"/projects/{proj.id}/patches",
@@ -562,7 +659,9 @@ class TestRouteRBACEnforcement:
         )
         assert resp.status_code == 403
 
-    async def test_viewer_cannot_create_sandbox(self, client: AsyncClient, viewer_project):
+    async def test_viewer_cannot_create_sandbox(
+        self, client: AsyncClient, viewer_project
+    ):
         proj, _, token = viewer_project
         resp = await client.post(
             f"/projects/{proj.id}/sandbox",
@@ -604,7 +703,9 @@ class TestRouteRBACEnforcement:
 
     # ── Costs ────────────────────────────────────────────────────
 
-    async def test_viewer_can_view_project_costs(self, client: AsyncClient, viewer_project):
+    async def test_viewer_can_view_project_costs(
+        self, client: AsyncClient, viewer_project
+    ):
         proj, _, token = viewer_project
         resp = await client.get(
             f"/costs/projects/{proj.id}/summary",
@@ -614,7 +715,9 @@ class TestRouteRBACEnforcement:
 
     # ── Council ──────────────────────────────────────────────────
 
-    async def test_viewer_cannot_convene_council(self, client: AsyncClient, viewer_project):
+    async def test_viewer_cannot_convene_council(
+        self, client: AsyncClient, viewer_project
+    ):
         proj, _, token = viewer_project
         resp = await client.post(
             "/council/sessions",
@@ -628,7 +731,9 @@ class TestRouteRBACEnforcement:
 
     # ── Run Lifecycle ────────────────────────────────────────────
 
-    async def test_viewer_cannot_auto_complete_run(self, client: AsyncClient, viewer_run, viewer_project):
+    async def test_viewer_cannot_auto_complete_run(
+        self, client: AsyncClient, viewer_run, viewer_project
+    ):
         _, _, token = viewer_project
         resp = await client.post(
             f"/lifecycle/runs/{viewer_run.id}/auto-complete",
@@ -636,7 +741,9 @@ class TestRouteRBACEnforcement:
         )
         assert resp.status_code == 403
 
-    async def test_viewer_can_check_run_health(self, client: AsyncClient, viewer_run, viewer_project):
+    async def test_viewer_can_check_run_health(
+        self, client: AsyncClient, viewer_run, viewer_project
+    ):
         _, _, token = viewer_project
         resp = await client.get(
             f"/lifecycle/runs/{viewer_run.id}/health",

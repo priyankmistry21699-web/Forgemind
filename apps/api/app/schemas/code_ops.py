@@ -4,13 +4,18 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from app.models.code_ops import (
-    PatchStatus, PatchFormat, ReadinessState,
-    ReviewDecision, PRDraftStatus,
-    RepoActionType, SandboxStatus,
+    PatchStatus,
+    PatchFormat,
+    ReadinessState,
+    ReviewDecision,
+    PRDraftStatus,
+    RepoActionType,
+    SandboxStatus,
 )
 
 
 # ── Code Mappings (FM-061) ───────────────────────────────────────
+
 
 class CodeMappingCreate(BaseModel):
     artifact_id: uuid.UUID
@@ -37,6 +42,7 @@ class CodeMappingList(BaseModel):
 
 
 # ── Patch Proposals (FM-062/064) ─────────────────────────────────
+
 
 class PatchProposalCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=500)
@@ -96,6 +102,7 @@ class PatchProposalList(BaseModel):
 
 # ── Change Reviews (FM-063/065/066) ──────────────────────────────
 
+
 class ChangeReviewCreate(BaseModel):
     decision: ReviewDecision
     comment: str | None = None
@@ -129,6 +136,7 @@ class ChangeReviewList(BaseModel):
 
 
 # ── Branch Strategies (FM-064/066) ───────────────────────────────
+
 
 class BranchStrategyCreate(BaseModel):
     base_branch: str = "main"
@@ -166,6 +174,7 @@ class BranchStrategyList(BaseModel):
 
 
 # ── PR Drafts (FM-065/067) ──────────────────────────────────────
+
 
 class PRDraftCreate(BaseModel):
     patch_id: uuid.UUID | None = None
@@ -215,12 +224,14 @@ class PRDraftList(BaseModel):
 # FM-067: PR draft generation request
 class PRDraftGenerateRequest(BaseModel):
     """Generate a PR draft from a patch proposal."""
+
     patch_id: uuid.UUID
     target_branch: str = "main"
     include_checklist: bool = True
 
 
 # ── Repo Action Approvals (FM-067/068) ──────────────────────────
+
 
 class RepoActionApprovalCreate(BaseModel):
     action_type: RepoActionType
@@ -255,6 +266,7 @@ class RepoActionApprovalList(BaseModel):
 
 
 # ── Sandbox Executions (FM-068/069) ─────────────────────────────
+
 
 class SandboxExecutionCreate(BaseModel):
     command: str = Field(..., min_length=1)
@@ -303,4 +315,5 @@ class SandboxExecutionList(BaseModel):
 # FM-069: Sandbox run request (triggers actual execution)
 class SandboxRunRequest(BaseModel):
     """Request to actually run a queued sandbox execution."""
+
     execution_id: uuid.UUID

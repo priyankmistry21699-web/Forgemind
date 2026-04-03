@@ -8,6 +8,7 @@ from app.models.activity import ActivityType
 
 # ── Activity Feed ────────────────────────────────────────────────
 
+
 class ActivityFeedEntryCreate(BaseModel):
     activity_type: ActivityType
     summary: str = Field(..., min_length=1, max_length=500)
@@ -39,6 +40,7 @@ class ActivityFeedList(BaseModel):
 
 
 # ── Presence ─────────────────────────────────────────────────────
+
 
 class PresenceUpdate(BaseModel):
     status: str = Field(default="online", max_length=20)

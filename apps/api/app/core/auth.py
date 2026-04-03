@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 # Lazy import jose — available when python-jose is installed
 _jose_available = False
 try:
-    from jose import jwt, JWTError
+    from jose import jwt  # noqa: F811
+
     _jose_available = True
 except ImportError:
     pass
@@ -34,6 +35,7 @@ _security = HTTPBearer(auto_error=False)
 def _get_jwt_secret() -> str | None:
     """Get JWT secret from settings (lazy import to avoid circular)."""
     from app.core.config import settings
+
     return settings.secret_key
 
 
@@ -45,6 +47,7 @@ def _is_dev_mode() -> bool:
     with default config from bypassing authentication.
     """
     from app.core.config import settings
+
     return (
         settings.secret_key == "change-me-to-a-random-secret"
         and settings.app_env != "production"

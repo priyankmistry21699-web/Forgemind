@@ -10,14 +10,20 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from app.models.architecture import (
-    NodeType, EdgeType, SourceType, NodeStatus,
-    DriftSeverity, DriftStatus,
-    RuleCategory, RuleResultStatus,
+    NodeType,
+    EdgeType,
+    SourceType,
+    NodeStatus,
+    DriftSeverity,
+    DriftStatus,
+    RuleCategory,
+    RuleResultStatus,
     ImpactSeverity,
 )
 
 
 # ── FM-081: Graph Foundation ─────────────────────────────────────
+
 
 class ArchitectureNodeCreate(BaseModel):
     node_type: NodeType
@@ -114,6 +120,7 @@ class ArchitectureSnapshotList(BaseModel):
 
 class ArchitectureGraphRead(BaseModel):
     """Full graph with nodes and edges."""
+
     project_id: uuid.UUID
     nodes: list[ArchitectureNodeRead]
     edges: list[ArchitectureEdgeRead]
@@ -123,12 +130,14 @@ class ArchitectureGraphRead(BaseModel):
 
 class NeighborRead(BaseModel):
     """A node's neighbors (incoming and outgoing edges)."""
+
     node: ArchitectureNodeRead
     incoming: list[ArchitectureEdgeRead]
     outgoing: list[ArchitectureEdgeRead]
 
 
 # ── FM-082: Topology Mapping ────────────────────────────────────
+
 
 class TopologyMapRequest(BaseModel):
     scan_python: bool = True
@@ -147,6 +156,7 @@ class TopologySummary(BaseModel):
 
 
 # ── FM-083: Drift Detection ─────────────────────────────────────
+
 
 class ArchitectureDriftRead(BaseModel):
     id: uuid.UUID
@@ -171,6 +181,7 @@ class ArchitectureDriftList(BaseModel):
 
 
 # ── FM-084: Architecture Rules ──────────────────────────────────
+
 
 class ArchitectureRuleCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=500)
@@ -222,6 +233,7 @@ class ArchitectureRuleResultList(BaseModel):
 
 # ── FM-086: Design Doc Synthesis ────────────────────────────────
 
+
 class DesignDocRead(BaseModel):
     project_id: uuid.UUID | str
     title: str
@@ -236,6 +248,7 @@ class DesignDocList(BaseModel):
 
 
 # ── FM-087: Change Impact Analysis ──────────────────────────────
+
 
 class ImpactAnalysisRequest(BaseModel):
     node_id: uuid.UUID | None = None
@@ -263,6 +276,7 @@ class ChangeImpactAssessmentRead(BaseModel):
 
 # ── FM-088: Refactor Recommendations ────────────────────────────
 
+
 class RefactorRecommendation(BaseModel):
     recommendation_type: str
     title: str
@@ -279,6 +293,7 @@ class RefactorRecommendationList(BaseModel):
 
 
 # ── FM-090: Structural Health Score ─────────────────────────────
+
 
 class HealthScoreDetails(BaseModel):
     total_nodes: int

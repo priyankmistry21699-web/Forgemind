@@ -86,9 +86,7 @@ async def cast_vote(
         raise ValueError(f"Council session {session_id} not found")
 
     if session.status not in (CouncilStatus.CONVENED, CouncilStatus.DELIBERATING):
-        raise ValueError(
-            f"Cannot cast vote — session is {session.status.value}"
-        )
+        raise ValueError(f"Cannot cast vote — session is {session.status.value}")
 
     # Move to deliberating on first vote
     if session.status == CouncilStatus.CONVENED:
@@ -125,8 +123,7 @@ def _resolve_decision(
     for v in votes:
         decision_counts[v.decision.value] += 1
         weighted_scores[v.decision.value] = (
-            weighted_scores.get(v.decision.value, 0.0)
-            + v.weight * v.confidence
+            weighted_scores.get(v.decision.value, 0.0) + v.weight * v.confidence
         )
 
     total_votes = len(votes)
@@ -155,13 +152,21 @@ def _resolve_decision(
         if winner_decision == VoteDecision.ABSTAIN.value:
             # Second most common that isn't abstain
             non_abstain_counts = Counter(
-                {k: v for k, v in decision_counts.items() if k != VoteDecision.ABSTAIN.value}
+                {
+                    k: v
+                    for k, v in decision_counts.items()
+                    if k != VoteDecision.ABSTAIN.value
+                }
             )
             if not non_abstain_counts:
                 return None, "All abstained", vote_summary
             winner_decision, winner_count = non_abstain_counts.most_common(1)[0]
         if winner_count > total_non_abstain / 2:
-            return winner_decision, f"Majority decision: {winner_decision} ({winner_count}/{total_non_abstain})", vote_summary
+            return (
+                winner_decision,
+                f"Majority decision: {winner_decision} ({winner_count}/{total_non_abstain})",
+                vote_summary,
+            )
         return None, "No majority reached", vote_summary
 
     elif method == DecisionMethod.SUPERMAJORITY:
@@ -169,18 +174,30 @@ def _resolve_decision(
             if decision_val == VoteDecision.ABSTAIN.value:
                 continue
             if count >= (total_non_abstain * 2 / 3):
-                return decision_val, f"Supermajority: {decision_val} ({count}/{total_non_abstain})", vote_summary
+                return (
+                    decision_val,
+                    f"Supermajority: {decision_val} ({count}/{total_non_abstain})",
+                    vote_summary,
+                )
         return None, "No supermajority reached", vote_summary
 
     elif method == DecisionMethod.WEIGHTED:
         # Highest weighted score wins
         best = max(
-            ((k, v) for k, v in weighted_scores.items() if k != VoteDecision.ABSTAIN.value),
+            (
+                (k, v)
+                for k, v in weighted_scores.items()
+                if k != VoteDecision.ABSTAIN.value
+            ),
             key=lambda x: x[1],
             default=(None, 0),
         )
         if best[0] is not None:
-            return best[0], f"Weighted decision: {best[0]} (score: {best[1]:.3f})", vote_summary
+            return (
+                best[0],
+                f"Weighted decision: {best[0]} (score: {best[1]:.3f})",
+                vote_summary,
+            )
         return None, "No weighted decision possible", vote_summary
 
     return None, "Unknown decision method", vote_summary
@@ -285,8 +302,6 @@ async def list_sessions(
     total = count_result.scalar_one()
 
     result = await db.execute(
-        query.order_by(CouncilSession.created_at.desc())
-        .offset(offset)
-        .limit(limit)
+        query.order_by(CouncilSession.created_at.desc()).offset(offset).limit(limit)
     )
     return list(result.scalars().unique().all()), total

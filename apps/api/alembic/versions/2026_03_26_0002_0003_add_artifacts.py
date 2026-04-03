@@ -5,6 +5,7 @@ Revises: 0002
 Create Date: 2026-03-26 00:02:00.000000+00:00
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -33,8 +34,13 @@ def upgrade() -> None:
         sa.Column(
             "artifact_type",
             postgresql.ENUM(
-                "plan_summary", "architecture", "implementation",
-                "review", "test_report", "documentation", "other",
+                "plan_summary",
+                "architecture",
+                "implementation",
+                "review",
+                "test_report",
+                "documentation",
+                "other",
                 name="artifact_type",
                 create_type=False,
             ),

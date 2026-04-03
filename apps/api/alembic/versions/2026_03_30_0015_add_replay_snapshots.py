@@ -20,9 +20,27 @@ def upgrade() -> None:
     op.create_table(
         "replay_snapshots",
         sa.Column("id", UUID(as_uuid=True), primary_key=True),
-        sa.Column("task_id", UUID(as_uuid=True), sa.ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False, index=True),
-        sa.Column("run_id", UUID(as_uuid=True), sa.ForeignKey("runs.id", ondelete="CASCADE"), nullable=False, index=True),
-        sa.Column("project_id", UUID(as_uuid=True), sa.ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True),
+        sa.Column(
+            "task_id",
+            UUID(as_uuid=True),
+            sa.ForeignKey("tasks.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        ),
+        sa.Column(
+            "run_id",
+            UUID(as_uuid=True),
+            sa.ForeignKey("runs.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        ),
+        sa.Column(
+            "project_id",
+            UUID(as_uuid=True),
+            sa.ForeignKey("projects.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        ),
         sa.Column("agent_slug", sa.String(50), nullable=False),
         sa.Column("input_snapshot", JSON, nullable=True),
         sa.Column("prompt_snapshot", sa.Text, nullable=True),
@@ -35,9 +53,19 @@ def upgrade() -> None:
         sa.Column("cost_usd", sa.Float, nullable=False, server_default="0"),
         sa.Column("replay_hash", sa.String(64), nullable=True, index=True),
         sa.Column("is_replay", sa.Boolean, nullable=False, server_default="false"),
-        sa.Column("original_snapshot_id", UUID(as_uuid=True), sa.ForeignKey("replay_snapshots.id", ondelete="SET NULL"), nullable=True),
+        sa.Column(
+            "original_snapshot_id",
+            UUID(as_uuid=True),
+            sa.ForeignKey("replay_snapshots.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
         sa.Column("sequence_number", sa.Integer, nullable=False, server_default="0"),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.func.now(),
+            nullable=False,
+        ),
     )
 
 

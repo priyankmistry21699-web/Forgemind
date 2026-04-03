@@ -8,7 +8,10 @@ class PromptIntakeRequest(BaseModel):
     """User submits a natural-language prompt describing what they want built."""
 
     prompt: str = Field(
-        ..., min_length=10, max_length=5000, description="Natural-language project description"
+        ...,
+        min_length=10,
+        max_length=5000,
+        description="Natural-language project description",
     )
     project_name: str | None = Field(
         default=None, max_length=255, description="Optional explicit project name"

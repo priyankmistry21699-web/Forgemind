@@ -11,13 +11,12 @@ import uuid
 import logging
 from typing import Any
 
-from sqlalchemy import select, func as sa_func, or_
+from sqlalchemy import select, func as sa_func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.project_knowledge import ProjectKnowledge, KnowledgeType
-from app.models.run import Run, RunStatus
+from app.models.run import Run
 from app.models.task import Task, TaskStatus
-from app.models.artifact import Artifact
 from app.models.planner_result import PlannerResult
 
 logger = logging.getLogger(__name__)
@@ -72,9 +71,7 @@ async def list_knowledge(
     offset: int = 0,
 ) -> tuple[list[ProjectKnowledge], int]:
     """List knowledge entries for a project with optional filters."""
-    query = select(ProjectKnowledge).where(
-        ProjectKnowledge.project_id == project_id
-    )
+    query = select(ProjectKnowledge).where(ProjectKnowledge.project_id == project_id)
 
     if knowledge_type:
         query = query.where(ProjectKnowledge.knowledge_type == knowledge_type)
@@ -111,9 +108,7 @@ async def extract_knowledge_from_run(
     extracted: list[ProjectKnowledge] = []
 
     # Extract from completed tasks
-    tasks_result = await db.execute(
-        select(Task).where(Task.run_id == run_id)
-    )
+    tasks_result = await db.execute(select(Task).where(Task.run_id == run_id))
     tasks = list(tasks_result.scalars().all())
 
     for task in tasks:
@@ -124,7 +119,11 @@ async def extract_knowledge_from_run(
                 knowledge_type=KnowledgeType.PATTERN,
                 title=f"Completed: {task.title}",
                 content=f"Task '{task.title}' (type: {task.task_type}) completed successfully"
-                        + (f". Agent: {task.assigned_agent_slug}" if task.assigned_agent_slug else ""),
+                + (
+                    f". Agent: {task.assigned_agent_slug}"
+                    if task.assigned_agent_slug
+                    else ""
+                ),
                 tags=[task.task_type],
                 source_run_id=run_id,
                 source_task_id=task.id,
@@ -138,8 +137,16 @@ async def extract_knowledge_from_run(
                 knowledge_type=KnowledgeType.LESSON_LEARNED,
                 title=f"Failed: {task.title}",
                 content=f"Task '{task.title}' (type: {task.task_type}) failed"
-                        + (f" after {task.retry_count} retries" if hasattr(task, 'retry_count') and task.retry_count else "")
-                        + (f". Error: {task.error_message}" if hasattr(task, 'error_message') and task.error_message else ""),
+                + (
+                    f" after {task.retry_count} retries"
+                    if hasattr(task, "retry_count") and task.retry_count
+                    else ""
+                )
+                + (
+                    f". Error: {task.error_message}"
+                    if hasattr(task, "error_message") and task.error_message
+                    else ""
+                ),
                 tags=[task.task_type, "failure"],
                 source_run_id=run_id,
                 source_task_id=task.id,
@@ -159,7 +166,9 @@ async def extract_knowledge_from_run(
             title=f"Architecture from Run #{run.run_number}",
             content=plan.architecture_summary,
             tags=["architecture", "planner"],
-            metadata={"recommended_stack": plan.recommended_stack} if plan.recommended_stack else None,
+            metadata={"recommended_stack": plan.recommended_stack}
+            if plan.recommended_stack
+            else None,
             source_run_id=run_id,
         )
         extracted.append(entry)
@@ -213,7 +222,9 @@ async def get_knowledge_context(
     return {
         "project_id": str(project_id),
         "total_entries": len(entries),
-        "context_text": "\n\n---\n\n".join(context_parts) if context_parts else "(No knowledge available)",
+        "context_text": "\n\n---\n\n".join(context_parts)
+        if context_parts
+        else "(No knowledge available)",
         "entries": entries,
     }
 

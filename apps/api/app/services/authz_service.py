@@ -11,13 +11,16 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.membership import (
-    WorkspaceMember, WorkspaceRole,
-    ProjectMember, ProjectRole,
+    WorkspaceMember,
+    WorkspaceRole,
+    ProjectMember,
+    ProjectRole,
 )
 
 
 class Action(str, Enum):
     """Actions that can be authorized."""
+
     # Workspace-level
     WORKSPACE_UPDATE = "workspace:update"
     WORKSPACE_DELETE = "workspace:delete"
@@ -51,19 +54,46 @@ WORKSPACE_PERMISSIONS: dict[Action, set[WorkspaceRole]] = {
     Action.WORKSPACE_DELETE: {WorkspaceRole.OWNER},
     Action.WORKSPACE_MANAGE_MEMBERS: {WorkspaceRole.OWNER, WorkspaceRole.ADMIN},
     Action.WORKSPACE_MANAGE_GOVERNANCE: {WorkspaceRole.OWNER, WorkspaceRole.ADMIN},
-    Action.WORKSPACE_MANAGE_CONNECTORS: {WorkspaceRole.OWNER, WorkspaceRole.ADMIN, WorkspaceRole.OPERATOR},
-    Action.WORKSPACE_MANAGE_REPOS: {WorkspaceRole.OWNER, WorkspaceRole.ADMIN, WorkspaceRole.OPERATOR},
-    Action.WORKSPACE_CREATE_PROJECT: {WorkspaceRole.OWNER, WorkspaceRole.ADMIN, WorkspaceRole.OPERATOR},
-    Action.WORKSPACE_VIEW: {WorkspaceRole.OWNER, WorkspaceRole.ADMIN, WorkspaceRole.OPERATOR, WorkspaceRole.REVIEWER, WorkspaceRole.VIEWER},
+    Action.WORKSPACE_MANAGE_CONNECTORS: {
+        WorkspaceRole.OWNER,
+        WorkspaceRole.ADMIN,
+        WorkspaceRole.OPERATOR,
+    },
+    Action.WORKSPACE_MANAGE_REPOS: {
+        WorkspaceRole.OWNER,
+        WorkspaceRole.ADMIN,
+        WorkspaceRole.OPERATOR,
+    },
+    Action.WORKSPACE_CREATE_PROJECT: {
+        WorkspaceRole.OWNER,
+        WorkspaceRole.ADMIN,
+        WorkspaceRole.OPERATOR,
+    },
+    Action.WORKSPACE_VIEW: {
+        WorkspaceRole.OWNER,
+        WorkspaceRole.ADMIN,
+        WorkspaceRole.OPERATOR,
+        WorkspaceRole.REVIEWER,
+        WorkspaceRole.VIEWER,
+    },
     Action.WORKSPACE_MANAGE_SECRETS: {WorkspaceRole.OWNER, WorkspaceRole.ADMIN},
-    Action.WORKSPACE_VIEW_AUDIT: {WorkspaceRole.OWNER, WorkspaceRole.ADMIN, WorkspaceRole.REVIEWER},
+    Action.WORKSPACE_VIEW_AUDIT: {
+        WorkspaceRole.OWNER,
+        WorkspaceRole.ADMIN,
+        WorkspaceRole.REVIEWER,
+    },
 }
 
 PROJECT_PERMISSIONS: dict[Action, set[ProjectRole]] = {
     Action.PROJECT_UPDATE: {ProjectRole.LEAD, ProjectRole.OPERATOR},
     Action.PROJECT_DELETE: {ProjectRole.LEAD},
     Action.PROJECT_MANAGE_MEMBERS: {ProjectRole.LEAD},
-    Action.PROJECT_VIEW: {ProjectRole.LEAD, ProjectRole.OPERATOR, ProjectRole.REVIEWER, ProjectRole.VIEWER},
+    Action.PROJECT_VIEW: {
+        ProjectRole.LEAD,
+        ProjectRole.OPERATOR,
+        ProjectRole.REVIEWER,
+        ProjectRole.VIEWER,
+    },
     Action.PROJECT_RUN: {ProjectRole.LEAD, ProjectRole.OPERATOR},
     Action.PROJECT_APPROVE: {ProjectRole.LEAD, ProjectRole.REVIEWER},
     Action.PROJECT_REVIEW: {ProjectRole.LEAD, ProjectRole.REVIEWER},
@@ -75,6 +105,7 @@ PROJECT_PERMISSIONS: dict[Action, set[ProjectRole]] = {
 
 
 # ── Authorization checks ────────────────────────────────────────
+
 
 async def get_workspace_role(
     db: AsyncSession,

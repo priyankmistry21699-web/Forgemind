@@ -21,6 +21,7 @@ class ArtifactType(str, enum.Enum):
 
 class ChangeType(str, enum.Enum):
     """FM-063: Type of code change an artifact represents."""
+
     CREATE = "create"
     MODIFY = "modify"
     DELETE = "delete"
@@ -60,9 +61,7 @@ class Artifact(Base):
         ForeignKey("tasks.id", ondelete="SET NULL"),
         nullable=True,
     )
-    created_by: Mapped[str | None] = mapped_column(
-        String(100), nullable=True
-    )
+    created_by: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     # FM-063: Code artifact mapping fields
     repo_connection_id: Mapped[uuid.UUID | None] = mapped_column(

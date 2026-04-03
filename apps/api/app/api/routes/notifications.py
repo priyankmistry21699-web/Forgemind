@@ -6,8 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.schemas.notification import (
-    NotificationCreate, NotificationRead, NotificationList,
-    DeliveryConfigCreate, DeliveryConfigRead, DeliveryConfigList,
+    NotificationCreate,
+    NotificationRead,
+    NotificationList,
+    DeliveryConfigCreate,
+    DeliveryConfigRead,
+    DeliveryConfigList,
 )
 from app.services import notification_service
 
@@ -43,7 +47,11 @@ async def list_notifications(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> NotificationList:
     items, total, unread_count = await notification_service.list_notifications(
-        db, user_id, unread_only=unread_only, limit=limit, offset=offset,
+        db,
+        user_id,
+        unread_only=unread_only,
+        limit=limit,
+        offset=offset,
     )
     return NotificationList(
         items=[NotificationRead.model_validate(n) for n in items],
@@ -75,14 +83,21 @@ async def mark_all_read(
 
 # ── Delivery Config ──────────────────────────────────────────────
 
-@router.post("/notifications/delivery", response_model=DeliveryConfigRead, status_code=201)
+
+@router.post(
+    "/notifications/delivery", response_model=DeliveryConfigRead, status_code=201
+)
 async def create_delivery_config(
     data: DeliveryConfigCreate,
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> DeliveryConfigRead:
     c = await notification_service.create_delivery_config(
-        db, user_id=user_id, channel=data.channel, status=data.status, config=data.config,
+        db,
+        user_id=user_id,
+        channel=data.channel,
+        status=data.status,
+        config=data.config,
     )
     return DeliveryConfigRead.model_validate(c)
 

@@ -26,8 +26,11 @@ def upgrade() -> None:
         sa.Column(
             "trigger",
             sa.Enum(
-                "task_type", "cost_threshold", "artifact_type",
-                "agent_action", "custom",
+                "task_type",
+                "cost_threshold",
+                "artifact_type",
+                "agent_action",
+                "custom",
                 name="policy_trigger",
             ),
             nullable=False,
@@ -35,20 +38,44 @@ def upgrade() -> None:
         sa.Column(
             "action",
             sa.Enum(
-                "require_approval", "auto_approve", "block", "notify",
+                "require_approval",
+                "auto_approve",
+                "block",
+                "notify",
                 name="policy_action",
             ),
             nullable=False,
         ),
         sa.Column("rules", JSON, nullable=True),
-        sa.Column("project_id", UUID(as_uuid=True), sa.ForeignKey("projects.id", ondelete="CASCADE"), nullable=True),
-        sa.Column("enabled", sa.Boolean, nullable=False, server_default=sa.text("true")),
+        sa.Column(
+            "project_id",
+            UUID(as_uuid=True),
+            sa.ForeignKey("projects.id", ondelete="CASCADE"),
+            nullable=True,
+        ),
+        sa.Column(
+            "enabled", sa.Boolean, nullable=False, server_default=sa.text("true")
+        ),
         sa.Column("priority", sa.Integer, nullable=False, server_default="0"),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.func.now(),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.func.now(),
+            nullable=False,
+        ),
     )
-    op.create_index("ix_governance_policies_trigger", "governance_policies", ["trigger"])
-    op.create_index("ix_governance_policies_project_id", "governance_policies", ["project_id"])
+    op.create_index(
+        "ix_governance_policies_trigger", "governance_policies", ["trigger"]
+    )
+    op.create_index(
+        "ix_governance_policies_project_id", "governance_policies", ["project_id"]
+    )
 
 
 def downgrade() -> None:

@@ -1,9 +1,5 @@
 """Tests for Connector API endpoints."""
 
-import uuid
-
-import pytest
-
 
 class TestListConnectors:
     """GET /connectors"""
@@ -24,9 +20,7 @@ class TestConnectorRequirements:
     async def test_get_requirements_with_planner_result(
         self, client, sample_run, sample_planner_result
     ):
-        resp = await client.get(
-            f"/runs/{sample_run.id}/connectors/requirements"
-        )
+        resp = await client.get(f"/runs/{sample_run.id}/connectors/requirements")
         assert resp.status_code == 200
         data = resp.json()
         assert "recommendations" in data
@@ -35,9 +29,7 @@ class TestConnectorRequirements:
 
     async def test_get_requirements_no_planner_result(self, client, sample_run):
         """Should still work with an empty planner result (no stack info)."""
-        resp = await client.get(
-            f"/runs/{sample_run.id}/connectors/requirements"
-        )
+        resp = await client.get(f"/runs/{sample_run.id}/connectors/requirements")
         assert resp.status_code == 200
         data = resp.json()
         assert isinstance(data["recommendations"], list)

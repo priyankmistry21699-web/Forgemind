@@ -6,17 +6,26 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.schemas.activity import (
-    ActivityFeedEntryCreate, ActivityFeedEntryRead, ActivityFeedList,
-    PresenceUpdate, PresenceRead, PresenceList,
+    ActivityFeedEntryCreate,
+    ActivityFeedEntryRead,
+    ActivityFeedList,
+    PresenceUpdate,
+    PresenceRead,
+    PresenceList,
 )
 from app.services import activity_service
 from app.services import user_activity_service
-from app.services.authz_service import check_project_permission, check_workspace_permission, Action
+from app.services.authz_service import (
+    check_project_permission,
+    check_workspace_permission,
+    Action,
+)
 
 router = APIRouter()
 
 
 # ── Activity Feed ────────────────────────────────────────────────
+
 
 @router.post("/activity", response_model=ActivityFeedEntryRead, status_code=201)
 async def create_activity(
@@ -25,14 +34,23 @@ async def create_activity(
     actor_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ActivityFeedEntryRead:
     if data.project_id is not None:
-        await check_project_permission(db, data.project_id, actor_id, Action.PROJECT_UPDATE)
+        await check_project_permission(
+            db, data.project_id, actor_id, Action.PROJECT_UPDATE
+        )
     elif data.workspace_id is not None:
-        await check_workspace_permission(db, data.workspace_id, actor_id, Action.WORKSPACE_UPDATE)
+        await check_workspace_permission(
+            db, data.workspace_id, actor_id, Action.WORKSPACE_UPDATE
+        )
     entry = await activity_service.create_activity(
-        db, actor_id=actor_id, activity_type=data.activity_type,
-        summary=data.summary, project_id=data.project_id,
-        workspace_id=data.workspace_id, resource_type=data.resource_type,
-        resource_id=data.resource_id, metadata_=data.metadata_,
+        db,
+        actor_id=actor_id,
+        activity_type=data.activity_type,
+        summary=data.summary,
+        project_id=data.project_id,
+        workspace_id=data.workspace_id,
+        resource_type=data.resource_type,
+        resource_id=data.resource_id,
+        metadata_=data.metadata_,
     )
     return ActivityFeedEntryRead.model_validate(entry)
 
@@ -49,10 +67,15 @@ async def list_activities(
     if project_id is not None:
         await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     elif workspace_id is not None:
-        await check_workspace_permission(db, workspace_id, user_id, Action.WORKSPACE_VIEW)
+        await check_workspace_permission(
+            db, workspace_id, user_id, Action.WORKSPACE_VIEW
+        )
     items, total = await activity_service.list_activities(
-        db, project_id=project_id, workspace_id=workspace_id,
-        limit=limit, offset=offset,
+        db,
+        project_id=project_id,
+        workspace_id=workspace_id,
+        limit=limit,
+        offset=offset,
     )
     return ActivityFeedList(
         items=[ActivityFeedEntryRead.model_validate(e) for e in items],
@@ -62,6 +85,7 @@ async def list_activities(
 
 # ── Presence ─────────────────────────────────────────────────────
 
+
 @router.put("/presence", response_model=PresenceRead)
 async def update_presence(
     data: PresenceUpdate,
@@ -69,7 +93,9 @@ async def update_presence(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PresenceRead:
     p = await activity_service.upsert_presence(
-        db, user_id=user_id, status=data.status,
+        db,
+        user_id=user_id,
+        status=data.status,
         current_resource_type=data.current_resource_type,
         current_resource_id=data.current_resource_id,
     )
@@ -84,7 +110,9 @@ async def list_presence(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> PresenceList:
     items, total = await activity_service.list_presence(
-        db, limit=limit, offset=offset,
+        db,
+        limit=limit,
+        offset=offset,
     )
     return PresenceList(
         items=[PresenceRead.model_validate(p) for p in items],
@@ -106,6 +134,7 @@ async def get_presence(
 
 # ── Workspace Activity (FM-058) ─────────────────────────────────
 
+
 @router.get("/workspaces/{workspace_id}/activity", response_model=ActivityFeedList)
 async def get_workspace_activity(
     workspace_id: uuid.UUID,
@@ -117,7 +146,10 @@ async def get_workspace_activity(
     """Get activity feed scoped to a workspace."""
     await check_workspace_permission(db, workspace_id, user_id, Action.WORKSPACE_VIEW)
     items, total = await activity_service.list_activities(
-        db, workspace_id=workspace_id, limit=limit, offset=offset,
+        db,
+        workspace_id=workspace_id,
+        limit=limit,
+        offset=offset,
     )
     return ActivityFeedList(
         items=[ActivityFeedEntryRead.model_validate(e) for e in items],
@@ -126,6 +158,7 @@ async def get_workspace_activity(
 
 
 # ── User Assignment Context (FM-059) ────────────────────────────
+
 
 @router.get("/users/{user_id}/context")
 async def get_user_context(

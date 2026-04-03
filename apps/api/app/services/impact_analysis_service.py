@@ -7,12 +7,15 @@ blast-radius, impacted services, and an overall severity score.
 import uuid
 from collections import deque
 
-from sqlalchemy import select, func as sa_func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.architecture import (
-    ArchitectureNode, ArchitectureEdge, ChangeImpactAssessment,
-    NodeType, ImpactSeverity,
+    ArchitectureNode,
+    ArchitectureEdge,
+    ChangeImpactAssessment,
+    NodeType,
+    ImpactSeverity,
 )
 
 
@@ -32,18 +35,22 @@ async def analyse_impact(
         target_node = await db.get(ArchitectureNode, node_id)
     elif file_path:
         result = await db.execute(
-            select(ArchitectureNode).where(
+            select(ArchitectureNode)
+            .where(
                 ArchitectureNode.project_id == project_id,
                 ArchitectureNode.path == file_path,
-            ).limit(1)
+            )
+            .limit(1)
         )
         target_node = result.scalars().first()
     elif module_key:
         result = await db.execute(
-            select(ArchitectureNode).where(
+            select(ArchitectureNode)
+            .where(
                 ArchitectureNode.project_id == project_id,
                 ArchitectureNode.key == module_key,
-            ).limit(1)
+            )
+            .limit(1)
         )
         target_node = result.scalars().first()
 
@@ -66,9 +73,7 @@ async def analyse_impact(
 
     # BFS reverse traversal (who depends on the target?)
     edges_result = await db.execute(
-        select(ArchitectureEdge).where(
-            ArchitectureEdge.project_id == project_id
-        )
+        select(ArchitectureEdge).where(ArchitectureEdge.project_id == project_id)
     )
     all_edges = list(edges_result.scalars().all())
 

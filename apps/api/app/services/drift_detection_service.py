@@ -11,8 +11,13 @@ from sqlalchemy import select, func as sa_func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.architecture import (
-    ArchitectureDrift, ArchitectureSnapshot, ArchitectureNode,
-    ArchitectureEdge, DriftSeverity, DriftStatus, NodeStatus,
+    ArchitectureDrift,
+    ArchitectureSnapshot,
+    ArchitectureNode,
+    ArchitectureEdge,
+    DriftSeverity,
+    DriftStatus,
+    NodeStatus,
 )
 
 
@@ -40,9 +45,7 @@ async def detect_drift(
     node_map = {n.id: n for n in nodes}
 
     edges_result = await db.execute(
-        select(ArchitectureEdge).where(
-            ArchitectureEdge.project_id == project_id
-        )
+        select(ArchitectureEdge).where(ArchitectureEdge.project_id == project_id)
     )
     edges = list(edges_result.scalars().all())
 
@@ -162,11 +165,10 @@ def _detect_convention_drift(
     drifts: list[dict] = []
 
     # Check for cross-layer imports
-    layer_order = {"api": 0, "schema": 1, "service": 2, "model": 3, "core": 4}
     forbidden_directions = {
-        ("model", "api"),       # model should not import from API
-        ("model", "service"),   # model should not import from service
-        ("service", "api"),     # service should not import from API routes
+        ("model", "api"),  # model should not import from API
+        ("model", "service"),  # model should not import from service
+        ("service", "api"),  # service should not import from API routes
     }
 
     for edge in edges:
@@ -179,21 +181,23 @@ def _detect_convention_drift(
         to_layer = (to_node.metadata_ or {}).get("layer", "other")
 
         if (from_layer, to_layer) in forbidden_directions:
-            drifts.append({
-                "drift_type": "cross_layer_import",
-                "severity": DriftSeverity.HIGH,
-                "title": f"Cross-layer import: {from_layer} -> {to_layer}",
-                "description": (
-                    f"Module '{from_node.key}' ({from_layer} layer) imports from "
-                    f"'{to_node.key}' ({to_layer} layer). This violates layered architecture conventions."
-                ),
-                "metadata_": {
-                    "from_node": from_node.key,
-                    "to_node": to_node.key,
-                    "from_layer": from_layer,
-                    "to_layer": to_layer,
-                },
-            })
+            drifts.append(
+                {
+                    "drift_type": "cross_layer_import",
+                    "severity": DriftSeverity.HIGH,
+                    "title": f"Cross-layer import: {from_layer} -> {to_layer}",
+                    "description": (
+                        f"Module '{from_node.key}' ({from_layer} layer) imports from "
+                        f"'{to_node.key}' ({to_layer} layer). This violates layered architecture conventions."
+                    ),
+                    "metadata_": {
+                        "from_node": from_node.key,
+                        "to_node": to_node.key,
+                        "from_layer": from_layer,
+                        "to_layer": to_layer,
+                    },
+                }
+            )
 
     # Check for undocumented components (inferred but no declared counterpart)
     inferred_only = [n for n in nodes if n.source_type.value == "inferred"]
@@ -201,24 +205,27 @@ def _detect_convention_drift(
     undocumented = [n for n in inferred_only if n.key not in declared_keys]
     # Only flag if there are declared nodes (meaning someone started documenting)
     if declared_keys and len(undocumented) > len(nodes) * 0.3:
-        drifts.append({
-            "drift_type": "undocumented_components",
-            "severity": DriftSeverity.LOW,
-            "title": f"{len(undocumented)} undocumented components",
-            "description": (
-                f"{len(undocumented)} out of {len(nodes)} components are inferred but "
-                f"not declared in architecture documentation."
-            ),
-            "metadata_": {
-                "undocumented_count": len(undocumented),
-                "total_count": len(nodes),
-            },
-        })
+        drifts.append(
+            {
+                "drift_type": "undocumented_components",
+                "severity": DriftSeverity.LOW,
+                "title": f"{len(undocumented)} undocumented components",
+                "description": (
+                    f"{len(undocumented)} out of {len(nodes)} components are inferred but "
+                    f"not declared in architecture documentation."
+                ),
+                "metadata_": {
+                    "undocumented_count": len(undocumented),
+                    "total_count": len(nodes),
+                },
+            }
+        )
 
     return drifts
 
 
 # ── Drift CRUD ───────────────────────────────────────────────────
+
 
 async def list_drifts(
     db: AsyncSession,
@@ -229,17 +236,15 @@ async def list_drifts(
     limit: int = 50,
     offset: int = 0,
 ) -> tuple[list[ArchitectureDrift], int]:
-    query = select(ArchitectureDrift).where(
-        ArchitectureDrift.project_id == project_id
-    )
+    query = select(ArchitectureDrift).where(ArchitectureDrift.project_id == project_id)
     if status:
         query = query.where(ArchitectureDrift.status == status)
     if severity:
         query = query.where(ArchitectureDrift.severity == severity)
 
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(ArchitectureDrift.detected_at.desc()).offset(offset).limit(limit)
     )

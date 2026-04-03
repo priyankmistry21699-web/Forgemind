@@ -10,6 +10,7 @@ from app.models.credential_vault import SecretStatus
 
 class CredentialVaultCreate(BaseModel):
     """Create a new credential vault entry."""
+
     name: str
     description: str | None = None
     env_key: str
@@ -23,6 +24,7 @@ class CredentialVaultCreate(BaseModel):
 
 class CredentialVaultRead(BaseModel):
     """Read a credential vault entry — never exposes raw secret values."""
+
     id: uuid.UUID
     name: str
     description: str | None
@@ -45,6 +47,7 @@ class CredentialVaultRead(BaseModel):
 
 class CredentialVaultUpdate(BaseModel):
     """Update credential vault metadata (not the secret itself)."""
+
     name: str | None = None
     description: str | None = None
     scopes: list[str] | None = None
@@ -60,6 +63,7 @@ class CredentialVaultList(BaseModel):
 
 class CredentialCheckResult(BaseModel):
     """Result of checking if a credential is available."""
+
     env_key: str
     is_set: bool
     status: SecretStatus

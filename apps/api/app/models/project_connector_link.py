@@ -4,7 +4,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, Text, DateTime, Enum, ForeignKey, func, UniqueConstraint
+from sqlalchemy import Text, DateTime, Enum, ForeignKey, func, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,10 +12,10 @@ from app.db.base_class import Base
 
 
 class ConnectorReadiness(str, enum.Enum):
-    MISSING = "missing"          # Connector needed but no credentials configured
-    CONFIGURED = "configured"    # Credentials/config provided but not verified
-    BLOCKED = "blocked"          # Configured but health check failing or expired
-    READY = "ready"              # Configured and verified working
+    MISSING = "missing"  # Connector needed but no credentials configured
+    CONFIGURED = "configured"  # Credentials/config provided but not verified
+    BLOCKED = "blocked"  # Configured but health check failing or expired
+    READY = "ready"  # Configured and verified working
 
 
 class ConnectorPriority(str, enum.Enum):

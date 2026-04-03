@@ -7,7 +7,6 @@ repo action approvals, and sandbox execution with safety controls.
 import asyncio
 import logging
 import os
-import subprocess
 import time
 import uuid
 from datetime import datetime, timezone
@@ -18,9 +17,14 @@ from sqlalchemy import select, func as sa_func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.code_ops import (
-    CodeMapping, PatchProposal, ChangeReview,
-    BranchStrategy, PRDraft, RepoActionApproval,
-    SandboxExecution, SandboxStatus, PatchStatus,
+    CodeMapping,
+    PatchProposal,
+    ChangeReview,
+    BranchStrategy,
+    PRDraft,
+    RepoActionApproval,
+    SandboxExecution,
+    SandboxStatus,
 )
 from app.core.metrics import inc_counter, observe_histogram
 
@@ -28,10 +32,33 @@ logger = logging.getLogger(__name__)
 
 # FM-069: Command allowlist for sandbox safety
 SANDBOX_COMMAND_ALLOWLIST = {
-    "python", "python3", "pip", "pytest", "echo", "cat", "ls", "pwd",
-    "node", "npm", "npx", "tsc", "eslint", "prettier",
-    "go", "cargo", "rustc", "javac", "java",
-    "git", "diff", "grep", "find", "wc", "head", "tail", "sort",
+    "python",
+    "python3",
+    "pip",
+    "pytest",
+    "echo",
+    "cat",
+    "ls",
+    "pwd",
+    "node",
+    "npm",
+    "npx",
+    "tsc",
+    "eslint",
+    "prettier",
+    "go",
+    "cargo",
+    "rustc",
+    "javac",
+    "java",
+    "git",
+    "diff",
+    "grep",
+    "find",
+    "wc",
+    "head",
+    "tail",
+    "sort",
 }
 
 # FM-069: Max sandbox execution time (seconds)
@@ -39,6 +66,7 @@ MAX_SANDBOX_TIMEOUT = 300
 
 
 # ── Code Mappings (FM-061) ──────────────────────────────────────
+
 
 async def create_code_mapping(
     db: AsyncSession,
@@ -70,21 +98,17 @@ async def list_code_mappings(
     offset: int = 0,
 ) -> tuple[list[CodeMapping], int]:
     query = select(CodeMapping).where(CodeMapping.project_id == project_id)
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(CodeMapping.created_at.desc()).offset(offset).limit(limit)
     )
     return list(result.scalars().all()), total
 
 
-async def delete_code_mapping(
-    db: AsyncSession, mapping_id: uuid.UUID
-) -> bool:
-    result = await db.execute(
-        select(CodeMapping).where(CodeMapping.id == mapping_id)
-    )
+async def delete_code_mapping(db: AsyncSession, mapping_id: uuid.UUID) -> bool:
+    result = await db.execute(select(CodeMapping).where(CodeMapping.id == mapping_id))
     cm = result.scalar_one_or_none()
     if cm is None:
         return False
@@ -94,6 +118,7 @@ async def delete_code_mapping(
 
 
 # ── Patch Proposals (FM-062) ────────────────────────────────────
+
 
 async def create_patch(
     db: AsyncSession,
@@ -131,12 +156,8 @@ async def create_patch(
     return p
 
 
-async def get_patch(
-    db: AsyncSession, patch_id: uuid.UUID
-) -> PatchProposal | None:
-    result = await db.execute(
-        select(PatchProposal).where(PatchProposal.id == patch_id)
-    )
+async def get_patch(db: AsyncSession, patch_id: uuid.UUID) -> PatchProposal | None:
+    result = await db.execute(select(PatchProposal).where(PatchProposal.id == patch_id))
     return result.scalar_one_or_none()
 
 
@@ -151,9 +172,9 @@ async def list_patches(
     query = select(PatchProposal).where(PatchProposal.project_id == project_id)
     if status_filter:
         query = query.where(PatchProposal.status == status_filter)
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(PatchProposal.created_at.desc()).offset(offset).limit(limit)
     )
@@ -169,8 +190,16 @@ async def update_patch(
     if p is None:
         return None
     allowed = {
-        "title", "description", "diff_content", "target_branch", "status", "rationale",
-        "target_files", "patch_format", "readiness_state", "linked_artifact_ids",
+        "title",
+        "description",
+        "diff_content",
+        "target_branch",
+        "status",
+        "rationale",
+        "target_files",
+        "patch_format",
+        "readiness_state",
+        "linked_artifact_ids",
     }
     for k, v in updates.items():
         if k in allowed and v is not None:
@@ -181,6 +210,7 @@ async def update_patch(
 
 
 # ── Change Reviews (FM-063/066) ─────────────────────────────────
+
 
 async def create_review(
     db: AsyncSession,
@@ -218,9 +248,9 @@ async def list_reviews(
     offset: int = 0,
 ) -> tuple[list[ChangeReview], int]:
     query = select(ChangeReview).where(ChangeReview.patch_id == patch_id)
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(ChangeReview.created_at.desc()).offset(offset).limit(limit)
     )
@@ -228,6 +258,7 @@ async def list_reviews(
 
 
 # ── Branch Strategies (FM-064) ──────────────────────────────────
+
 
 async def create_branch_strategy(
     db: AsyncSession,
@@ -260,12 +291,10 @@ async def list_branch_strategies(
     limit: int = 50,
     offset: int = 0,
 ) -> tuple[list[BranchStrategy], int]:
-    query = select(BranchStrategy).where(
-        BranchStrategy.project_id == project_id
-    )
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    query = select(BranchStrategy).where(BranchStrategy.project_id == project_id)
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(BranchStrategy.created_at.desc()).offset(offset).limit(limit)
     )
@@ -283,7 +312,13 @@ async def update_branch_strategy(
     bs = result.scalar_one_or_none()
     if bs is None:
         return None
-    allowed = {"base_branch", "branch_pattern", "auto_create_branch", "pr_target_branch", "config"}
+    allowed = {
+        "base_branch",
+        "branch_pattern",
+        "auto_create_branch",
+        "pr_target_branch",
+        "config",
+    }
     for k, v in updates.items():
         if k in allowed and v is not None:
             setattr(bs, k, v)
@@ -293,6 +328,7 @@ async def update_branch_strategy(
 
 
 # ── PR Drafts (FM-065) ─────────────────────────────────────────
+
 
 async def create_pr_draft(
     db: AsyncSession,
@@ -324,12 +360,8 @@ async def create_pr_draft(
     return pr
 
 
-async def get_pr_draft(
-    db: AsyncSession, pr_id: uuid.UUID
-) -> PRDraft | None:
-    result = await db.execute(
-        select(PRDraft).where(PRDraft.id == pr_id)
-    )
+async def get_pr_draft(db: AsyncSession, pr_id: uuid.UUID) -> PRDraft | None:
+    result = await db.execute(select(PRDraft).where(PRDraft.id == pr_id))
     return result.scalar_one_or_none()
 
 
@@ -344,9 +376,9 @@ async def list_pr_drafts(
     query = select(PRDraft).where(PRDraft.project_id == project_id)
     if status_filter:
         query = query.where(PRDraft.status == status_filter)
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(PRDraft.created_at.desc()).offset(offset).limit(limit)
     )
@@ -361,8 +393,16 @@ async def update_pr_draft(
     pr = await get_pr_draft(db, pr_id)
     if pr is None:
         return None
-    allowed = {"title", "body", "source_branch", "target_branch", "status",
-               "reviewers", "checklist", "linked_artifacts"}
+    allowed = {
+        "title",
+        "body",
+        "source_branch",
+        "target_branch",
+        "status",
+        "reviewers",
+        "checklist",
+        "linked_artifacts",
+    }
     for k, v in updates.items():
         if k in allowed and v is not None:
             setattr(pr, k, v)
@@ -372,6 +412,7 @@ async def update_pr_draft(
 
 
 # ── Repo Action Approvals (FM-067) ──────────────────────────────
+
 
 async def create_repo_action_approval(
     db: AsyncSession,
@@ -429,9 +470,9 @@ async def list_repo_action_approvals(
     )
     if status_filter:
         query = query.where(RepoActionApproval.status == status_filter)
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(RepoActionApproval.created_at.desc()).offset(offset).limit(limit)
     )
@@ -439,6 +480,7 @@ async def list_repo_action_approvals(
 
 
 # ── Sandbox Executions (FM-068/069) ─────────────────────────────
+
 
 async def create_sandbox_execution(
     db: AsyncSession,
@@ -503,7 +545,10 @@ async def complete_sandbox_execution(
     s.completed_at = datetime.now(timezone.utc)
     await db.flush()
     await db.refresh(s)
-    inc_counter("sandbox_completed_total", labels={"status": status.value if hasattr(status, 'value') else str(status)})
+    inc_counter(
+        "sandbox_completed_total",
+        labels={"status": status.value if hasattr(status, "value") else str(status)},
+    )
     if duration_ms is not None:
         observe_histogram("sandbox_duration_seconds", duration_ms / 1000.0)
     return s
@@ -517,14 +562,12 @@ async def list_sandbox_executions(
     limit: int = 50,
     offset: int = 0,
 ) -> tuple[list[SandboxExecution], int]:
-    query = select(SandboxExecution).where(
-        SandboxExecution.project_id == project_id
-    )
+    query = select(SandboxExecution).where(SandboxExecution.project_id == project_id)
     if status_filter:
         query = query.where(SandboxExecution.status == status_filter)
-    total = (await db.execute(
-        select(sa_func.count()).select_from(query.subquery())
-    )).scalar_one()
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
     result = await db.execute(
         query.order_by(SandboxExecution.created_at.desc()).offset(offset).limit(limit)
     )
@@ -532,6 +575,7 @@ async def list_sandbox_executions(
 
 
 # ── FM-067: PR Draft Generation ─────────────────────────────────
+
 
 async def generate_pr_draft(
     db: AsyncSession,
@@ -547,7 +591,9 @@ async def generate_pr_draft(
         raise ValueError("Patch not found")
 
     title = f"[ForgeMind] {patch.title}"
-    body_parts = [f"## Description\n\n{patch.description or 'Auto-generated from patch proposal.'}"]
+    body_parts = [
+        f"## Description\n\n{patch.description or 'Auto-generated from patch proposal.'}"
+    ]
     if patch.rationale:
         body_parts.append(f"## Rationale\n\n{patch.rationale}")
     if patch.target_files:
@@ -588,6 +634,7 @@ async def generate_pr_draft(
 
 # ── FM-068: Approval gate check ─────────────────────────────────
 
+
 async def check_approval_gate(
     db: AsyncSession,
     project_id: uuid.UUID,
@@ -619,6 +666,7 @@ async def check_approval_gate(
 
 # ── FM-069: Sandbox Execution Runner ────────────────────────────
 
+
 def _validate_command(command: str, allowed: list[str] | None = None) -> str | None:
     """Validate a command against the allowlist. Returns error message or None."""
     parts = command.strip().split()
@@ -649,7 +697,9 @@ async def run_sandbox_execution(
         return None
 
     if s.status != SandboxStatus.QUEUED:
-        logger.warning("Sandbox %s not in queued state (current: %s)", execution_id, s.status)
+        logger.warning(
+            "Sandbox %s not in queued state (current: %s)", execution_id, s.status
+        )
         return s
 
     error = _validate_command(s.command, s.allowed_commands)
@@ -692,7 +742,11 @@ async def run_sandbox_execution(
             s.stdout = stdout_bytes.decode("utf-8", errors="replace")[:50000]
             s.stderr = stderr_bytes.decode("utf-8", errors="replace")[:50000]
             s.exit_code = proc.returncode
-            s.status = SandboxStatus.COMPLETED if proc.returncode == 0 else SandboxStatus.FAILED
+            s.status = (
+                SandboxStatus.COMPLETED
+                if proc.returncode == 0
+                else SandboxStatus.FAILED
+            )
         except asyncio.TimeoutError:
             proc.kill()
             await proc.wait()

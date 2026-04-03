@@ -72,22 +72,88 @@ DEFAULT_CONNECTORS = [
 # ---------------------------------------------------------------------------
 
 STACK_CONNECTOR_MAP: dict[str, list[dict[str, str]]] = {
-    "github": [{"slug": "github", "priority": "required", "reason": "Source code hosting and collaboration"}],
-    "git": [{"slug": "github", "priority": "required", "reason": "Version control system integration"}],
-    "docker": [{"slug": "docker", "priority": "required", "reason": "Containerized deployment"}],
-    "kubernetes": [{"slug": "docker", "priority": "required", "reason": "Container orchestration requires Docker"}],
-    "postgres": [{"slug": "postgresql", "priority": "required", "reason": "Primary database"}],
-    "postgresql": [{"slug": "postgresql", "priority": "required", "reason": "Primary database"}],
-    "redis": [{"slug": "redis", "priority": "recommended", "reason": "Caching and message broker"}],
-    "s3": [{"slug": "object-storage", "priority": "recommended", "reason": "Object/file storage"}],
-    "minio": [{"slug": "object-storage", "priority": "recommended", "reason": "Local object storage"}],
-    "slack": [{"slug": "slack", "priority": "optional", "reason": "Team notifications"}],
-    "jira": [{"slug": "jira", "priority": "optional", "reason": "Issue tracking integration"}],
-    "api": [{"slug": "github", "priority": "recommended", "reason": "API projects benefit from CI/CD"}],
-    "web": [{"slug": "docker", "priority": "recommended", "reason": "Web apps benefit from containerized deployment"}],
+    "github": [
+        {
+            "slug": "github",
+            "priority": "required",
+            "reason": "Source code hosting and collaboration",
+        }
+    ],
+    "git": [
+        {
+            "slug": "github",
+            "priority": "required",
+            "reason": "Version control system integration",
+        }
+    ],
+    "docker": [
+        {"slug": "docker", "priority": "required", "reason": "Containerized deployment"}
+    ],
+    "kubernetes": [
+        {
+            "slug": "docker",
+            "priority": "required",
+            "reason": "Container orchestration requires Docker",
+        }
+    ],
+    "postgres": [
+        {"slug": "postgresql", "priority": "required", "reason": "Primary database"}
+    ],
+    "postgresql": [
+        {"slug": "postgresql", "priority": "required", "reason": "Primary database"}
+    ],
+    "redis": [
+        {
+            "slug": "redis",
+            "priority": "recommended",
+            "reason": "Caching and message broker",
+        }
+    ],
+    "s3": [
+        {
+            "slug": "object-storage",
+            "priority": "recommended",
+            "reason": "Object/file storage",
+        }
+    ],
+    "minio": [
+        {
+            "slug": "object-storage",
+            "priority": "recommended",
+            "reason": "Local object storage",
+        }
+    ],
+    "slack": [
+        {"slug": "slack", "priority": "optional", "reason": "Team notifications"}
+    ],
+    "jira": [
+        {"slug": "jira", "priority": "optional", "reason": "Issue tracking integration"}
+    ],
+    "api": [
+        {
+            "slug": "github",
+            "priority": "recommended",
+            "reason": "API projects benefit from CI/CD",
+        }
+    ],
+    "web": [
+        {
+            "slug": "docker",
+            "priority": "recommended",
+            "reason": "Web apps benefit from containerized deployment",
+        }
+    ],
     "microservice": [
-        {"slug": "docker", "priority": "required", "reason": "Microservices require containerization"},
-        {"slug": "redis", "priority": "recommended", "reason": "Inter-service communication"},
+        {
+            "slug": "docker",
+            "priority": "required",
+            "reason": "Microservices require containerization",
+        },
+        {
+            "slug": "redis",
+            "priority": "recommended",
+            "reason": "Inter-service communication",
+        },
     ],
 }
 
@@ -177,8 +243,7 @@ async def get_project_connector_requirements(
         connector = await get_connector_by_slug(db, rec["slug"])
         rec["connector_name"] = connector.name if connector else rec["slug"]
         rec["configured"] = (
-            connector is not None
-            and connector.status == ConnectorStatus.CONFIGURED
+            connector is not None and connector.status == ConnectorStatus.CONFIGURED
         )
 
     return recs
@@ -188,7 +253,7 @@ async def get_project_connector_requirements(
 # FM-041: Connector readiness states — per-project link management
 # ---------------------------------------------------------------------------
 
-from app.models.project_connector_link import (
+from app.models.project_connector_link import (  # noqa: E402
     ProjectConnectorLink,
     ConnectorReadiness,
     ConnectorPriority,
@@ -206,6 +271,7 @@ async def link_connector_to_project(
     connector = await get_connector_by_slug(db, connector_slug)
     if connector is None:
         from fastapi import HTTPException, status
+
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Connector '{connector_slug}' not found",
@@ -284,10 +350,14 @@ async def get_project_readiness(
         counts[link.readiness.value] = counts.get(link.readiness.value, 0) + 1
 
     # Check if all required connectors are ready
-    required_links = [l for l in links if l.priority == ConnectorPriority.REQUIRED]
-    all_required_ready = all(
-        l.readiness == ConnectorReadiness.READY for l in required_links
-    ) if required_links else True
+    required_links = [
+        lnk for lnk in links if lnk.priority == ConnectorPriority.REQUIRED
+    ]
+    all_required_ready = (
+        all(lnk.readiness == ConnectorReadiness.READY for lnk in required_links)
+        if required_links
+        else True
+    )
 
     return {
         "links": items,
@@ -312,6 +382,7 @@ async def update_connector_readiness(
     connector = await get_connector_by_slug(db, connector_slug)
     if connector is None:
         from fastapi import HTTPException, status
+
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Connector '{connector_slug}' not found",
@@ -326,6 +397,7 @@ async def update_connector_readiness(
     link = result.scalar_one_or_none()
     if link is None:
         from fastapi import HTTPException, status
+
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No link found for connector '{connector_slug}' in this project",
@@ -359,10 +431,12 @@ async def get_run_connector_blockers(
         select(ProjectConnectorLink)
         .where(ProjectConnectorLink.project_id == run.project_id)
         .where(
-            ProjectConnectorLink.readiness.in_([
-                ConnectorReadiness.MISSING,
-                ConnectorReadiness.BLOCKED,
-            ])
+            ProjectConnectorLink.readiness.in_(
+                [
+                    ConnectorReadiness.MISSING,
+                    ConnectorReadiness.BLOCKED,
+                ]
+            )
         )
     )
     blocking_links = list(result.scalars().all())
@@ -373,13 +447,15 @@ async def get_run_connector_blockers(
             select(Connector).where(Connector.id == link.connector_id)
         )
         connector = conn_result.scalar_one_or_none()
-        blockers.append({
-            "connector_slug": connector.slug if connector else "unknown",
-            "connector_name": connector.name if connector else "Unknown",
-            "priority": link.priority.value,
-            "readiness": link.readiness.value,
-            "blocker_reason": link.blocker_reason,
-        })
+        blockers.append(
+            {
+                "connector_slug": connector.slug if connector else "unknown",
+                "connector_name": connector.name if connector else "Unknown",
+                "priority": link.priority.value,
+                "readiness": link.readiness.value,
+                "blocker_reason": link.blocker_reason,
+            }
+        )
 
     return blockers
 

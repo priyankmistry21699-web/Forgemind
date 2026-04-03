@@ -6,23 +6,51 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.schemas.code_ops import (
-    CodeMappingCreate, CodeMappingRead, CodeMappingList,
-    PatchProposalCreate, PatchProposalUpdate, PatchProposalRead, PatchProposalList,
-    ChangeReviewCreate, ChangeReviewRead, ChangeReviewList,
-    BranchStrategyCreate, BranchStrategyUpdate, BranchStrategyRead, BranchStrategyList,
-    PRDraftCreate, PRDraftUpdate, PRDraftRead, PRDraftList, PRDraftGenerateRequest,
-    RepoActionApprovalCreate, RepoActionDecision, RepoActionApprovalRead, RepoActionApprovalList,
-    SandboxExecutionCreate, SandboxExecutionRead, SandboxExecutionList, SandboxRunRequest,
+    CodeMappingCreate,
+    CodeMappingRead,
+    CodeMappingList,
+    PatchProposalCreate,
+    PatchProposalUpdate,
+    PatchProposalRead,
+    PatchProposalList,
+    ChangeReviewCreate,
+    ChangeReviewRead,
+    ChangeReviewList,
+    BranchStrategyCreate,
+    BranchStrategyUpdate,
+    BranchStrategyRead,
+    BranchStrategyList,
+    PRDraftCreate,
+    PRDraftUpdate,
+    PRDraftRead,
+    PRDraftList,
+    PRDraftGenerateRequest,
+    RepoActionApprovalCreate,
+    RepoActionDecision,
+    RepoActionApprovalRead,
+    RepoActionApprovalList,
+    SandboxExecutionCreate,
+    SandboxExecutionRead,
+    SandboxExecutionList,
+    SandboxRunRequest,
 )
 from app.services import code_ops_service
 from app.services.authz_service import check_project_permission, Action
 from app.core.authz_deps import resolve_project_for_entity
-from app.models.code_ops import CodeMapping, PatchProposal, BranchStrategy, PRDraft, RepoActionApproval, SandboxExecution
+from app.models.code_ops import (
+    CodeMapping,
+    PatchProposal,
+    BranchStrategy,
+    PRDraft,
+    RepoActionApproval,
+    SandboxExecution,
+)
 
 router = APIRouter()
 
 
 # ── Code Mappings (FM-061) ──────────────────────────────────────
+
 
 @router.post(
     "/projects/{project_id}/code-mappings",
@@ -37,8 +65,12 @@ async def create_code_mapping(
 ) -> CodeMappingRead:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_UPDATE)
     cm = await code_ops_service.create_code_mapping(
-        db, project_id=project_id, artifact_id=data.artifact_id,
-        file_path=data.file_path, language=data.language, metadata_=data.metadata_,
+        db,
+        project_id=project_id,
+        artifact_id=data.artifact_id,
+        file_path=data.file_path,
+        language=data.language,
+        metadata_=data.metadata_,
     )
     return CodeMappingRead.model_validate(cm)
 
@@ -56,7 +88,10 @@ async def list_code_mappings(
 ) -> CodeMappingList:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await code_ops_service.list_code_mappings(
-        db, project_id, limit=limit, offset=offset,
+        db,
+        project_id,
+        limit=limit,
+        offset=offset,
     )
     return CodeMappingList(
         items=[CodeMappingRead.model_validate(m) for m in items],
@@ -80,6 +115,7 @@ async def delete_code_mapping(
 
 # ── Patch Proposals (FM-062) ────────────────────────────────────
 
+
 @router.post(
     "/projects/{project_id}/patches",
     response_model=PatchProposalRead,
@@ -93,9 +129,13 @@ async def create_patch(
 ) -> PatchProposalRead:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_EXECUTE_CODE)
     p = await code_ops_service.create_patch(
-        db, project_id=project_id, title=data.title,
-        diff_content=data.diff_content, description=data.description,
-        target_branch=data.target_branch, rationale=data.rationale,
+        db,
+        project_id=project_id,
+        title=data.title,
+        diff_content=data.diff_content,
+        description=data.description,
+        target_branch=data.target_branch,
+        rationale=data.rationale,
         created_by=user_id,
         target_files=data.target_files,
         patch_format=data.patch_format,
@@ -120,7 +160,11 @@ async def list_patches(
 ) -> PatchProposalList:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await code_ops_service.list_patches(
-        db, project_id, status_filter=status, limit=limit, offset=offset,
+        db,
+        project_id,
+        status_filter=status,
+        limit=limit,
+        offset=offset,
     )
     return PatchProposalList(
         items=[PatchProposalRead.model_validate(p) for p in items],
@@ -152,9 +196,13 @@ async def update_patch(
 ) -> PatchProposalRead:
     proj_id = await resolve_project_for_entity(db, PatchProposal, patch_id)
     if proj_id is not None:
-        await check_project_permission(db, proj_id, user_id, Action.PROJECT_EXECUTE_CODE)
+        await check_project_permission(
+            db, proj_id, user_id, Action.PROJECT_EXECUTE_CODE
+        )
     p = await code_ops_service.update_patch(
-        db, patch_id, **data.model_dump(exclude_unset=True),
+        db,
+        patch_id,
+        **data.model_dump(exclude_unset=True),
     )
     if p is None:
         raise HTTPException(status_code=404, detail="Patch not found")
@@ -162,6 +210,7 @@ async def update_patch(
 
 
 # ── Change Reviews (FM-063/066) ─────────────────────────────────
+
 
 @router.post(
     "/patches/{patch_id}/reviews",
@@ -178,10 +227,15 @@ async def create_review(
     if proj_id is not None:
         await check_project_permission(db, proj_id, user_id, Action.PROJECT_REVIEW)
     r = await code_ops_service.create_review(
-        db, patch_id=patch_id, reviewer_id=user_id,
-        decision=data.decision, comment=data.comment,
-        file_path=data.file_path, line_start=data.line_start,
-        line_end=data.line_end, suggestion=data.suggestion,
+        db,
+        patch_id=patch_id,
+        reviewer_id=user_id,
+        decision=data.decision,
+        comment=data.comment,
+        file_path=data.file_path,
+        line_start=data.line_start,
+        line_end=data.line_end,
+        suggestion=data.suggestion,
     )
     return ChangeReviewRead.model_validate(r)
 
@@ -201,7 +255,10 @@ async def list_reviews(
     if proj_id is not None:
         await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     items, total = await code_ops_service.list_reviews(
-        db, patch_id, limit=limit, offset=offset,
+        db,
+        patch_id,
+        limit=limit,
+        offset=offset,
     )
     return ChangeReviewList(
         items=[ChangeReviewRead.model_validate(r) for r in items],
@@ -210,6 +267,7 @@ async def list_reviews(
 
 
 # ── Branch Strategies (FM-064) ──────────────────────────────────
+
 
 @router.post(
     "/projects/{project_id}/branch-strategies",
@@ -224,10 +282,13 @@ async def create_branch_strategy(
 ) -> BranchStrategyRead:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_EXECUTE_CODE)
     bs = await code_ops_service.create_branch_strategy(
-        db, project_id=project_id, base_branch=data.base_branch,
+        db,
+        project_id=project_id,
+        base_branch=data.base_branch,
         branch_pattern=data.branch_pattern,
         auto_create_branch=data.auto_create_branch,
-        pr_target_branch=data.pr_target_branch, config=data.config,
+        pr_target_branch=data.pr_target_branch,
+        config=data.config,
     )
     return BranchStrategyRead.model_validate(bs)
 
@@ -245,7 +306,10 @@ async def list_branch_strategies(
 ) -> BranchStrategyList:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await code_ops_service.list_branch_strategies(
-        db, project_id, limit=limit, offset=offset,
+        db,
+        project_id,
+        limit=limit,
+        offset=offset,
     )
     return BranchStrategyList(
         items=[BranchStrategyRead.model_validate(b) for b in items],
@@ -265,9 +329,13 @@ async def update_branch_strategy(
 ) -> BranchStrategyRead:
     proj_id = await resolve_project_for_entity(db, BranchStrategy, strategy_id)
     if proj_id is not None:
-        await check_project_permission(db, proj_id, user_id, Action.PROJECT_EXECUTE_CODE)
+        await check_project_permission(
+            db, proj_id, user_id, Action.PROJECT_EXECUTE_CODE
+        )
     bs = await code_ops_service.update_branch_strategy(
-        db, strategy_id, **data.model_dump(exclude_unset=True),
+        db,
+        strategy_id,
+        **data.model_dump(exclude_unset=True),
     )
     if bs is None:
         raise HTTPException(status_code=404, detail="Strategy not found")
@@ -275,6 +343,7 @@ async def update_branch_strategy(
 
 
 # ── PR Drafts (FM-065) ─────────────────────────────────────────
+
 
 @router.post(
     "/projects/{project_id}/pr-drafts",
@@ -289,10 +358,16 @@ async def create_pr_draft(
 ) -> PRDraftRead:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_EXECUTE_CODE)
     pr = await code_ops_service.create_pr_draft(
-        db, project_id=project_id, title=data.title,
-        source_branch=data.source_branch, target_branch=data.target_branch,
-        patch_id=data.patch_id, body=data.body, reviewers=data.reviewers,
-        checklist=data.checklist, linked_artifacts=data.linked_artifacts,
+        db,
+        project_id=project_id,
+        title=data.title,
+        source_branch=data.source_branch,
+        target_branch=data.target_branch,
+        patch_id=data.patch_id,
+        body=data.body,
+        reviewers=data.reviewers,
+        checklist=data.checklist,
+        linked_artifacts=data.linked_artifacts,
     )
     return PRDraftRead.model_validate(pr)
 
@@ -311,7 +386,11 @@ async def list_pr_drafts(
 ) -> PRDraftList:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await code_ops_service.list_pr_drafts(
-        db, project_id, status_filter=status, limit=limit, offset=offset,
+        db,
+        project_id,
+        status_filter=status,
+        limit=limit,
+        offset=offset,
     )
     return PRDraftList(
         items=[PRDraftRead.model_validate(p) for p in items],
@@ -343,9 +422,13 @@ async def update_pr_draft(
 ) -> PRDraftRead:
     proj_id = await resolve_project_for_entity(db, PRDraft, pr_id)
     if proj_id is not None:
-        await check_project_permission(db, proj_id, user_id, Action.PROJECT_EXECUTE_CODE)
+        await check_project_permission(
+            db, proj_id, user_id, Action.PROJECT_EXECUTE_CODE
+        )
     pr = await code_ops_service.update_pr_draft(
-        db, pr_id, **data.model_dump(exclude_unset=True),
+        db,
+        pr_id,
+        **data.model_dump(exclude_unset=True),
     )
     if pr is None:
         raise HTTPException(status_code=404, detail="PR draft not found")
@@ -353,6 +436,7 @@ async def update_pr_draft(
 
 
 # ── Repo Action Approvals (FM-067) ──────────────────────────────
+
 
 @router.post(
     "/projects/{project_id}/repo-approvals",
@@ -367,8 +451,11 @@ async def create_repo_approval(
 ) -> RepoActionApprovalRead:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_EXECUTE_CODE)
     a = await code_ops_service.create_repo_action_approval(
-        db, project_id=project_id, action_type=data.action_type,
-        reason=data.reason, context=data.context,
+        db,
+        project_id=project_id,
+        action_type=data.action_type,
+        reason=data.reason,
+        context=data.context,
     )
     return RepoActionApprovalRead.model_validate(a)
 
@@ -387,7 +474,11 @@ async def list_repo_approvals(
 ) -> RepoActionApprovalList:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await code_ops_service.list_repo_action_approvals(
-        db, project_id, status_filter=status, limit=limit, offset=offset,
+        db,
+        project_id,
+        status_filter=status,
+        limit=limit,
+        offset=offset,
     )
     return RepoActionApprovalList(
         items=[RepoActionApprovalRead.model_validate(a) for a in items],
@@ -409,8 +500,11 @@ async def decide_repo_approval(
     if proj_id is not None:
         await check_project_permission(db, proj_id, user_id, Action.PROJECT_APPROVE)
     a = await code_ops_service.decide_repo_action(
-        db, approval_id, decided_by=user_id,
-        status=data.status, decision_comment=data.decision_comment,
+        db,
+        approval_id,
+        decided_by=user_id,
+        status=data.status,
+        decision_comment=data.decision_comment,
     )
     if a is None:
         raise HTTPException(status_code=404, detail="Approval not found")
@@ -418,6 +512,7 @@ async def decide_repo_approval(
 
 
 # ── Sandbox Executions (FM-068/069) ─────────────────────────────
+
 
 @router.post(
     "/projects/{project_id}/sandbox",
@@ -432,12 +527,17 @@ async def create_sandbox_execution(
 ) -> SandboxExecutionRead:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_EXECUTE_CODE)
     s = await code_ops_service.create_sandbox_execution(
-        db, project_id=project_id, command=data.command,
-        task_id=data.task_id, patch_id=data.patch_id,
+        db,
+        project_id=project_id,
+        command=data.command,
+        task_id=data.task_id,
+        patch_id=data.patch_id,
         working_directory=data.working_directory,
-        environment=data.environment, timeout_seconds=data.timeout_seconds,
+        environment=data.environment,
+        timeout_seconds=data.timeout_seconds,
         allowed_commands=data.allowed_commands,
-        resource_limits=data.resource_limits, isolated=data.isolated,
+        resource_limits=data.resource_limits,
+        isolated=data.isolated,
     )
     return SandboxExecutionRead.model_validate(s)
 
@@ -456,7 +556,11 @@ async def list_sandbox_executions(
 ) -> SandboxExecutionList:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await code_ops_service.list_sandbox_executions(
-        db, project_id, status_filter=status, limit=limit, offset=offset,
+        db,
+        project_id,
+        status_filter=status,
+        limit=limit,
+        offset=offset,
     )
     return SandboxExecutionList(
         items=[SandboxExecutionRead.model_validate(s) for s in items],
@@ -481,6 +585,7 @@ async def get_sandbox_execution(
 
 # ── FM-067: PR Draft Generation Endpoint ────────────────────────
 
+
 @router.post(
     "/projects/{project_id}/pr-drafts/generate",
     response_model=PRDraftRead,
@@ -496,7 +601,9 @@ async def generate_pr_draft(
     await check_project_permission(db, project_id, user_id, Action.PROJECT_EXECUTE_CODE)
     try:
         pr = await code_ops_service.generate_pr_draft(
-            db, project_id=project_id, patch_id=data.patch_id,
+            db,
+            project_id=project_id,
+            patch_id=data.patch_id,
             target_branch=data.target_branch,
             include_checklist=data.include_checklist,
         )
@@ -506,6 +613,7 @@ async def generate_pr_draft(
 
 
 # ── FM-068: Approval Gate Check ─────────────────────────────────
+
 
 @router.get("/projects/{project_id}/repo-approvals/check")
 async def check_approval_gate(
@@ -521,6 +629,7 @@ async def check_approval_gate(
 
 # ── FM-069: Sandbox Run Endpoint ────────────────────────────────
 
+
 @router.post("/sandbox/run", response_model=SandboxExecutionRead)
 async def run_sandbox(
     data: SandboxRunRequest,
@@ -530,7 +639,9 @@ async def run_sandbox(
     """Execute a queued sandbox execution with safety controls."""
     proj_id = await resolve_project_for_entity(db, SandboxExecution, data.execution_id)
     if proj_id is not None:
-        await check_project_permission(db, proj_id, user_id, Action.PROJECT_EXECUTE_CODE)
+        await check_project_permission(
+            db, proj_id, user_id, Action.PROJECT_EXECUTE_CODE
+        )
     s = await code_ops_service.run_sandbox_execution(db, data.execution_id)
     if s is None:
         raise HTTPException(status_code=404, detail="Execution not found")

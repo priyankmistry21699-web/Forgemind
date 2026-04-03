@@ -6,8 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.core.auth import get_current_user_id
 from app.schemas.escalation import (
-    EscalationRuleCreate, EscalationRuleUpdate, EscalationRuleRead, EscalationRuleList,
-    EscalationEventRead, EscalationEventList,
+    EscalationRuleCreate,
+    EscalationRuleUpdate,
+    EscalationRuleRead,
+    EscalationRuleList,
+    EscalationEventRead,
+    EscalationEventList,
 )
 from app.services import escalation_service
 from app.services.authz_service import check_project_permission, Action
@@ -18,6 +22,7 @@ router = APIRouter()
 
 
 # ── Rules ────────────────────────────────────────────────────────
+
 
 @router.post(
     "/projects/{project_id}/escalation/rules",
@@ -30,11 +35,17 @@ async def create_rule(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> EscalationRuleRead:
-    await check_project_permission(db, project_id, user_id, Action.PROJECT_MANAGE_ESCALATION)
+    await check_project_permission(
+        db, project_id, user_id, Action.PROJECT_MANAGE_ESCALATION
+    )
     rule = await escalation_service.create_rule(
-        db, project_id=project_id, name=data.name,
-        trigger=data.trigger, action=data.action,
-        rules=data.rules, cooldown_minutes=data.cooldown_minutes,
+        db,
+        project_id=project_id,
+        name=data.name,
+        trigger=data.trigger,
+        action=data.action,
+        rules=data.rules,
+        cooldown_minutes=data.cooldown_minutes,
         is_active=data.is_active,
     )
     return EscalationRuleRead.model_validate(rule)
@@ -53,7 +64,10 @@ async def list_rules(
 ) -> EscalationRuleList:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await escalation_service.list_rules(
-        db, project_id, limit=limit, offset=offset,
+        db,
+        project_id,
+        limit=limit,
+        offset=offset,
     )
     return EscalationRuleList(
         items=[EscalationRuleRead.model_validate(r) for r in items],
@@ -85,9 +99,13 @@ async def update_rule(
 ) -> EscalationRuleRead:
     proj_id = await resolve_project_for_entity(db, EscalationRule, rule_id)
     if proj_id is not None:
-        await check_project_permission(db, proj_id, user_id, Action.PROJECT_MANAGE_ESCALATION)
+        await check_project_permission(
+            db, proj_id, user_id, Action.PROJECT_MANAGE_ESCALATION
+        )
     rule = await escalation_service.update_rule(
-        db, rule_id, **data.model_dump(exclude_unset=True),
+        db,
+        rule_id,
+        **data.model_dump(exclude_unset=True),
     )
     if rule is None:
         raise HTTPException(status_code=404, detail="Rule not found")
@@ -102,13 +120,16 @@ async def delete_rule(
 ) -> None:
     proj_id = await resolve_project_for_entity(db, EscalationRule, rule_id)
     if proj_id is not None:
-        await check_project_permission(db, proj_id, user_id, Action.PROJECT_MANAGE_ESCALATION)
+        await check_project_permission(
+            db, proj_id, user_id, Action.PROJECT_MANAGE_ESCALATION
+        )
     deleted = await escalation_service.delete_rule(db, rule_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Rule not found")
 
 
 # ── Events ───────────────────────────────────────────────────────
+
 
 @router.get(
     "/projects/{project_id}/escalation/events",
@@ -123,7 +144,10 @@ async def list_events(
 ) -> EscalationEventList:
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items, total = await escalation_service.list_events(
-        db, project_id, limit=limit, offset=offset,
+        db,
+        project_id,
+        limit=limit,
+        offset=offset,
     )
     return EscalationEventList(
         items=[EscalationEventRead.model_validate(e) for e in items],

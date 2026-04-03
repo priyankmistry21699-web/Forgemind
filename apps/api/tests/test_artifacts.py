@@ -2,8 +2,6 @@
 
 import uuid
 
-import pytest
-
 
 class TestCreateArtifact:
     """POST /projects/{project_id}/artifacts"""

@@ -7,17 +7,16 @@ Transitions ForgeMind from a linear executor to an adaptive system that:
 - Uses run memory context for richer decisions
 """
 
-import uuid
 import logging
 from typing import Any
 
-from sqlalchemy import select, func as sa_func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.task import Task, TaskStatus
 from app.models.approval_request import ApprovalRequest, ApprovalStatus
 from app.services import run_memory_service, composition_service
-from app.services import execution_service, task_service, event_service
+from app.services import event_service
 from app.models.execution_event import EventType
 
 logger = logging.getLogger(__name__)
@@ -33,6 +32,7 @@ CRITICAL_TASK_TYPES = {"architecture", "codegen"}  # prioritised in scheduling
 # ---------------------------------------------------------------------------
 # Smarter task selection
 # ---------------------------------------------------------------------------
+
 
 async def select_next_tasks(
     db: AsyncSession,
@@ -50,9 +50,7 @@ async def select_next_tasks(
 
     # 1. Failed tasks eligible for auto-retry
     failed_result = await db.execute(
-        select(Task)
-        .where(Task.status == TaskStatus.FAILED)
-        .order_by(Task.created_at)
+        select(Task).where(Task.status == TaskStatus.FAILED).order_by(Task.created_at)
     )
     failed_tasks = list(failed_result.scalars().all())
     for t in failed_tasks:
@@ -66,9 +64,7 @@ async def select_next_tasks(
 
     # 2. READY tasks — critical types first, then by order_index
     ready_result = await db.execute(
-        select(Task)
-        .where(Task.status == TaskStatus.READY)
-        .order_by(Task.order_index)
+        select(Task).where(Task.status == TaskStatus.READY).order_by(Task.order_index)
     )
     ready_tasks = list(ready_result.scalars().all())
 
@@ -105,6 +101,7 @@ def _get_retry_count(task: Task) -> int:
 # Auto-retry with agent re-routing
 # ---------------------------------------------------------------------------
 
+
 async def auto_retry_task(
     db: AsyncSession,
     task: Task,
@@ -125,7 +122,9 @@ async def auto_retry_task(
     # Try to pick a different agent via composition service
     previous_agent = task.assigned_agent_slug
     new_agent_slug = await composition_service.resolve_agent_for_task(
-        db, task.task_type, agent_hint=None  # ignore hint to try alternatives
+        db,
+        task.task_type,
+        agent_hint=None,  # ignore hint to try alternatives
     )
     if new_agent_slug == previous_agent:
         new_agent_slug = None  # will use whatever the worker picks
@@ -169,6 +168,7 @@ async def auto_retry_task(
 # Approval rejection handling
 # ---------------------------------------------------------------------------
 
+
 async def handle_approval_rejections(db: AsyncSession) -> int:
     """Process rejected approvals — requeue the associated task for rework.
 
@@ -187,9 +187,7 @@ async def handle_approval_rejections(db: AsyncSession) -> int:
         if approval.task_id is None:
             continue
 
-        task_result = await db.execute(
-            select(Task).where(Task.id == approval.task_id)
-        )
+        task_result = await db.execute(select(Task).where(Task.id == approval.task_id))
         task = task_result.scalar_one_or_none()
         if task is None:
             continue
@@ -199,9 +197,8 @@ async def handle_approval_rejections(db: AsyncSession) -> int:
             continue
 
         task.status = TaskStatus.READY
-        task.error_message = (
-            f"Rework required: approval rejected"
-            + (f" — {approval.decision_comment}" if approval.decision_comment else "")
+        task.error_message = "Rework required: approval rejected" + (
+            f" — {approval.decision_comment}" if approval.decision_comment else ""
         )
         task.assigned_agent_slug = None
         await db.flush()
@@ -217,9 +214,7 @@ async def handle_approval_rejections(db: AsyncSession) -> int:
             await event_service.emit_event(
                 db,
                 event_type=EventType.TASK_CLAIMED,
-                summary=(
-                    f"Task '{task.title}' requeued after approval rejection"
-                ),
+                summary=(f"Task '{task.title}' requeued after approval rejection"),
                 project_id=run_obj.project_id,
                 run_id=task.run_id,
                 task_id=task.id,
@@ -238,6 +233,7 @@ async def handle_approval_rejections(db: AsyncSession) -> int:
 # ---------------------------------------------------------------------------
 # Adaptive cycle — called by the worker loop
 # ---------------------------------------------------------------------------
+
 
 async def run_adaptive_cycle(
     db: AsyncSession,

@@ -70,14 +70,13 @@ async def list_architecture_approvals(
         base = base.where(ApprovalRequest.status == status)
 
     from sqlalchemy import func as sa_func
+
     total_result = await db.execute(
         select(sa_func.count()).select_from(base.subquery())
     )
     total = total_result.scalar() or 0
 
     result = await db.execute(
-        base.order_by(ApprovalRequest.created_at.desc())
-        .offset(offset)
-        .limit(limit)
+        base.order_by(ApprovalRequest.created_at.desc()).offset(offset).limit(limit)
     )
     return list(result.scalars().all()), total

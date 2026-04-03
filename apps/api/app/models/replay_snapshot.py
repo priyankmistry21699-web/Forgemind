@@ -59,9 +59,7 @@ class ReplaySnapshot(Base):
     replay_hash: Mapped[str | None] = mapped_column(
         String(64), nullable=True, index=True
     )
-    is_replay: Mapped[bool] = mapped_column(
-        default=False, nullable=False
-    )
+    is_replay: Mapped[bool] = mapped_column(default=False, nullable=False)
     original_snapshot_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("replay_snapshots.id", ondelete="SET NULL"),

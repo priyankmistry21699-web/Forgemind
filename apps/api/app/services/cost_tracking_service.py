@@ -31,10 +31,7 @@ DEFAULT_COST = {"prompt": 1.00 / 1_000_000, "completion": 3.00 / 1_000_000}
 def estimate_cost(model_name: str, prompt_tokens: int, completion_tokens: int) -> float:
     """Estimate USD cost from model name and token counts."""
     rates = MODEL_COSTS.get(model_name, DEFAULT_COST)
-    return (
-        prompt_tokens * rates["prompt"]
-        + completion_tokens * rates["completion"]
-    )
+    return prompt_tokens * rates["prompt"] + completion_tokens * rates["completion"]
 
 
 async def record_usage(
@@ -76,10 +73,18 @@ async def get_run_cost_summary(
     result = await db.execute(
         select(
             sa_func.count(CostRecord.id).label("call_count"),
-            sa_func.coalesce(sa_func.sum(CostRecord.prompt_tokens), 0).label("total_prompt_tokens"),
-            sa_func.coalesce(sa_func.sum(CostRecord.completion_tokens), 0).label("total_completion_tokens"),
-            sa_func.coalesce(sa_func.sum(CostRecord.total_tokens), 0).label("total_tokens"),
-            sa_func.coalesce(sa_func.sum(CostRecord.cost_usd), 0.0).label("total_cost_usd"),
+            sa_func.coalesce(sa_func.sum(CostRecord.prompt_tokens), 0).label(
+                "total_prompt_tokens"
+            ),
+            sa_func.coalesce(sa_func.sum(CostRecord.completion_tokens), 0).label(
+                "total_completion_tokens"
+            ),
+            sa_func.coalesce(sa_func.sum(CostRecord.total_tokens), 0).label(
+                "total_tokens"
+            ),
+            sa_func.coalesce(sa_func.sum(CostRecord.cost_usd), 0.0).label(
+                "total_cost_usd"
+            ),
         ).where(CostRecord.run_id == run_id)
     )
     row = result.one()
@@ -101,8 +106,12 @@ async def get_project_cost_summary(
     result = await db.execute(
         select(
             sa_func.count(CostRecord.id).label("call_count"),
-            sa_func.coalesce(sa_func.sum(CostRecord.total_tokens), 0).label("total_tokens"),
-            sa_func.coalesce(sa_func.sum(CostRecord.cost_usd), 0.0).label("total_cost_usd"),
+            sa_func.coalesce(sa_func.sum(CostRecord.total_tokens), 0).label(
+                "total_tokens"
+            ),
+            sa_func.coalesce(sa_func.sum(CostRecord.cost_usd), 0.0).label(
+                "total_cost_usd"
+            ),
         ).where(CostRecord.project_id == project_id)
     )
     row = result.one()

@@ -10,12 +10,9 @@ FM-050: Production Readiness and Platform Hardening
 
 import uuid
 import pytest
-import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.run import Run, RunStatus
-from app.models.task import Task, TaskStatus
-from app.models.project import Project
+from app.models.task import TaskStatus
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -27,7 +24,9 @@ class TestReplaySnapshot:
     """Test replay snapshot capture and trace inspection."""
 
     @pytest.mark.asyncio
-    async def test_capture_snapshot(self, db_session: AsyncSession, sample_project, sample_run, sample_task):
+    async def test_capture_snapshot(
+        self, db_session: AsyncSession, sample_project, sample_run, sample_task
+    ):
         from app.services import replay_service
 
         snapshot = await replay_service.capture_snapshot(
@@ -52,7 +51,9 @@ class TestReplaySnapshot:
         assert snapshot.is_replay is False
 
     @pytest.mark.asyncio
-    async def test_execution_trace(self, db_session: AsyncSession, sample_project, sample_run, sample_task):
+    async def test_execution_trace(
+        self, db_session: AsyncSession, sample_project, sample_run, sample_task
+    ):
         from app.services import replay_service
 
         # Create 3 snapshots
@@ -76,7 +77,9 @@ class TestReplaySnapshot:
         assert len(trace["snapshots"]) == 3
 
     @pytest.mark.asyncio
-    async def test_replay_snapshot(self, db_session: AsyncSession, sample_project, sample_run, sample_task):
+    async def test_replay_snapshot(
+        self, db_session: AsyncSession, sample_project, sample_run, sample_task
+    ):
         from app.services import replay_service
 
         original = await replay_service.capture_snapshot(
@@ -95,7 +98,9 @@ class TestReplaySnapshot:
         assert result["original_id"] == str(original.id)
 
     @pytest.mark.asyncio
-    async def test_compare_snapshots(self, db_session: AsyncSession, sample_project, sample_run, sample_task):
+    async def test_compare_snapshots(
+        self, db_session: AsyncSession, sample_project, sample_run, sample_task
+    ):
         from app.services import replay_service
 
         s1 = await replay_service.capture_snapshot(
@@ -120,7 +125,9 @@ class TestReplaySnapshot:
         assert result["diff_summary"] is not None
 
     @pytest.mark.asyncio
-    async def test_replay_hash_deterministic(self, db_session: AsyncSession, sample_project, sample_run, sample_task):
+    async def test_replay_hash_deterministic(
+        self, db_session: AsyncSession, sample_project, sample_run, sample_task
+    ):
         from app.services import replay_service
 
         s1 = await replay_service.capture_snapshot(
@@ -148,7 +155,9 @@ class TestReplaySnapshot:
         assert s1.replay_hash == s2.replay_hash
 
     @pytest.mark.asyncio
-    async def test_list_snapshots_filters(self, db_session: AsyncSession, sample_project, sample_run, sample_task):
+    async def test_list_snapshots_filters(
+        self, db_session: AsyncSession, sample_project, sample_run, sample_task
+    ):
         from app.services import replay_service
 
         await replay_service.capture_snapshot(
@@ -225,9 +234,27 @@ class TestCouncilDecision:
         )
 
         # 2 approve, 1 reject = majority approve
-        await council_service.cast_vote(db_session, session.id, agent_slug="architect", decision=VoteDecision.APPROVE, confidence=0.8)
-        await council_service.cast_vote(db_session, session.id, agent_slug="coder", decision=VoteDecision.APPROVE, confidence=0.7)
-        await council_service.cast_vote(db_session, session.id, agent_slug="reviewer", decision=VoteDecision.REJECT, confidence=0.6)
+        await council_service.cast_vote(
+            db_session,
+            session.id,
+            agent_slug="architect",
+            decision=VoteDecision.APPROVE,
+            confidence=0.8,
+        )
+        await council_service.cast_vote(
+            db_session,
+            session.id,
+            agent_slug="coder",
+            decision=VoteDecision.APPROVE,
+            confidence=0.7,
+        )
+        await council_service.cast_vote(
+            db_session,
+            session.id,
+            agent_slug="reviewer",
+            decision=VoteDecision.REJECT,
+            confidence=0.6,
+        )
 
         db_session.expunge_all()
         result = await council_service.resolve_council(db_session, session.id)
@@ -235,7 +262,9 @@ class TestCouncilDecision:
         assert result["status"] == "decided"
 
     @pytest.mark.asyncio
-    async def test_consensus_decision_fails_split(self, db_session: AsyncSession, sample_project):
+    async def test_consensus_decision_fails_split(
+        self, db_session: AsyncSession, sample_project
+    ):
         from app.services import council_service
         from app.models.council import DecisionMethod, VoteDecision
 
@@ -246,15 +275,24 @@ class TestCouncilDecision:
             decision_method=DecisionMethod.CONSENSUS,
         )
 
-        await council_service.cast_vote(db_session, session.id, agent_slug="architect", decision=VoteDecision.APPROVE)
-        await council_service.cast_vote(db_session, session.id, agent_slug="reviewer", decision=VoteDecision.REJECT)
+        await council_service.cast_vote(
+            db_session,
+            session.id,
+            agent_slug="architect",
+            decision=VoteDecision.APPROVE,
+        )
+        await council_service.cast_vote(
+            db_session, session.id, agent_slug="reviewer", decision=VoteDecision.REJECT
+        )
 
         result = await council_service.resolve_council(db_session, session.id)
         assert result["final_decision"] is None
         assert result["status"] == "deadlocked"
 
     @pytest.mark.asyncio
-    async def test_consensus_decision_unanimous(self, db_session: AsyncSession, sample_project):
+    async def test_consensus_decision_unanimous(
+        self, db_session: AsyncSession, sample_project
+    ):
         from app.services import council_service
         from app.models.council import DecisionMethod, VoteDecision
 
@@ -265,8 +303,15 @@ class TestCouncilDecision:
             decision_method=DecisionMethod.CONSENSUS,
         )
 
-        await council_service.cast_vote(db_session, session.id, agent_slug="architect", decision=VoteDecision.APPROVE)
-        await council_service.cast_vote(db_session, session.id, agent_slug="coder", decision=VoteDecision.APPROVE)
+        await council_service.cast_vote(
+            db_session,
+            session.id,
+            agent_slug="architect",
+            decision=VoteDecision.APPROVE,
+        )
+        await council_service.cast_vote(
+            db_session, session.id, agent_slug="coder", decision=VoteDecision.APPROVE
+        )
 
         db_session.expunge_all()
         result = await council_service.resolve_council(db_session, session.id)
@@ -285,8 +330,15 @@ class TestCouncilDecision:
             decision_method=DecisionMethod.CONSENSUS,
         )
 
-        await council_service.cast_vote(db_session, session.id, agent_slug="architect", decision=VoteDecision.APPROVE)
-        await council_service.cast_vote(db_session, session.id, agent_slug="reviewer", decision=VoteDecision.REJECT)
+        await council_service.cast_vote(
+            db_session,
+            session.id,
+            agent_slug="architect",
+            decision=VoteDecision.APPROVE,
+        )
+        await council_service.cast_vote(
+            db_session, session.id, agent_slug="reviewer", decision=VoteDecision.REJECT
+        )
 
         # Resolve → deadlocked
         await council_service.resolve_council(db_session, session.id)
@@ -308,9 +360,23 @@ class TestCouncilDecision:
         )
 
         # Architect with high weight/confidence approves
-        await council_service.cast_vote(db_session, session.id, agent_slug="architect", decision=VoteDecision.APPROVE, confidence=0.95, weight=2.0)
+        await council_service.cast_vote(
+            db_session,
+            session.id,
+            agent_slug="architect",
+            decision=VoteDecision.APPROVE,
+            confidence=0.95,
+            weight=2.0,
+        )
         # Reviewer with low weight rejects
-        await council_service.cast_vote(db_session, session.id, agent_slug="reviewer", decision=VoteDecision.REJECT, confidence=0.5, weight=1.0)
+        await council_service.cast_vote(
+            db_session,
+            session.id,
+            agent_slug="reviewer",
+            decision=VoteDecision.REJECT,
+            confidence=0.5,
+            weight=1.0,
+        )
 
         db_session.expunge_all()
         result = await council_service.resolve_council(db_session, session.id)
@@ -326,7 +392,9 @@ class TestEnhancedPolicyApproval:
     """Test enhanced policy evaluation with multiple triggers."""
 
     @pytest.mark.asyncio
-    async def test_cost_threshold_policy(self, db_session: AsyncSession, sample_project):
+    async def test_cost_threshold_policy(
+        self, db_session: AsyncSession, sample_project
+    ):
         from app.services import governance_service
         from app.models.governance_policy import PolicyTrigger, PolicyAction
 
@@ -392,7 +460,9 @@ class TestEnhancedPolicyApproval:
         assert action == PolicyAction.BLOCK
 
     @pytest.mark.asyncio
-    async def test_custom_rule_and_logic(self, db_session: AsyncSession, sample_project):
+    async def test_custom_rule_and_logic(
+        self, db_session: AsyncSession, sample_project
+    ):
         from app.services import governance_service
         from app.models.governance_policy import PolicyTrigger, PolicyAction
 
@@ -430,7 +500,9 @@ class TestEnhancedPolicyApproval:
         assert action2 == PolicyAction.AUTO_APPROVE
 
     @pytest.mark.asyncio
-    async def test_evaluate_with_council(self, db_session: AsyncSession, sample_project):
+    async def test_evaluate_with_council(
+        self, db_session: AsyncSession, sample_project
+    ):
         from app.services import governance_service
         from app.models.governance_policy import PolicyTrigger, PolicyAction
 
@@ -505,13 +577,16 @@ class TestProjectKnowledge:
 
         # Filter by type
         filtered, ftotal = await knowledge_service.list_knowledge(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
             knowledge_type=KnowledgeType.PATTERN,
         )
         assert ftotal == 1
 
     @pytest.mark.asyncio
-    async def test_extract_knowledge_from_run(self, db_session: AsyncSession, sample_project, sample_run, sample_task):
+    async def test_extract_knowledge_from_run(
+        self, db_session: AsyncSession, sample_project, sample_run, sample_task
+    ):
         from app.services import knowledge_service
 
         # Complete the task first
@@ -628,7 +703,8 @@ class TestRepoConnection:
         )
 
         updated = await repo_service.update_connection(
-            db_session, conn.id,
+            db_session,
+            conn.id,
             default_branch="develop",
         )
         assert updated is not None
@@ -687,7 +763,8 @@ class TestProductionHardening:
 
     def test_auth_stub_fallback(self):
         """In dev mode (default secret), auth falls back to stub user."""
-        from app.core.auth import _get_jwt_secret, _is_dev_mode, _STUB_USER_ID
+        from app.core.auth import _get_jwt_secret, _is_dev_mode
+
         # Default secret is returned as-is; _is_dev_mode() detects dev mode
         assert _get_jwt_secret() == "change-me-to-a-random-secret"
         assert _is_dev_mode() is True
@@ -704,9 +781,15 @@ class TestProductionHardening:
             "logic": "and",
         }
 
-        assert _evaluate_custom_rules(rules, task_type="architecture", cost_usd=1.0) is True
+        assert (
+            _evaluate_custom_rules(rules, task_type="architecture", cost_usd=1.0)
+            is True
+        )
         assert _evaluate_custom_rules(rules, task_type="codegen", cost_usd=1.0) is False
-        assert _evaluate_custom_rules(rules, task_type="architecture", cost_usd=0.1) is False
+        assert (
+            _evaluate_custom_rules(rules, task_type="architecture", cost_usd=0.1)
+            is False
+        )
 
     def test_custom_rules_or_logic(self):
         from app.services.governance_service import _evaluate_custom_rules
@@ -719,7 +802,10 @@ class TestProductionHardening:
             "logic": "or",
         }
 
-        assert _evaluate_custom_rules(rules, task_type="architecture", cost_usd=0.1) is True
+        assert (
+            _evaluate_custom_rules(rules, task_type="architecture", cost_usd=0.1)
+            is True
+        )
         assert _evaluate_custom_rules(rules, task_type="codegen", cost_usd=20.0) is True
         assert _evaluate_custom_rules(rules, task_type="codegen", cost_usd=0.1) is False
 
@@ -731,8 +817,14 @@ class TestProductionHardening:
 
         # Create lightweight mock votes (avoid SQLAlchemy instrumentation)
         votes = []
-        for slug, dec, conf in [("a", VoteDecision.APPROVE, 0.9), ("b", VoteDecision.APPROVE, 0.8), ("c", VoteDecision.REJECT, 0.5)]:
-            v = SimpleNamespace(agent_slug=slug, decision=dec, confidence=conf, weight=1.0)
+        for slug, dec, conf in [
+            ("a", VoteDecision.APPROVE, 0.9),
+            ("b", VoteDecision.APPROVE, 0.8),
+            ("c", VoteDecision.REJECT, 0.5),
+        ]:
+            v = SimpleNamespace(
+                agent_slug=slug, decision=dec, confidence=conf, weight=1.0
+            )
             votes.append(v)
 
         decision, rationale, summary = _resolve_decision(votes, DecisionMethod.MAJORITY)
