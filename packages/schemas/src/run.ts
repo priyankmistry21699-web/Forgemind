@@ -2,6 +2,7 @@
 
 export type RunStatus =
   | "pending"
+  | "specifying"
   | "planning"
   | "running"
   | "paused"

@@ -24,6 +24,8 @@ class ArtifactRead(BaseModel):
     target_module: str | None
     change_type: ChangeType | None
     target_metadata: dict | None
+    # FM-101/106: PLAN→SPEC linking
+    spec_artifact_id: uuid.UUID | None = None
 
     created_at: datetime
     updated_at: datetime
@@ -51,6 +53,8 @@ class ArtifactCreate(BaseModel):
     target_module: str | None = None
     change_type: ChangeType | None = None
     target_metadata: dict | None = None
+    # FM-101/106: PLAN→SPEC linking
+    spec_artifact_id: uuid.UUID | None = None
 
 
 class ArtifactUpdate(BaseModel):

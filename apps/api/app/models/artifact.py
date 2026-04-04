@@ -10,6 +10,8 @@ from app.db.base_class import Base
 
 
 class ArtifactType(str, enum.Enum):
+    SPEC = "spec"
+    PLAN = "plan"
     PLAN_SUMMARY = "plan_summary"
     ARCHITECTURE = "architecture"
     IMPLEMENTATION = "implementation"
@@ -75,6 +77,13 @@ class Artifact(Base):
         Enum(ChangeType, name="change_type"), nullable=True
     )
     target_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+    # FM-101/106: PLAN→SPEC linking
+    spec_artifact_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("artifacts.id", ondelete="SET NULL"),
+        nullable=True,
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

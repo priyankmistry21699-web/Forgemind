@@ -29,6 +29,7 @@ Each patch has a companion `.json` file with: patch_id, scope, author, status (p
 ## Tests
 
 4 tests in `TestLocalPatch`:
+
 - generate_and_list, preview_patch, apply_and_reject, patch_metadata_tracking
 
 ## Test Results

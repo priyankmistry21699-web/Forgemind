@@ -1,6 +1,8 @@
 /** Artifact types matching the backend ArtifactRead schema. */
 
 export type ArtifactType =
+  | "spec"
+  | "plan"
   | "plan_summary"
   | "architecture"
   | "implementation"
@@ -20,6 +22,7 @@ export interface Artifact {
   run_id: string | null;
   task_id: string | null;
   created_by: string | null;
+  spec_artifact_id: string | null;
   created_at: string;
   updated_at: string;
 }

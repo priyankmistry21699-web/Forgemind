@@ -8,7 +8,7 @@ Implemented local repository indexing that walks the file tree, classifies files
 
 ### Service (`apps/local/forgemind_local/repo_index.py` — 127 lines)
 
-- **`build_repo_index(repo_root)`** — walks tree, classifies 30+ file extensions, detects 6 entrypoint patterns and 11 build file patterns, prunes 15 ignored directories (node_modules, .git, __pycache__, etc.)
+- **`build_repo_index(repo_root)`** — walks tree, classifies 30+ file extensions, detects 6 entrypoint patterns and 11 build file patterns, prunes 15 ignored directories (node_modules, .git, **pycache**, etc.)
 - **`load_manifest(repo_root)`** — reads cached `repo_manifest.json`; returns None if missing
 - Manifest structure: `{files: [{path, language, lines, is_entrypoint, is_build_file}], summary: {total_files, languages, entrypoints, build_files}, indexed_at}`
 
@@ -19,6 +19,7 @@ Implemented local repository indexing that walks the file tree, classifies files
 ## Tests
 
 7 tests in `TestRepoIndex`:
+
 - build_index, entrypoints_detected, build_files_detected, ignore_dirs_skipped, load_manifest_missing, load_manifest_present, build_index_file_count
 
 ## Test Results

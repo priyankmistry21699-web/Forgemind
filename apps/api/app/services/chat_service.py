@@ -238,6 +238,29 @@ async def _build_next_step_suggestions(db: AsyncSession, run_id: uuid.UUID) -> s
 
 
 # ---------------------------------------------------------------------------
+# FM-102: Constitution context
+# ---------------------------------------------------------------------------
+
+
+async def _build_constitution_context(db: AsyncSession, run_id: uuid.UUID) -> str:
+    """Inject the project constitution into chat context if one exists."""
+    from app.models.run import Run
+    from sqlalchemy import select as sa_select
+
+    run_result = await db.execute(sa_select(Run).where(Run.id == run_id))
+    run = run_result.scalar_one_or_none()
+    if run is None:
+        return ""
+
+    from app.services import constitution_service
+
+    section = await constitution_service.get_constitution_for_prompt(
+        db, run.project_id
+    )
+    return section or ""
+
+
+# ---------------------------------------------------------------------------
 # Main chat function
 # ---------------------------------------------------------------------------
 
@@ -252,6 +275,11 @@ async def chat_about_run(
 
     # Build base context
     context = await _build_run_context(db, run_id)
+
+    # FM-102: Inject project constitution if available
+    constitution_ctx = await _build_constitution_context(db, run_id)
+    if constitution_ctx:
+        context = constitution_ctx + "\n\n" + context
 
     # Add topic-specific context
     extra_sections: list[str] = []

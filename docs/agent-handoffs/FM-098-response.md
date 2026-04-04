@@ -34,6 +34,7 @@ The sync queue stores events for future offline→online handoff, but **no sync 
 ## Tests
 
 9 tests in `TestLocalState`:
+
 - cache_put_and_get, cache_expired, cache_clear, queue_and_list, mark_synced_and_clear, mode_get_default, mode_set_and_get, mode_invalid_raises, is_online
 
 ## Test Results

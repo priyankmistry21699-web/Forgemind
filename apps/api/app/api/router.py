@@ -35,6 +35,7 @@ from app.api.routes.code_ops import router as code_ops_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.metrics import router as metrics_router
 from app.api.routes.architecture import router as architecture_router
+from app.api.routes.constitution import router as constitution_router
 
 api_router = APIRouter()
 
@@ -142,3 +143,6 @@ api_router.include_router(metrics_router, tags=["metrics"])
 
 # Architecture Intelligence (FM-081-090)
 api_router.include_router(architecture_router, tags=["architecture"])
+
+# Project Constitution (FM-102)
+api_router.include_router(constitution_router, tags=["constitution"])

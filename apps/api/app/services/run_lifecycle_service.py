@@ -5,6 +5,10 @@ FM-046: Monitors run health and manages lifecycle transitions:
 - Auto-complete runs when all tasks are done
 - Auto-fail runs when unrecoverable failures exist
 - Health check summaries for operator dashboards
+
+FM-101: Spec-driven lifecycle gating:
+- SPECIFYING phase must produce a SPEC artifact before PLANNING
+- PLANNING phase must produce a PLAN artifact before RUNNING
 """
 
 import uuid
@@ -17,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.run import Run, RunStatus
 from app.models.task import Task, TaskStatus
+from app.models.artifact import Artifact, ArtifactType
 from app.models.execution_event import EventType
 from app.services import event_service
 
@@ -28,6 +33,162 @@ logger = logging.getLogger(__name__)
 
 STUCK_RUN_THRESHOLD_MINUTES = 60  # No progress for 60 min = stuck
 AUTO_FAIL_EXHAUSTED_RETRIES = True  # Fail run if blocking tasks exhausted retries
+
+# FM-101: Valid lifecycle transitions
+VALID_TRANSITIONS: dict[RunStatus, set[RunStatus]] = {
+    RunStatus.PENDING: {RunStatus.SPECIFYING, RunStatus.FAILED},
+    RunStatus.SPECIFYING: {RunStatus.PLANNING, RunStatus.FAILED, RunStatus.PAUSED},
+    RunStatus.PLANNING: {RunStatus.RUNNING, RunStatus.FAILED, RunStatus.PAUSED},
+    RunStatus.RUNNING: {RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.PAUSED},
+    RunStatus.PAUSED: {RunStatus.SPECIFYING, RunStatus.PLANNING, RunStatus.RUNNING, RunStatus.FAILED},
+    RunStatus.COMPLETED: set(),
+    RunStatus.FAILED: {RunStatus.PENDING},  # allow restart
+}
+
+
+# ---------------------------------------------------------------------------
+# FM-101: Lifecycle gating helpers
+# ---------------------------------------------------------------------------
+
+
+async def has_spec_artifact(db: AsyncSession, *, run_id: uuid.UUID | None = None, project_id: uuid.UUID | None = None) -> bool:
+    """Check whether a SPEC artifact exists for the given run or project."""
+    query = select(Artifact.id).where(Artifact.artifact_type == ArtifactType.SPEC)
+    if run_id is not None:
+        query = query.where(Artifact.run_id == run_id)
+    elif project_id is not None:
+        query = query.where(Artifact.project_id == project_id)
+    else:
+        return False
+    result = await db.execute(query.limit(1))
+    return result.scalar_one_or_none() is not None
+
+
+async def has_plan_artifact(db: AsyncSession, *, run_id: uuid.UUID | None = None, project_id: uuid.UUID | None = None) -> bool:
+    """Check whether a PLAN artifact exists for the given run or project."""
+    query = select(Artifact.id).where(Artifact.artifact_type == ArtifactType.PLAN)
+    if run_id is not None:
+        query = query.where(Artifact.run_id == run_id)
+    elif project_id is not None:
+        query = query.where(Artifact.project_id == project_id)
+    else:
+        return False
+    result = await db.execute(query.limit(1))
+    return result.scalar_one_or_none() is not None
+
+
+async def validate_transition(
+    db: AsyncSession,
+    run_id: uuid.UUID,
+    target_status: RunStatus,
+) -> dict[str, Any]:
+    """Validate whether a run lifecycle transition is allowed.
+
+    Enforces:
+      - SPECIFYING → PLANNING requires a SPEC artifact
+      - PLANNING → RUNNING requires a PLAN artifact
+    """
+    run_result = await db.execute(select(Run).where(Run.id == run_id))
+    run = run_result.scalar_one_or_none()
+    if run is None:
+        return {"allowed": False, "reason": "Run not found"}
+
+    current = run.status
+
+    if target_status not in VALID_TRANSITIONS.get(current, set()):
+        return {
+            "allowed": False,
+            "reason": f"Transition from {current.value} to {target_status.value} is not allowed",
+        }
+
+    # Gate: SPECIFYING → PLANNING requires SPEC
+    if current == RunStatus.SPECIFYING and target_status == RunStatus.PLANNING:
+        if not await has_spec_artifact(db, run_id=run_id):
+            return {
+                "allowed": False,
+                "reason": "Cannot transition to PLANNING without a SPEC artifact",
+            }
+        # FM-109: Check SPEC approval if an approval was requested
+        from app.services import spec_plan_approval_service
+
+        if not await spec_plan_approval_service.is_spec_approved(db, run_id):
+            return {
+                "allowed": False,
+                "reason": "SPEC artifact has a pending or rejected approval. Approve the SPEC first.",
+            }
+
+    # Gate: PLANNING → RUNNING requires PLAN
+    if current == RunStatus.PLANNING and target_status == RunStatus.RUNNING:
+        if not await has_plan_artifact(db, run_id=run_id):
+            return {
+                "allowed": False,
+                "reason": "Cannot transition to RUNNING without a PLAN artifact",
+            }
+        # FM-109: Check PLAN approval if an approval was requested
+        from app.services import spec_plan_approval_service
+
+        if not await spec_plan_approval_service.is_plan_approved(db, run_id):
+            return {
+                "allowed": False,
+                "reason": "PLAN artifact has a pending or rejected approval. Approve the PLAN first.",
+            }
+        # FM-108: Spec-to-plan validation gate
+        from app.services import spec_plan_validation_service
+
+        validation_result = await spec_plan_validation_service.validate_spec_plan(
+            db, run_id
+        )
+        if not validation_result.valid:
+            error_msgs = [
+                i.message for i in validation_result.issues if i.severity == "error"
+            ]
+            return {
+                "allowed": False,
+                "reason": "PLAN does not pass spec-to-plan validation: "
+                + "; ".join(error_msgs),
+                "validation": validation_result.to_dict(),
+            }
+
+    return {"allowed": True, "reason": "Transition allowed"}
+
+
+async def transition_run(
+    db: AsyncSession,
+    run_id: uuid.UUID,
+    target_status: RunStatus,
+) -> dict[str, Any]:
+    """Attempt to transition a run to a new lifecycle status with gating."""
+    validation = await validate_transition(db, run_id, target_status)
+    if not validation["allowed"]:
+        return {"transitioned": False, **validation}
+
+    run_result = await db.execute(select(Run).where(Run.id == run_id))
+    run = run_result.scalar_one_or_none()
+    if run is None:
+        return {"transitioned": False, "reason": "Run not found"}
+
+    old_status = run.status
+    run.status = target_status
+    await db.flush()
+
+    await event_service.emit_event(
+        db,
+        event_type=EventType.RUN_STARTED if target_status == RunStatus.RUNNING else EventType.TASK_STARTED,
+        summary=f"Run #{run.run_number} transitioned {old_status.value} → {target_status.value}",
+        project_id=run.project_id,
+        run_id=run.id,
+        metadata={
+            "action": "lifecycle_transition",
+            "from_status": old_status.value,
+            "to_status": target_status.value,
+        },
+    )
+
+    return {
+        "transitioned": True,
+        "from_status": old_status.value,
+        "to_status": target_status.value,
+    }
 
 
 class RunHealth:
@@ -311,7 +472,7 @@ async def scan_all_runs_health(
     """
     result = await db.execute(
         select(Run).where(
-            Run.status.in_([RunStatus.RUNNING, RunStatus.PLANNING, RunStatus.PAUSED])
+            Run.status.in_([RunStatus.RUNNING, RunStatus.PLANNING, RunStatus.PAUSED, RunStatus.SPECIFYING])
         )
     )
     active_runs = list(result.scalars().all())

@@ -746,18 +746,18 @@ apps/local/
 - **Sync queue** — stores events for future offline→online bridge (consumer not yet implemented)
 - **Non-destructive import** — snapshot import won't overwrite existing config
 
-| ID     | Feature                            | Description                                                                         | Status      |
-| ------ | ---------------------------------- | ----------------------------------------------------------------------------------- | ----------- |
-| FM-091 | Local Foundation & Config          | LocalConfig dataclass, YAML I/O, detect_repo_root, .forgemind/ directory structure  | ✅ Complete |
-| FM-092 | Repo Indexing & Manifest           | File tree walk, 30+ language extensions, entrypoint/build-file detection, JSON cache | ✅ Complete |
-| FM-093 | Local Chat Over Codebase           | Keyword search over manifest, file snippets, optional LiteLLM, offline fallback     | ✅ Complete |
-| FM-094 | Local Execution Sandbox            | 16 blocked patterns, 35 safe prefixes, 3 policies, subprocess timeout, JSON logs    | ✅ Complete |
-| FM-095 | Patch Generation & Management      | Git diff patches, metadata tracking, apply with --check, reject workflow             | ✅ Complete |
-| FM-096 | PR Preparation                     | Git diff analysis, 11 subsystem categories, risk detection, dynamic checklist        | ✅ Complete |
-| FM-097 | IDE Integration                    | VS Code tasks.json with 10 ForgeMind tasks, idempotent merge                        | ✅ Complete |
-| FM-098 | State Management & Sync Queue      | TTL cache, offline event queue, mode management (offline/hybrid/remote)              | ✅ Complete |
-| FM-099 | Handoff Snapshots                  | Export/import zip bundles, non-destructive import, bundle inspection                 | ✅ Complete |
-| FM-100 | Hardening, Tests & Documentation   | 53 tests, 9 test classes, documentation across all tracking files                    | ✅ Complete |
+| ID     | Feature                          | Description                                                                          | Status      |
+| ------ | -------------------------------- | ------------------------------------------------------------------------------------ | ----------- |
+| FM-091 | Local Foundation & Config        | LocalConfig dataclass, YAML I/O, detect_repo_root, .forgemind/ directory structure   | ✅ Complete |
+| FM-092 | Repo Indexing & Manifest         | File tree walk, 30+ language extensions, entrypoint/build-file detection, JSON cache | ✅ Complete |
+| FM-093 | Local Chat Over Codebase         | Keyword search over manifest, file snippets, optional LiteLLM, offline fallback      | ✅ Complete |
+| FM-094 | Local Execution Sandbox          | 16 blocked patterns, 35 safe prefixes, 3 policies, subprocess timeout, JSON logs     | ✅ Complete |
+| FM-095 | Patch Generation & Management    | Git diff patches, metadata tracking, apply with --check, reject workflow             | ✅ Complete |
+| FM-096 | PR Preparation                   | Git diff analysis, 11 subsystem categories, risk detection, dynamic checklist        | ✅ Complete |
+| FM-097 | IDE Integration                  | VS Code tasks.json with 10 ForgeMind tasks, idempotent merge                         | ✅ Complete |
+| FM-098 | State Management & Sync Queue    | TTL cache, offline event queue, mode management (offline/hybrid/remote)              | ✅ Complete |
+| FM-099 | Handoff Snapshots                | Export/import zip bundles, non-destructive import, bundle inspection                 | ✅ Complete |
+| FM-100 | Hardening, Tests & Documentation | 53 tests, 9 test classes, documentation across all tracking files                    | ✅ Complete |
 
 > **All 100 tasks across 22 milestones are complete. 535 tests passing.**
 

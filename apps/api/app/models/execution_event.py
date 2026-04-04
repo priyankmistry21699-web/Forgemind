@@ -15,6 +15,7 @@ class EventType(str, enum.Enum):
     TASK_CLAIMED = "task_claimed"
     TASK_COMPLETED = "task_completed"
     TASK_FAILED = "task_failed"
+    TASK_STARTED = "task_started"
     ARTIFACT_CREATED = "artifact_created"
     APPROVAL_REQUESTED = "approval_requested"
     APPROVAL_RESOLVED = "approval_resolved"
@@ -22,6 +23,11 @@ class EventType(str, enum.Enum):
     RUN_COMPLETED = "run_completed"
     RUN_FAILED = "run_failed"
     PLAN_GENERATED = "plan_generated"
+    # FM-101/103: Spec-driven lifecycle events
+    CONSTITUTION_UPDATED = "constitution_updated"
+    SPEC_CREATED = "spec_created"
+    PLAN_CREATED = "plan_created"
+    LIFECYCLE_TRANSITION = "lifecycle_transition"
 
 
 class ExecutionEvent(Base):

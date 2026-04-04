@@ -31,6 +31,8 @@ async def create_artifact(
         target_module=data.target_module,
         change_type=data.change_type,
         target_metadata=data.target_metadata,
+        # FM-101/106: PLAN→SPEC linking
+        spec_artifact_id=data.spec_artifact_id,
     )
     db.add(artifact)
     await db.flush()

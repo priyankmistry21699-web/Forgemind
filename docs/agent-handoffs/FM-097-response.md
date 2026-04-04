@@ -28,6 +28,7 @@ Implemented VS Code integration via `tasks.json` generation. Creates 10 ForgeMin
 ## Tests
 
 2 tests in `TestIDEIntegration`:
+
 - setup_editor_creates_tasks, setup_editor_idempotent
 
 ## Test Results

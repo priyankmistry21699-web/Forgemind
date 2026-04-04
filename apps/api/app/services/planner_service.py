@@ -2,15 +2,19 @@
 
 Attempts to call an LLM via LiteLLM to generate a real planning result.
 Falls back to stub data if the LLM call fails or no API key is configured.
+
+FM-101: Spec-aware planning — checks for SPEC artifact before planning.
 """
 
 import logging
 import uuid
 from typing import Any
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.llm import llm_json_completion
+from app.models.artifact import Artifact, ArtifactType
 from app.models.project import Project, ProjectStatus
 from app.models.run import Run, RunStatus
 from app.models.task import Task, TaskStatus
@@ -269,10 +273,18 @@ def _build_stub_plan(prompt: str) -> dict[str, Any]:
 # -------------------------------------------------------------------
 
 
-async def _generate_plan(prompt: str) -> dict[str, Any]:
-    """Attempt LLM planning, normalize the output, fall back to stub on failure."""
+async def _generate_plan(prompt: str, constitution_section: str | None = None) -> dict[str, Any]:
+    """Attempt LLM planning, normalize the output, fall back to stub on failure.
+
+    FM-102: If a constitution_section is provided, it is prepended to the prompt
+    so the LLM respects project-level constraints.
+    """
+    effective_prompt = prompt
+    if constitution_section:
+        effective_prompt = f"{constitution_section}\n\n{prompt}"
+
     raw = await llm_json_completion(
-        prompt,
+        effective_prompt,
         system=PLANNER_SYSTEM_PROMPT,
     )
 
@@ -308,10 +320,18 @@ async def plan_from_prompt(
 
     Calls the LLM planner when available, otherwise uses stub data.
     Returns the created (project, run, tasks, planner_result) tuple.
+
+    FM-101: Runs now start in SPECIFYING state. The planner auto-creates a
+    SPEC artifact and transitions the run to PLANNING before generating tasks.
     """
 
+    # FM-102: Check for existing project constitution for prompt injection
+    constitution_section: str | None = None
+    # (Constitution injection is handled in plan_for_existing_project; for new
+    #  projects there is no constitution yet, so we pass None.)
+
     # 0. Generate the plan (LLM with normalization, or stub)
-    plan = await _generate_plan(prompt)
+    plan = await _generate_plan(prompt, constitution_section=constitution_section)
 
     # 1. Create the project
     name = project_name or plan.get("project_name") or prompt[:80].strip()
@@ -324,17 +344,35 @@ async def plan_from_prompt(
     db.add(project)
     await db.flush()
 
-    # 2. Create the first run
+    # 2. Create the first run — starts in SPECIFYING (FM-101)
     run = Run(
         run_number=1,
-        status=RunStatus.PLANNING,
+        status=RunStatus.SPECIFYING,
         trigger="prompt",
         project_id=project.id,
     )
     db.add(run)
     await db.flush()
 
-    # 3. Create tasks from plan phases (already normalized)
+    # 3. FM-101: Auto-create SPEC artifact from the prompt
+    spec_content = _build_spec_content(prompt, plan)
+    spec_artifact = Artifact(
+        title=f"SPEC: {name}",
+        artifact_type=ArtifactType.SPEC,
+        content=spec_content,
+        project_id=project.id,
+        run_id=run.id,
+        created_by="planner",
+        meta={"auto_generated": True, "source": "plan_from_prompt"},
+    )
+    db.add(spec_artifact)
+    await db.flush()
+
+    # 4. Transition run to PLANNING now that SPEC exists
+    run.status = RunStatus.PLANNING
+    await db.flush()
+
+    # 5. Create tasks from plan phases (already normalized)
     phases = plan.get("phases", [])
     if not phases:
         phases = _build_stub_plan(prompt)["phases"]
@@ -368,10 +406,10 @@ async def plan_from_prompt(
     await db.flush()
 
     # Refresh all to pick up server defaults
-    for obj in [project, run, *tasks]:
+    for obj in [project, run, spec_artifact, *tasks]:
         await db.refresh(obj)
 
-    # 4. Create planner result (data is already normalized/coerced)
+    # 6. Create planner result (data is already normalized/coerced)
     planner_result = PlannerResult(
         run_id=run.id,
         overview=plan.get("overview"),
@@ -385,3 +423,41 @@ async def plan_from_prompt(
     await db.refresh(planner_result)
 
     return project, run, tasks, planner_result
+
+
+def _build_spec_content(prompt: str, plan: dict[str, Any]) -> str:
+    """Build structured SPEC markdown content from a prompt and plan data."""
+    sections = [
+        "# Specification",
+        "",
+        "## Problem / Objective",
+        prompt,
+        "",
+        "## Scope",
+        plan.get("overview") or "To be determined.",
+        "",
+        "## Constraints",
+        "- None specified",
+        "",
+        "## Assumptions",
+    ]
+    assumptions = plan.get("assumptions", [])
+    if assumptions:
+        for a in assumptions:
+            sections.append(f"- {a}")
+    else:
+        sections.append("- None specified")
+
+    sections.extend([
+        "",
+        "## Acceptance Criteria",
+        "- All planned phases complete successfully",
+        "- All review checkpoints pass",
+        "",
+        "## Risks / Unknowns",
+        "- Dependent on LLM availability for planning quality",
+        "",
+        "## Architecture Summary",
+        plan.get("architecture_summary") or "To be determined.",
+    ])
+    return "\n".join(sections)

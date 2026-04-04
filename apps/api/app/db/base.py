@@ -28,6 +28,7 @@ from app.models.trust_score import TrustScore  # noqa: F401
 from app.models.replay_snapshot import ReplaySnapshot  # noqa: F401
 from app.models.council import CouncilSession, CouncilVote  # noqa: F401
 from app.models.project_knowledge import ProjectKnowledge  # noqa: F401
+from app.models.project_constitution import ProjectConstitution  # noqa: F401
 from app.models.repo_connection import RepoConnection  # noqa: F401
 from app.models.workspace import Workspace  # noqa: F401
 from app.models.membership import WorkspaceMember, ProjectMember  # noqa: F401

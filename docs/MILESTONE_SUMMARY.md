@@ -487,18 +487,18 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 
 ## FM-091 to FM-100 — ✅ COMPLETE
 
-| ID     | Feature                            | Status      |
-| ------ | ---------------------------------- | ----------- |
-| FM-091 | Local Foundation & Config          | ✅ Complete |
-| FM-092 | Repo Indexing & Manifest           | ✅ Complete |
-| FM-093 | Local Chat Over Codebase           | ✅ Complete |
-| FM-094 | Local Execution Sandbox            | ✅ Complete |
-| FM-095 | Patch Generation & Management      | ✅ Complete |
-| FM-096 | PR Preparation                     | ✅ Complete |
-| FM-097 | IDE Integration                    | ✅ Complete |
-| FM-098 | State Management & Sync Queue      | ✅ Complete |
-| FM-099 | Handoff Snapshots                  | ✅ Complete |
-| FM-100 | Hardening, Tests & Documentation   | ✅ Complete |
+| ID     | Feature                          | Status      |
+| ------ | -------------------------------- | ----------- |
+| FM-091 | Local Foundation & Config        | ✅ Complete |
+| FM-092 | Repo Indexing & Manifest         | ✅ Complete |
+| FM-093 | Local Chat Over Codebase         | ✅ Complete |
+| FM-094 | Local Execution Sandbox          | ✅ Complete |
+| FM-095 | Patch Generation & Management    | ✅ Complete |
+| FM-096 | PR Preparation                   | ✅ Complete |
+| FM-097 | IDE Integration                  | ✅ Complete |
+| FM-098 | State Management & Sync Queue    | ✅ Complete |
+| FM-099 | Handoff Snapshots                | ✅ Complete |
+| FM-100 | Hardening, Tests & Documentation | ✅ Complete |
 
 > **ForgeMind now spans 100 features across 22 milestones — a structurally self-aware AI execution platform with graph-based architecture intelligence and a standalone developer workstation companion. 535 tests passing.**
 

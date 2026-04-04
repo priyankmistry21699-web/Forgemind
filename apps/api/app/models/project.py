@@ -61,6 +61,10 @@ class Project(Base):
     artifacts: Mapped[list["Artifact"]] = relationship(  # noqa: F821
         back_populates="project", cascade="all, delete-orphan"
     )
+    # FM-102: Project constitution
+    constitution: Mapped["ProjectConstitution | None"] = relationship(  # noqa: F821
+        back_populates="project", cascade="all, delete-orphan", uselist=False
+    )
 
     def __repr__(self) -> str:
         return f"<Project {self.name} ({self.status.value})>"

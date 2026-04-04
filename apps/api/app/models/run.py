@@ -11,6 +11,7 @@ from app.db.base_class import Base
 
 class RunStatus(str, enum.Enum):
     PENDING = "pending"
+    SPECIFYING = "specifying"
     PLANNING = "planning"
     RUNNING = "running"
     PAUSED = "paused"

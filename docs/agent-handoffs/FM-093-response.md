@@ -28,6 +28,7 @@ Implemented local codebase Q&A that answers developer questions using the repo i
 ## Tests
 
 3 tests in `TestLocalChat`:
+
 - answer_question_returns_dict, answer_without_index_falls_back, answer_with_matching_files
 
 ## Test Results

@@ -38,6 +38,7 @@ Implemented export/import of workspace snapshot bundles for team handoff and mac
 ## Tests
 
 5 tests in `TestLocalHandoff`:
+
 - export_creates_zip, export_import_roundtrip, inspect_bundle, import_missing_raises, import_does_not_overwrite_existing_config
 
 ## Test Results

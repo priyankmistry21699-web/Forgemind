@@ -34,6 +34,7 @@ Implemented bounded local command execution with safety controls. Provides three
 ## Tests
 
 7 tests in `TestLocalExec`:
+
 - blocked_command, safe_command_allowed, unsafe_command_blocked_under_safe, permissive_allows_more, locked_blocks_everything, run_logging, fork_bomb_blocked
 
 ## Test Results

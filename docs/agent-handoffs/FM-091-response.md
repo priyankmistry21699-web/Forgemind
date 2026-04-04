@@ -27,6 +27,7 @@ Implemented the foundation for ForgeMind Local — a standalone developer workst
 ## Tests
 
 7 tests in `TestConfig`:
+
 - default_config_fields, save_and_load_roundtrip, load_missing_returns_none, ensure_directories, detect_repo_root (positive + negative), to_dict_and_from_dict
 
 ## Test Results

@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import PlainTextResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user_id
@@ -11,7 +12,7 @@ from app.schemas.artifact import (
     ArtifactList,
     ArtifactUpdate,
 )
-from app.services import artifact_service
+from app.services import artifact_service, plan_artifact_service
 
 router = APIRouter()
 
@@ -89,3 +90,36 @@ async def delete_artifact(
     """Delete an artifact."""
     await artifact_service.delete_artifact(db, artifact_id)
     await db.commit()
+
+
+# FM-106: PLAN export endpoint
+@router.get("/runs/{run_id}/plan/export")
+async def export_plan(
+    run_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Export the PLAN (with linked SPEC) as markdown or JSON metadata."""
+    data = await plan_artifact_service.get_plan_export_data(db, run_id)
+    return data
+
+
+@router.get("/runs/{run_id}/plan/export/markdown")
+async def export_plan_markdown(
+    run_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Download the PLAN as a markdown file."""
+    md = await plan_artifact_service.export_plan_markdown(db, run_id)
+    if md is None:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=404, detail="No PLAN artifact found")
+    return PlainTextResponse(
+        content=md,
+        media_type="text/markdown",
+        headers={
+            "Content-Disposition": f'attachment; filename="plan-{run_id}.md"'
+        },
+    )

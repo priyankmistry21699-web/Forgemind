@@ -11,6 +11,7 @@ export * from "./architecture";
 export * from "./artifact";
 export * from "./audit";
 export * from "./connector";
+export * from "./constitution";
 export * from "./cost";
 export * from "./council";
 export * from "./escalation";

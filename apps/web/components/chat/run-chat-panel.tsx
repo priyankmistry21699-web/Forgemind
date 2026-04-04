@@ -92,6 +92,10 @@ export function RunChatPanel({ runId }: RunChatPanelProps) {
                 "What failed?",
                 "Any pending approvals?",
                 "Summarize this run",
+                "/fm.specify",
+                "/fm.plan",
+                "/fm.tasks",
+                "/fm.implement",
               ].map((suggestion) => (
                 <button
                   key={suggestion}

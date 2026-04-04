@@ -29,6 +29,7 @@ Implemented automated PR material generation from git diff — produces structur
 ## Tests
 
 1 test in `TestLocalPR`:
+
 - prepare_pr (verifies dict structure, markdown content, subsystem classification)
 
 ## Test Results
