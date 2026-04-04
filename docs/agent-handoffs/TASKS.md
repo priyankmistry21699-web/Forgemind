@@ -184,6 +184,19 @@
 - ✅ FM-089 Architecture approval workflow (auto-approval for HIGH/CRITICAL impacts, architecture approval listing)
 - ✅ FM-090 Structural health score (composite 0–100 score, coverage/drift/compliance/isolation breakdown)
 
+### Milestone 22 — ForgeMind Local: Developer Workstation Mode (FM-091 to FM-100)
+
+- ✅ FM-091 Local foundation & config (LocalConfig dataclass, YAML I/O, detect_repo_root, ensure_directories, CLI init/status)
+- ✅ FM-092 Repo indexing & manifest (file tree walk, 30+ language extensions, entrypoint/build-file detection, cached JSON manifest)
+- ✅ FM-093 Local chat over codebase (keyword search, file snippet reading, optional LiteLLM, offline rule-based fallback)
+- ✅ FM-094 Local execution sandbox (16 blocked patterns, 35 safe prefixes, 3 policies, subprocess timeout, JSON run logging)
+- ✅ FM-095 Patch generation & management (git diff patches, metadata tracking, apply with --check, reject workflow)
+- ✅ FM-096 PR preparation (git diff analysis, 11 subsystem categories, risk detection, dynamic checklist, markdown output)
+- ✅ FM-097 IDE integration (VS Code tasks.json generation, 10 tasks + 2 input prompts, idempotent merge)
+- ✅ FM-098 State management & sync queue (TTL cache, offline event queue, mode management: offline/hybrid/remote)
+- ✅ FM-099 Handoff snapshots (export/import zip bundles, non-destructive import, bundle inspection)
+- ✅ FM-100 Hardening, tests & documentation (53 tests, 9 test classes, response files, tracking doc updates)
+
 ## Blocked
 
 - (none)

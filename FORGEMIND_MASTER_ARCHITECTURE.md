@@ -783,6 +783,21 @@ ForgeMind depends on:
 9. refactor recommendations surface structural issues
 10. structural health score aggregates quality indicators (0–100)
 
+### H. ForgeMind Local — Developer Workstation Flow
+
+1. `forgemind init` creates `.forgemind/` workspace in any git repo
+2. `forgemind attach` walks repo tree, classifies files (30+ languages), caches JSON manifest
+3. `forgemind ask "question"` searches manifest by keywords, reads file snippets, optionally queries LLM
+4. `forgemind exec "command"` runs bounded local command (safe/permissive/locked policy, 16 blocked patterns)
+5. `forgemind patch generate` creates `.patch` + `.json` metadata from `git diff`
+6. `forgemind patch apply <id>` validates with `git apply --check`, then applies
+7. `forgemind pr prepare` generates PR description, risk analysis, test checklist from diff
+8. `forgemind ide setup` generates VS Code `tasks.json` with 10 ForgeMind tasks
+9. `forgemind snapshot export` bundles workspace state to timestamped zip
+10. `forgemind snapshot import <path>` restores bundle non-destructively
+
+> **Note:** ForgeMind Local operates entirely offline from `.forgemind/` per repo. The sync queue (`local_state.py`) stores events for future offline→online handoff but the sync consumer is not yet implemented.
+
 ---
 
 ## File/Folder Role Map
@@ -808,9 +823,23 @@ ForgeMind depends on:
 - `apps/worker/worker/main.py` — execution loop
 - `apps/worker/worker/agents/...` — agent implementations
 
+### ForgeMind Local (standalone CLI)
+
+- `apps/local/forgemind_local/config.py` — workspace config & directory management
+- `apps/local/forgemind_local/cli.py` — Click CLI entry-point (20+ commands)
+- `apps/local/forgemind_local/repo_index.py` — file tree scanning & manifest
+- `apps/local/forgemind_local/local_chat.py` — keyword search + optional LLM chat
+- `apps/local/forgemind_local/local_exec.py` — bounded command execution
+- `apps/local/forgemind_local/local_patch.py` — git patch generation & management
+- `apps/local/forgemind_local/local_pr.py` — PR preparation from git diff
+- `apps/local/forgemind_local/ide_integration.py` — VS Code tasks.json generation
+- `apps/local/forgemind_local/local_state.py` — cache, sync queue, mode management
+- `apps/local/forgemind_local/local_handoff.py` — export/import snapshot bundles
+
 ### Tests
 
-- `apps/api/tests/...` — API/service/integration tests
+- `apps/api/tests/...` — API/service/integration tests (482 tests)
+- `apps/local/tests/...` — ForgeMind Local tests (53 tests)
 - `apps/api/evals/...` — eval/quality benchmarks
 
 ### Docs
@@ -824,6 +853,6 @@ ForgeMind depends on:
 
 ## What ForgeMind Is, In One Sentence
 
-ForgeMind is a **workspace-aware, approval-governed, multi-agent AI execution platform** that can plan projects, orchestrate execution, manage human approvals, maintain operational memory, collaborate across teams, integrate with repositories, generate code-change proposals, review them, validate them in a controlled sandbox, and analyze its own architecture for structural health, drift, and compliance.
+ForgeMind is a **workspace-aware, approval-governed, multi-agent AI execution platform** that can plan projects, orchestrate execution, manage human approvals, maintain operational memory, collaborate across teams, integrate with repositories, generate code-change proposals, review them, validate them in a controlled sandbox, analyze its own architecture for structural health, drift, and compliance — and provide a **standalone developer workstation CLI** for offline repo intelligence, bounded execution, patch management, PR preparation, and team handoff.
 
 ---

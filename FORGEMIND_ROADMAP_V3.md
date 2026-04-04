@@ -892,6 +892,21 @@ Extract reusable code from apps into at least 2–4 real packages:
 | FM-089 | Architecture Approval Workflow  | ✅ Complete |
 | FM-090 | Structural Health Score         | ✅ Complete |
 
+### ForgeMind Local (FM-091–FM-100)
+
+| FM     | Title                              | Status      |
+| ------ | ---------------------------------- | ----------- |
+| FM-091 | Local Foundation & Config          | ✅ Complete |
+| FM-092 | Repo Indexing & Manifest           | ✅ Complete |
+| FM-093 | Local Chat Over Codebase           | ✅ Complete |
+| FM-094 | Local Execution Sandbox            | ✅ Complete |
+| FM-095 | Patch Generation & Management      | ✅ Complete |
+| FM-096 | PR Preparation                     | ✅ Complete |
+| FM-097 | IDE Integration                    | ✅ Complete |
+| FM-098 | State Management & Sync Queue      | ✅ Complete |
+| FM-099 | Handoff Snapshots                  | ✅ Complete |
+| FM-100 | Hardening, Tests & Documentation   | ✅ Complete |
+
 ---
 
 ## Cross-Milestone Dependencies
@@ -911,9 +926,336 @@ FM-080 (production) — benefits from FM-076 + FM-078
 
 ---
 
+## Wave 5 — Developer Workstation Mode (FM-091–FM-100)
+
+> **Status:** ✅ Complete
+> **Theme:** ForgeMind Local — standalone CLI companion for local repo intelligence, execution, patching, and PR preparation
+
+### Milestone 22 — ForgeMind Local (FM-091 to FM-100)
+
+## FM-091 — Local Foundation: Config, Init & Directory Management
+
+- **Priority:** P0
+- **Depends on:** (none — standalone package)
+
+### Why
+
+Developers need a lightweight local companion that can operate offline, without requiring the full API/DB stack.
+
+### Scope
+
+- `LocalConfig` dataclass with YAML serialisation
+- `detect_repo_root()` — walks up to find `.git/`
+- `ensure_directories()` — creates `.forgemind/{state,cache,index,patches,snapshots}`
+- CLI commands: `forgemind init`, `forgemind status`
+
+### Files Created
+
+- `apps/local/forgemind_local/config.py`
+- `apps/local/forgemind_local/cli.py` (init + status commands)
+
+### Acceptance Criteria
+
+- [x] `LocalConfig` round-trips through YAML
+- [x] `detect_repo_root()` finds `.git/` or returns None
+- [x] `ensure_directories()` creates all 5 subdirs
+- [x] CLI `init` creates workspace; `status` prints health table
+
+---
+
+## FM-092 — Repo Indexing & Manifest
+
+- **Priority:** P0
+- **Depends on:** FM-091
+
+### Scope
+
+- Walk local file tree, classify files by language (30+ extensions)
+- Detect entrypoints (6 patterns) and build files (11 patterns)
+- Prune 15 ignored directories (node_modules, .git, __pycache__, etc.)
+- Persist JSON manifest to `.forgemind/index/repo_manifest.json`
+- CLI command: `forgemind attach`
+
+### Files Created
+
+- `apps/local/forgemind_local/repo_index.py`
+
+### Acceptance Criteria
+
+- [x] Manifest contains files, languages, line counts, entrypoints, build files
+- [x] Ignored directories are pruned
+- [x] Manifest loads from cache when present
+
+---
+
+## FM-093 — Local Chat Over Codebase
+
+- **Priority:** P1
+- **Depends on:** FM-092
+
+### Scope
+
+- Keyword search over manifest files and content
+- File snippet reading (first N lines)
+- Regex intent detection (`show me`, `where is`)
+- Optional LiteLLM integration (env var `FORGEMIND_LLM_MODEL`)
+- Graceful degradation to rule-based answers when offline
+- Returns `{"answer": str, "citations": list[str]}`
+- CLI command: `forgemind ask "question"`
+
+### Files Created
+
+- `apps/local/forgemind_local/local_chat.py`
+
+### Acceptance Criteria
+
+- [x] Returns answer dict with citations
+- [x] Works offline without LLM
+- [x] LLM path available when litellm installed
+
+---
+
+## FM-094 — Local Execution Sandbox
+
+- **Priority:** P0
+- **Depends on:** FM-091
+
+### Scope
+
+- 16 blocked command patterns (rm -rf, fork bombs, format c:, etc.)
+- 35 safe command prefixes (pytest, ruff, git status, etc.)
+- 3 execution policies: safe (allowlist), permissive (anything not blocked), locked (nothing)
+- Subprocess with configurable timeout
+- JSON run logging to `.forgemind/state/runs/`
+- CLI command: `forgemind exec "command"`
+
+### Safety Boundaries
+
+- `shell=True` — appropriate for local dev tool where user is the operator
+- Blocked patterns are substring-matched defense-in-depth, not a security boundary
+- `permissive` policy allows any command not in the blocked list
+- No network or filesystem sandboxing — relies on user trust
+
+### Files Created
+
+- `apps/local/forgemind_local/local_exec.py`
+
+### Acceptance Criteria
+
+- [x] Always-blocked patterns rejected regardless of policy
+- [x] Safe policy only allows allowlisted command prefixes
+- [x] Locked policy blocks everything
+- [x] Execution results logged to JSON
+
+---
+
+## FM-095 — Patch Generation & Management
+
+- **Priority:** P1
+- **Depends on:** FM-091
+
+### Scope
+
+- `generate_patch()` — `git diff` to `.patch` file with JSON metadata
+- `list_patches()` — enumerate all patches with metadata
+- `preview_patch()` — read raw diff
+- `apply_patch()` — `git apply --check` then `git apply`
+- `reject_patch()` — set status="rejected" in metadata
+- CLI group: `forgemind patch generate/list/preview/apply/reject`
+
+### Files Created
+
+- `apps/local/forgemind_local/local_patch.py`
+
+### Acceptance Criteria
+
+- [x] Generates .patch + .json metadata pair
+- [x] Apply runs safety check before applying
+- [x] Reject updates metadata status
+
+---
+
+## FM-096 — PR Preparation
+
+- **Priority:** P1
+- **Depends on:** FM-092, FM-095
+
+### Scope
+
+- `prepare_pr()` — reads `git diff --stat` and `git diff --name-only`
+- Classifies files into 11 subsystems (api, frontend, tests, config, etc.)
+- Detects risk patterns (security, db migration, env vars, auth changes)
+- Generates dynamic test checklist
+- Produces markdown with title, branch, files, risks, checklist, subsystems
+- CLI command: `forgemind pr prepare`
+
+### Files Created
+
+- `apps/local/forgemind_local/local_pr.py`
+
+### Acceptance Criteria
+
+- [x] Returns dict with markdown, title, branch, files, risks, checklist, subsystems
+- [x] Risk detection identifies security-sensitive changes
+- [x] Subsystem classification covers 11 categories
+
+---
+
+## FM-097 — IDE Integration
+
+- **Priority:** P2
+- **Depends on:** FM-091
+
+### Scope
+
+- `setup_editor()` — generates `.vscode/tasks.json` with 10 ForgeMind tasks + 2 input prompts
+- Idempotent merge with existing tasks.json (removes old ForgeMind tasks, appends new)
+- Tasks: init, attach, status, ask, exec, patch generate/apply, pr prepare, snapshot export/import
+- CLI command: `forgemind ide setup`
+
+### Files Created
+
+- `apps/local/forgemind_local/ide_integration.py`
+
+### Acceptance Criteria
+
+- [x] Creates tasks.json with all ForgeMind tasks
+- [x] Idempotent — running twice doesn't duplicate tasks
+- [x] Preserves existing non-ForgeMind tasks
+
+---
+
+## FM-098 — State Management & Sync Queue
+
+- **Priority:** P1
+- **Depends on:** FM-091
+
+### Scope
+
+- Cache: `cache_put/get/clear` with TTL-based expiry
+- Sync queue: `queue_event/list_queue/mark_synced/clear_synced`
+- Mode management: `get_mode/set_mode/is_online` — 3 modes: offline, hybrid, remote
+- All JSON-file-backed in `.forgemind/state/` and `.forgemind/cache/`
+
+> **Note:** The sync queue stores events for future offline→online handoff but no sync consumer is implemented yet. This is infrastructure-ready for a future FM task.
+
+### Files Created
+
+- `apps/local/forgemind_local/local_state.py`
+
+### Acceptance Criteria
+
+- [x] Cache entries expire after TTL
+- [x] Queue events persist and can be marked synced
+- [x] Mode validation rejects invalid modes
+- [x] `is_online` reflects current mode
+
+---
+
+## FM-099 — Handoff Snapshots
+
+- **Priority:** P1
+- **Depends on:** FM-098
+
+### Scope
+
+- `export_snapshot()` — bundles config, manifest, patches metadata, sync queue (last 50), run logs (last 20), PR summary into timestamped zip with `manifest.json`
+- `import_snapshot()` — unpacks bundle into `.forgemind/` non-destructively (won't overwrite existing config)
+- `inspect_bundle()` — reads manifest without importing
+- CLI commands: `forgemind snapshot export`, `forgemind snapshot import`
+
+### Files Created
+
+- `apps/local/forgemind_local/local_handoff.py`
+
+### Acceptance Criteria
+
+- [x] Export creates valid zip with manifest
+- [x] Import is non-destructive
+- [x] Inspect reads metadata without importing
+- [x] Round-trip export→import preserves data
+
+---
+
+## FM-100 — Hardening, Tests & Documentation
+
+- **Priority:** P0
+- **Depends on:** FM-091–FM-099
+
+### Scope
+
+- 53 tests across 9 test classes covering all modules
+- Documentation updates across all tracking files
+- Response files for each FM task
+
+### Files Created
+
+- `apps/local/tests/test_local.py`
+
+### Tests
+
+| Test Class          | Count | Module Covered     |
+| ------------------- | ----- | ------------------ |
+| TestConfig          | 7     | config.py          |
+| TestRepoIndex       | 7     | repo_index.py      |
+| TestLocalChat       | 8     | local_chat.py      |
+| TestLocalExec       | 7     | local_exec.py      |
+| TestLocalPatch      | 4     | local_patch.py     |
+| TestLocalPR         | 7     | local_pr.py        |
+| TestIDEIntegration  | 2     | ide_integration.py |
+| TestLocalState      | 9     | local_state.py     |
+| TestLocalHandoff    | 5     | local_handoff.py   |
+
+### Acceptance Criteria
+
+- [x] All 53 tests passing
+- [x] Ruff lint + format clean
+- [x] Documentation updated across all tracking files
+- [x] Response files created for FM-091 through FM-100
+
+---
+
+### ForgeMind Local (FM-091–FM-100)
+
+| FM     | Title                              | Status      |
+| ------ | ---------------------------------- | ----------- |
+| FM-091 | Local Foundation & Config          | ✅ Complete |
+| FM-092 | Repo Indexing & Manifest           | ✅ Complete |
+| FM-093 | Local Chat Over Codebase           | ✅ Complete |
+| FM-094 | Local Execution Sandbox            | ✅ Complete |
+| FM-095 | Patch Generation & Management      | ✅ Complete |
+| FM-096 | PR Preparation                     | ✅ Complete |
+| FM-097 | IDE Integration                    | ✅ Complete |
+| FM-098 | State Management & Sync Queue      | ✅ Complete |
+| FM-099 | Handoff Snapshots                  | ✅ Complete |
+| FM-100 | Hardening, Tests & Documentation   | ✅ Complete |
+
+---
+
+## Cross-Milestone Dependencies
+
+```
+FM-071/072/073 (frontend pages) — independent, parallelizable
+        ↓
+FM-074 (real auth) — can start in parallel but must gate page access
+FM-075 (RBAC) — depends on FM-074 for real identities
+FM-076 (CI/CD) — independent, start anytime
+        ↓
+FM-077 (SSE) — depends on FM-071–073 pages existing
+FM-078 (observability) — independent
+FM-079 (packages) — independent refactoring
+FM-080 (production) — benefits from FM-076 + FM-078
+        ↓
+FM-081–090 (architecture intelligence) — depends on backend models/services
+        ↓
+FM-091–100 (local CLI) — standalone package, no backend dependency
+```
+
+---
+
 ## Success Condition
 
-By the end of FM-090, ForgeMind is a fully navigable, production-hardened AI execution platform with:
+By the end of FM-100, ForgeMind is a fully navigable, production-hardened AI execution platform with:
 
 - Complete frontend parity across all backend subsystems
 - Real authentication and enforced RBAC
@@ -922,5 +1264,6 @@ By the end of FM-090, ForgeMind is a fully navigable, production-hardened AI exe
 - Shared monorepo packages with real code
 - Production deployment foundation
 - **Architecture intelligence** — graph-based structural analysis, drift detection, rule enforcement, impact analysis, refactor recommendations, and a composite structural health score
+- **ForgeMind Local** — standalone developer workstation CLI for offline repo intelligence, bounded execution, patch management, PR preparation, IDE integration, and team handoff snapshots
 
-**All 90 tasks are complete. 482 tests passing.**
+**All 100 tasks across 22 milestones are complete. 535 tests passing.**

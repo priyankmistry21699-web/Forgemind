@@ -713,4 +713,54 @@ forgemind/
 
 ---
 
-_This document reflects the architecture as of the latest commit on `main` (all features through FM-090 complete)._
+## Completed: ForgeMind Local — Developer Workstation Mode (FM-091–100)
+
+ForgeMind Local is a **standalone CLI package** (`apps/local/`) that provides offline developer workstation capabilities without requiring the backend API, database, or any infrastructure.
+
+### Package Structure
+
+```
+apps/local/
+├── pyproject.toml              # forgemind-local package config
+├── forgemind_local/
+│   ├── __init__.py             # v0.1.0
+│   ├── config.py               # FM-091: LocalConfig, YAML I/O, repo detection
+│   ├── cli.py                  # FM-091+: Click CLI (20+ commands)
+│   ├── repo_index.py           # FM-092: file tree walk, language classification
+│   ├── local_chat.py           # FM-093: keyword search, optional LLM
+│   ├── local_exec.py           # FM-094: bounded execution, safety policies
+│   ├── local_patch.py          # FM-095: git patch generation & management
+│   ├── local_pr.py             # FM-096: PR preparation from git diff
+│   ├── ide_integration.py      # FM-097: VS Code tasks.json generation
+│   ├── local_state.py          # FM-098: cache, sync queue, mode management
+│   └── local_handoff.py        # FM-099: export/import zip snapshots
+└── tests/
+    └── test_local.py           # FM-100: 53 tests across 9 classes
+```
+
+### Key Design Decisions
+
+- **No backend dependency** — operates entirely from `.forgemind/` directory per repo
+- **Offline-first** — all features work without network; LLM integration is optional
+- **shell=True execution** — appropriate for local dev tool; 16 blocked patterns provide defense-in-depth
+- **Sync queue** — stores events for future offline→online bridge (consumer not yet implemented)
+- **Non-destructive import** — snapshot import won't overwrite existing config
+
+| ID     | Feature                            | Description                                                                         | Status      |
+| ------ | ---------------------------------- | ----------------------------------------------------------------------------------- | ----------- |
+| FM-091 | Local Foundation & Config          | LocalConfig dataclass, YAML I/O, detect_repo_root, .forgemind/ directory structure  | ✅ Complete |
+| FM-092 | Repo Indexing & Manifest           | File tree walk, 30+ language extensions, entrypoint/build-file detection, JSON cache | ✅ Complete |
+| FM-093 | Local Chat Over Codebase           | Keyword search over manifest, file snippets, optional LiteLLM, offline fallback     | ✅ Complete |
+| FM-094 | Local Execution Sandbox            | 16 blocked patterns, 35 safe prefixes, 3 policies, subprocess timeout, JSON logs    | ✅ Complete |
+| FM-095 | Patch Generation & Management      | Git diff patches, metadata tracking, apply with --check, reject workflow             | ✅ Complete |
+| FM-096 | PR Preparation                     | Git diff analysis, 11 subsystem categories, risk detection, dynamic checklist        | ✅ Complete |
+| FM-097 | IDE Integration                    | VS Code tasks.json with 10 ForgeMind tasks, idempotent merge                        | ✅ Complete |
+| FM-098 | State Management & Sync Queue      | TTL cache, offline event queue, mode management (offline/hybrid/remote)              | ✅ Complete |
+| FM-099 | Handoff Snapshots                  | Export/import zip bundles, non-destructive import, bundle inspection                 | ✅ Complete |
+| FM-100 | Hardening, Tests & Documentation   | 53 tests, 9 test classes, documentation across all tracking files                    | ✅ Complete |
+
+> **All 100 tasks across 22 milestones are complete. 535 tests passing.**
+
+---
+
+_This document reflects the architecture as of the latest commit on `main` (all features through FM-100 complete)._

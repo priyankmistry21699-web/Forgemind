@@ -195,7 +195,7 @@ flowchart TD
 - **IDE/editor integration** — VS Code tasks.json generator with 10 ForgeMind tasks, settings.json integration
 - **Offline-first state** — local cache with TTL, deferred sync queue, mode management (offline/hybrid/remote)
 - **Handoff snapshots** — export/import zip bundles with config, manifest, patches, run logs, and bundle manifests
-- **41 tests** covering all local modules: config, indexing, chat, execution, patches, PR, IDE, state, handoff
+- **53 tests** covering all local modules: config, indexing, chat, execution, patches, PR, IDE, state, handoff
 
 ---
 
@@ -1235,7 +1235,7 @@ forgemind/
 │   │   ├── local_state.py         #    Cache, sync queue, mode management
 │   │   └── local_handoff.py       #    Export/import snapshot zip bundles
 │   └── tests/
-│       └── test_local.py          #    41 tests covering FM-091 → FM-099
+│       └── test_local.py          #    53 tests covering FM-091 → FM-099
 │
 ├── 📚 docs/
 │   ├── ARCHITECTURE.md            #    Full system architecture reference
@@ -1906,7 +1906,7 @@ make test
 - FM-097: IDE/editor integration — VS Code tasks.json generator with 10 ForgeMind tasks, settings.json integration, merge with existing config
 - FM-098: Offline-first state — local cache with TTL-based expiry, deferred sync queue, mode management (offline/hybrid/remote), online check
 - FM-099: Local handoff/snapshot — export zip bundles (config + manifest + patches + run logs + bundle manifest), import with non-destructive merge, bundle inspection
-- FM-100: Local hardening — 41 tests covering all FM-091→FM-099 modules (config, indexing, chat, execution, patches, PR, IDE, state, handoff)
+- FM-100: Local hardening — 53 tests covering all FM-091→FM-099 modules (config, indexing, chat, execution, patches, PR, IDE, state, handoff)
 </details>
 
 ---
@@ -1932,7 +1932,7 @@ make test
 
 **Built with ❤️ by [Priyank Mistry](https://github.com/priyankmistry21699-web)**
 
-_ForgeMind v1.1.0 — 100 tasks completed across 22 milestones · 523 tests passing_
+_ForgeMind v1.1.0 — 100 tasks completed across 22 milestones · 535 tests passing_
 
 </div>
 

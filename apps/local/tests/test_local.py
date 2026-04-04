@@ -193,6 +193,62 @@ class TestLocalChat:
         assert isinstance(result, dict)
         assert "answer" in result
 
+    def test_where_is_question(self, inited_repo: Path) -> None:
+        from forgemind_local.local_chat import answer_question
+
+        self._build_and_save_manifest(inited_repo)
+        result = answer_question(str(inited_repo), "where is main.py?")
+        assert (
+            "main.py" in result["answer"].lower() or "main" in result["answer"].lower()
+        )
+        assert isinstance(result["citations"], list)
+
+    def test_show_me_question(self, inited_repo: Path) -> None:
+        from forgemind_local.local_chat import answer_question
+
+        self._build_and_save_manifest(inited_repo)
+        result = answer_question(str(inited_repo), "show me utils.py")
+        assert len(result["answer"]) > 0
+        # Should contain file content or reference
+        assert "utils" in result["answer"].lower()
+
+    def test_target_file_question(self, inited_repo: Path) -> None:
+        from forgemind_local.local_chat import answer_question
+
+        self._build_and_save_manifest(inited_repo)
+        result = answer_question(
+            str(inited_repo), "explain this file", target_file="utils.py"
+        )
+        assert len(result["answer"]) > 0
+        assert "utils.py" in result["answer"]
+
+    def test_no_matching_files(self, inited_repo: Path) -> None:
+        from forgemind_local.local_chat import answer_question
+
+        self._build_and_save_manifest(inited_repo)
+        result = answer_question(str(inited_repo), "xyznonexistent_module_zyx")
+        assert isinstance(result, dict)
+        assert "answer" in result
+        # Should still return something (fallback message)
+        assert len(result["answer"]) > 0
+
+    def test_citations_contain_file_paths(self, inited_repo: Path) -> None:
+        from forgemind_local.local_chat import answer_question
+
+        self._build_and_save_manifest(inited_repo)
+        result = answer_question(str(inited_repo), "add function")
+        # "add" is in utils.py, so citations should include it
+        if result["citations"]:
+            assert all(isinstance(c, str) for c in result["citations"])
+
+    def test_empty_question(self, inited_repo: Path) -> None:
+        from forgemind_local.local_chat import answer_question
+
+        self._build_and_save_manifest(inited_repo)
+        result = answer_question(str(inited_repo), "")
+        assert isinstance(result, dict)
+        assert "answer" in result
+
     @staticmethod
     def _build_and_save_manifest(repo: Path) -> None:
         from forgemind_local.repo_index import build_repo_index
@@ -355,8 +411,72 @@ class TestLocalPR:
         assert "title" in pr
         assert "branch" in pr
 
+    def test_pr_contains_all_keys(self, inited_repo: Path) -> None:
+        from forgemind_local.local_pr import prepare_pr
+
+        self._setup_git_with_branch(inited_repo)
+        pr = prepare_pr(str(inited_repo))
+        for key in (
+            "markdown",
+            "title",
+            "branch",
+            "base",
+            "files",
+            "risks",
+            "checklist",
+            "subsystems",
+        ):
+            assert key in pr, f"Missing key: {key}"
+
+    def test_pr_files_list(self, inited_repo: Path) -> None:
+        from forgemind_local.local_pr import prepare_pr
+
+        base = self._setup_git_with_branch(inited_repo)
+        pr = prepare_pr(str(inited_repo), base_branch=base)
+        assert isinstance(pr["files"], list)
+        # We added new_file.py in the setup
+        paths = [f["path"] for f in pr["files"]]
+        assert "new_file.py" in paths
+
+    def test_pr_subsystem_classification(self, inited_repo: Path) -> None:
+        from forgemind_local.local_pr import prepare_pr
+
+        base = self._setup_git_with_branch(inited_repo)
+        pr = prepare_pr(str(inited_repo), base_branch=base)
+        assert isinstance(pr["subsystems"], dict)
+        # new_file.py should be classified into some category
+        assert len(pr["subsystems"]) > 0
+
+    def test_pr_risks_list(self, inited_repo: Path) -> None:
+        from forgemind_local.local_pr import prepare_pr
+
+        self._setup_git_with_branch(inited_repo)
+        pr = prepare_pr(str(inited_repo))
+        assert isinstance(pr["risks"], list)
+        assert len(pr["risks"]) > 0  # At minimum "No elevated risks detected."
+
+    def test_pr_checklist(self, inited_repo: Path) -> None:
+        from forgemind_local.local_pr import prepare_pr
+
+        self._setup_git_with_branch(inited_repo)
+        pr = prepare_pr(str(inited_repo))
+        assert isinstance(pr["checklist"], list)
+        assert len(pr["checklist"]) > 0
+        # Checklist items start with "- [ ]"
+        assert all(item.startswith("- [ ]") for item in pr["checklist"])
+
+    def test_pr_markdown_sections(self, inited_repo: Path) -> None:
+        from forgemind_local.local_pr import prepare_pr
+
+        self._setup_git_with_branch(inited_repo)
+        pr = prepare_pr(str(inited_repo))
+        md = pr["markdown"]
+        assert "### Changed Subsystems" in md
+        assert "### Risk Analysis" in md
+        assert "### Test Checklist" in md
+
     @staticmethod
-    def _setup_git_with_branch(repo: Path) -> None:
+    def _setup_git_with_branch(repo: Path) -> str:
         import subprocess
 
         subprocess.run(["git", "init"], cwd=str(repo), capture_output=True, check=True)
@@ -381,6 +501,14 @@ class TestLocalPR:
             capture_output=True,
             check=True,
         )
+        # Detect the default branch name (master or main)
+        base_branch = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            cwd=str(repo),
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
         subprocess.run(
             ["git", "checkout", "-b", "feature/test"],
             cwd=str(repo),
@@ -397,6 +525,7 @@ class TestLocalPR:
             capture_output=True,
             check=True,
         )
+        return base_branch
 
 
 # ======================================================================

@@ -449,7 +449,58 @@ ForgeMind now adds:
 **Test additions:** ~69 architecture-specific tests
 **Total test suite: 482 tests (all passing)**
 
-> **ForgeMind is now a structurally self-aware AI execution platform with graph-based architecture intelligence, 90 features across 21 milestones.**
+> **All 90 tasks across 21 milestones are complete. 482 tests passing.**
+
+---
+
+## Milestone 22 — ForgeMind Local: Developer Workstation Mode (FM-091–FM-100)
+
+ForgeMind Local is a standalone CLI companion that provides offline repo intelligence, bounded execution, patching, PR preparation, IDE integration, and team handoff — all without requiring the full backend stack.
+
+### Key Capabilities
+
+- **Local foundation** — YAML-based per-repo config in `.forgemind/`, auto-detection of git repos, workspace initialisation via `forgemind init`
+- **Repo indexing** — Full file tree walk with language classification (30+ extensions), entrypoint/build-file detection, cached JSON manifest
+- **Local chat** — Keyword search over indexed files with file snippet reading; optional LiteLLM integration; works fully offline with rule-based fallback
+- **Execution sandbox** — Bounded local command execution with 3 policies (safe/permissive/locked), 16 blocked patterns, 35 safe prefixes, subprocess timeout, JSON run logging
+- **Patch workflow** — Generate patches from `git diff`, list/preview/apply/reject with metadata tracking; `git apply --check` safety validation
+- **PR preparation** — Generate PR description, risk analysis, test checklist from git diff; 11 subsystem categories; security/migration/auth risk detection
+- **IDE integration** — Generate VS Code `tasks.json` with 10 ForgeMind tasks; idempotent merge with existing editor config
+- **State management** — TTL-based cache, offline sync queue (infrastructure-ready, no consumer yet), mode management (offline/hybrid/remote)
+- **Handoff snapshots** — Export/import zip bundles with config, manifest, patches, sync queue, run logs for team handoff
+- **Hardening** — 53 tests across 9 test classes, ruff-clean, documentation across all tracking files
+
+### Architecture
+
+- **Package:** `apps/local/` — standalone Python package (`forgemind-local`)
+- **Entry point:** `forgemind` CLI via Click
+- **Dependencies:** click, rich, pyyaml, gitpython, watchdog; optional litellm
+- **Data directory:** `.forgemind/` per repo (config, state, cache, index, patches, snapshots)
+- **No backend dependency** — operates entirely offline
+
+### Safety Boundaries
+
+- Execution sandbox uses `shell=True` — appropriate for local dev tool where user is the operator
+- 16 blocked patterns are substring-matched defense-in-depth, not a security boundary
+- `permissive` policy allows any command not in blocked list — wide scope by design
+- Sync queue stores events but no consumer transmits them yet
+
+## FM-091 to FM-100 — ✅ COMPLETE
+
+| ID     | Feature                            | Status      |
+| ------ | ---------------------------------- | ----------- |
+| FM-091 | Local Foundation & Config          | ✅ Complete |
+| FM-092 | Repo Indexing & Manifest           | ✅ Complete |
+| FM-093 | Local Chat Over Codebase           | ✅ Complete |
+| FM-094 | Local Execution Sandbox            | ✅ Complete |
+| FM-095 | Patch Generation & Management      | ✅ Complete |
+| FM-096 | PR Preparation                     | ✅ Complete |
+| FM-097 | IDE Integration                    | ✅ Complete |
+| FM-098 | State Management & Sync Queue      | ✅ Complete |
+| FM-099 | Handoff Snapshots                  | ✅ Complete |
+| FM-100 | Hardening, Tests & Documentation   | ✅ Complete |
+
+> **ForgeMind now spans 100 features across 22 milestones — a structurally self-aware AI execution platform with graph-based architecture intelligence and a standalone developer workstation companion. 535 tests passing.**
 
 ## FM-071 to FM-080 — ✅ COMPLETE
 
