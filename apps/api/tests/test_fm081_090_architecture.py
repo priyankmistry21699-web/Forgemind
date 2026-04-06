@@ -958,7 +958,6 @@ class TestArchitectureRBAC:
 # ── FM-082: Topology Mapping — Service + Route Tests ─────────────
 
 
-@pytest.mark.asyncio
 class TestTopologyMappingService:
     def test_parse_python_imports(self):
         from app.services.topology_mapper_service import parse_python_imports

@@ -1513,13 +1513,13 @@ By the end of FM-110, ForgeMind is a fully SPEC-driven AI execution platform wit
 - Architecture-aware planning via ADR enrichment
 - Spec-to-plan validation ensuring plan coverage before execution
 - Approval gates on SPEC and PLAN artifacts
-- **580 tests across 24 milestones, all passing.**
+- **593 tests across 24 milestones, all passing.**
 
 ---
 
-# Future Roadmap — FM-111 to FM-140 (Planned)
+# Completed Roadmap — FM-111 to FM-120 | Planned — FM-121 to FM-140
 
-> The following milestones are **planned** and have **not yet been implemented**. They represent the next three waves of ForgeMind development, organized into coherent themes aligned with the platform's current architecture through FM-110.
+> FM-111 through FM-120 are **complete**. The following milestones (FM-121–FM-140) are **planned** and have **not yet been implemented**. They represent the next two waves of ForgeMind development.
 
 ---
 

@@ -9,7 +9,7 @@ Generate advisory constitution improvement proposals based on run/task signals.
 - `ConstitutionSuggestion` ORM model with PENDING/ACCEPTED/REJECTED/EXPIRED lifecycle
 - 5 signal-driven suggestion rules:
   1. High failure rate → suggest stricter validation requirements
-  2. Frequent retries → suggest retry budget limits  
+  2. Frequent retries → suggest retry budget limits
   3. Long execution times → suggest time-boxing policy
   4. Knowledge reuse patterns → suggest knowledge-first approach
   5. Approval bottlenecks → suggest approval threshold adjustments

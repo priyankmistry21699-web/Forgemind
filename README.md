@@ -1686,7 +1686,7 @@ make test
 | 21  | **Architecture Intelligence**                  | FM-081 → FM-090            | ✅ Complete |
 | 22  | **ForgeMind Local — Developer Workstation**    | FM-091 → FM-100            | ✅ Complete |
 | 23  | **SPEC-Driven Lifecycle**                      | FM-101 → FM-110            | ✅ Complete |
-| 24  | **Phase Routing, Templates & Bootstrapping**   | FM-111 → FM-120            | ✅ Complete|
+| 24  | **Phase Routing, Templates & Bootstrapping**   | FM-111 → FM-120            | ✅ Complete |
 | 25  | **Execution Memory, Checkpoints & Delivery**   | FM-121 → FM-130            | 🔲 Planned  |
 | 26  | **Connector Ecosystem & Extensions**           | FM-131 → FM-140            | 🔲 Planned  |
 
@@ -1953,7 +1953,7 @@ make test
 
 **Built with ❤️ by [Priyank Mistry](https://github.com/priyankmistry21699-web)**
 
-_ForgeMind v1.2.0 — 110 tasks completed across 23 milestones · 542 tests passing_
+_ForgeMind v1.3.0 — 120 tasks completed across 24 milestones · 593 tests passing_
 
 </div>
 

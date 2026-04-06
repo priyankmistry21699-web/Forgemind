@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 
 import { fetchRun } from "@/lib/runs";
-import { fetchTasksByRun } from "@/lib/tasks";
 import { fetchArtifacts } from "@/lib/artifacts";
 import { fetchApprovals } from "@/lib/approvals";
 import { fetchEvents } from "@/lib/events";
@@ -14,7 +13,6 @@ import { useRunStream } from "@/lib/hooks/use-stream";
 
 import type { Run } from "@/types/run";
 import type { Project } from "@/types/project";
-import type { Task } from "@/types/task";
 import type { Artifact } from "@/types/artifact";
 import type { Approval } from "@/types/approval";
 import type { ExecutionEvent } from "@/types/execution-event";

@@ -20,14 +20,12 @@ import os
 # Ensure the API package is importable
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "api"))
 
-from app.core.config import settings  # noqa: E402
 from app.db.session import async_session_factory  # noqa: E402
-from app.services import agent_service, task_service  # noqa: E402
+from app.services import agent_service  # noqa: E402
 from app.services import execution_service  # noqa: E402
 from app.services import composition_service  # noqa: E402
 from app.services import run_memory_service  # noqa: E402
 from app.services import adaptive_orchestrator  # noqa: E402
-from app.models.task import TaskStatus  # noqa: E402
 from app.models.run import Run, RunStatus  # noqa: E402
 
 # Will be populated by FM-025

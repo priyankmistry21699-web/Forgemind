@@ -227,8 +227,6 @@ async def handle_approval_rejections(db: AsyncSession) -> int:
         # Mark approval as handled by changing status to indicate processing
         # (We reuse REJECTED status; the task reset is the side-effect)
 
-        from app.models.run import Run
-
         run_r = await db.execute(select(Run).where(Run.id == task.run_id))
         run_obj = run_r.scalar_one_or_none()
         if run_obj:

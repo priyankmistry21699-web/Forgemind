@@ -856,7 +856,7 @@ ForgeMind depends on:
 
 ### Tests
 
-- `apps/api/tests/...` — API/service/integration tests (542 tests)
+- `apps/api/tests/...` — API/service/integration tests (593 tests)
 - `apps/local/tests/...` — ForgeMind Local tests (53 tests)
 - `apps/api/evals/...` — eval/quality benchmarks
 

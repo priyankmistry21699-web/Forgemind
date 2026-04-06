@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { fetchProjectKnowledge } from "@/lib/knowledge";
 import type { ProjectKnowledge, KnowledgeType } from "@/types/knowledge";

@@ -500,22 +500,22 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 | FM-099 | Handoff Snapshots                | ✅ Complete |
 | FM-100 | Hardening, Tests & Documentation | ✅ Complete |
 
-> **ForgeMind now spans 120 features across 24 milestones — a structurally self-aware, SPEC-driven AI execution platform with lifecycle gating, project constitutions, phase-aware agent routing, reusable project templates, and approval-governed planning. 580 tests passing.**
+> **ForgeMind now spans 120 features across 24 milestones — a structurally self-aware, SPEC-driven AI execution platform with lifecycle gating, project constitutions, phase-aware agent routing, reusable project templates, and approval-governed planning. 593 tests passing.**
 
 ## FM-111 to FM-120 — ✅ COMPLETE
 
-| ID     | Feature                                      | Status      |
-| ------ | -------------------------------------------- | ----------- |
-| FM-111 | Phase Agent Profile Data Model               | ✅ Complete |
-| FM-112 | Composition Engine Phase-Aware Routing        | ✅ Complete |
-| FM-113 | Phase Agent Profile UI                       | ✅ Complete |
-| FM-114 | Project Template Model and Seeding           | ✅ Complete |
-| FM-115 | Template-Based Project Creation Flow         | ✅ Complete |
+| ID     | Feature                                          | Status      |
+| ------ | ------------------------------------------------ | ----------- |
+| FM-111 | Phase Agent Profile Data Model                   | ✅ Complete |
+| FM-112 | Composition Engine Phase-Aware Routing           | ✅ Complete |
+| FM-113 | Phase Agent Profile UI                           | ✅ Complete |
+| FM-114 | Project Template Model and Seeding               | ✅ Complete |
+| FM-115 | Template-Based Project Creation Flow             | ✅ Complete |
 | FM-116 | Template Inheritance for Constitution & Policies | ✅ Complete |
-| FM-117 | Knowledge-Driven Constitution Suggestions    | ✅ Complete |
-| FM-118 | Spec/Plan Bootstrap from Project Templates   | ✅ Complete |
-| FM-119 | Local Mode Support for Templates & Profiles  | ✅ Complete |
-| FM-120 | Hardening, Tests & Documentation             | ✅ Complete |
+| FM-117 | Knowledge-Driven Constitution Suggestions        | ✅ Complete |
+| FM-118 | Spec/Plan Bootstrap from Project Templates       | ✅ Complete |
+| FM-119 | Local Mode Support for Templates & Profiles      | ✅ Complete |
+| FM-120 | Hardening, Tests & Documentation                 | ✅ Complete |
 
 ### Key Capabilities (Milestone 24)
 

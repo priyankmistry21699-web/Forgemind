@@ -1541,4 +1541,4 @@ cd ../../docker
 
 ---
 
-_This document is the original ForgeMind roadmap, frozen at Phase 0–9 planning. All implementation through FM-110 (23 milestones) is tracked in [FORGEMIND_ROADMAP_V3.md](FORGEMIND_ROADMAP_V3.md). Future planning (FM-111–FM-140) is also in V3._
+_This document is the original ForgeMind roadmap, frozen at Phase 0–9 planning. All implementation through FM-120 (24 milestones) is tracked in [FORGEMIND_ROADMAP_V3.md](FORGEMIND_ROADMAP_V3.md). Future planning (FM-121–FM-140) is also in V3._

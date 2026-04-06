@@ -844,20 +844,20 @@ PENDING → SPECIFYING → PLANNING → RUNNING → COMPLETED
 - Worker task loop uses `resolve_agent_for_phase()` before capability-based fallback
 - Adaptive orchestrator uses phase-aware routing for auto-retry agent selection
 
-| ID     | Feature                              | Description                                                                           | Status      |
-| ------ | ------------------------------------ | ------------------------------------------------------------------------------------- | ----------- |
-| FM-111 | Phase Agent Profile Data Model       | PhaseAgentProfile ORM, WorkflowPhase enum, CRUD service, schemas, routes             | ✅ Complete |
-| FM-112 | Phase-Aware Routing                  | resolve_agent_for_phase in composition_service, wired into worker + orchestrator      | ✅ Complete |
-| FM-113 | Phase Agent Profile UI               | PhaseProfileEditor component, per-phase dropdowns, project detail integration        | ✅ Complete |
-| FM-114 | Project Template Model & Seeding     | 4 built-in templates with real constitutions, governance, spec/plan defaults         | ✅ Complete |
-| FM-115 | Template-Based Project Creation      | project_service accepts template_id, seeds constitution + phase profiles             | ✅ Complete |
-| FM-116 | Template Inheritance                 | 3-tier governance resolution: system → template → project                             | ✅ Complete |
-| FM-117 | Constitution Suggestions             | 5 signal-driven rules, generate/accept/reject, never auto-applied                    | ✅ Complete |
-| FM-118 | Spec/Plan Bootstrap from Templates   | Template spec_defaults and plan_defaults injected into LLM prompts                   | ✅ Complete |
-| FM-119 | Local Mode Template Support          | Local CLI status/exec/handoff consume template_slug and phase_profiles               | ✅ Complete |
-| FM-120 | Hardening & Tests                    | 38 tests, 580 total passing, full documentation closure                               | ✅ Complete |
+| ID     | Feature                            | Description                                                                      | Status      |
+| ------ | ---------------------------------- | -------------------------------------------------------------------------------- | ----------- |
+| FM-111 | Phase Agent Profile Data Model     | PhaseAgentProfile ORM, WorkflowPhase enum, CRUD service, schemas, routes         | ✅ Complete |
+| FM-112 | Phase-Aware Routing                | resolve_agent_for_phase in composition_service, wired into worker + orchestrator | ✅ Complete |
+| FM-113 | Phase Agent Profile UI             | PhaseProfileEditor component, per-phase dropdowns, project detail integration    | ✅ Complete |
+| FM-114 | Project Template Model & Seeding   | 4 built-in templates with real constitutions, governance, spec/plan defaults     | ✅ Complete |
+| FM-115 | Template-Based Project Creation    | project_service accepts template_id, seeds constitution + phase profiles         | ✅ Complete |
+| FM-116 | Template Inheritance               | 3-tier governance resolution: system → template → project                        | ✅ Complete |
+| FM-117 | Constitution Suggestions           | 5 signal-driven rules, generate/accept/reject, never auto-applied                | ✅ Complete |
+| FM-118 | Spec/Plan Bootstrap from Templates | Template spec_defaults and plan_defaults injected into LLM prompts               | ✅ Complete |
+| FM-119 | Local Mode Template Support        | Local CLI status/exec/handoff consume template_slug and phase_profiles           | ✅ Complete |
+| FM-120 | Hardening & Tests                  | 38 tests, 580 total passing, full documentation closure                          | ✅ Complete |
 
-> **All 120 tasks across 24 milestones are complete. 580 tests passing.**
+> **All 120 tasks across 24 milestones are complete. 593 tests passing.**
 
 ---
 
