@@ -10,7 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 if TYPE_CHECKING:
     from app.models.task import Task
-    from app.models.agent import Agent
 
 logger = logging.getLogger("forgemind.worker.agents")
 

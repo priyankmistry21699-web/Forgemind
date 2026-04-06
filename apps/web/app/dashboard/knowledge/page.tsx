@@ -41,7 +41,10 @@ export default function KnowledgePage() {
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
-        <Link href="/dashboard" className="hover:text-[var(--color-text)] transition-colors">
+        <Link
+          href="/dashboard"
+          className="hover:text-[var(--color-text)] transition-colors"
+        >
           Dashboard
         </Link>
         <span>/</span>
@@ -95,7 +98,9 @@ export default function KnowledgePage() {
       {/* Empty state */}
       {!loading && entries.length === 0 && projectId.trim() && (
         <div className="rounded-xl border border-dashed border-[var(--color-border)] p-12 text-center">
-          <p className="text-sm text-[var(--color-text-muted)]">No knowledge entries for this project.</p>
+          <p className="text-sm text-[var(--color-text-muted)]">
+            No knowledge entries for this project.
+          </p>
         </div>
       )}
 
@@ -111,7 +116,8 @@ export default function KnowledgePage() {
                 <div className="flex items-center gap-2">
                   <span
                     className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                      TYPE_COLORS[entry.knowledge_type] ?? "bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)]"
+                      TYPE_COLORS[entry.knowledge_type] ??
+                      "bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)]"
                     }`}
                   >
                     {entry.knowledge_type.replace(/_/g, " ")}
@@ -121,7 +127,9 @@ export default function KnowledgePage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
-                  <span title="Relevance">⭐ {(entry.relevance_score * 100).toFixed(0)}%</span>
+                  <span title="Relevance">
+                    ⭐ {(entry.relevance_score * 100).toFixed(0)}%
+                  </span>
                   <span title="Usage count">↻ {entry.usage_count}</span>
                 </div>
               </div>

@@ -105,7 +105,7 @@ async def execute_command(
     parsed: ParsedCommand,
 ) -> CommandResult:
     """Route a parsed command to the appropriate service and return a result."""
-    from app.models.run import Run, RunStatus
+    from app.models.run import Run
     from sqlalchemy import select
 
     # Verify run exists

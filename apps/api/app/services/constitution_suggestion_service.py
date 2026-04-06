@@ -16,9 +16,7 @@ from app.models.constitution_suggestion import ConstitutionSuggestion, Suggestio
 from app.models.project_knowledge import ProjectKnowledge, KnowledgeType
 from app.models.run import Run, RunStatus
 from app.models.task import Task, TaskStatus
-from app.models.execution_event import ExecutionEvent, EventType
 from app.services import constitution_service
-from app.schemas.constitution import ConstitutionCreate
 
 logger = logging.getLogger(__name__)
 

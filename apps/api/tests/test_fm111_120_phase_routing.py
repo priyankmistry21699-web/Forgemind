@@ -17,8 +17,6 @@ import uuid
 from pathlib import Path
 
 import pytest
-import pytest_asyncio
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tests.conftest import STUB_USER_ID
@@ -859,7 +857,7 @@ class TestConstitutionSuggestionSignals:
         await db_session.flush()
         await db_session.commit()
 
-        first = await constitution_suggestion_service.generate_suggestions(
+        await constitution_suggestion_service.generate_suggestions(
             db_session, project.id
         )
         second = await constitution_suggestion_service.generate_suggestions(

@@ -17,10 +17,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.project import Project
 from app.models.project_template import ProjectTemplate
-from app.models.project_constitution import ProjectConstitution
-from app.models.phase_agent_profile import PhaseAgentProfile, WorkflowPhase
+from app.models.phase_agent_profile import WorkflowPhase
 from app.models.agent import Agent, AgentStatus
-from app.services import constitution_service, phase_agent_profile_service, project_template_service
+from app.services import constitution_service, phase_agent_profile_service
 from app.schemas.phase_agent_profile import PhaseAgentProfileCreate
 from app.schemas.constitution import ConstitutionCreate
 
@@ -152,7 +151,7 @@ async def _seed_phase_profiles(
                 agent_id=agent.id,
                 priority=priority,
                 is_default=True,
-                notes=f"Seeded from template",
+                notes="Seeded from template",
             ),
         )
         seeded.append(phase_str)

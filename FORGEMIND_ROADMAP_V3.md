@@ -1531,18 +1531,18 @@ Wave 7 introduces **phase-aware agent routing** and **project templates** — en
 
 ### Status Tracker
 
-| FM     | Title                                             | Status     |
-| ------ | ------------------------------------------------- | ---------- |
-| FM-111 | Phase Agent Profile Data Model                    | ✅ Done    |
-| FM-112 | Composition Engine Phase-Aware Routing            | ✅ Done    |
-| FM-113 | Phase Agent Profile UI                            | ✅ Done    |
-| FM-114 | Project Template Model and Seeding                | ✅ Done    |
-| FM-115 | Template-Based Project Creation Flow              | ✅ Done    |
-| FM-116 | Template Inheritance for Constitution & Policies  | ✅ Done    |
-| FM-117 | Knowledge-Driven Constitution Suggestions         | ✅ Done    |
-| FM-118 | Spec/Plan Bootstrap from Project Templates        | ✅ Done    |
-| FM-119 | Local Mode Support for Templates & Phase Profiles | ✅ Done    |
-| FM-120 | Project Intelligence Bootstrapping Hardening      | ✅ Done    |
+| FM     | Title                                             | Status  |
+| ------ | ------------------------------------------------- | ------- |
+| FM-111 | Phase Agent Profile Data Model                    | ✅ Done |
+| FM-112 | Composition Engine Phase-Aware Routing            | ✅ Done |
+| FM-113 | Phase Agent Profile UI                            | ✅ Done |
+| FM-114 | Project Template Model and Seeding                | ✅ Done |
+| FM-115 | Template-Based Project Creation Flow              | ✅ Done |
+| FM-116 | Template Inheritance for Constitution & Policies  | ✅ Done |
+| FM-117 | Knowledge-Driven Constitution Suggestions         | ✅ Done |
+| FM-118 | Spec/Plan Bootstrap from Project Templates        | ✅ Done |
+| FM-119 | Local Mode Support for Templates & Phase Profiles | ✅ Done |
+| FM-120 | Project Intelligence Bootstrapping Hardening      | ✅ Done |
 
 ### Milestone 24 — Phase Routing, Templates & Bootstrapping (FM-111 to FM-120)
 

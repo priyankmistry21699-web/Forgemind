@@ -11,7 +11,6 @@ triggers a SPEC_CREATED governance event.
 
 import uuid
 import logging
-from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -124,7 +123,7 @@ async def generate_spec(
     await event_service.emit_event(
         db,
         event_type=EventType.SPEC_CREATED,
-        summary=f"SPEC generated for run",
+        summary="SPEC generated for run",
         project_id=project_id,
         run_id=run_id,
         artifact_id=spec_artifact.id,

@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.phase_agent_profile import PhaseAgentProfile, WorkflowPhase
 from app.models.agent import Agent, AgentStatus
-from app.schemas.phase_agent_profile import PhaseAgentProfileCreate, PhaseAgentProfileUpdate
+from app.schemas.phase_agent_profile import PhaseAgentProfileCreate
 
 logger = logging.getLogger(__name__)
 
