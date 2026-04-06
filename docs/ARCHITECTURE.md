@@ -861,16 +861,63 @@ PENDING → SPECIFYING → PLANNING → RUNNING → COMPLETED
 
 ---
 
-## Planned: FM-121–FM-140
+## FM-121 to FM-130 — Execution Memory, Checkpoints & Delivery Artifacts — ✅ COMPLETE
 
-> The following waves are **planned** and have not yet been implemented.
+Execution checkpoint infrastructure with persistent state snapshots, resume semantics, delivery artifact generation, lifecycle traceability, and release confidence scoring.
+
+### New Models & Services
+
+- **ExecutionCheckpoint** — ORM model with CheckpointType enum (manual, auto_phase, pre_approval, pre_delivery, post_validation), JSON columns for status/artifact/validation/approval/architecture snapshots
+- **ExecutionCheckpointService** — CRUD, auto-checkpoint, resume-from-checkpoint with ownership validation
+- **DeliveryArtifactService** — Generates implementation summaries, changelogs, release notes, completion bundles, and review packages
+- **TraceabilityService** — Computes directed lifecycle graph (run → prompt → artifact → task → checkpoint)
+- **RunMemoryEnrichmentService** — Extracts structured memory (objectives, blockers, confidence factors, delivery notes)
+- **ReleaseConfidenceService** — Weighted 0–100 scoring with 8 signals, band classification, blocking factors, suggested actions
+
+### Routes
+
+- `POST/GET /runs/{id}/checkpoints` — Create and list checkpoints
+- `GET /runs/{id}/checkpoints/latest` — Latest checkpoint
+- `GET /checkpoints/{id}` — Get by ID
+- `POST /runs/{id}/checkpoints/{id}/resume` — Resume from checkpoint
+- `POST /runs/{id}/delivery-artifacts?kind=...` — Generate delivery artifacts
+- `POST /runs/{id}/review-package` — Assemble review package
+- `GET /runs/{id}/traceability` — Lifecycle traceability graph
+- `GET /runs/{id}/memory` — Run memory enrichment
+- `GET /runs/{id}/confidence` — Release confidence score
+
+### Local CLI
+
+- `forgemind checkpoint list/save` — Manage local checkpoints
+- `forgemind confidence` — Local heuristic confidence scoring
+- `forgemind review` — Local review summary
+
+| ID     | Feature                                      | Status      |
+| ------ | -------------------------------------------- | ----------- |
+| FM-121 | Execution Checkpoint Model & CRUD            | ✅ Complete |
+| FM-122 | Auto-Checkpoint on Phase Transitions         | ✅ Complete |
+| FM-123 | Resume-from-Checkpoint Semantics             | ✅ Complete |
+| FM-124 | Delivery Artifact Generation                 | ✅ Complete |
+| FM-125 | Review Package Assembly                      | ✅ Complete |
+| FM-126 | Lifecycle Traceability Graph                 | ✅ Complete |
+| FM-127 | Run Memory Enrichment                        | ✅ Complete |
+| FM-128 | Release Confidence Scoring                   | ✅ Complete |
+| FM-129 | Local CLI Checkpoint & Delivery Commands     | ✅ Complete |
+| FM-130 | Integration Hardening, Tests & Documentation | ✅ Complete |
+
+> **All 130 tasks across 25 milestones are complete. 691 tests passing.**
+
+---
+
+## Planned: FM-131–FM-140
+
+> The following wave is **planned** and has not yet been implemented.
 > See [FORGEMIND_ROADMAP_V3.md](../FORGEMIND_ROADMAP_V3.md) for full scope.
 
 | Wave | Milestone | Tasks         | Theme                                               |
 | ---- | --------- | ------------- | --------------------------------------------------- |
-| 8    | 25        | FM-121–FM-130 | Execution memory, checkpoints, delivery artifacts   |
 | 9    | 26        | FM-131–FM-140 | Connector ecosystem, extensions, enterprise plugins |
 
 ---
 
-_This document reflects the architecture as of the latest commit on `main` (all features through FM-120 complete, FM-121–FM-140 planned)._
+_This document reflects the architecture as of the latest commit on `main` (all features through FM-130 complete, FM-131–FM-140 planned)._

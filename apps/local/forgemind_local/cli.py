@@ -459,6 +459,192 @@ def snapshot_import(bundle: str, path: str | None) -> None:
     console.print(f"[green]✓[/green] Snapshot imported into {repo_root}")
 
 
+# ════════════════════════════════════════════════════════════════════
+# FM-129  checkpoint / confidence / review (local API wrappers)
+# ════════════════════════════════════════════════════════════════════
+
+
+@main.group()
+def checkpoint() -> None:
+    """Local checkpoint management commands."""
+
+
+@checkpoint.command("list")
+@click.argument("run_id")
+@click.option("--path", default=None)
+def checkpoint_list(run_id: str, path: str | None) -> None:
+    """List checkpoints for a run (from local state)."""
+    repo_root = path or detect_repo_root()
+    if not repo_root:
+        console.print("[red]Not inside a git repo.[/red]")
+        raise SystemExit(1)
+
+    cp_dir = os.path.join(repo_root, ".forgemind", "state", "checkpoints", run_id)
+    if not os.path.isdir(cp_dir):
+        console.print("[dim]No checkpoints recorded locally.[/dim]")
+        return
+
+    tbl = Table(title=f"Checkpoints — Run {run_id[:8]}")
+    tbl.add_column("#", justify="right")
+    tbl.add_column("Type")
+    tbl.add_column("Summary")
+    tbl.add_column("Created")
+
+    for f in sorted(os.listdir(cp_dir)):
+        if not f.endswith(".json"):
+            continue
+        with open(os.path.join(cp_dir, f), encoding="utf-8") as fh:
+            cp = json.load(fh)
+        tbl.add_row(
+            str(cp.get("sequence_number", "?")),
+            cp.get("checkpoint_type", "?"),
+            (cp.get("summary") or "")[:60],
+            (cp.get("created_at") or "")[:19],
+        )
+    console.print(tbl)
+
+
+@checkpoint.command("save")
+@click.argument("run_id")
+@click.option(
+    "--summary", default="Manual local checkpoint", help="Checkpoint summary."
+)
+@click.option("--path", default=None)
+def checkpoint_save(run_id: str, summary: str, path: str | None) -> None:
+    """Save a manual checkpoint locally."""
+    import datetime as dt
+
+    repo_root = path or detect_repo_root()
+    if not repo_root:
+        console.print("[red]Not inside a git repo.[/red]")
+        raise SystemExit(1)
+
+    cp_dir = os.path.join(repo_root, ".forgemind", "state", "checkpoints", run_id)
+    os.makedirs(cp_dir, exist_ok=True)
+    existing = [f for f in os.listdir(cp_dir) if f.endswith(".json")]
+    seq = len(existing) + 1
+
+    cp_data = {
+        "id": str(os.urandom(16).hex()),
+        "run_id": run_id,
+        "sequence_number": seq,
+        "checkpoint_type": "manual",
+        "summary": summary,
+        "created_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+    }
+    out = os.path.join(cp_dir, f"{seq:04d}.json")
+    with open(out, "w", encoding="utf-8") as fh:
+        json.dump(cp_data, fh, indent=2)
+    console.print(f"[green]✓[/green] Checkpoint #{seq} saved → {out}")
+
+
+@main.command("confidence")
+@click.argument("run_id")
+@click.option("--path", default=None)
+def confidence(run_id: str, path: str | None) -> None:
+    """Show local confidence assessment for a run (offline heuristic)."""
+    repo_root = path or detect_repo_root()
+    if not repo_root:
+        console.print("[red]Not inside a git repo.[/red]")
+        raise SystemExit(1)
+
+    # Check for locally cached run data
+    runs_dir = os.path.join(repo_root, ".forgemind", "state", "runs")
+    run_file = os.path.join(runs_dir, f"{run_id}.json")
+    if os.path.isfile(run_file):
+        with open(run_file, encoding="utf-8") as fh:
+            run_data = json.load(fh)
+    else:
+        run_data = {}
+
+    cp_dir = os.path.join(repo_root, ".forgemind", "state", "checkpoints", run_id)
+    cp_count = 0
+    if os.path.isdir(cp_dir):
+        cp_count = len([f for f in os.listdir(cp_dir) if f.endswith(".json")])
+
+    # Simple local heuristic
+    score = 0
+    reasons: list[str] = []
+
+    tasks = run_data.get("tasks", {})
+    total = tasks.get("total", 0)
+    completed = tasks.get("completed", 0)
+    if total > 0:
+        rate = completed / total
+        pts = int(30 * rate)
+        score += pts
+        reasons.append(f"Task completion: {completed}/{total} → +{pts}")
+    else:
+        reasons.append("No task data available locally")
+
+    if run_data.get("has_spec"):
+        score += 10
+        reasons.append("SPEC present → +10")
+    if run_data.get("has_plan"):
+        score += 10
+        reasons.append("PLAN present → +10")
+
+    if cp_count > 0:
+        score += 5
+        reasons.append(f"{cp_count} checkpoint(s) → +5")
+
+    if run_data.get("status") == "completed":
+        score += 15
+        reasons.append("Run completed → +15")
+
+    band = "high" if score >= 80 else "medium" if score >= 50 else "low"
+
+    tbl = Table(title=f"Release Confidence — Run {run_id[:8]}")
+    tbl.add_column("Signal")
+    tbl.add_column("Detail")
+    for r in reasons:
+        parts = r.split(" → ")
+        tbl.add_row(parts[0], parts[1] if len(parts) > 1 else "")
+
+    console.print(tbl)
+    colour = {"high": "green", "medium": "yellow", "low": "red"}[band]
+    console.print(f"\n[{colour}]Score: {score}/100  Band: {band}[/{colour}]")
+
+
+@main.command("review")
+@click.argument("run_id")
+@click.option("--path", default=None)
+def review(run_id: str, path: str | None) -> None:
+    """Show local review summary for a run."""
+    repo_root = path or detect_repo_root()
+    if not repo_root:
+        console.print("[red]Not inside a git repo.[/red]")
+        raise SystemExit(1)
+
+    runs_dir = os.path.join(repo_root, ".forgemind", "state", "runs")
+    run_file = os.path.join(runs_dir, f"{run_id}.json")
+    if not os.path.isfile(run_file):
+        console.print("[dim]No local run data cached. Sync first.[/dim]")
+        return
+
+    with open(run_file, encoding="utf-8") as fh:
+        run_data = json.load(fh)
+
+    console.print(f"[bold]Review Summary — Run {run_id[:8]}[/bold]\n")
+    console.print(f"  Status: {run_data.get('status', '?')}")
+    tasks = run_data.get("tasks", {})
+    console.print(
+        f"  Tasks: {tasks.get('completed', 0)}/{tasks.get('total', 0)} completed"
+    )
+    if tasks.get("failed", 0):
+        console.print(f"  [red]Failed: {tasks['failed']}[/red]")
+    approvals = run_data.get("approvals", {})
+    if approvals:
+        console.print(
+            f"  Approvals: {approvals.get('approved', 0)} approved, {approvals.get('pending', 0)} pending"
+        )
+
+    cp_dir = os.path.join(repo_root, ".forgemind", "state", "checkpoints", run_id)
+    if os.path.isdir(cp_dir):
+        cp_count = len([f for f in os.listdir(cp_dir) if f.endswith(".json")])
+        console.print(f"  Checkpoints: {cp_count}")
+
+
 # ── entrypoint ─────────────────────────────────────────────────────
 
 if __name__ == "__main__":

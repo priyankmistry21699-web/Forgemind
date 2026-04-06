@@ -1,12 +1,12 @@
 # ForgeMind — Milestone Summary
 
-> Last updated: 2026-04-03 (after FM-090 — architecture intelligence complete)
+> Last updated: 2026-04-04 (after FM-130 — execution memory, checkpoints & delivery artifacts complete)
 
 ---
 
 ## Current State
 
-**ForgeMind is an operator-centered AI execution platform with adaptive multi-agent orchestration, governance, cost tracking, trust scoring, execution replay, council decision-making, cross-run knowledge, external repo integration, production hardening, team collaboration, real-time streaming, code operations, a repo-aware code-change-capable execution engine, full frontend parity, real authentication with RBAC enforcement, CI/CD pipeline, observability, production deployment foundation, shared monorepo packages, and an architecture intelligence subsystem with graph-based structural analysis, topology mapping, drift detection, rule enforcement, design doc synthesis, change impact analysis, refactor recommendations, architecture approval workflow, and structural health scoring.**
+**ForgeMind is an operator-centered AI execution platform with adaptive multi-agent orchestration, governance, cost tracking, trust scoring, execution replay, council decision-making, cross-run knowledge, external repo integration, production hardening, team collaboration, real-time streaming, code operations, a repo-aware code-change-capable execution engine, full frontend parity, real authentication with RBAC enforcement, CI/CD pipeline, observability, production deployment foundation, shared monorepo packages, an architecture intelligence subsystem with graph-based structural analysis, topology mapping, drift detection, rule enforcement, design doc synthesis, change impact analysis, refactor recommendations, architecture approval workflow, and structural health scoring, and an execution memory layer with persistent checkpoints, auto-checkpointing, resume semantics, delivery artifact generation, review packages, lifecycle traceability graphs, run memory enrichment, and explainable release confidence scoring.**
 
 It can plan software projects, execute tasks via specialized agents with capability-based composition, surface execution artifacts, require human approval for critical steps, and adapt execution based on failures and feedback. The system has an execution memory layer for rich contextual reasoning, auto-retry with agent re-routing, connector-aware orchestration, credential vault management, configurable governance policies, LLM cost tracking, audit export, heuristic trust/risk scoring, deterministic execution replay, multi-agent council decisions, project-level knowledge bases, external repository connections, production-grade security middleware, workspace-based multi-tenancy with RBAC memberships, notification engine with delivery configs, escalation rules, activity feeds with user presence, a full code operations pipeline (patch proposals, change reviews, branch strategies, PR drafts, repo action approvals, and sandbox execution), full frontend parity across all backend subsystems, real JWT authentication with RBAC enforcement, CI/CD with GitHub Actions, observability with metrics and tracing, shared monorepo packages, a production deployment foundation, and an architecture intelligence layer that models codebases as directed graphs, detects architectural drift, enforces rules, analyzes change impact, generates design docs and refactor recommendations, and computes structural health scores.
 
@@ -500,7 +500,35 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 | FM-099 | Handoff Snapshots                | ✅ Complete |
 | FM-100 | Hardening, Tests & Documentation | ✅ Complete |
 
-> **ForgeMind now spans 120 features across 24 milestones — a structurally self-aware, SPEC-driven AI execution platform with lifecycle gating, project constitutions, phase-aware agent routing, reusable project templates, and approval-governed planning. 593 tests passing.**
+> **ForgeMind now spans 130 features across 25 milestones — a structurally self-aware, SPEC-driven AI execution platform with lifecycle gating, project constitutions, phase-aware agent routing, reusable project templates, persistent execution checkpoints, delivery artifact generation, lifecycle traceability, and explainable release confidence scoring. 691 tests passing.**
+
+## FM-121 to FM-130 — ✅ COMPLETE
+
+| ID     | Feature                                        | Status      |
+| ------ | ---------------------------------------------- | ----------- |
+| FM-121 | Execution Checkpoint Model & CRUD              | ✅ Complete |
+| FM-122 | Auto-Checkpoint on Phase Transitions           | ✅ Complete |
+| FM-123 | Resume-from-Checkpoint Semantics               | ✅ Complete |
+| FM-124 | Delivery Artifact Generation                   | ✅ Complete |
+| FM-125 | Review Package Assembly                        | ✅ Complete |
+| FM-126 | Lifecycle Traceability Graph                   | ✅ Complete |
+| FM-127 | Run Memory Enrichment                          | ✅ Complete |
+| FM-128 | Release Confidence Scoring                     | ✅ Complete |
+| FM-129 | Local CLI Checkpoint & Delivery Commands       | ✅ Complete |
+| FM-130 | Integration Hardening, Tests & Documentation   | ✅ Complete |
+
+### Key Capabilities (Milestone 25)
+
+- **Execution checkpoints**: Persistent snapshots of run state (status, artifacts, approvals, architecture) with 5 checkpoint types (manual, auto_phase, pre_approval, pre_delivery, post_validation)
+- **Auto-checkpointing**: Automatic checkpoint creation capturing run state with computed snapshots
+- **Resume semantics**: Resume execution from any checkpoint with ownership validation, continuation context, and event logging
+- **Delivery artifacts**: Generate implementation summaries, changelog drafts, release notes, and completion bundles from run state
+- **Review packages**: Assemble reviewer-ready packages with spec, plan, tasks, approvals, risks, and recommendations
+- **Lifecycle traceability**: Directed graph (nodes + edges) linking runs → prompts → artifacts → tasks → checkpoints with typed relationships
+- **Run memory enrichment**: Structured memory extraction (objectives, blockers, confidence factors, validation outcomes, delivery notes)
+- **Release confidence scoring**: Explainable 0–100 score with 8 weighted signals, band classification (high/medium/low), blocking factors, and suggested actions
+- **Local CLI integration**: Checkpoint list/save, confidence scoring, and review summary commands for offline workflows
+- **REST API**: Full CRUD for checkpoints plus endpoints for delivery artifacts, review packages, traceability, memory, and confidence
 
 ## FM-111 to FM-120 — ✅ COMPLETE
 
@@ -637,12 +665,11 @@ See [docs/TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for full details (18 items). Key
 
 ---
 
-## Planned Milestones (FM-121–FM-140)
+## Planned Milestones (FM-131–FM-140)
 
 > These milestones are **planned** and have **not yet been implemented**.
 > See [FORGEMIND_ROADMAP_V3.md](../FORGEMIND_ROADMAP_V3.md) for detailed task definitions.
 
 | Milestone | Theme                                                | Tasks         | Status     |
 | --------- | ---------------------------------------------------- | ------------- | ---------- |
-| 25        | Execution Memory, Checkpoints & Delivery Artifacts   | FM-121–FM-130 | 🔲 Planned |
 | 26        | Connector Ecosystem, Extensions & Enterprise Plugins | FM-131–FM-140 | 🔲 Planned |

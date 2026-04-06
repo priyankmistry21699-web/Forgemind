@@ -94,6 +94,12 @@ def export_snapshot(repo_root: str, *, output_path: str | None = None) -> str:
         if os.path.isfile(pr_src):
             shutil.copy2(pr_src, os.path.join(bundle_dir, "pr_summary.md"))
 
+        # 6b. Checkpoints (FM-129)
+        cp_src = os.path.join(repo_root, ".forgemind", "state", "checkpoints")
+        if os.path.isdir(cp_src):
+            cp_dst = os.path.join(bundle_dir, "checkpoints")
+            shutil.copytree(cp_src, cp_dst)
+
         # 7. Bundle manifest
         bundle_manifest: dict[str, Any] = {
             "bundle_id": bundle_id,

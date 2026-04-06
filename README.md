@@ -1930,6 +1930,21 @@ make test
 - FM-110: Hardening — 60 tests, 12 test classes, 542 total passing, full doc/tracking closure
 </details>
 
+<details>
+<summary>Milestone 25 — Execution Memory, Checkpoints & Delivery Artifacts (FM-121–FM-130)</summary>
+
+- FM-121: Execution checkpoint model — ExecutionCheckpoint ORM with 5 checkpoint types, JSON snapshot columns, CRUD service
+- FM-122: Auto-checkpoint — automatic state capture with computed status/artifact/approval snapshots
+- FM-123: Resume semantics — resume from any checkpoint with ownership validation, continuation context, event logging
+- FM-124: Delivery artifacts — generate implementation summaries, changelog drafts, release notes, completion bundles
+- FM-125: Review packages — assemble reviewer-ready packages with spec, plan, tasks, approvals, risks, recommendations
+- FM-126: Lifecycle traceability — directed graph linking runs → prompts → artifacts → tasks → checkpoints
+- FM-127: Run memory enrichment — structured memory extraction (objectives, blockers, confidence factors)
+- FM-128: Release confidence — explainable 0–100 scoring with 8 weighted signals, band classification, suggested actions
+- FM-129: Local CLI — checkpoint list/save, confidence scoring, review summary commands
+- FM-130: Hardening — 45 tests, 691 total passing, full documentation closure
+</details>
+
 ---
 
 ## 🧩 Technical Decisions
@@ -1953,7 +1968,7 @@ make test
 
 **Built with ❤️ by [Priyank Mistry](https://github.com/priyankmistry21699-web)**
 
-_ForgeMind v1.3.0 — 120 tasks completed across 24 milestones · 593 tests passing_
+_ForgeMind v1.4.0 — 130 tasks completed across 25 milestones · 691 tests passing_
 
 </div>
 

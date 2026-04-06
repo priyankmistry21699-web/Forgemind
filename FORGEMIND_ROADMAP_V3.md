@@ -1912,6 +1912,6 @@ Wave 9 transforms ForgeMind's hardcoded connector system into a **registry-based
 | 4    | 21         | FM-081–090 | Architecture intelligence                           | ✅ Complete |
 | 5    | 22         | FM-091–100 | Developer workstation (ForgeMind Local)             | ✅ Complete |
 | 6    | 23         | FM-101–110 | SPEC-driven lifecycle                               | ✅ Complete |
-| 7    | 24         | FM-111–120 | Phase routing, templates, project bootstrapping     | ✅ Done     |
-| 8    | 25         | FM-121–130 | Execution memory, checkpoints, delivery artifacts   | 🔲 Planned  |
+| 7    | 24         | FM-111–120 | Phase routing, templates, project bootstrapping     | ✅ Complete |
+| 8    | 25         | FM-121–130 | Execution memory, checkpoints, delivery artifacts   | ✅ Complete |
 | 9    | 26         | FM-131–140 | Connector ecosystem, extensions, enterprise plugins | 🔲 Planned  |

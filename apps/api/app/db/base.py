@@ -58,3 +58,6 @@ from app.models.architecture import (  # noqa: F401
 from app.models.phase_agent_profile import PhaseAgentProfile  # noqa: F401
 from app.models.project_template import ProjectTemplate  # noqa: F401
 from app.models.constitution_suggestion import ConstitutionSuggestion  # noqa: F401
+
+# FM-121–130: Execution checkpoints, delivery, traceability
+from app.models.execution_checkpoint import ExecutionCheckpoint  # noqa: F401
