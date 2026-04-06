@@ -1519,7 +1519,7 @@ By the end of FM-110, ForgeMind is a fully SPEC-driven AI execution platform wit
 
 # Completed Roadmap — FM-111 to FM-120 | Planned — FM-121 to FM-140
 
-> FM-111 through FM-120 are **complete**. The following milestones (FM-121–FM-140) are **planned** and have **not yet been implemented**. They represent the next two waves of ForgeMind development.
+> FM-111 through FM-120 are **complete**. FM-121 through FM-130 are **complete**. The following milestones (FM-131–FM-140) are **planned** and have **not yet been implemented**. They represent the next wave of ForgeMind development.
 
 ---
 
@@ -1658,16 +1658,16 @@ Wave 8 adds **checkpoint-based execution control** and **delivery artifact synth
 
 | FM     | Title                                       | Status     |
 | ------ | ------------------------------------------- | ---------- |
-| FM-121 | Checkpoint Task Type and Run Integration    | 🔲 Planned |
-| FM-122 | Replay-Aware Checkpoint Rollback            | 🔲 Planned |
-| FM-123 | Adaptive Checkpoint Injection Logic         | 🔲 Planned |
-| FM-124 | Mid-Run Branch / WIP Snapshot Support       | 🔲 Planned |
-| FM-125 | Auto-Generated CHANGELOG Artifacts          | 🔲 Planned |
-| FM-126 | Run Completion Narrative and Release Notes  | 🔲 Planned |
-| FM-127 | Implementation Artifact Bundle Synthesis    | 🔲 Planned |
-| FM-128 | Spec/Plan/Implementation Traceability Graph | 🔲 Planned |
-| FM-129 | Architecture-Aware Release Risk Summary     | 🔲 Planned |
-| FM-130 | Delivery Artifact Hardening                 | 🔲 Planned |
+| FM-121 | Checkpoint Task Type and Run Integration    | ✅ Complete |
+| FM-122 | Replay-Aware Checkpoint Rollback            | ✅ Complete |
+| FM-123 | Adaptive Checkpoint Injection Logic         | ✅ Complete |
+| FM-124 | Mid-Run Branch / WIP Snapshot Support       | ✅ Complete |
+| FM-125 | Auto-Generated CHANGELOG Artifacts          | ✅ Complete |
+| FM-126 | Run Completion Narrative and Release Notes  | ✅ Complete |
+| FM-127 | Implementation Artifact Bundle Synthesis    | ✅ Complete |
+| FM-128 | Spec/Plan/Implementation Traceability Graph | ✅ Complete |
+| FM-129 | Architecture-Aware Release Risk Summary     | ✅ Complete |
+| FM-130 | Delivery Artifact Hardening                 | ✅ Complete |
 
 ### Milestone 25 — Execution Memory, Checkpoints & Delivery (FM-121 to FM-130)
 

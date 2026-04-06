@@ -79,7 +79,7 @@ ForgeMind is an **operator-centered AI execution platform** that dynamically ass
 | Async       | pytest-asyncio               | Async test support                         |
 | HTTP Client | httpx (AsyncClient)          | API integration tests                      |
 | Test DB     | aiosqlite (in-memory SQLite) | Fast isolated test database                |
-| Total Tests | **482** (all passing)        | 303 prior + 110 FM-071–080 + 69 FM-081–090 |
+| Total Tests | **691** (all passing)        | Backend 638 + Local 53 (through FM-130)    |
 
 ---
 

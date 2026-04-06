@@ -24,6 +24,7 @@ from app.models.task import Task, TaskStatus
 from app.models.artifact import Artifact, ArtifactType
 from app.models.execution_event import EventType
 from app.services import event_service
+from app.models.execution_checkpoint import CheckpointType
 
 logger = logging.getLogger(__name__)
 
@@ -201,11 +202,43 @@ async def transition_run(
         },
     )
 
+    # FM-122: Auto-checkpoint on phase transition
+    await _try_auto_checkpoint_on_transition(
+        db, run, old_status.value, target_status.value
+    )
+
     return {
         "transitioned": True,
         "from_status": old_status.value,
         "to_status": target_status.value,
     }
+
+
+async def _try_auto_checkpoint_on_transition(
+    db: AsyncSession,
+    run: Run,
+    old_status: str,
+    new_status: str,
+) -> None:
+    """FM-122: Create an AUTO_PHASE checkpoint on meaningful phase transitions."""
+    try:
+        from app.services import execution_checkpoint_service as cp_svc
+
+        await cp_svc.create_auto_checkpoint(
+            db,
+            run_id=run.id,
+            project_id=run.project_id,
+            checkpoint_type=CheckpointType.AUTO_PHASE,
+            summary=f"Phase transition: {old_status} → {new_status}",
+        )
+    except Exception:
+        logger.warning(
+            "Auto-checkpoint failed for run %s on %s → %s",
+            run.id,
+            old_status,
+            new_status,
+            exc_info=True,
+        )
 
 
 class RunHealth:
@@ -394,6 +427,20 @@ async def try_auto_complete_run(
         }
 
     # All terminal — complete the run
+    # FM-122: PRE_DELIVERY checkpoint before final state change
+    try:
+        from app.services import execution_checkpoint_service as cp_svc
+
+        await cp_svc.create_auto_checkpoint(
+            db,
+            run_id=run.id,
+            project_id=run.project_id,
+            checkpoint_type=CheckpointType.PRE_DELIVERY,
+            summary=f"Pre-delivery snapshot — {len(tasks)} tasks terminal",
+        )
+    except Exception:
+        logger.warning("Pre-delivery checkpoint failed for run %s", run_id, exc_info=True)
+
     run.status = RunStatus.COMPLETED
     await db.flush()
 

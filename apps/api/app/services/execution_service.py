@@ -1,5 +1,6 @@
 """Execution service - task claiming, completion, and failure lifecycle."""
 
+import logging
 import time
 import uuid
 
@@ -17,6 +18,8 @@ from app.models.execution_event import EventType
 
 # Task types that require human approval after completion
 APPROVAL_REQUIRED_TASK_TYPES = {"architecture", "review"}
+
+logger = logging.getLogger(__name__)
 
 
 async def claim_task(
@@ -142,6 +145,24 @@ async def complete_task(
 
     # Create approval request for high-impact task types
     if task.task_type in APPROVAL_REQUIRED_TASK_TYPES:
+        # FM-122: PRE_APPROVAL checkpoint before approval gate
+        try:
+            from app.services import execution_checkpoint_service as cp_svc
+            from app.models.execution_checkpoint import CheckpointType
+
+            await cp_svc.create_auto_checkpoint(
+                db,
+                run_id=task.run_id,
+                project_id=project_id,
+                checkpoint_type=CheckpointType.PRE_APPROVAL,
+                summary=f"Pre-approval snapshot for task '{task.title}'",
+                task_id=task.id,
+            )
+        except Exception:
+            logger.warning(
+                "Pre-approval checkpoint failed for task %s", task_id, exc_info=True
+            )
+
         approval = await approval_service.create_approval(
             db,
             ApprovalCreate(

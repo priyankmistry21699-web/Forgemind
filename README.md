@@ -1687,10 +1687,10 @@ make test
 | 22  | **ForgeMind Local — Developer Workstation**    | FM-091 → FM-100            | ✅ Complete |
 | 23  | **SPEC-Driven Lifecycle**                      | FM-101 → FM-110            | ✅ Complete |
 | 24  | **Phase Routing, Templates & Bootstrapping**   | FM-111 → FM-120            | ✅ Complete |
-| 25  | **Execution Memory, Checkpoints & Delivery**   | FM-121 → FM-130            | 🔲 Planned  |
+| 25  | **Execution Memory, Checkpoints & Delivery**   | FM-121 → FM-130            | ✅ Complete |
 | 26  | **Connector Ecosystem & Extensions**           | FM-131 → FM-140            | 🔲 Planned  |
 
-> **FM-121–FM-140 are planned. See [FORGEMIND_ROADMAP_V3.md](FORGEMIND_ROADMAP_V3.md) for detailed scope per task.**
+> **FM-131–FM-140 are planned. See [FORGEMIND_ROADMAP_V3.md](FORGEMIND_ROADMAP_V3.md) for detailed scope per task.**
 
 <details>
 <summary><strong>Milestone 1 — Platform Foundation</strong></summary>

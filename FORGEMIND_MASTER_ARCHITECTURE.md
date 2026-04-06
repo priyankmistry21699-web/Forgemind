@@ -854,9 +854,23 @@ ForgeMind depends on:
 - `apps/api/app/services/adr_service.py` — ADR-aware plan enrichment from architecture graph
 - `apps/web/components/projects/constitution-editor.tsx` — UI for editing project constitutions
 
+### Execution Memory, Checkpoints & Delivery (FM-121–130)
+
+- `apps/api/app/models/execution_checkpoint.py` — CheckpointType enum, ExecutionCheckpoint ORM
+- `apps/api/app/schemas/execution_checkpoint.py` — Pydantic schemas (create/update/read)
+- `apps/api/app/services/execution_checkpoint_service.py` — CRUD, auto-checkpoint, resume from checkpoint
+- `apps/api/app/services/changelog_service.py` — auto-generated CHANGELOG artifacts
+- `apps/api/app/services/narrative_service.py` — run completion narrative & release notes
+- `apps/api/app/services/bundle_service.py` — implementation artifact bundle synthesis
+- `apps/api/app/services/traceability_service.py` — spec/plan/implementation traceability graph
+- `apps/api/app/services/release_risk_service.py` — architecture-aware release risk summary
+- `apps/api/app/services/delivery_hardening_service.py` — delivery artifact quality gates
+- `apps/api/app/routers/execution_checkpoints.py` — REST endpoints for checkpoint CRUD & resume
+- `apps/api/alembic/versions/2026_04_06_0024_add_execution_checkpoints.py` — migration
+
 ### Tests
 
-- `apps/api/tests/...` — API/service/integration tests (593 tests)
+- `apps/api/tests/...` — API/service/integration tests (691 tests)
 - `apps/local/tests/...` — ForgeMind Local tests (53 tests)
 - `apps/api/evals/...` — eval/quality benchmarks
 
@@ -871,6 +885,6 @@ ForgeMind depends on:
 
 ## What ForgeMind Is, In One Sentence
 
-ForgeMind is a **workspace-aware, approval-governed, multi-agent AI execution platform** that can plan projects, orchestrate execution, manage human approvals, maintain operational memory, collaborate across teams, integrate with repositories, generate code-change proposals, review them, validate them in a controlled sandbox, analyze its own architecture for structural health, drift, and compliance, enforce **SPEC-driven lifecycle governance** with project constitutions, slash commands, ADR-aware planning, spec-to-plan validation, and approval gates — and provide a **standalone developer workstation CLI** for offline repo intelligence, bounded execution, patch management, PR preparation, and team handoff.
+ForgeMind is a **workspace-aware, approval-governed, multi-agent AI execution platform** that can plan projects, orchestrate execution, manage human approvals, maintain operational memory, collaborate across teams, integrate with repositories, generate code-change proposals, review them, validate them in a controlled sandbox, analyze its own architecture for structural health, drift, and compliance, enforce **SPEC-driven lifecycle governance** with project constitutions, slash commands, ADR-aware planning, spec-to-plan validation, and approval gates, provide **execution checkpoints, auto-resume, delivery artifact bundles, traceability graphs, and architecture-aware release risk summaries** — and provide a **standalone developer workstation CLI** for offline repo intelligence, bounded execution, patch management, PR preparation, and team handoff.
 
 ---

@@ -511,7 +511,7 @@ def checkpoint_list(run_id: str, path: str | None) -> None:
 )
 @click.option("--path", default=None)
 def checkpoint_save(run_id: str, summary: str, path: str | None) -> None:
-    """Save a manual checkpoint locally."""
+    """Save a manual checkpoint locally with real state capture."""
     import datetime as dt
 
     repo_root = path or detect_repo_root()
@@ -524,12 +524,36 @@ def checkpoint_save(run_id: str, summary: str, path: str | None) -> None:
     existing = [f for f in os.listdir(cp_dir) if f.endswith(".json")]
     seq = len(existing) + 1
 
+    # Capture real run state from cached data
+    runs_dir = os.path.join(repo_root, ".forgemind", "state", "runs")
+    run_file = os.path.join(runs_dir, f"{run_id}.json")
+    status_snapshot: dict = {}
+    artifact_refs: dict = {}
+    approval_snapshot: dict = {}
+    if os.path.isfile(run_file):
+        with open(run_file, encoding="utf-8") as fh:
+            run_data = json.load(fh)
+        status_snapshot = {
+            "run_status": run_data.get("status", "unknown"),
+            "task_counts": run_data.get("tasks", {}),
+            "total_tasks": run_data.get("tasks", {}).get("total", 0),
+        }
+        artifact_refs = {
+            "has_spec": run_data.get("has_spec", False),
+            "has_plan": run_data.get("has_plan", False),
+            "artifact_count": run_data.get("artifact_count", 0),
+        }
+        approval_snapshot = run_data.get("approvals", {})
+
     cp_data = {
         "id": str(os.urandom(16).hex()),
         "run_id": run_id,
         "sequence_number": seq,
         "checkpoint_type": "manual",
         "summary": summary,
+        "status_snapshot": status_snapshot,
+        "artifact_refs": artifact_refs,
+        "approval_snapshot": approval_snapshot,
         "created_at": dt.datetime.now(dt.timezone.utc).isoformat(),
     }
     out = os.path.join(cp_dir, f"{seq:04d}.json")
@@ -592,6 +616,30 @@ def confidence(run_id: str, path: str | None) -> None:
         score += 15
         reasons.append("Run completed → +15")
 
+    # Approval-aware signals (FM-129 strengthening)
+    approvals = run_data.get("approvals", {})
+    resolved = approvals.get("approved", 0) + approvals.get("rejected", 0)
+    pending = approvals.get("pending", 0)
+    if resolved > 0 and pending == 0:
+        score += 10
+        reasons.append(f"All approvals resolved ({resolved}) → +10")
+    elif pending > 0:
+        reasons.append(f"[yellow]{pending} approval(s) still pending → +0[/yellow]")
+
+    rejected = approvals.get("rejected", 0)
+    if rejected == 0 and resolved > 0:
+        score += 5
+        reasons.append("No rejections → +5")
+    elif rejected > 0:
+        score -= 10
+        reasons.append(f"[red]{rejected} rejection(s) → −10[/red]")
+
+    # Delivery artifact signal
+    if run_data.get("has_delivery_artifact"):
+        score += 10
+        reasons.append("Delivery artifact present → +10")
+
+    score = max(0, min(100, score))
     band = "high" if score >= 80 else "medium" if score >= 50 else "low"
 
     tbl = Table(title=f"Release Confidence — Run {run_id[:8]}")
@@ -628,21 +676,66 @@ def review(run_id: str, path: str | None) -> None:
     console.print(f"[bold]Review Summary — Run {run_id[:8]}[/bold]\n")
     console.print(f"  Status: {run_data.get('status', '?')}")
     tasks = run_data.get("tasks", {})
-    console.print(
-        f"  Tasks: {tasks.get('completed', 0)}/{tasks.get('total', 0)} completed"
-    )
-    if tasks.get("failed", 0):
-        console.print(f"  [red]Failed: {tasks['failed']}[/red]")
+    total_tasks = tasks.get("total", 0)
+    completed_tasks = tasks.get("completed", 0)
+    failed_tasks = tasks.get("failed", 0)
+    console.print(f"  Tasks: {completed_tasks}/{total_tasks} completed")
+    if failed_tasks:
+        console.print(f"  [red]Failed: {failed_tasks}[/red]")
+        # Show failure details if available
+        for fail_info in tasks.get("failure_details", []):
+            console.print(f"    • {fail_info.get('title', '?')}: {fail_info.get('error', 'unknown')}")
+
     approvals = run_data.get("approvals", {})
     if approvals:
+        approved = approvals.get("approved", 0)
+        pending = approvals.get("pending", 0)
+        rejected = approvals.get("rejected", 0)
         console.print(
-            f"  Approvals: {approvals.get('approved', 0)} approved, {approvals.get('pending', 0)} pending"
+            f"  Approvals: {approved} approved, {pending} pending, {rejected} rejected"
         )
 
     cp_dir = os.path.join(repo_root, ".forgemind", "state", "checkpoints", run_id)
+    cp_count = 0
     if os.path.isdir(cp_dir):
         cp_count = len([f for f in os.listdir(cp_dir) if f.endswith(".json")])
         console.print(f"  Checkpoints: {cp_count}")
+
+    # ── Risk analysis ──
+    console.print("\n[bold]Risk Analysis[/bold]")
+    risks: list[str] = []
+
+    if failed_tasks > 0:
+        risks.append(f"[red]HIGH[/red]: {failed_tasks} task(s) failed")
+    if approvals.get("pending", 0) > 0:
+        risks.append(f"[yellow]MEDIUM[/yellow]: {approvals['pending']} approval(s) pending")
+    if approvals.get("rejected", 0) > 0:
+        risks.append(f"[red]HIGH[/red]: {approvals['rejected']} approval(s) rejected")
+    if not run_data.get("has_spec"):
+        risks.append("[yellow]MEDIUM[/yellow]: No SPEC artifact")
+    if not run_data.get("has_plan"):
+        risks.append("[yellow]MEDIUM[/yellow]: No PLAN artifact")
+    if cp_count == 0:
+        risks.append("[dim]LOW[/dim]: No checkpoints saved")
+    if total_tasks > 0 and completed_tasks < total_tasks and failed_tasks == 0:
+        pct = int(completed_tasks / total_tasks * 100)
+        risks.append(f"[yellow]MEDIUM[/yellow]: Only {pct}% of tasks complete")
+
+    if risks:
+        for r in risks:
+            console.print(f"  • {r}")
+    else:
+        console.print("  [green]No risks identified[/green]")
+
+    # ── Recommendation ──
+    console.print("\n[bold]Recommendation[/bold]")
+    high_risks = sum(1 for r in risks if "HIGH" in r)
+    if high_risks:
+        console.print("  [red]⊘ NOT ready for release — resolve HIGH risks first[/red]")
+    elif risks:
+        console.print("  [yellow]⚠ Conditionally ready — review MEDIUM risks[/yellow]")
+    else:
+        console.print("  [green]✓ Ready for release[/green]")
 
 
 # ── entrypoint ─────────────────────────────────────────────────────

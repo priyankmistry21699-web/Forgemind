@@ -223,6 +223,19 @@
 - ✅ FM-119 Local mode support for templates & phase profiles (CLI status display, exec context logging, handoff bundle metadata)
 - ✅ FM-120 Hardening, tests & documentation (38 tests, 580 total passing, full doc closure)
 
+### Milestone 25 — Execution Memory, Checkpoints & Delivery (FM-121 to FM-130)
+
+- ✅ FM-121 Execution checkpoint model & CRUD (ExecutionCheckpoint ORM, CheckpointType enum, schemas, service, REST router, Alembic migration 0024)
+- ✅ FM-122 Auto-checkpoint on phase transitions (AUTO_PHASE on transition_run, PRE_APPROVAL on complete_task, PRE_DELIVERY on try_auto_complete_run)
+- ✅ FM-123 Resume-from-checkpoint with real restart (reset FAILED/BLOCKED tasks to READY, set run to RUNNING, emit resume event)
+- ✅ FM-124 Mid-run branch / WIP snapshot support (manual checkpoint creation, sequence numbering, live state capture)
+- ✅ FM-125 Auto-generated CHANGELOG artifacts (changelog_service, structured output from events/tasks/artifacts)
+- ✅ FM-126 Run completion narrative and release notes (narrative_service, timeline/decisions/outcomes)
+- ✅ FM-127 Implementation artifact bundle synthesis (bundle_service, collect specs/plans/code/patches into bundle)
+- ✅ FM-128 Spec/plan/implementation traceability graph (traceability_service, directed graph, coverage analysis)
+- ✅ FM-129 Architecture-aware release risk summary (release_risk_service, local CLI confidence/review/checkpoint save strengthened, handoff import checkpoint restore)
+- ✅ FM-130 Delivery artifact hardening (delivery_hardening_service, quality gates, validation pipeline)
+
 ## Blocked
 
 - (none)

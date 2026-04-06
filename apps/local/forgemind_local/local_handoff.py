@@ -193,6 +193,22 @@ def import_snapshot(bundle_path: str, repo_root: str) -> dict[str, Any]:
             for f in os.listdir(src_runs):
                 shutil.copy2(os.path.join(src_runs, f), os.path.join(dst_runs, f))
 
+        # Copy checkpoints (FM-129: symmetric with export)
+        src_cp = os.path.join(bundle_root, "checkpoints")
+        if os.path.isdir(src_cp):
+            dst_cp = os.path.join(fm_dir, "state", "checkpoints")
+            if os.path.isdir(dst_cp):
+                # Merge rather than overwrite
+                for item in os.listdir(src_cp):
+                    s = os.path.join(src_cp, item)
+                    d = os.path.join(dst_cp, item)
+                    if os.path.isdir(s):
+                        shutil.copytree(s, d, dirs_exist_ok=True)
+                    else:
+                        shutil.copy2(s, d)
+            else:
+                shutil.copytree(src_cp, dst_cp)
+
         return manifest
 
 

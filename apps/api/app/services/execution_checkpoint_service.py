@@ -11,8 +11,8 @@ from sqlalchemy import select, func as sa_func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.execution_checkpoint import ExecutionCheckpoint, CheckpointType
-from app.models.run import Run
-from app.models.task import Task
+from app.models.run import Run, RunStatus
+from app.models.task import Task, TaskStatus
 from app.models.artifact import Artifact
 from app.models.approval_request import ApprovalRequest
 from app.models.execution_event import EventType
@@ -231,7 +231,7 @@ async def create_auto_checkpoint(
 
 
 # ---------------------------------------------------------------------------
-# FM-123: Resume from checkpoint
+# FM-123: Resume from checkpoint — real execution restart
 # ---------------------------------------------------------------------------
 
 
@@ -243,11 +243,12 @@ async def resume_from_checkpoint(
 ) -> dict[str, Any]:
     """Resume a run from a selected checkpoint.
 
-    Validates checkpoint ownership, builds a continuation context, and
-    records a resume event. Does NOT promise deterministic replay.
+    Validates ownership, resets failed/blocked tasks to READY, sets the run
+    to RUNNING if it was PAUSED/FAILED, builds a continuation context, and
+    records a resume event.
 
     Returns:
-        context dict with completed/pending work, constraints, and stale info.
+        context dict with resumed flag, tasks reset, and continuation info.
     """
     checkpoint = await get_checkpoint(db, checkpoint_id)
     if checkpoint is None:
@@ -256,28 +257,56 @@ async def resume_from_checkpoint(
     if checkpoint.run_id != run_id:
         return {"error": "checkpoint_does_not_belong_to_run"}
 
-    # Build continuation context from checkpoint + current state
-    status_snapshot = checkpoint.status_snapshot or {}
-    artifact_refs = checkpoint.artifact_refs or {}
-    approval_snapshot = checkpoint.approval_snapshot or {}
+    # --- Load run and validate resumable state ---
+    run_result = await db.execute(select(Run).where(Run.id == run_id))
+    run = run_result.scalar_one_or_none()
+    if run is None:
+        return {"error": "run_not_found"}
 
-    # Current state for comparison
+    # Only resume from non-terminal or terminal-restartable states
+    resumable_states = {
+        RunStatus.PAUSED,
+        RunStatus.FAILED,
+        RunStatus.RUNNING,  # allow re-kick of stuck runs
+    }
+    if run.status not in resumable_states:
+        return {
+            "error": "run_not_resumable",
+            "detail": f"Run is {run.status.value}; only paused/failed/running runs can be resumed",
+        }
+
+    # --- Reset failed/blocked tasks to READY ---
+    task_result = await db.execute(select(Task).where(Task.run_id == run_id))
+    tasks = list(task_result.scalars().all())
+
+    reset_tasks: list[dict[str, Any]] = []
+    for t in tasks:
+        if t.status in (TaskStatus.FAILED, TaskStatus.BLOCKED):
+            old = t.status.value
+            t.status = TaskStatus.READY
+            t.error_message = None
+            reset_tasks.append({"id": str(t.id), "title": t.title, "was": old})
+
+    # --- Set run to RUNNING if not already ---
+    old_run_status = run.status.value
+    if run.status != RunStatus.RUNNING:
+        run.status = RunStatus.RUNNING
+
+    await db.flush()
+
+    # --- Build continuation context ---
+    status_snapshot = checkpoint.status_snapshot or {}
     current_status = await _build_status_snapshot(db, run_id)
     current_approvals = await _build_approval_snapshot(db, run_id)
 
-    # Determine what's already done vs what remains
-    task_counts = current_status.get("task_counts", {})
-    completed_tasks = task_counts.get("completed", 0)
-    total_tasks = current_status.get("total_tasks", 0)
+    # Stale approvals: existed at checkpoint but since removed
+    cp_approvals = (checkpoint.approval_snapshot or {}).get("approvals", [])
+    current_approval_ids = {
+        a["id"] for a in current_approvals.get("approvals", [])
+    }
+    stale_approvals = [a for a in cp_approvals if a["id"] not in current_approval_ids]
 
-    # Stale approvals: approvals that existed at checkpoint but have since changed
-    stale_approvals = []
-    cp_approvals = approval_snapshot.get("approvals", [])
-    current_approval_list = current_approvals.get("approvals", [])
-    current_approval_ids = {a["id"] for a in current_approval_list}
-    for a in cp_approvals:
-        if a["id"] not in current_approval_ids:
-            stale_approvals.append(a)
+    task_counts = current_status.get("task_counts", {})
 
     continuation_context = {
         "checkpoint_id": str(checkpoint_id),
@@ -286,10 +315,16 @@ async def resume_from_checkpoint(
         "checkpoint_summary": checkpoint.summary,
         "completed_at_checkpoint": status_snapshot,
         "current_state": current_status,
-        "artifacts_at_checkpoint": artifact_refs,
-        "pending_tasks": total_tasks - completed_tasks,
-        "completed_tasks": completed_tasks,
+        "artifacts_at_checkpoint": checkpoint.artifact_refs or {},
+        "pending_tasks": task_counts.get("ready", 0) + task_counts.get("running", 0),
+        "completed_tasks": task_counts.get("completed", 0),
         "stale_approvals": stale_approvals,
+        "tasks_reset": reset_tasks,
+        "run_status_change": (
+            f"{old_run_status} → running"
+            if old_run_status != "running"
+            else None
+        ),
         "constraints": {
             "approvals_pending": current_approvals.get("pending_count", 0),
         },
@@ -299,14 +334,22 @@ async def resume_from_checkpoint(
     await event_service.emit_event(
         db,
         event_type=EventType.LIFECYCLE_TRANSITION,
-        summary=f"Resumed from checkpoint #{checkpoint.sequence_number}",
+        summary=f"Resumed from checkpoint #{checkpoint.sequence_number} — {len(reset_tasks)} tasks re-queued",
         project_id=checkpoint.project_id,
         run_id=run_id,
         metadata={
             "checkpoint_id": str(checkpoint_id),
             "resume_type": checkpoint.checkpoint_type.value,
+            "tasks_reset": len(reset_tasks),
+            "run_status_change": old_run_status if old_run_status != "running" else None,
         },
     )
 
-    logger.info("Run %s resumed from checkpoint %s", run_id, checkpoint_id)
+    logger.info(
+        "Run %s resumed from checkpoint %s — %d tasks re-queued, run status %s → running",
+        run_id,
+        checkpoint_id,
+        len(reset_tasks),
+        old_run_status,
+    )
     return {"resumed": True, "context": continuation_context}
