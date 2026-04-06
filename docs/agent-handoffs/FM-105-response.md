@@ -1,21 +1,27 @@
 # FM-105 — Structured SPEC Generation
 
-## Summary
+## Goal
 
-Built the SPEC generation service that produces structured specification artifacts using LLM (with stub fallback). Constitution content is injected into the generation prompt. Emits SPEC_CREATED execution events and auto-transitions runs from PENDING to SPECIFYING.
+Generate formal specification artifacts using LLM with constitution context injection and stub fallback.
 
-## Deliverables
+## What Was Implemented
 
-- `spec_service.py` — `generate_spec(db, run_id)` with LLM prompt construction, constitution injection, stub fallback
-- SPEC artifact creation with `ArtifactType.SPEC`
-- `SPEC_CREATED` execution event emission
-- Auto-transition: PENDING → SPECIFYING on spec generation start
-- Run's `spec_artifact_id` FK set on successful SPEC creation
+- `spec_service.py` with 2 public functions:
+  - `generate_spec(db, *, run_id, project_id, user_prompt)` — LLM-powered SPEC generation with constitution injection, stub fallback if LLM unavailable
+  - `get_spec_for_run(db, run_id)` — retrieve existing SPEC artifact
+- Calls `constitution_service.get_constitution_for_prompt()` for constitution context injection
+- Creates `ArtifactType.SPEC` artifact with structured markdown (Problem/Objective, Scope, Constraints, Assumptions, Acceptance Criteria, Risks, Architecture Summary)
+- Auto-transitions run from PENDING → SPECIFYING
+- Emits `EventType.SPEC_CREATED` execution event
 
-## Known Gaps
+## Files Changed/Added
 
-- None
+- `apps/api/app/services/spec_service.py` — SPEC generation service
 
-## Test Results
+## Test Coverage
 
-- Covered by `TestFM105_SpecGeneration` (4 tests)
+- `TestFM105_SpecGeneration` — 4 tests (generate stub, generate with prompt, get spec for run, get spec returns none)
+
+## Result
+
+✅ Complete — 4 tests passing

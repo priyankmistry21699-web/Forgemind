@@ -800,10 +800,23 @@ PENDING → SPECIFYING → PLANNING → RUNNING → COMPLETED
 | FM-107 | ADR-Aware Planning               | Architecture graph queries, ADR sections, plan enrichment                            | ✅ Complete |
 | FM-108 | Spec-to-Plan Validation          | 8 rules (4 ERROR + 4 WARNING), lifecycle gate PLANNING→RUNNING                      | ✅ Complete |
 | FM-109 | Approval Integration             | SPEC/PLAN approval requests, idempotent, opt-in gating                              | ✅ Complete |
-| FM-110 | Tests & Hardening                | 54 tests, 10 test classes, 536 total passing, full doc closure                       | ✅ Complete |
+| FM-110 | Tests & Hardening                | 60 tests, 12 test classes, 542 total passing, full doc closure                       | \u2705 Complete |
 
-> **All 110 tasks across 23 milestones are complete. 536 tests passing.**
+> **All 110 tasks across 23 milestones are complete. 542 tests passing.**
 
 ---
 
-_This document reflects the architecture as of the latest commit on `main` (all features through FM-110 complete)._
+## Planned: FM-111–FM-140
+
+> The following waves are **planned** and have not yet been implemented.
+> See [FORGEMIND_ROADMAP_V3.md](../FORGEMIND_ROADMAP_V3.md) for full scope.
+
+| Wave | Milestone | Tasks         | Theme                                              |
+| ---- | --------- | ------------- | -------------------------------------------------- |
+| 7    | 24        | FM-111–FM-120 | Phase routing, templates, project bootstrapping    |
+| 8    | 25        | FM-121–FM-130 | Execution memory, checkpoints, delivery artifacts  |
+| 9    | 26        | FM-131–FM-140 | Connector ecosystem, extensions, enterprise plugins |
+
+---
+
+_This document reflects the architecture as of the latest commit on `main` (all features through FM-110 complete, FM-111–FM-140 planned)._

@@ -1484,19 +1484,21 @@ Wave 6 transforms ForgeMind into a **truly SPEC-driven platform** where every ru
 
 ### What was built:
 
-- 54 tests across 10 test classes covering all milestones
-- Test classes: TestFM101_ArtifactTypes, TestFM101_LifecycleGating, TestFM102_Constitution, TestFM104_SlashCommands, TestFM105_SpecGeneration, TestFM106_PlanArtifact, TestFM108_SpecPlanValidation, TestFM109_SpecPlanApproval, TestFM110_E2E, TestFM_Routes
+- 60 tests across 12 test classes covering all milestones
+- Test classes: TestFM101_ArtifactTypes, TestFM101_LifecycleGating, TestFM102_Constitution, TestFM103_GovernanceEvents, TestFM104_SlashCommands, TestFM105_SpecGeneration, TestFM106_PlanArtifact, TestFM107_ADREnrichment, TestFM108_SpecPlanValidation, TestFM109_SpecPlanApproval, TestFM110_E2E, TestFM_Routes
 - E2E lifecycle tests validating the full PENDING → SPECIFYING → PLANNING → RUNNING flow
 - Route integration tests for chat, slash commands, constitution CRUD, and validation endpoints
+- Governance event emission tests for constitution mutations
+- ADR-aware enrichment tests for architecture context injection
 
 ### Files changed:
 
-- `tests/test_fm101_110_spec_lifecycle.py` — 54 tests
+- `tests/test_fm101_110_spec_lifecycle.py` — 60 tests
 
 ### Test Results:
 
-- **54/54 new tests passing**
-- **536 total tests passing (no regressions)**
+- **60/60 new tests passing**
+- **542 total tests passing (no regressions)**
 
 ---
 
@@ -1511,4 +1513,375 @@ By the end of FM-110, ForgeMind is a fully SPEC-driven AI execution platform wit
 - Architecture-aware planning via ADR enrichment
 - Spec-to-plan validation ensuring plan coverage before execution
 - Approval gates on SPEC and PLAN artifacts
-- **536 tests across 23 milestones, all passing.**
+- **542 tests across 23 milestones, all passing.**
+
+---
+
+# Future Roadmap — FM-111 to FM-140 (Planned)
+
+> The following milestones are **planned** and have **not yet been implemented**. They represent the next three waves of ForgeMind development, organized into coherent themes aligned with the platform's current architecture through FM-110.
+
+---
+
+## Wave 7 — Phase Routing, Templates, and Project Bootstrapping (FM-111–FM-120)
+
+### Overview
+
+Wave 7 introduces **phase-aware agent routing** and **project templates** — enabling ForgeMind to recommend specialized agent compositions per lifecycle phase and bootstrap new projects from proven templates that include constitutions, policies, and spec/plan scaffolding.
+
+### Status Tracker
+
+| FM     | Title                                          | Status       |
+| ------ | ---------------------------------------------- | ------------ |
+| FM-111 | Phase Agent Profile Data Model                 | 🔲 Planned  |
+| FM-112 | Composition Engine Phase-Aware Routing         | 🔲 Planned  |
+| FM-113 | Phase Agent Profile UI                         | 🔲 Planned  |
+| FM-114 | Project Template Model and Seeding             | 🔲 Planned  |
+| FM-115 | Template-Based Project Creation Flow           | 🔲 Planned  |
+| FM-116 | Template Inheritance for Constitution & Policies | 🔲 Planned |
+| FM-117 | Knowledge-Driven Constitution Suggestions      | 🔲 Planned  |
+| FM-118 | Spec/Plan Bootstrap from Project Templates     | 🔲 Planned  |
+| FM-119 | Local Mode Support for Templates & Phase Profiles | 🔲 Planned |
+| FM-120 | Project Intelligence Bootstrapping Hardening   | 🔲 Planned  |
+
+### Milestone 24 — Phase Routing, Templates & Bootstrapping (FM-111 to FM-120)
+
+#### FM-111 — Phase Agent Profile Data Model
+
+**Goal:** Define data models for mapping lifecycle phases (SPECIFYING, PLANNING, RUNNING) to recommended agent profiles with capability metadata.
+
+**Planned scope:**
+- `PhaseAgentProfile` ORM model — phase, agent_slug, priority, capability_tags
+- Per-project and global profiles
+- CRUD service and schemas
+
+#### FM-112 — Composition Engine Phase-Aware Routing
+
+**Goal:** Extend the composition engine to select and prioritize agents based on the current run lifecycle phase.
+
+**Planned scope:**
+- Query phase profiles when composing agent teams
+- Priority-weighted agent selection per phase
+- Fallback to default composition if no phase profiles exist
+
+#### FM-113 — Phase Agent Profile UI
+
+**Goal:** Frontend for viewing and editing phase-to-agent mappings per project.
+
+**Planned scope:**
+- Phase profile editor component
+- Drag-and-drop agent ordering per phase
+- Default profile inheritance display
+
+#### FM-114 — Project Template Model and Seeding
+
+**Goal:** Create a template system that captures proven project configurations for reuse.
+
+**Planned scope:**
+- `ProjectTemplate` ORM model — name, description, category, config_snapshot
+- Template seeding from existing successful projects
+- System-provided default templates (API, CLI, Full-Stack, Library)
+
+#### FM-115 — Template-Based Project Creation Flow
+
+**Goal:** Allow users to create new projects from templates instead of from scratch.
+
+**Planned scope:**
+- Template picker in project creation UI
+- Auto-populate project config, agent profiles, and governance settings from template
+- Preview of template contents before creation
+
+#### FM-116 — Template Inheritance for Constitution & Policies
+
+**Goal:** Templates carry constitution content and approval policies that seed new projects.
+
+**Planned scope:**
+- Constitution content snapshot in templates
+- Approval policy settings in templates
+- Merge/override logic when user customizes inherited settings
+
+#### FM-117 — Knowledge-Driven Constitution Suggestions
+
+**Goal:** Use project knowledge base to suggest constitution improvements based on past run outcomes.
+
+**Planned scope:**
+- Analyze failed/successful runs to identify governance patterns
+- Suggest constitution additions (e.g., "add constraint: always include error handling")
+- User accept/reject flow for suggestions
+
+#### FM-118 — Spec/Plan Bootstrap from Project Templates
+
+**Goal:** Auto-generate initial SPEC and PLAN scaffolding from project template metadata.
+
+**Planned scope:**
+- Template-aware spec_service that generates SPEC with template context
+- Template-aware plan_artifact_service that generates PLAN with template phases
+- Integrate with existing slash commands (`/fm.specify` with template context)
+
+#### FM-119 — Local Mode Support for Templates & Phase Profiles
+
+**Goal:** Extend ForgeMind Local to support template-based project creation and phase profile awareness.
+
+**Planned scope:**
+- Template import/export in local handoff bundles
+- Phase profile export for offline use
+- CLI commands for template-based local project creation
+
+#### FM-120 — Project Intelligence Bootstrapping Hardening
+
+**Goal:** Test coverage and hardening for FM-111–119.
+
+**Planned scope:**
+- Comprehensive tests for phase profiles, templates, constitution suggestions
+- E2E tests for template-based project creation flow
+- Documentation and response files
+
+---
+
+## Wave 8 — Execution Memory, Checkpoints, and Delivery Artifacts (FM-121–FM-130)
+
+### Overview
+
+Wave 8 adds **checkpoint-based execution control** and **delivery artifact synthesis** — enabling mid-run snapshots, replay-aware rollback, auto-generated changelogs, and traceability from SPEC through PLAN to implementation artifacts.
+
+### Status Tracker
+
+| FM     | Title                                          | Status       |
+| ------ | ---------------------------------------------- | ------------ |
+| FM-121 | Checkpoint Task Type and Run Integration       | 🔲 Planned  |
+| FM-122 | Replay-Aware Checkpoint Rollback               | 🔲 Planned  |
+| FM-123 | Adaptive Checkpoint Injection Logic            | 🔲 Planned  |
+| FM-124 | Mid-Run Branch / WIP Snapshot Support          | 🔲 Planned  |
+| FM-125 | Auto-Generated CHANGELOG Artifacts             | 🔲 Planned  |
+| FM-126 | Run Completion Narrative and Release Notes     | 🔲 Planned  |
+| FM-127 | Implementation Artifact Bundle Synthesis       | 🔲 Planned  |
+| FM-128 | Spec/Plan/Implementation Traceability Graph    | 🔲 Planned  |
+| FM-129 | Architecture-Aware Release Risk Summary        | 🔲 Planned  |
+| FM-130 | Delivery Artifact Hardening                    | 🔲 Planned  |
+
+### Milestone 25 — Execution Memory, Checkpoints & Delivery (FM-121 to FM-130)
+
+#### FM-121 — Checkpoint Task Type and Run Integration
+
+**Goal:** Introduce checkpoint tasks that capture execution state at defined points during a run.
+
+**Planned scope:**
+- `TaskType.CHECKPOINT` enum value
+- Checkpoint task creation with state snapshot (completed tasks, artifacts, events)
+- Integration with run timeline for checkpoint visibility
+
+#### FM-122 — Replay-Aware Checkpoint Rollback
+
+**Goal:** Enable rolling back a run to a previous checkpoint state for replay.
+
+**Planned scope:**
+- Checkpoint selection UI
+- State restoration to checkpoint (task statuses, artifact visibility)
+- Integration with existing replay service (FM-046)
+
+#### FM-123 — Adaptive Checkpoint Injection Logic
+
+**Goal:** Automatically inject checkpoint tasks at strategic points in execution plans.
+
+**Planned scope:**
+- Heuristic rules: after each phase, before destructive operations, after approval gates
+- Configurable checkpoint frequency via project settings
+- Integration with plan_artifact_service
+
+#### FM-124 — Mid-Run Branch / WIP Snapshot Support
+
+**Goal:** Allow creating work-in-progress snapshots during active runs for safe experimentation.
+
+**Planned scope:**
+- WIP snapshot creation from active run state
+- Branch/fork run from snapshot
+- Merge or discard WIP branches
+
+#### FM-125 — Auto-Generated CHANGELOG Artifacts
+
+**Goal:** Automatically generate CHANGELOG entries from completed run artifacts and events.
+
+**Planned scope:**
+- `ArtifactType.CHANGELOG` type
+- Aggregate task completions, artifact creations, and key events into structured changelog
+- Markdown and JSON export
+
+#### FM-126 — Run Completion Narrative and Release Notes
+
+**Goal:** Generate human-readable release notes from a completed run's full history.
+
+**Planned scope:**
+- LLM-powered narrative generation from run timeline, artifacts, and events
+- Customizable tone and detail level via constitution settings
+- Export as markdown artifact
+
+#### FM-127 — Implementation Artifact Bundle Synthesis
+
+**Goal:** Package all implementation artifacts from a run into a coherent delivery bundle.
+
+**Planned scope:**
+- Bundle creation service collecting code, tests, docs, patches from a run
+- Dependency ordering and conflict detection between artifacts
+- Export as zip or structured directory
+
+#### FM-128 — Spec/Plan/Implementation Traceability Graph
+
+**Goal:** Build a traceability graph linking SPEC requirements → PLAN phases → implementation artifacts.
+
+**Planned scope:**
+- Traceability link model (requirement_id → plan_section → artifact_id)
+- Coverage visualization: which spec requirements have corresponding implementations
+- Gap detection: unimplemented requirements, untracted artifacts
+
+#### FM-129 — Architecture-Aware Release Risk Summary
+
+**Goal:** Generate risk assessments for planned releases using architecture graph context.
+
+**Planned scope:**
+- Analyze implementation artifacts against architecture drift/violations
+- Risk scoring: structural risk, dependency risk, untested risk
+- Integration with ADR service for architecture-aware risk context
+
+#### FM-130 — Delivery Artifact Hardening
+
+**Goal:** Test coverage and hardening for FM-121–129.
+
+**Planned scope:**
+- Comprehensive tests for checkpoints, changelogs, traceability, risk summaries
+- E2E tests for checkpoint-rollback-replay flow
+- Documentation and response files
+
+---
+
+## Wave 9 — Connector Ecosystem, Extensions, and Enterprise Pluginability (FM-131–FM-140)
+
+### Overview
+
+Wave 9 transforms ForgeMind's hardcoded connector system into a **registry-based extension ecosystem** — enabling discovery, installation, marketplace UI, credential management, and community-contributed extension packs.
+
+### Status Tracker
+
+| FM     | Title                                          | Status       |
+| ------ | ---------------------------------------------- | ------------ |
+| FM-131 | Connector Registry Data Model                  | 🔲 Planned  |
+| FM-132 | Registry-Backed Connector Discovery API        | 🔲 Planned  |
+| FM-133 | Connector Install / Activation Workflow        | 🔲 Planned  |
+| FM-134 | Connector Marketplace UI                       | 🔲 Planned  |
+| FM-135 | Connector Capability and Credential Metadata   | 🔲 Planned  |
+| FM-136 | Hardcoded Connector Migration to Registry Model | 🔲 Planned |
+| FM-137 | Project/Workspace Extension Permissions        | 🔲 Planned  |
+| FM-138 | Local Mode Connector Awareness                 | 🔲 Planned  |
+| FM-139 | Community / Custom Extension Pack Framework    | 🔲 Planned  |
+| FM-140 | Extension Ecosystem Hardening                  | 🔲 Planned  |
+
+### Milestone 26 — Connector Ecosystem & Extensions (FM-131 to FM-140)
+
+#### FM-131 — Connector Registry Data Model
+
+**Goal:** Replace the current hardcoded connector list with a registry-backed data model.
+
+**Planned scope:**
+- `ConnectorDefinition` ORM model — name, type, version, capability_tags, config_schema
+- `ConnectorInstance` ORM model — per-workspace/project connector installations
+- Migration from existing `RepoConnection` / `ConnectorConfig` models
+
+#### FM-132 — Registry-Backed Connector Discovery API
+
+**Goal:** Provide an API for discovering available connectors from the registry.
+
+**Planned scope:**
+- `GET /connectors/registry` — list available connectors with filtering
+- `GET /connectors/registry/{id}` — connector detail with config schema
+- Search by type, capability, compatibility
+
+#### FM-133 — Connector Install / Activation Workflow
+
+**Goal:** Enable installing and activating connectors from the registry into a project or workspace.
+
+**Planned scope:**
+- Install endpoint: `POST /connectors/install`
+- Activation/deactivation toggle
+- Config validation against connector's config_schema
+- Dependency resolution between connectors
+
+#### FM-134 — Connector Marketplace UI
+
+**Goal:** Frontend marketplace for browsing, installing, and managing connectors.
+
+**Planned scope:**
+- Marketplace browse page with category filtering
+- Connector detail cards with capability descriptions
+- Install/remove actions with confirmation
+- Installed connectors management panel
+
+#### FM-135 — Connector Capability and Credential Metadata
+
+**Goal:** Formalize connector capabilities and credential requirements in the registry.
+
+**Planned scope:**
+- Capability schema: read, write, execute, notify, sync
+- Credential requirement declarations per connector
+- Integration with existing credential vault (FM-041–045)
+- Validation that required credentials exist before activation
+
+#### FM-136 — Hardcoded Connector Migration to Registry Model
+
+**Goal:** Migrate existing built-in connectors (GitHub, GitLab, local repo) to the registry model.
+
+**Planned scope:**
+- Create registry entries for all existing connector types
+- Backward-compatible migration path
+- Preserve existing connector configurations
+
+#### FM-137 — Project/Workspace Extension Permissions
+
+**Goal:** RBAC controls for connector installation and usage at project and workspace levels.
+
+**Planned scope:**
+- Permission: `CONNECTOR_INSTALL`, `CONNECTOR_CONFIGURE`, `CONNECTOR_USE`
+- Workspace-level connector allowlists
+- Project-level connector overrides
+
+#### FM-138 — Local Mode Connector Awareness
+
+**Goal:** Extend ForgeMind Local to understand and interact with registry connectors.
+
+**Planned scope:**
+- Local connector config in `.forgemind/connectors.yaml`
+- Offline connector capability checking
+- Sync connector state in handoff bundles
+
+#### FM-139 — Community / Custom Extension Pack Framework
+
+**Goal:** Enable community-contributed extension packs that bundle connectors, templates, and phase profiles.
+
+**Planned scope:**
+- Extension pack manifest format
+- Pack validation and safety scanning
+- Import/export extension packs
+- Community contribution guidelines
+
+#### FM-140 — Extension Ecosystem Hardening
+
+**Goal:** Test coverage and hardening for FM-131–139.
+
+**Planned scope:**
+- Comprehensive tests for registry, installation, marketplace, permissions
+- E2E tests for connector lifecycle: discover → install → configure → activate → use → remove
+- Documentation and response files
+
+---
+
+## Roadmap Summary
+
+| Wave | Milestones | Tasks        | Theme                                              | Status       |
+| ---- | ---------- | ------------ | -------------------------------------------------- | ------------ |
+| 1    | 1–9        | FM-001–045   | Platform foundation through pre-release             | ✅ Complete  |
+| 2    | 10–13      | FM-046–070   | Intelligence, collaboration, code ops               | ✅ Complete  |
+| 3    | 14–20      | FM-071–080   | Frontend parity, RBAC, CI/CD, observability         | ✅ Complete  |
+| 4    | 21         | FM-081–090   | Architecture intelligence                           | ✅ Complete  |
+| 5    | 22         | FM-091–100   | Developer workstation (ForgeMind Local)             | ✅ Complete  |
+| 6    | 23         | FM-101–110   | SPEC-driven lifecycle                               | ✅ Complete  |
+| 7    | 24         | FM-111–120   | Phase routing, templates, project bootstrapping     | 🔲 Planned  |
+| 8    | 25         | FM-121–130   | Execution memory, checkpoints, delivery artifacts   | 🔲 Planned  |
+| 9    | 26         | FM-131–140   | Connector ecosystem, extensions, enterprise plugins | 🔲 Planned  |

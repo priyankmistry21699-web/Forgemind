@@ -1686,6 +1686,11 @@ make test
 | 21  | **Architecture Intelligence**                  | FM-081 → FM-090            | ✅ Complete |
 | 22  | **ForgeMind Local — Developer Workstation**    | FM-091 → FM-100            | ✅ Complete |
 | 23  | **SPEC-Driven Lifecycle**                      | FM-101 → FM-110            | ✅ Complete |
+| 24  | **Phase Routing, Templates & Bootstrapping**   | FM-111 → FM-120            | 🔲 Planned  |
+| 25  | **Execution Memory, Checkpoints & Delivery**   | FM-121 → FM-130            | 🔲 Planned  |
+| 26  | **Connector Ecosystem & Extensions**           | FM-131 → FM-140            | 🔲 Planned  |
+
+> **FM-111–FM-140 are planned. See [FORGEMIND_ROADMAP_V3.md](FORGEMIND_ROADMAP_V3.md) for detailed scope per task.**
 
 <details>
 <summary><strong>Milestone 1 — Platform Foundation</strong></summary>
@@ -1922,7 +1927,7 @@ make test
 - FM-107: ADR-aware planning — architecture graph context enriches generated plans with ADR sections
 - FM-108: Spec-to-plan validation — 8 rules block execution if plan doesn't cover spec adequately
 - FM-109: Approval integration — SPEC/PLAN artifacts can require approval before lifecycle transitions
-- FM-110: Hardening — 54 tests, 536 total passing, full doc/tracking closure
+- FM-110: Hardening — 60 tests, 12 test classes, 542 total passing, full doc/tracking closure
 </details>
 
 ---
@@ -1948,7 +1953,7 @@ make test
 
 **Built with ❤️ by [Priyank Mistry](https://github.com/priyankmistry21699-web)**
 
-_ForgeMind v1.2.0 — 110 tasks completed across 23 milestones · 536 tests passing_
+_ForgeMind v1.2.0 — 110 tasks completed across 23 milestones · 542 tests passing_
 
 </div>
 

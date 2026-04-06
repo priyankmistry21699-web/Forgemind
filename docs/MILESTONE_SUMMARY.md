@@ -500,7 +500,7 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 | FM-099 | Handoff Snapshots                | ✅ Complete |
 | FM-100 | Hardening, Tests & Documentation | ✅ Complete |
 
-> **ForgeMind now spans 110 features across 23 milestones — a structurally self-aware, SPEC-driven AI execution platform with lifecycle gating, project constitutions, and approval-governed planning. 536 tests passing.**
+> **ForgeMind now spans 110 features across 23 milestones — a structurally self-aware, SPEC-driven AI execution platform with lifecycle gating, project constitutions, and approval-governed planning. 542 tests passing.**
 
 ## FM-101 to FM-110 — ✅ COMPLETE
 
@@ -608,3 +608,16 @@ See [docs/TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for full details (18 items). Key
 - **TD-016**: Retry/cancel event types reuse existing enum values
 - **TD-017**: Chat service has no conversation memory
 - **TD-018**: Agent hint from planner not validated against registered agents
+
+---
+
+## Planned Milestones (FM-111–FM-140)
+
+> These milestones are **planned** and have **not yet been implemented**.
+> See [FORGEMIND_ROADMAP_V3.md](../FORGEMIND_ROADMAP_V3.md) for detailed task definitions.
+
+| Milestone | Theme                                              | Tasks        | Status       |
+| --------- | -------------------------------------------------- | ------------ | ------------ |
+| 24        | Phase Routing, Templates & Project Bootstrapping   | FM-111–FM-120 | 🔲 Planned  |
+| 25        | Execution Memory, Checkpoints & Delivery Artifacts | FM-121–FM-130 | 🔲 Planned  |
+| 26        | Connector Ecosystem, Extensions & Enterprise Plugins | FM-131–FM-140 | 🔲 Planned |

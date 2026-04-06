@@ -1,20 +1,29 @@
 # FM-106 — PLAN Artifact Export & Linking
 
-## Summary
+## Goal
 
-Implemented PLAN artifact creation with FK linkage to SPEC artifacts, plus markdown and JSON export endpoints. Auto-transitions runs from SPECIFYING to PLANNING.
+Create PLAN artifacts linked to their SPEC via FK, with markdown and JSON export capabilities.
 
-## Deliverables
+## What Was Implemented
 
-- `plan_artifact_service.py` — `create_plan(db, run_id, spec_artifact_id)`, `export_plan_markdown(db, plan_artifact_id)`, `export_plan_json(db, plan_artifact_id)`
-- PLAN→SPEC FK linkage via `spec_artifact_id` on plan artifact
-- REST endpoints for plan export: `GET /api/runs/{id}/plan/markdown`, `GET /api/runs/{id}/plan/json`
-- Auto-transition: SPECIFYING → PLANNING on plan creation
+- `plan_artifact_service.py` with 4 public functions:
+  - `generate_plan_artifact(db, *, run_id, project_id, user_prompt)` — creates PLAN linked to SPEC, calls `adr_service.enrich_plan_with_adr()` for ADR enrichment
+  - `get_plan_for_run(db, run_id)` — retrieve existing PLAN artifact
+  - `export_plan_markdown(db, run_id)` — export PLAN content as markdown
+  - `get_plan_export_data(db, run_id)` — export PLAN as JSON dict
+- Requires SPEC artifact first (raises `ValueError` if absent)
+- Sets `spec_artifact_id` FK on PLAN artifact for PLAN→SPEC linking
+- Auto-transitions run from SPECIFYING → PLANNING
+- Emits `EventType.PLAN_CREATED` execution event
 
-## Known Gaps
+## Files Changed/Added
 
-- None
+- `apps/api/app/services/plan_artifact_service.py` — PLAN generation and export service
 
-## Test Results
+## Test Coverage
 
-- Covered by `TestFM106_PlanArtifact` (4 tests)
+- `TestFM106_PlanArtifact` — 4 tests (plan requires spec, plan links to spec, markdown export, returns none without plan)
+
+## Result
+
+✅ Complete — 4 tests passing

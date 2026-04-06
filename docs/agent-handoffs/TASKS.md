@@ -208,7 +208,7 @@
 - ✅ FM-107 ADR-aware planning (architecture graph queries, ADR-001/002/003 sections, plan enrichment, prompt context injection)
 - ✅ FM-108 Spec-to-plan validation (8 rules: 4 ERROR + 4 WARNING, lifecycle gate PLANNING→RUNNING, REST endpoint, SpecPlanValidationResult)
 - ✅ FM-109 Approval integration (SPEC/PLAN approval requests, idempotent, opt-in gating, lifecycle gate enforcement)
-- ✅ FM-110 Tests & hardening (54 tests, 10 test classes, 536 total passing, docs/tracking closure)
+- ✅ FM-110 Tests & hardening (60 tests, 12 test classes, 542 total passing, docs/tracking closure)
 
 ## Blocked
 

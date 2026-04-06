@@ -1,6 +1,6 @@
 # ForgeMind — Complete Project Roadmap (v2)
 
-> ⚠️ **LEGACY** — This file is the original phase-based roadmap. It has been superseded by [FORGEMIND_ROADMAP_V3.md](FORGEMIND_ROADMAP_V3.md), which is the active source of truth covering FM-071 through FM-090.
+> ⚠️ **LEGACY** — This file is the original phase-based roadmap. It has been superseded by [FORGEMIND_ROADMAP_V3.md](FORGEMIND_ROADMAP_V3.md), which is the active source of truth covering FM-001 through FM-110 (23 milestones complete, 542 tests passing) and planning for FM-111–FM-140.
 
 > **A Secure Autonomous Engineering Platform That Turns High-Level Goals Into Complete Working Systems**
 >
@@ -1541,4 +1541,4 @@ cd ../../docker
 
 ---
 
-_This document is your single source of truth for the ForgeMind project. Update it as you complete phases and make architectural decisions._
+_This document is the original ForgeMind roadmap, frozen at Phase 0–9 planning. All implementation through FM-110 (23 milestones) is tracked in [FORGEMIND_ROADMAP_V3.md](FORGEMIND_ROADMAP_V3.md). Future planning (FM-111–FM-140) is also in V3._

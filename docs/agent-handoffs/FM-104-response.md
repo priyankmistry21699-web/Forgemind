@@ -1,20 +1,32 @@
 # FM-104 — Slash Command Parsing
 
-## Summary
+## Goal
 
-Implemented chat slash commands (`/fm.specify`, `/fm.plan`, `/fm.tasks`, `/fm.implement`) with regex-based parsing in `slash_command_service.py`. Commands are routed to their respective services and integrated into the chat endpoint.
+Parse `/fm.*` commands in chat messages and route them to the appropriate lifecycle services.
 
-## Deliverables
+## What Was Implemented
 
-- `slash_command_service.py` — `parse_command(text)` regex parser, `execute_command(db, run_id, command)` dispatcher
-- Command routing: `/fm.specify` → spec_service, `/fm.plan` → plan_artifact_service, `/fm.tasks` → task listing, `/fm.implement` → run start
-- Frontend slash command suggestions in chat input
-- Integration with chat endpoint — commands return structured `command_result` alongside reply text
+- `slash_command_service.py` with `ParsedCommand` and `CommandResult` dataclasses
+- 4 commands: `/fm.specify`, `/fm.plan`, `/fm.tasks`, `/fm.implement` (case-insensitive regex parsing)
+- `parse_command(message)` → `ParsedCommand | None`
+- `is_slash_command(message)` → `bool`
+- `list_commands()` → autocomplete data
+- `execute_command(db, run_id, parsed)` → `CommandResult` with routing to `_handle_specify`, `_handle_plan`, `_handle_tasks`, `_handle_implement`
+- Chat route integration: `POST /runs/{run_id}/chat` detects and routes slash commands
+- Autocomplete endpoint: `GET /chat/commands`
+- Frontend `chat.ts` updated to return `command_result` alongside `reply`
 
-## Known Gaps
+## Files Changed/Added
 
-- None
+- `apps/api/app/services/slash_command_service.py` — parser + router
+- `apps/api/app/api/routes/chat.py` — slash command integration in chat endpoint
+- `apps/web/lib/chat.ts` — ChatResponse includes command_result
+- `apps/web/components/chat/run-chat-panel.tsx` — destructures new return type
 
-## Test Results
+## Test Coverage
 
-- Covered by `TestFM104_SlashCommands` (9 tests)
+- `TestFM104_SlashCommands` — 9 tests (parse specify/plan/tasks/implement, unknown returns none, case insensitivity, is_slash_command, list_commands)
+
+## Result
+
+✅ Complete — 9 tests passing

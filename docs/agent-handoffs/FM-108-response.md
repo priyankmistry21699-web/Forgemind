@@ -1,22 +1,33 @@
 # FM-108 — Spec-to-Plan Validation
 
-## Summary
+## Goal
 
-Implemented an 8-rule validation service (4 ERROR, 4 WARNING) that verifies plan quality against its SPEC before allowing PLANNING→RUNNING transition. Returns a structured `SpecPlanValidationResult` with per-rule pass/fail details.
+Validate that generated plans adequately cover their specifications before allowing execution to begin.
 
-## Deliverables
+## What Was Implemented
 
-- `spec_plan_validation_service.py` — `validate_spec_plan(db, run_id)` with 8 validation rules
-- ERROR rules: plan references SPEC, plan covers all SPEC sections, plan has implementation steps, plan has no empty sections
-- WARNING rules: plan mentions testing, plan mentions error handling, plan has reasonable length, plan sections match SPEC order
-- `SpecPlanValidationResult` schema with `is_valid`, `errors`, `warnings`, `details`
-- Lifecycle gate: PLANNING→RUNNING blocked if validation has ERRORs
-- REST endpoint: `POST /api/runs/{id}/lifecycle/validate`
+- `spec_plan_validation_service.py` with `validate_spec_plan(db, run_id)` function
+- `ValidationIssue` dataclass: `rule`, `severity` ("error"/"warning"), `message`
+- `SpecPlanValidationResult` dataclass: `run_id`, `spec_id`, `plan_id`, `valid`, `issues`, `coverage` + `to_dict()`
+- Validation rules:
+  - SPEC exists (error)
+  - PLAN exists (error)
+  - PLAN linked to SPEC via `spec_artifact_id` (error)
+  - SPEC has required sections: Problem/Objective, Scope, Constraints, Acceptance Criteria (error)
+  - PLAN has required sections: Overview, Phase (error)
+  - PLAN not trivially short (warning)
+- Lifecycle gate: PLANNING→RUNNING blocked if validation has errors
+- REST endpoint: `GET /lifecycle/runs/{id}/spec-plan/validate`
 
-## Known Gaps
+## Files Changed/Added
 
-- None
+- `apps/api/app/services/spec_plan_validation_service.py` — validation service
+- `apps/api/app/api/routes/run_lifecycle.py` — validation endpoint
 
-## Test Results
+## Test Coverage
 
-- Covered by `TestFM108_SpecPlanValidation` (5 tests)
+- `TestFM108_SpecPlanValidation` — 5 tests (fails without spec, fails without plan, passes with good plan, checks plan link, to_dict)
+
+## Result
+
+✅ Complete — 5 tests passing
