@@ -64,7 +64,10 @@ async def process_ready_tasks() -> int:
         )
 
         if cycle["requeued"]:
-            logger.info("Adaptive: requeued %d task(s) from rejected approvals", cycle["requeued"])
+            logger.info(
+                "Adaptive: requeued %d task(s) from rejected approvals",
+                cycle["requeued"],
+            )
         if cycle["retried"]:
             logger.info("Adaptive: auto-retried %d failed task(s)", cycle["retried"])
 
@@ -86,7 +89,9 @@ async def process_ready_tasks() -> int:
                 if agent_slug and source == "phase_profile":
                     logger.info(
                         "Phase routing: task %s → agent %s (phase=%s)",
-                        task.id, agent_slug, phase,
+                        task.id,
+                        agent_slug,
+                        phase,
                     )
             # If phase routing didn't resolve, fall back to hint-based resolution
             if agent_slug is None:
@@ -121,9 +126,7 @@ async def process_ready_tasks() -> int:
                 # Claim the task
                 await execution_service.claim_task(db, task.id, agent.slug)
                 await db.commit()
-                logger.info(
-                    "Claimed task %s for agent %s", task.title[:60], agent.slug
-                )
+                logger.info("Claimed task %s for agent %s", task.title[:60], agent.slug)
 
                 # Dispatch to the agent for execution
                 result_data = await dispatch_agent(db, task, agent)

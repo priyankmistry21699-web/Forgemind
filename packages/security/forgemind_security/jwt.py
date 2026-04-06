@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 _jose_available = False
 try:
     from jose import jwt, JWTError  # noqa: F401
+
     _jose_available = True
 except ImportError:
     pass
@@ -26,6 +27,7 @@ _DEFAULT_EXPIRE_HOURS = 24
 @dataclass
 class JWTConfig:
     """Configuration for JWT token operations."""
+
     secret: str
     algorithm: str = _DEFAULT_ALGORITHM
     expire_hours: int = _DEFAULT_EXPIRE_HOURS

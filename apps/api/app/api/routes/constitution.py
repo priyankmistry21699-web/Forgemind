@@ -7,7 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user_id
 from app.db.session import get_db
-from app.schemas.constitution import ConstitutionRead, ConstitutionCreate, ConstitutionUpdate
+from app.schemas.constitution import (
+    ConstitutionRead,
+    ConstitutionCreate,
+    ConstitutionUpdate,
+)
 from app.services import constitution_service
 from app.services.authz_service import check_project_permission, Action
 

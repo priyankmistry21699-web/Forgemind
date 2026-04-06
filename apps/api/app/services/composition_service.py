@@ -168,6 +168,7 @@ async def resolve_agent_for_task(
 # FM-112: Phase-aware agent routing
 # ---------------------------------------------------------------------------
 
+
 async def resolve_agent_for_phase(
     db: AsyncSession,
     project_id: uuid.UUID,
@@ -196,7 +197,9 @@ async def resolve_agent_for_phase(
         if slug:
             logger.info(
                 "Phase routing: %s/%s → %s (phase_profile)",
-                project_id, phase, slug,
+                project_id,
+                phase,
+                slug,
             )
             return slug, "phase_profile"
     except ValueError:
@@ -209,6 +212,9 @@ async def resolve_agent_for_phase(
     if slug:
         logger.info(
             "Phase routing: %s/%s → %s (%s)",
-            project_id, phase, slug, source,
+            project_id,
+            phase,
+            slug,
+            source,
         )
     return slug, source

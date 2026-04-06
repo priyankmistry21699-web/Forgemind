@@ -227,8 +227,12 @@ def local_exec(command: str, timeout: int, path: str | None) -> None:
     from forgemind_local.local_exec import run_local_command
 
     result = run_local_command(
-        repo_root, command, timeout_s=timeout, policy=cfg.execution_policy,
-        template_slug=cfg.template_slug, phase_profiles=cfg.phase_profiles,
+        repo_root,
+        command,
+        timeout_s=timeout,
+        policy=cfg.execution_policy,
+        template_slug=cfg.template_slug,
+        phase_profiles=cfg.phase_profiles,
     )
 
     if result["blocked"]:

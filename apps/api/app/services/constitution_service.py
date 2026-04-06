@@ -25,9 +25,7 @@ async def get_constitution(
 ) -> ProjectConstitution | None:
     """Fetch the constitution for a project, or None if not set."""
     result = await db.execute(
-        select(ProjectConstitution).where(
-            ProjectConstitution.project_id == project_id
-        )
+        select(ProjectConstitution).where(ProjectConstitution.project_id == project_id)
     )
     return result.scalar_one_or_none()
 

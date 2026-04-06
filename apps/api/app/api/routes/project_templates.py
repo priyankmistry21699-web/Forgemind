@@ -28,9 +28,7 @@ async def list_templates(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """List available project templates."""
-    items, total = await project_template_service.list_templates(
-        db, category=category
-    )
+    items, total = await project_template_service.list_templates(db, category=category)
     return ProjectTemplateList(items=items, total=total)
 
 

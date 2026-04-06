@@ -13,10 +13,8 @@ Covers:
   FM-110: End-to-end lifecycle hardening
 """
 
-
 import pytest
 from sqlalchemy import select
-
 
 
 # ── Helpers ──────────────────────────────────────────────────────
@@ -202,15 +200,11 @@ class TestFM102_Constitution:
             content="Always write tests first.",
             title="TDD Constitution",
         )
-        const = await create_or_update_constitution(
-            db_session, sample_project.id, data
-        )
+        const = await create_or_update_constitution(db_session, sample_project.id, data)
         assert const.content == "Always write tests first."
         assert const.version == 1
 
-    async def test_update_constitution_bumps_version(
-        self, db_session, sample_project
-    ):
+    async def test_update_constitution_bumps_version(self, db_session, sample_project):
         from app.services.constitution_service import create_or_update_constitution
         from app.schemas.constitution import ConstitutionCreate
 
@@ -363,9 +357,7 @@ class TestFM105_SpecGeneration:
         from app.services.spec_service import generate_spec
         from app.models.run import RunStatus
 
-        run = await _make_run(
-            db_session, sample_project, status=RunStatus.PENDING
-        )
+        run = await _make_run(db_session, sample_project, status=RunStatus.PENDING)
         spec = await generate_spec(
             db_session,
             run_id=run.id,
@@ -395,9 +387,7 @@ class TestFM105_SpecGeneration:
         from app.services.spec_service import generate_spec, get_spec_for_run
 
         run = await _make_run(db_session, sample_project)
-        await generate_spec(
-            db_session, run_id=run.id, project_id=sample_project.id
-        )
+        await generate_spec(db_session, run_id=run.id, project_id=sample_project.id)
         found = await get_spec_for_run(db_session, run.id)
         assert found is not None
         assert found.artifact_type.value == "spec"
@@ -430,9 +420,7 @@ class TestFM106_PlanArtifact:
         from app.services.plan_artifact_service import generate_plan_artifact
         from app.models.run import RunStatus
 
-        run = await _make_run(
-            db_session, sample_project, status=RunStatus.SPECIFYING
-        )
+        run = await _make_run(db_session, sample_project, status=RunStatus.SPECIFYING)
         spec = await _make_spec(db_session, run)
 
         plan = await generate_plan_artifact(
@@ -490,9 +478,7 @@ class TestFM108_SpecPlanValidation:
         assert not result.valid
         assert any(i.rule == "plan_exists" for i in result.issues)
 
-    async def test_validation_passes_with_good_plan(
-        self, db_session, sample_project
-    ):
+    async def test_validation_passes_with_good_plan(self, db_session, sample_project):
         from app.services.spec_plan_validation_service import validate_spec_plan
 
         run = await _make_run(db_session, sample_project)
@@ -642,7 +628,10 @@ class TestFM109_SpecPlanApproval:
 class TestFM110_E2E:
     async def test_full_lifecycle_spec_plan_run(self, db_session, sample_project):
         """Walk through PENDING → SPECIFYING → PLANNING → RUNNING with proper gating."""
-        from app.services.run_lifecycle_service import transition_run, validate_transition
+        from app.services.run_lifecycle_service import (
+            transition_run,
+            validate_transition,
+        )
         from app.services.spec_service import generate_spec
         from app.services.plan_artifact_service import generate_plan_artifact
         from app.models.run import RunStatus
@@ -692,9 +681,7 @@ class TestFM110_E2E:
         from app.services.run_lifecycle_service import validate_transition
         from app.models.run import RunStatus
 
-        run = await _make_run(
-            db_session, sample_project, status=RunStatus.PENDING
-        )
+        run = await _make_run(db_session, sample_project, status=RunStatus.PENDING)
         v = await validate_transition(db_session, run.id, RunStatus.PLANNING)
         assert not v["allowed"]
 
@@ -703,9 +690,7 @@ class TestFM110_E2E:
         from app.services.run_lifecycle_service import validate_transition
         from app.models.run import RunStatus
 
-        run = await _make_run(
-            db_session, sample_project, status=RunStatus.SPECIFYING
-        )
+        run = await _make_run(db_session, sample_project, status=RunStatus.SPECIFYING)
         v = await validate_transition(db_session, run.id, RunStatus.RUNNING)
         assert not v["allowed"]
 
@@ -715,9 +700,7 @@ class TestFM110_E2E:
         from app.services.run_lifecycle_service import validate_transition
         from app.models.run import RunStatus
 
-        run = await _make_run(
-            db_session, sample_project, status=RunStatus.PLANNING
-        )
+        run = await _make_run(db_session, sample_project, status=RunStatus.PLANNING)
         await _make_spec(db_session, run)
         v = await validate_transition(db_session, run.id, RunStatus.RUNNING)
         assert not v["allowed"]
@@ -782,9 +765,7 @@ class TestFM_Routes:
 
     async def test_spec_plan_validate_endpoint(self, client, sample_run):
         """GET /lifecycle/runs/{id}/spec-plan/validate."""
-        resp = await client.get(
-            f"/lifecycle/runs/{sample_run.id}/spec-plan/validate"
-        )
+        resp = await client.get(f"/lifecycle/runs/{sample_run.id}/spec-plan/validate")
         assert resp.status_code == 200
         data = resp.json()
         assert "valid" in data
@@ -894,7 +875,9 @@ class TestFM107_ADREnrichment:
     async def test_build_adr_section_with_nodes(self, db_session, sample_project):
         """build_adr_section returns ADR markdown when architecture nodes exist."""
         from app.models.architecture import (
-            ArchitectureNode, NodeType, SourceType,
+            ArchitectureNode,
+            NodeType,
+            SourceType,
         )
         from app.services import adr_service
 
@@ -920,7 +903,9 @@ class TestFM107_ADREnrichment:
     async def test_enrich_plan_with_adr_appends(self, db_session, sample_project):
         """enrich_plan_with_adr appends ADR section to plan content."""
         from app.models.architecture import (
-            ArchitectureNode, NodeType, SourceType,
+            ArchitectureNode,
+            NodeType,
+            SourceType,
         )
         from app.services import adr_service
 

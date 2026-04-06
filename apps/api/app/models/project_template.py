@@ -23,9 +23,7 @@ class ProjectTemplate(Base):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    category: Mapped[str] = mapped_column(
-        String(50), nullable=False, default="general"
-    )
+    category: Mapped[str] = mapped_column(String(50), nullable=False, default="general")
 
     # Template configuration payloads (JSON)
     constitution_template: Mapped[dict | None] = mapped_column(JSON, nullable=True)

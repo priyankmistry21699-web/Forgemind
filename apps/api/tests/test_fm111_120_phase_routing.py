@@ -25,7 +25,13 @@ from tests.conftest import STUB_USER_ID
 # ── Helpers ──────────────────────────────────────────────────────
 
 
-async def _seed_agent(db: AsyncSession, *, slug: str = "test-agent", name: str = "Test Agent", capabilities: list | None = None):
+async def _seed_agent(
+    db: AsyncSession,
+    *,
+    slug: str = "test-agent",
+    name: str = "Test Agent",
+    capabilities: list | None = None,
+):
     from app.models.agent import Agent, AgentStatus
 
     agent = Agent(
@@ -161,12 +167,8 @@ class TestPhaseAgentProfileService:
         agent = await _seed_agent(db_session, slug="del-agent")
         project = await _seed_project(db_session)
 
-        data = PhaseAgentProfileCreate(
-            phase=WorkflowPhase.IMPLEMENT, agent_id=agent.id
-        )
-        await phase_agent_profile_service.upsert_profile(
-            db_session, project.id, data
-        )
+        data = PhaseAgentProfileCreate(phase=WorkflowPhase.IMPLEMENT, agent_id=agent.id)
+        await phase_agent_profile_service.upsert_profile(db_session, project.id, data)
 
         deleted = await phase_agent_profile_service.delete_profile(
             db_session, project.id, WorkflowPhase.IMPLEMENT
@@ -187,12 +189,8 @@ class TestPhaseAgentProfileService:
         agent = await _seed_agent(db_session, slug="slug-agent")
         project = await _seed_project(db_session)
 
-        data = PhaseAgentProfileCreate(
-            phase=WorkflowPhase.VALIDATE, agent_id=agent.id
-        )
-        await phase_agent_profile_service.upsert_profile(
-            db_session, project.id, data
-        )
+        data = PhaseAgentProfileCreate(phase=WorkflowPhase.VALIDATE, agent_id=agent.id)
+        await phase_agent_profile_service.upsert_profile(db_session, project.id, data)
 
         slug = await phase_agent_profile_service.get_agent_slug_for_phase(
             db_session, project.id, WorkflowPhase.VALIDATE
@@ -228,12 +226,8 @@ class TestResolveAgentForPhase:
         agent = await _seed_agent(db_session, slug="routed-agent")
         project = await _seed_project(db_session)
 
-        data = PhaseAgentProfileCreate(
-            phase=WorkflowPhase.SPECIFY, agent_id=agent.id
-        )
-        await phase_agent_profile_service.upsert_profile(
-            db_session, project.id, data
-        )
+        data = PhaseAgentProfileCreate(phase=WorkflowPhase.SPECIFY, agent_id=agent.id)
+        await phase_agent_profile_service.upsert_profile(db_session, project.id, data)
 
         slug, source = await composition_service.resolve_agent_for_phase(
             db_session, project.id, "specify"
@@ -413,9 +407,7 @@ class TestTemplateInheritance:
             db_session, "rest-api"
         )
 
-        result = resolve_governance_config(
-            template=template, project_override=None
-        )
+        result = resolve_governance_config(template=template, project_override=None)
         # rest-api template requires both spec + plan approval
         assert result["require_spec_approval"] is True
         assert result["require_plan_approval"] is True
@@ -434,9 +426,7 @@ class TestTemplateInheritance:
         )
 
         override = {"require_plan_approval": False}
-        result = resolve_governance_config(
-            template=template, project_override=override
-        )
+        result = resolve_governance_config(template=template, project_override=override)
         assert result["require_spec_approval"] is True  # from template
         assert result["require_plan_approval"] is False  # from project override
 
@@ -821,7 +811,9 @@ class TestConstitutionSuggestionSignals:
         project = await _seed_project(db_session)
         # Create 2 completed runs with no review tasks
         for i in range(2):
-            run = Run(project_id=project.id, run_number=i + 1, status=RunStatus.COMPLETED)
+            run = Run(
+                project_id=project.id, run_number=i + 1, status=RunStatus.COMPLETED
+            )
             db_session.add(run)
         await db_session.flush()
         await db_session.commit()
@@ -930,8 +922,12 @@ class TestTemplateInfluenceEndToEnd:
             db_session, "cli-tool"
         )
 
-        rest_project = await _seed_project(db_session, name="REST proj", template_id=rest_tmpl.id)
-        cli_project = await _seed_project(db_session, name="CLI proj", template_id=cli_tmpl.id)
+        rest_project = await _seed_project(
+            db_session, name="REST proj", template_id=rest_tmpl.id
+        )
+        cli_project = await _seed_project(
+            db_session, name="CLI proj", template_id=cli_tmpl.id
+        )
         await db_session.commit()
 
         rest_ctx = await _get_template_spec_context(db_session, rest_project.id)
@@ -940,7 +936,9 @@ class TestTemplateInfluenceEndToEnd:
         # Both should have content, but they should differ
         assert rest_ctx is not None
         assert cli_ctx is not None
-        assert rest_ctx != cli_ctx, "Different templates should produce different spec contexts"
+        assert rest_ctx != cli_ctx, (
+            "Different templates should produce different spec contexts"
+        )
 
     @pytest.mark.asyncio
     async def test_plan_context_none_without_template(self, db_session):
@@ -964,6 +962,7 @@ class TestLocalModeConfig:
     @pytest.fixture(autouse=True)
     def _add_local_to_path(self):
         import sys
+
         local_root = str(Path(__file__).resolve().parents[2] / "local")
         sys.path.insert(0, local_root)
         yield
@@ -999,7 +998,9 @@ class TestLocalModeConfig:
     def test_serialization_includes_template_fields(self):
         from forgemind_local.config import LocalConfig
 
-        cfg = LocalConfig(template_slug="cli-tool", phase_profiles={"review": "review-bot"})
+        cfg = LocalConfig(
+            template_slug="cli-tool", phase_profiles={"review": "review-bot"}
+        )
         d = cfg.to_dict()
         assert d["template_slug"] == "cli-tool"
         assert d["phase_profiles"] == {"review": "review-bot"}
@@ -1015,9 +1016,7 @@ class TestPhaseProfileEndpoints:
 
     @pytest.mark.asyncio
     async def test_list_profiles_empty(self, client, sample_project):
-        resp = await client.get(
-            f"/projects/{sample_project.id}/phase-agent-profiles"
-        )
+        resp = await client.get(f"/projects/{sample_project.id}/phase-agent-profiles")
         assert resp.status_code == 200
         body = resp.json()
         assert body["items"] == []

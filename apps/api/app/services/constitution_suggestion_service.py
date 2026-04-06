@@ -116,7 +116,11 @@ async def generate_suggestions(
                 status=SuggestionStatus.PENDING,
                 source_metadata={
                     "rule_id": rule["id"],
-                    "signals": {k: v for k, v in signals.items() if isinstance(v, (int, float, str, bool))},
+                    "signals": {
+                        k: v
+                        for k, v in signals.items()
+                        if isinstance(v, (int, float, str, bool))
+                    },
                 },
             )
             db.add(suggestion)
@@ -124,7 +128,9 @@ async def generate_suggestions(
 
     if suggestions:
         await db.flush()
-        logger.info("Generated %d suggestions for project %s", len(suggestions), project_id)
+        logger.info(
+            "Generated %d suggestions for project %s", len(suggestions), project_id
+        )
 
     return suggestions
 
@@ -202,7 +208,11 @@ async def resolve_suggestion(
                     title="Project Constitution",
                 ),
             )
-        logger.info("Accepted suggestion %s for project %s", suggestion_id, suggestion.project_id)
+        logger.info(
+            "Accepted suggestion %s for project %s",
+            suggestion_id,
+            suggestion.project_id,
+        )
 
     elif action == "reject":
         suggestion.status = SuggestionStatus.REJECTED
@@ -290,9 +300,7 @@ async def _gather_project_signals(
         .group_by(Run.id)
         .subquery()
     )
-    max_tasks_result = await db.execute(
-        select(sa_func.max(task_counts_sub.c.cnt))
-    )
+    max_tasks_result = await db.execute(select(sa_func.max(task_counts_sub.c.cnt)))
     signals["max_tasks_per_run"] = max_tasks_result.scalar_one_or_none() or 0
 
     return signals

@@ -20,7 +20,9 @@ _DEFAULT_BUCKETS = (0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.
 _histograms: dict[str, dict[str, Any]] = {}
 
 
-def inc_counter(name: str, value: float = 1.0, labels: dict[str, str] | None = None) -> None:
+def inc_counter(
+    name: str, value: float = 1.0, labels: dict[str, str] | None = None
+) -> None:
     """Increment a counter metric."""
     with _lock:
         if labels:
@@ -34,7 +36,9 @@ def inc_counter(name: str, value: float = 1.0, labels: dict[str, str] | None = N
             _counters[name] += value
 
 
-def observe_histogram(name: str, value: float, labels: dict[str, str] | None = None) -> None:
+def observe_histogram(
+    name: str, value: float, labels: dict[str, str] | None = None
+) -> None:
     """Record a value in a histogram."""
     with _lock:
         key = _label_key(labels) if labels else ""
@@ -62,7 +66,7 @@ def get_counter(name: str, labels: dict[str, str] | None = None) -> float:
     with _lock:
         if labels:
             key = _label_key(labels)
-            entry = (_counter_labels.get(name, {}).get(key))
+            entry = _counter_labels.get(name, {}).get(key)
             return entry["value"] if entry else 0.0
         return _counters.get(name, 0.0)
 
@@ -110,6 +114,7 @@ def reset_metrics() -> None:
 
 
 # ── Helpers ──────────────────────────────────────────────────────
+
 
 def _label_key(labels: dict[str, str] | None) -> str:
     if not labels:

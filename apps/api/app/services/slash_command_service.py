@@ -234,9 +234,7 @@ async def _handle_implement(db: AsyncSession, run: Any, args: str) -> CommandRes
     from app.services import run_lifecycle_service
     from app.models.run import RunStatus
 
-    result = await run_lifecycle_service.transition_run(
-        db, run.id, RunStatus.RUNNING
-    )
+    result = await run_lifecycle_service.transition_run(db, run.id, RunStatus.RUNNING)
 
     if result.get("transitioned"):
         return CommandResult(

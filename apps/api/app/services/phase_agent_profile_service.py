@@ -18,9 +18,7 @@ async def list_profiles(
     project_id: uuid.UUID,
 ) -> tuple[list[PhaseAgentProfile], int]:
     """Return all phase profiles for a project."""
-    query = select(PhaseAgentProfile).where(
-        PhaseAgentProfile.project_id == project_id
-    )
+    query = select(PhaseAgentProfile).where(PhaseAgentProfile.project_id == project_id)
     count_result = await db.execute(
         select(sa_func.count()).select_from(query.subquery())
     )
@@ -92,7 +90,9 @@ async def upsert_profile(
         db.add(existing)
         await db.flush()
         await db.refresh(existing)
-        logger.info("Updated phase profile %s/%s → %s", project_id, data.phase.value, agent.slug)
+        logger.info(
+            "Updated phase profile %s/%s → %s", project_id, data.phase.value, agent.slug
+        )
         return existing
 
     profile = PhaseAgentProfile(
@@ -106,7 +106,9 @@ async def upsert_profile(
     db.add(profile)
     await db.flush()
     await db.refresh(profile)
-    logger.info("Created phase profile %s/%s → %s", project_id, data.phase.value, agent.slug)
+    logger.info(
+        "Created phase profile %s/%s → %s", project_id, data.phase.value, agent.slug
+    )
     return profile
 
 

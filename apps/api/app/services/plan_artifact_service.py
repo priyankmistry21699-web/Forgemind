@@ -72,9 +72,7 @@ async def generate_plan_artifact(
     )
 
     # FM-107: Architecture context for ADR-aware planning
-    arch_context = await adr_service.get_architecture_context_for_prompt(
-        db, project_id
-    )
+    arch_context = await adr_service.get_architecture_context_for_prompt(db, project_id)
 
     # FM-118: Template plan defaults
     template_plan_context = await _get_template_plan_context(db, project_id)
@@ -217,42 +215,44 @@ async def get_plan_export_data(
 
 def _build_stub_plan(spec_content: str) -> str:
     """Build a structured plan template when LLM is unavailable."""
-    return "\n".join([
-        "# Execution Plan",
-        "",
-        "## Overview",
-        "Plan generated from specification (LLM unavailable — stub).",
-        "",
-        "## Phases",
-        "",
-        "### Phase 1: Analysis",
-        "- Description: Analyse requirements from SPEC",
-        "- Dependencies: None",
-        "- Deliverables: Detailed task breakdown",
-        "",
-        "### Phase 2: Implementation",
-        "- Description: Implement tasks from analysis",
-        "- Dependencies: Phase 1",
-        "- Deliverables: Working code/configuration",
-        "",
-        "### Phase 3: Review & Validation",
-        "- Description: Review output against SPEC acceptance criteria",
-        "- Dependencies: Phase 2",
-        "- Deliverables: Test report, review artifact",
-        "",
-        "## Milestones",
-        "- [ ] Analysis complete",
-        "- [ ] Implementation complete",
-        "- [ ] Validation pass",
-        "",
-        "## Risk Mitigation",
-        "- Monitor LLM quality at each phase",
-        "- Require human approval before advancing phases",
-        "",
-        "## Timeline Estimate",
-        "- Estimated phases: 3",
-        "- Depends on task complexity and approvals",
-    ])
+    return "\n".join(
+        [
+            "# Execution Plan",
+            "",
+            "## Overview",
+            "Plan generated from specification (LLM unavailable — stub).",
+            "",
+            "## Phases",
+            "",
+            "### Phase 1: Analysis",
+            "- Description: Analyse requirements from SPEC",
+            "- Dependencies: None",
+            "- Deliverables: Detailed task breakdown",
+            "",
+            "### Phase 2: Implementation",
+            "- Description: Implement tasks from analysis",
+            "- Dependencies: Phase 1",
+            "- Deliverables: Working code/configuration",
+            "",
+            "### Phase 3: Review & Validation",
+            "- Description: Review output against SPEC acceptance criteria",
+            "- Dependencies: Phase 2",
+            "- Deliverables: Test report, review artifact",
+            "",
+            "## Milestones",
+            "- [ ] Analysis complete",
+            "- [ ] Implementation complete",
+            "- [ ] Validation pass",
+            "",
+            "## Risk Mitigation",
+            "- Monitor LLM quality at each phase",
+            "- Require human approval before advancing phases",
+            "",
+            "## Timeline Estimate",
+            "- Estimated phases: 3",
+            "- Depends on task complexity and approvals",
+        ]
+    )
 
 
 async def _get_template_plan_context(
@@ -276,9 +276,14 @@ async def _get_template_plan_context(
     parts: list[str] = []
 
     if "default_workstreams" in defaults:
-        parts.append("**Suggested workstreams:** " + ", ".join(defaults["default_workstreams"]))
+        parts.append(
+            "**Suggested workstreams:** " + ", ".join(defaults["default_workstreams"])
+        )
 
     if "architecture_checklist" in defaults:
-        parts.append("**Architecture checklist:** " + ", ".join(defaults["architecture_checklist"]))
+        parts.append(
+            "**Architecture checklist:** "
+            + ", ".join(defaults["architecture_checklist"])
+        )
 
     return "\n".join(parts) if parts else None

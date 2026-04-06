@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 _LITELLM_AVAILABLE = False
 try:
     import litellm
+
     litellm.drop_params = True
     _LITELLM_AVAILABLE = True
 except ImportError:
@@ -26,6 +27,7 @@ except ImportError:
 @dataclass
 class LLMConfig:
     """Configuration for LLM calls."""
+
     model: str = "gpt-4o"
     temperature: float = 0.4
     max_tokens: int = 4096
@@ -104,5 +106,7 @@ async def llm_json_completion(
     try:
         return json.loads(raw)
     except (json.JSONDecodeError, TypeError):
-        logger.warning("LLM returned non-JSON content: %s", raw[:200] if raw else "None")
+        logger.warning(
+            "LLM returned non-JSON content: %s", raw[:200] if raw else "None"
+        )
         return None

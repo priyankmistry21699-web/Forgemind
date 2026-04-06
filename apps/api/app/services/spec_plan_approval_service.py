@@ -148,13 +148,17 @@ async def get_artifact_approval_status(
         "spec": {
             "artifact_id": str(spec.id) if spec else None,
             "exists": spec is not None,
-            "approval_status": spec_approval.status.value if spec_approval else "not_requested",
+            "approval_status": spec_approval.status.value
+            if spec_approval
+            else "not_requested",
             "approval_id": str(spec_approval.id) if spec_approval else None,
         },
         "plan": {
             "artifact_id": str(plan.id) if plan else None,
             "exists": plan is not None,
-            "approval_status": plan_approval.status.value if plan_approval else "not_requested",
+            "approval_status": plan_approval.status.value
+            if plan_approval
+            else "not_requested",
             "approval_id": str(plan_approval.id) if plan_approval else None,
         },
     }
@@ -199,9 +203,12 @@ async def _is_artifact_approved(
 ) -> bool:
     """Check if an artifact has a non-rejected approval (approved or no request)."""
     result = await db.execute(
-        select(ApprovalRequest).where(
+        select(ApprovalRequest)
+        .where(
             ApprovalRequest.artifact_id == artifact_id,
-        ).order_by(ApprovalRequest.created_at.desc()).limit(1)
+        )
+        .order_by(ApprovalRequest.created_at.desc())
+        .limit(1)
     )
     approval = result.scalar_one_or_none()
     if approval is None:
@@ -216,8 +223,11 @@ async def _get_artifact_approval(
     artifact_id: uuid.UUID,
 ) -> ApprovalRequest | None:
     result = await db.execute(
-        select(ApprovalRequest).where(
+        select(ApprovalRequest)
+        .where(
             ApprovalRequest.artifact_id == artifact_id,
-        ).order_by(ApprovalRequest.created_at.desc()).limit(1)
+        )
+        .order_by(ApprovalRequest.created_at.desc())
+        .limit(1)
     )
     return result.scalar_one_or_none()

@@ -272,7 +272,9 @@ def _build_stub_plan(prompt: str) -> dict[str, Any]:
 # -------------------------------------------------------------------
 
 
-async def _generate_plan(prompt: str, constitution_section: str | None = None) -> dict[str, Any]:
+async def _generate_plan(
+    prompt: str, constitution_section: str | None = None
+) -> dict[str, Any]:
     """Attempt LLM planning, normalize the output, fall back to stub on failure.
 
     FM-102: If a constitution_section is provided, it is prepended to the prompt
@@ -448,16 +450,18 @@ def _build_spec_content(prompt: str, plan: dict[str, Any]) -> str:
     else:
         sections.append("- None specified")
 
-    sections.extend([
-        "",
-        "## Acceptance Criteria",
-        "- All planned phases complete successfully",
-        "- All review checkpoints pass",
-        "",
-        "## Risks / Unknowns",
-        "- Dependent on LLM availability for planning quality",
-        "",
-        "## Architecture Summary",
-        plan.get("architecture_summary") or "To be determined.",
-    ])
+    sections.extend(
+        [
+            "",
+            "## Acceptance Criteria",
+            "- All planned phases complete successfully",
+            "- All review checkpoints pass",
+            "",
+            "## Risks / Unknowns",
+            "- Dependent on LLM availability for planning quality",
+            "",
+            "## Architecture Summary",
+            plan.get("architecture_summary") or "To be determined.",
+        ]
+    )
     return "\n".join(sections)

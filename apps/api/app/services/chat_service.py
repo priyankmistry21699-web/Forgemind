@@ -254,9 +254,7 @@ async def _build_constitution_context(db: AsyncSession, run_id: uuid.UUID) -> st
 
     from app.services import constitution_service
 
-    section = await constitution_service.get_constitution_for_prompt(
-        db, run.project_id
-    )
+    section = await constitution_service.get_constitution_for_prompt(db, run.project_id)
     return section or ""
 
 

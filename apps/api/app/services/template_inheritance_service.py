@@ -136,11 +136,15 @@ async def _seed_phase_profiles(
 
         # Resolve agent by slug
         result = await db.execute(
-            select(Agent).where(Agent.slug == agent_slug, Agent.status == AgentStatus.ACTIVE)
+            select(Agent).where(
+                Agent.slug == agent_slug, Agent.status == AgentStatus.ACTIVE
+            )
         )
         agent = result.scalar_one_or_none()
         if agent is None:
-            logger.warning("Skipping phase %s — agent '%s' not found/active", phase_str, agent_slug)
+            logger.warning(
+                "Skipping phase %s — agent '%s' not found/active", phase_str, agent_slug
+            )
             continue
 
         await phase_agent_profile_service.upsert_profile(

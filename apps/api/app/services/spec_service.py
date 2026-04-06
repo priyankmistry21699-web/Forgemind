@@ -170,31 +170,33 @@ def _truncate(text: str, length: int) -> str:
 
 def _build_stub_spec(prompt: str) -> str:
     """Build a structured spec template when LLM is unavailable."""
-    return "\n".join([
-        "# Specification",
-        "",
-        "## Problem / Objective",
-        prompt,
-        "",
-        "## Scope",
-        "- To be determined via analysis",
-        "",
-        "## Constraints",
-        "- None specified",
-        "",
-        "## Assumptions",
-        "- Requirements are stable",
-        "",
-        "## Acceptance Criteria",
-        "- All planned phases complete successfully",
-        "- All review checkpoints pass",
-        "",
-        "## Risks / Unknowns",
-        "- Dependent on LLM availability for planning quality",
-        "",
-        "## Architecture Summary",
-        "- To be determined during planning phase",
-    ])
+    return "\n".join(
+        [
+            "# Specification",
+            "",
+            "## Problem / Objective",
+            prompt,
+            "",
+            "## Scope",
+            "- To be determined via analysis",
+            "",
+            "## Constraints",
+            "- None specified",
+            "",
+            "## Assumptions",
+            "- Requirements are stable",
+            "",
+            "## Acceptance Criteria",
+            "- All planned phases complete successfully",
+            "- All review checkpoints pass",
+            "",
+            "## Risks / Unknowns",
+            "- Dependent on LLM availability for planning quality",
+            "",
+            "## Architecture Summary",
+            "- To be determined during planning phase",
+        ]
+    )
 
 
 async def _get_template_spec_context(
@@ -218,7 +220,9 @@ async def _get_template_spec_context(
     parts: list[str] = []
 
     if "required_sections" in defaults:
-        parts.append("**Required SPEC sections:** " + ", ".join(defaults["required_sections"]))
+        parts.append(
+            "**Required SPEC sections:** " + ", ".join(defaults["required_sections"])
+        )
 
     if "constraints" in defaults:
         parts.append("**Template constraints:** " + ", ".join(defaults["constraints"]))

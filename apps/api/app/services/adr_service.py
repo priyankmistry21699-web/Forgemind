@@ -53,9 +53,7 @@ async def build_adr_section(
 
     # Load edges
     edges_result = await db.execute(
-        select(ArchitectureEdge).where(
-            ArchitectureEdge.project_id == project_id
-        )
+        select(ArchitectureEdge).where(ArchitectureEdge.project_id == project_id)
     )
     edges = list(edges_result.scalars().all())
     node_map = {n.id: n for n in nodes}
@@ -89,9 +87,7 @@ async def enrich_plan_with_adr(
     spec_content: str | None = None,
 ) -> str:
     """Append ADR section to plan content if architecture data exists."""
-    adr = await build_adr_section(
-        db, project_id=project_id, spec_content=spec_content
-    )
+    adr = await build_adr_section(db, project_id=project_id, spec_content=spec_content)
     if adr is None:
         return plan_content
     return f"{plan_content}\n\n{adr}"
@@ -117,9 +113,7 @@ async def get_architecture_context_for_prompt(
         return None
 
     edges_result = await db.execute(
-        select(ArchitectureEdge).where(
-            ArchitectureEdge.project_id == project_id
-        )
+        select(ArchitectureEdge).where(ArchitectureEdge.project_id == project_id)
     )
     edges = list(edges_result.scalars().all())
     node_map = {n.id: n for n in nodes}
@@ -132,7 +126,9 @@ async def get_architecture_context_for_prompt(
         "### Components",
     ]
     for n in nodes[:20]:  # Cap to avoid prompt bloat
-        lines.append(f"- **{n.name}** ({n.node_type.value}): {n.path or 'No description'}")
+        lines.append(
+            f"- **{n.name}** ({n.node_type.value}): {n.path or 'No description'}"
+        )
 
     if len(nodes) > 20:
         lines.append(f"- ... and {len(nodes) - 20} more")
@@ -188,15 +184,17 @@ def _format_adr_section(
 
     # Open drifts
     if drifts:
-        lines.extend([
-            "",
-            "## ADR-002: Active Drift Findings",
-            "",
-            "### Context",
-            f"{len(drifts)} open drift findings must be considered during planning.",
-            "",
-            "### Details",
-        ])
+        lines.extend(
+            [
+                "",
+                "## ADR-002: Active Drift Findings",
+                "",
+                "### Context",
+                f"{len(drifts)} open drift findings must be considered during planning.",
+                "",
+                "### Details",
+            ]
+        )
         high_drifts = [d for d in drifts if d.severity == DriftSeverity.HIGH]
         medium_drifts = [d for d in drifts if d.severity == DriftSeverity.MEDIUM]
         if high_drifts:
@@ -205,35 +203,41 @@ def _format_adr_section(
                 lines.append(f"  - {d.description}")
         if medium_drifts:
             lines.append(f"- **{len(medium_drifts)} MEDIUM severity** drifts")
-        lines.extend([
-            "",
-            "### Consequences",
-            "- Plan should address or acknowledge these drifts",
-            "- High severity drifts may block implementation",
-        ])
+        lines.extend(
+            [
+                "",
+                "### Consequences",
+                "- Plan should address or acknowledge these drifts",
+                "- High severity drifts may block implementation",
+            ]
+        )
 
     # Rule violations
     if violations:
-        lines.extend([
-            "",
-            "## ADR-003: Active Rule Violations",
-            "",
-            "### Context",
-            f"{len(violations)} architecture rules are currently failing.",
-            "",
-            "### Consequences",
-            "- Plan phases should include steps to resolve violations",
-            "- Implementation should not introduce new violations",
-        ])
+        lines.extend(
+            [
+                "",
+                "## ADR-003: Active Rule Violations",
+                "",
+                "### Context",
+                f"{len(violations)} architecture rules are currently failing.",
+                "",
+                "### Consequences",
+                "- Plan phases should include steps to resolve violations",
+                "- Implementation should not introduce new violations",
+            ]
+        )
 
     if not drifts and not violations:
-        lines.extend([
-            "",
-            "### Alternatives",
-            "- No active drifts or violations — architecture is healthy",
-            "",
-            "### Consequences",
-            "- Plan can proceed with standard implementation approach",
-        ])
+        lines.extend(
+            [
+                "",
+                "### Alternatives",
+                "- No active drifts or violations — architecture is healthy",
+                "",
+                "### Consequences",
+                "- Plan can proceed with standard implementation approach",
+            ]
+        )
 
     return "\n".join(lines)

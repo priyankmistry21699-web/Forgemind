@@ -40,7 +40,12 @@ VALID_TRANSITIONS: dict[RunStatus, set[RunStatus]] = {
     RunStatus.SPECIFYING: {RunStatus.PLANNING, RunStatus.FAILED, RunStatus.PAUSED},
     RunStatus.PLANNING: {RunStatus.RUNNING, RunStatus.FAILED, RunStatus.PAUSED},
     RunStatus.RUNNING: {RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.PAUSED},
-    RunStatus.PAUSED: {RunStatus.SPECIFYING, RunStatus.PLANNING, RunStatus.RUNNING, RunStatus.FAILED},
+    RunStatus.PAUSED: {
+        RunStatus.SPECIFYING,
+        RunStatus.PLANNING,
+        RunStatus.RUNNING,
+        RunStatus.FAILED,
+    },
     RunStatus.COMPLETED: set(),
     RunStatus.FAILED: {RunStatus.PENDING},  # allow restart
 }
@@ -51,7 +56,12 @@ VALID_TRANSITIONS: dict[RunStatus, set[RunStatus]] = {
 # ---------------------------------------------------------------------------
 
 
-async def has_spec_artifact(db: AsyncSession, *, run_id: uuid.UUID | None = None, project_id: uuid.UUID | None = None) -> bool:
+async def has_spec_artifact(
+    db: AsyncSession,
+    *,
+    run_id: uuid.UUID | None = None,
+    project_id: uuid.UUID | None = None,
+) -> bool:
     """Check whether a SPEC artifact exists for the given run or project."""
     query = select(Artifact.id).where(Artifact.artifact_type == ArtifactType.SPEC)
     if run_id is not None:
@@ -64,7 +74,12 @@ async def has_spec_artifact(db: AsyncSession, *, run_id: uuid.UUID | None = None
     return result.scalar_one_or_none() is not None
 
 
-async def has_plan_artifact(db: AsyncSession, *, run_id: uuid.UUID | None = None, project_id: uuid.UUID | None = None) -> bool:
+async def has_plan_artifact(
+    db: AsyncSession,
+    *,
+    run_id: uuid.UUID | None = None,
+    project_id: uuid.UUID | None = None,
+) -> bool:
     """Check whether a PLAN artifact exists for the given run or project."""
     query = select(Artifact.id).where(Artifact.artifact_type == ArtifactType.PLAN)
     if run_id is not None:
@@ -173,7 +188,9 @@ async def transition_run(
 
     await event_service.emit_event(
         db,
-        event_type=EventType.RUN_STARTED if target_status == RunStatus.RUNNING else EventType.TASK_STARTED,
+        event_type=EventType.RUN_STARTED
+        if target_status == RunStatus.RUNNING
+        else EventType.TASK_STARTED,
         summary=f"Run #{run.run_number} transitioned {old_status.value} → {target_status.value}",
         project_id=run.project_id,
         run_id=run.id,
@@ -472,7 +489,14 @@ async def scan_all_runs_health(
     """
     result = await db.execute(
         select(Run).where(
-            Run.status.in_([RunStatus.RUNNING, RunStatus.PLANNING, RunStatus.PAUSED, RunStatus.SPECIFYING])
+            Run.status.in_(
+                [
+                    RunStatus.RUNNING,
+                    RunStatus.PLANNING,
+                    RunStatus.PAUSED,
+                    RunStatus.SPECIFYING,
+                ]
+            )
         )
     )
     active_runs = list(result.scalars().all())

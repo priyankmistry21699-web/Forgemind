@@ -78,7 +78,9 @@ _PLAN_SECTIONS = [
 
 def _has_section(content: str, section_name: str) -> bool:
     """Check if markdown content contains a section heading."""
-    pattern = re.compile(rf"^#+\s+.*{re.escape(section_name)}", re.MULTILINE | re.IGNORECASE)
+    pattern = re.compile(
+        rf"^#+\s+.*{re.escape(section_name)}", re.MULTILINE | re.IGNORECASE
+    )
     return bool(pattern.search(content))
 
 
@@ -141,11 +143,13 @@ async def validate_spec_plan(
     spec = await spec_service.get_spec_for_run(db, run_id)
     if spec is None:
         result.valid = False
-        result.issues.append(ValidationIssue(
-            rule="spec_exists",
-            severity="error",
-            message="No SPEC artifact found. Generate a SPEC first (/fm.specify).",
-        ))
+        result.issues.append(
+            ValidationIssue(
+                rule="spec_exists",
+                severity="error",
+                message="No SPEC artifact found. Generate a SPEC first (/fm.specify).",
+            )
+        )
         return result
 
     result.spec_id = str(spec.id)
@@ -155,11 +159,13 @@ async def validate_spec_plan(
     plan = await plan_artifact_service.get_plan_for_run(db, run_id)
     if plan is None:
         result.valid = False
-        result.issues.append(ValidationIssue(
-            rule="plan_exists",
-            severity="error",
-            message="No PLAN artifact found. Generate a PLAN first (/fm.plan).",
-        ))
+        result.issues.append(
+            ValidationIssue(
+                rule="plan_exists",
+                severity="error",
+                message="No PLAN artifact found. Generate a PLAN first (/fm.plan).",
+            )
+        )
         return result
 
     result.plan_id = str(plan.id)
@@ -167,44 +173,52 @@ async def validate_spec_plan(
 
     # Rule 1: PLAN links to SPEC
     if plan.spec_artifact_id != spec.id:
-        result.issues.append(ValidationIssue(
-            rule="plan_linked_to_spec",
-            severity="warning",
-            message="PLAN is not linked to the current SPEC via spec_artifact_id.",
-        ))
-    result.coverage["plan_linked_to_spec"] = (plan.spec_artifact_id == spec.id)
+        result.issues.append(
+            ValidationIssue(
+                rule="plan_linked_to_spec",
+                severity="warning",
+                message="PLAN is not linked to the current SPEC via spec_artifact_id.",
+            )
+        )
+    result.coverage["plan_linked_to_spec"] = plan.spec_artifact_id == spec.id
 
     # Rule 2: SPEC has required sections
     for section in _SPEC_SECTIONS:
         has = _has_section(spec_content, section)
         result.coverage[f"spec_section_{section}"] = has
         if not has:
-            result.issues.append(ValidationIssue(
-                rule="spec_completeness",
-                severity="warning",
-                message=f"SPEC is missing section: {section}",
-            ))
+            result.issues.append(
+                ValidationIssue(
+                    rule="spec_completeness",
+                    severity="warning",
+                    message=f"SPEC is missing section: {section}",
+                )
+            )
 
     # Rule 3: PLAN has required sections
     for section in _PLAN_SECTIONS:
         has = _has_section(plan_content, section)
         result.coverage[f"plan_section_{section}"] = has
         if not has:
-            result.issues.append(ValidationIssue(
-                rule="plan_completeness",
-                severity="error",
-                message=f"PLAN is missing required section: {section}",
-            ))
+            result.issues.append(
+                ValidationIssue(
+                    rule="plan_completeness",
+                    severity="error",
+                    message=f"PLAN is missing required section: {section}",
+                )
+            )
             result.valid = False
 
     # Rule 4: PLAN is not empty/trivial
     if len(plan_content.strip()) < 100:
         result.valid = False
-        result.issues.append(ValidationIssue(
-            rule="plan_substance",
-            severity="error",
-            message="PLAN content is too short (< 100 chars). Generate a proper plan.",
-        ))
+        result.issues.append(
+            ValidationIssue(
+                rule="plan_substance",
+                severity="error",
+                message="PLAN content is too short (< 100 chars). Generate a proper plan.",
+            )
+        )
     result.coverage["plan_substance"] = len(plan_content.strip()) >= 100
 
     # Rule 5: Acceptance criteria coverage — check that plan mentions
@@ -222,30 +236,30 @@ async def validate_spec_plan(
         if covered:
             criteria_covered += 1
         else:
-            result.issues.append(ValidationIssue(
-                rule="acceptance_criteria_coverage",
-                severity="warning",
-                message=f"PLAN may not address acceptance criterion: '{_truncate(criterion, 80)}'",
-            ))
+            result.issues.append(
+                ValidationIssue(
+                    rule="acceptance_criteria_coverage",
+                    severity="warning",
+                    message=f"PLAN may not address acceptance criterion: '{_truncate(criterion, 80)}'",
+                )
+            )
     total_criteria = len(criteria) or 1
     result.coverage["acceptance_criteria"] = criteria_covered >= total_criteria * 0.5
 
     # Rule 6: Constraints acknowledged
     constraints = _extract_spec_constraints(spec_content)
     if constraints and not any(
-        c.lower().split()[0] in plan_content.lower()
-        for c in constraints
-        if c.split()
+        c.lower().split()[0] in plan_content.lower() for c in constraints if c.split()
     ):
-        result.issues.append(ValidationIssue(
-            rule="constraints_acknowledged",
-            severity="warning",
-            message="PLAN does not appear to reference any SPEC constraints.",
-        ))
+        result.issues.append(
+            ValidationIssue(
+                rule="constraints_acknowledged",
+                severity="warning",
+                message="PLAN does not appear to reference any SPEC constraints.",
+            )
+        )
     result.coverage["constraints_acknowledged"] = not bool(constraints) or any(
-        c.lower().split()[0] in plan_content.lower()
-        for c in constraints
-        if c.split()
+        c.lower().split()[0] in plan_content.lower() for c in constraints if c.split()
     )
 
     # Final: any errors → invalid

@@ -80,4 +80,3 @@ async def build_handoff_context(
         parts.append("")
 
     return "\n".join(parts)
-

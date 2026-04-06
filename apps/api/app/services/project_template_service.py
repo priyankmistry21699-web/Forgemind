@@ -51,7 +51,13 @@ BUILTIN_TEMPLATES: list[dict[str, Any]] = [
             {"phase": "implement", "agent_slug": "coder-agent", "priority": 0},
             {"phase": "review", "agent_slug": "reviewer-agent", "priority": 0},
         ],
-        "suggested_task_types": ["architecture", "codegen", "testing", "documentation", "review"],
+        "suggested_task_types": [
+            "architecture",
+            "codegen",
+            "testing",
+            "documentation",
+            "review",
+        ],
         "spec_defaults": {
             "required_sections": [
                 "Problem / Objective",
@@ -61,11 +67,26 @@ BUILTIN_TEMPLATES: list[dict[str, Any]] = [
                 "Error Handling",
                 "Acceptance Criteria",
             ],
-            "constraints": ["RESTful conventions", "pagination on lists", "schema validation"],
+            "constraints": [
+                "RESTful conventions",
+                "pagination on lists",
+                "schema validation",
+            ],
         },
         "plan_defaults": {
-            "default_workstreams": ["database-schema", "service-layer", "routes", "tests", "documentation"],
-            "architecture_checklist": ["data model design", "endpoint structure", "auth flow", "error handling"],
+            "default_workstreams": [
+                "database-schema",
+                "service-layer",
+                "routes",
+                "tests",
+                "documentation",
+            ],
+            "architecture_checklist": [
+                "data model design",
+                "endpoint structure",
+                "auth flow",
+                "error handling",
+            ],
         },
     },
     {
@@ -113,8 +134,20 @@ BUILTIN_TEMPLATES: list[dict[str, Any]] = [
             "constraints": ["accessibility", "responsive design", "typed API clients"],
         },
         "plan_defaults": {
-            "default_workstreams": ["components", "pages", "state", "api-integration", "styling", "tests"],
-            "architecture_checklist": ["component hierarchy", "data flow", "routing", "error boundaries"],
+            "default_workstreams": [
+                "components",
+                "pages",
+                "state",
+                "api-integration",
+                "styling",
+                "tests",
+            ],
+            "architecture_checklist": [
+                "component hierarchy",
+                "data flow",
+                "routing",
+                "error boundaries",
+            ],
         },
     },
     {
@@ -163,8 +196,20 @@ BUILTIN_TEMPLATES: list[dict[str, Any]] = [
             "constraints": ["idempotency", "schema validation", "error recovery"],
         },
         "plan_defaults": {
-            "default_workstreams": ["source-connectors", "transformations", "validation", "output", "monitoring", "tests"],
-            "architecture_checklist": ["data lineage", "error handling", "scaling strategy", "schema management"],
+            "default_workstreams": [
+                "source-connectors",
+                "transformations",
+                "validation",
+                "output",
+                "monitoring",
+                "tests",
+            ],
+            "architecture_checklist": [
+                "data lineage",
+                "error handling",
+                "scaling strategy",
+                "schema management",
+            ],
         },
     },
     {
@@ -210,8 +255,19 @@ BUILTIN_TEMPLATES: list[dict[str, Any]] = [
             "constraints": ["exit codes", "help text", "JSON output option"],
         },
         "plan_defaults": {
-            "default_workstreams": ["argument-parsing", "commands", "output-formatting", "config", "tests", "docs"],
-            "architecture_checklist": ["command structure", "config resolution", "error handling"],
+            "default_workstreams": [
+                "argument-parsing",
+                "commands",
+                "output-formatting",
+                "config",
+                "tests",
+                "docs",
+            ],
+            "architecture_checklist": [
+                "command structure",
+                "config resolution",
+                "error handling",
+            ],
         },
     },
 ]

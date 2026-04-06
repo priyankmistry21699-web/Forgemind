@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # ── Configuration ────────────────────────────────────────────────
 
-DEFAULT_RATE_LIMIT = 100     # requests per window
+DEFAULT_RATE_LIMIT = 100  # requests per window
 DEFAULT_WINDOW_SECONDS = 60  # window duration
 
 

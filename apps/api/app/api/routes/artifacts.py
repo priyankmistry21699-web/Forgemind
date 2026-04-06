@@ -119,7 +119,5 @@ async def export_plan_markdown(
     return PlainTextResponse(
         content=md,
         media_type="text/markdown",
-        headers={
-            "Content-Disposition": f'attachment; filename="plan-{run_id}.md"'
-        },
+        headers={"Content-Disposition": f'attachment; filename="plan-{run_id}.md"'},
     )
