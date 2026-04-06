@@ -28,6 +28,7 @@ export async function fetchLatestRun(projectId: string): Promise<Run | null> {
 export async function createProject(data: {
   name: string;
   description?: string | null;
+  template_id?: string | null;
 }): Promise<Project> {
   return apiFetch<Project>("/projects", {
     method: "POST",

@@ -6,6 +6,7 @@ selection beyond the fixed core agents.
 """
 
 import logging
+import uuid
 from typing import Any
 
 from sqlalchemy import select
@@ -161,3 +162,53 @@ async def resolve_agent_for_task(
             best_slug = agent.slug
 
     return best_slug if best_score > 0.0 else None
+
+
+# ---------------------------------------------------------------------------
+# FM-112: Phase-aware agent routing
+# ---------------------------------------------------------------------------
+
+async def resolve_agent_for_phase(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+    phase: str,
+    *,
+    fallback_task_type: str | None = None,
+) -> tuple[str | None, str]:
+    """Resolve the best agent slug for a workflow phase.
+
+    Priority:
+      1. Phase-agent profile for this project/phase
+      2. Capability-based fallback using fallback_task_type or phase name
+
+    Returns:
+      (agent_slug, source) where source is 'phase_profile' or 'capability_fallback'
+    """
+    from app.models.phase_agent_profile import WorkflowPhase
+    from app.services import phase_agent_profile_service
+
+    # 1. Try phase profile
+    try:
+        wf_phase = WorkflowPhase(phase)
+        slug = await phase_agent_profile_service.get_agent_slug_for_phase(
+            db, project_id, wf_phase
+        )
+        if slug:
+            logger.info(
+                "Phase routing: %s/%s → %s (phase_profile)",
+                project_id, phase, slug,
+            )
+            return slug, "phase_profile"
+    except ValueError:
+        pass  # Invalid phase string, fall through
+
+    # 2. Capability-based fallback
+    lookup_type = fallback_task_type or phase
+    slug = await resolve_agent_for_task(db, lookup_type)
+    source = "capability_fallback"
+    if slug:
+        logger.info(
+            "Phase routing: %s/%s → %s (%s)",
+            project_id, phase, slug, source,
+        )
+    return slug, source

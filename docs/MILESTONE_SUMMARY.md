@@ -504,18 +504,18 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 
 ## FM-101 to FM-110 — ✅ COMPLETE
 
-| ID     | Feature                              | Status      |
-| ------ | ------------------------------------ | ----------- |
-| FM-101 | SPEC Artifact & SPECIFYING Status    | ✅ Complete |
-| FM-102 | Project Constitution Model           | ✅ Complete |
-| FM-103 | Constitution UI & Governance Hooks   | ✅ Complete |
-| FM-104 | Slash Command Parsing                | ✅ Complete |
-| FM-105 | Structured SPEC Generation           | ✅ Complete |
-| FM-106 | PLAN Artifact Export & Linking        | ✅ Complete |
-| FM-107 | ADR-Aware Planning                   | ✅ Complete |
-| FM-108 | Spec-to-Plan Validation              | ✅ Complete |
-| FM-109 | Approval Integration                 | ✅ Complete |
-| FM-110 | Tests & Hardening                    | ✅ Complete |
+| ID     | Feature                            | Status      |
+| ------ | ---------------------------------- | ----------- |
+| FM-101 | SPEC Artifact & SPECIFYING Status  | ✅ Complete |
+| FM-102 | Project Constitution Model         | ✅ Complete |
+| FM-103 | Constitution UI & Governance Hooks | ✅ Complete |
+| FM-104 | Slash Command Parsing              | ✅ Complete |
+| FM-105 | Structured SPEC Generation         | ✅ Complete |
+| FM-106 | PLAN Artifact Export & Linking     | ✅ Complete |
+| FM-107 | ADR-Aware Planning                 | ✅ Complete |
+| FM-108 | Spec-to-Plan Validation            | ✅ Complete |
+| FM-109 | Approval Integration               | ✅ Complete |
+| FM-110 | Tests & Hardening                  | ✅ Complete |
 
 ### Key Capabilities (Milestone 23)
 
@@ -616,8 +616,8 @@ See [docs/TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for full details (18 items). Key
 > These milestones are **planned** and have **not yet been implemented**.
 > See [FORGEMIND_ROADMAP_V3.md](../FORGEMIND_ROADMAP_V3.md) for detailed task definitions.
 
-| Milestone | Theme                                              | Tasks        | Status       |
-| --------- | -------------------------------------------------- | ------------ | ------------ |
-| 24        | Phase Routing, Templates & Project Bootstrapping   | FM-111–FM-120 | 🔲 Planned  |
-| 25        | Execution Memory, Checkpoints & Delivery Artifacts | FM-121–FM-130 | 🔲 Planned  |
+| Milestone | Theme                                                | Tasks         | Status     |
+| --------- | ---------------------------------------------------- | ------------- | ---------- |
+| 24        | Phase Routing, Templates & Project Bootstrapping     | FM-111–FM-120 | 🔲 Planned |
+| 25        | Execution Memory, Checkpoints & Delivery Artifacts   | FM-121–FM-130 | 🔲 Planned |
 | 26        | Connector Ecosystem, Extensions & Enterprise Plugins | FM-131–FM-140 | 🔲 Planned |

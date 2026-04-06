@@ -15,6 +15,8 @@ import { PlannerResultView } from "@/components/planner/planner-result-view";
 import { ArtifactListSection } from "@/components/artifacts/artifact-list-section";
 import { ApprovalListSection } from "@/components/approvals/approval-list-section";
 import { ConstitutionEditor } from "@/components/projects/constitution-editor";
+import { PhaseProfileEditor } from "@/components/projects/phase-profile-editor";
+import { ConstitutionSuggestions } from "@/components/projects/constitution-suggestions";
 
 const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
   draft: { bg: "bg-zinc-700", text: "text-zinc-300" },
@@ -272,6 +274,18 @@ export default function ProjectDetailPage() {
       <div>
         <h2 className="mb-3 text-sm font-semibold">Project Constitution</h2>
         <ConstitutionEditor projectId={projectId} />
+      </div>
+
+      {/* Phase Agent Routing (FM-111/113) */}
+      <div>
+        <h2 className="mb-3 text-sm font-semibold">Phase Agent Routing</h2>
+        <PhaseProfileEditor projectId={projectId} />
+      </div>
+
+      {/* Constitution Suggestions (FM-117) */}
+      <div>
+        <h2 className="mb-3 text-sm font-semibold">Constitution Suggestions</h2>
+        <ConstitutionSuggestions projectId={projectId} />
       </div>
     </div>
   );

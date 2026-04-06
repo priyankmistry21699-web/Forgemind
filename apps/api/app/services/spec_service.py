@@ -79,10 +79,15 @@ async def generate_spec(
         db, project_id
     )
 
+    # FM-118: Get template spec defaults if project has a template
+    template_context = await _get_template_spec_context(db, project_id)
+
     # 2) Build full prompt
     parts: list[str] = []
     if constitution_section:
         parts.append(f"## Project Constitution\n{constitution_section}")
+    if template_context:
+        parts.append(f"## Template Guidance\n{template_context}")
     parts.append(f"## User Requirements\n{base_prompt}")
     full_prompt = "\n\n".join(parts)
 
@@ -191,3 +196,32 @@ def _build_stub_spec(prompt: str) -> str:
         "## Architecture Summary",
         "- To be determined during planning phase",
     ])
+
+
+async def _get_template_spec_context(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+) -> str | None:
+    """FM-118: Build spec-influencing context from the project's template."""
+    from app.models.project import Project
+    from app.services import project_template_service
+
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    project = result.scalar_one_or_none()
+    if not project or not project.template_id:
+        return None
+
+    template = await project_template_service.get_template(db, project.template_id)
+    if not template or not template.spec_defaults:
+        return None
+
+    defaults = template.spec_defaults
+    parts: list[str] = []
+
+    if "required_sections" in defaults:
+        parts.append("**Required SPEC sections:** " + ", ".join(defaults["required_sections"]))
+
+    if "constraints" in defaults:
+        parts.append("**Template constraints:** " + ", ".join(defaults["constraints"]))
+
+    return "\n".join(parts) if parts else None

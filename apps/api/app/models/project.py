@@ -42,6 +42,12 @@ class Project(Base):
         nullable=True,
         index=True,
     )
+    # FM-115: Template used to bootstrap this project
+    template_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("project_templates.id", ondelete="SET NULL"),
+        nullable=True,
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -64,6 +70,10 @@ class Project(Base):
     # FM-102: Project constitution
     constitution: Mapped["ProjectConstitution | None"] = relationship(  # noqa: F821
         back_populates="project", cascade="all, delete-orphan", uselist=False
+    )
+    # FM-111: Phase agent profiles
+    phase_profiles: Mapped[list["PhaseAgentProfile"]] = relationship(  # noqa: F821
+        cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:

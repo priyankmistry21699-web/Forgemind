@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createProject } from "@/lib/projects";
+import { fetchTemplates } from "@/lib/templates";
+import type { ProjectTemplate } from "@forgemind/types";
 
 interface ProjectCreateFormProps {
   onCreated: () => void;
@@ -14,8 +16,16 @@ export function ProjectCreateForm({
 }: ProjectCreateFormProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [templateId, setTemplateId] = useState<string | null>(null);
+  const [templates, setTemplates] = useState<ProjectTemplate[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchTemplates()
+      .then((res) => setTemplates(res.items))
+      .catch(() => {});
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,6 +39,7 @@ export function ProjectCreateForm({
       await createProject({
         name: trimmedName,
         description: description.trim() || null,
+        template_id: templateId,
       });
       onCreated();
     } catch (err: unknown) {
@@ -92,6 +103,32 @@ export function ProjectCreateForm({
             className="w-full resize-none rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2.5 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]/50 focus:border-[var(--color-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]/30 transition-colors"
           />
         </div>
+
+        {templates.length > 0 && (
+          <div>
+            <label
+              htmlFor="project-template"
+              className="mb-1 block text-xs font-medium text-[var(--color-text-muted)]"
+            >
+              Template
+            </label>
+            <select
+              id="project-template"
+              value={templateId ?? ""}
+              onChange={(e) =>
+                setTemplateId(e.target.value || null)
+              }
+              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-3 py-2.5 text-sm text-[var(--color-text)] focus:border-[var(--color-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]/30 transition-colors"
+            >
+              <option value="">No template (blank project)</option>
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name} — {t.category}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {error && <p className="text-xs text-red-400">{error}</p>}
 

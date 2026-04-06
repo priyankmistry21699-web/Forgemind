@@ -76,12 +76,17 @@ async def generate_plan_artifact(
         db, project_id
     )
 
+    # FM-118: Template plan defaults
+    template_plan_context = await _get_template_plan_context(db, project_id)
+
     # 3) Build prompt
     parts: list[str] = []
     if constitution_section:
         parts.append(f"## Project Constitution\n{constitution_section}")
     if arch_context:
         parts.append(arch_context)
+    if template_plan_context:
+        parts.append(f"## Template Plan Guidance\n{template_plan_context}")
     parts.append(f"## Specification\n{spec.content}")
     if user_prompt:
         parts.append(f"## Additional Instructions\n{user_prompt}")
@@ -248,3 +253,32 @@ def _build_stub_plan(spec_content: str) -> str:
         "- Estimated phases: 3",
         "- Depends on task complexity and approvals",
     ])
+
+
+async def _get_template_plan_context(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+) -> str | None:
+    """FM-118: Build plan-influencing context from the project's template."""
+    from app.models.project import Project
+    from app.services import project_template_service
+
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    project = result.scalar_one_or_none()
+    if not project or not project.template_id:
+        return None
+
+    template = await project_template_service.get_template(db, project.template_id)
+    if not template or not template.plan_defaults:
+        return None
+
+    defaults = template.plan_defaults
+    parts: list[str] = []
+
+    if "default_workstreams" in defaults:
+        parts.append("**Suggested workstreams:** " + ", ".join(defaults["default_workstreams"]))
+
+    if "architecture_checklist" in defaults:
+        parts.append("**Architecture checklist:** " + ", ".join(defaults["architecture_checklist"]))
+
+    return "\n".join(parts) if parts else None

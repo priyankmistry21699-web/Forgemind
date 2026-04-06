@@ -17,6 +17,7 @@ async def create_project(
         description=data.description,
         owner_id=owner_id,
         workspace_id=data.workspace_id,
+        template_id=data.template_id,
     )
     db.add(project)
     await db.flush()
@@ -29,6 +30,17 @@ async def create_project(
     )
     db.add(lead)
     await db.flush()
+
+    # FM-115: Apply template defaults if a template was specified
+    if data.template_id:
+        from app.services import project_template_service, template_inheritance_service
+
+        template = await project_template_service.get_template(db, data.template_id)
+        if template and template.is_active:
+            await template_inheritance_service.apply_template_to_project(
+                db, project, template
+            )
+
     return project
 
 

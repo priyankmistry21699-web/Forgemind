@@ -11,6 +11,7 @@ class ProjectCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: str | None = None
     workspace_id: uuid.UUID | None = None
+    template_id: uuid.UUID | None = None  # FM-115: bootstrap from template
 
 
 class ProjectUpdate(BaseModel):
@@ -28,6 +29,7 @@ class ProjectRead(BaseModel):
     status: ProjectStatus
     owner_id: uuid.UUID
     workspace_id: uuid.UUID | None
+    template_id: uuid.UUID | None = None  # FM-115
     created_at: datetime
     updated_at: datetime
 

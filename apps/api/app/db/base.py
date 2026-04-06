@@ -53,3 +53,7 @@ from app.models.architecture import (  # noqa: F401
     ArchitectureRuleResult,
     ChangeImpactAssessment,
 )
+# FM-111–120: Phase routing, templates, constitution suggestions
+from app.models.phase_agent_profile import PhaseAgentProfile  # noqa: F401
+from app.models.project_template import ProjectTemplate  # noqa: F401
+from app.models.constitution_suggestion import ConstitutionSuggestion  # noqa: F401

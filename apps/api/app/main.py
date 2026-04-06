@@ -17,9 +17,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     # Startup — seed default agents
     from app.db.session import async_session_factory
     from app.services.agent_service import seed_default_agents
+    from app.services.project_template_service import seed_builtin_templates
 
     async with async_session_factory() as session:
         await seed_default_agents(session)
+        await seed_builtin_templates(session)
         await session.commit()
 
     yield

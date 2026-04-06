@@ -43,6 +43,10 @@ class LocalConfig:
     editor_integration: bool = True
     created_at: str = ""
 
+    # FM-119: Template & phase-routing awareness
+    template_slug: str = ""
+    phase_profiles: dict[str, str] = field(default_factory=dict)  # phase → agent slug
+
     # Derived / internal
     _config_dir: str = field(default="", repr=False)
 
@@ -82,6 +86,8 @@ class LocalConfig:
             "execution_policy": self.execution_policy,
             "editor_integration": self.editor_integration,
             "created_at": self.created_at,
+            "template_slug": self.template_slug,
+            "phase_profiles": self.phase_profiles,
         }
 
     @classmethod
@@ -99,6 +105,8 @@ class LocalConfig:
             execution_policy=data.get("execution_policy", EXECUTION_POLICY_SAFE),
             editor_integration=data.get("editor_integration", True),
             created_at=data.get("created_at", ""),
+            template_slug=data.get("template_slug", ""),
+            phase_profiles=data.get("phase_profiles", {}),
             _config_dir=config_dir,
         )
 

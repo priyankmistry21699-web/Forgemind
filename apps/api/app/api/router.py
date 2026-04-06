@@ -36,6 +36,9 @@ from app.api.routes.auth import router as auth_router
 from app.api.routes.metrics import router as metrics_router
 from app.api.routes.architecture import router as architecture_router
 from app.api.routes.constitution import router as constitution_router
+from app.api.routes.phase_agent_profiles import router as phase_profiles_router
+from app.api.routes.project_templates import router as templates_router
+from app.api.routes.constitution_suggestions import router as suggestions_router
 
 api_router = APIRouter()
 
@@ -146,3 +149,12 @@ api_router.include_router(architecture_router, tags=["architecture"])
 
 # Project Constitution (FM-102)
 api_router.include_router(constitution_router, tags=["constitution"])
+
+# Phase Agent Profiles (FM-111/113)
+api_router.include_router(phase_profiles_router, tags=["phase-profiles"])
+
+# Project Templates (FM-114/115)
+api_router.include_router(templates_router, tags=["templates"])
+
+# Constitution Suggestions (FM-117)
+api_router.include_router(suggestions_router, tags=["suggestions"])
