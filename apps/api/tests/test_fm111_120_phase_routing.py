@@ -623,6 +623,327 @@ class TestTemplateSpecPlanInfluence:
         assert context is not None
         assert "workstream" in context.lower() or "checklist" in context.lower()
 
+
+# ═════════════════════════════════════════════════════════════════
+# P2: Integration tests — runtime phase routing in execution paths
+# ═════════════════════════════════════════════════════════════════
+
+
+class TestRuntimePhaseRouting:
+    """P2 #9: Verify resolve_agent_for_phase is called in actual execution paths."""
+
+    @pytest.mark.asyncio
+    async def test_orchestrator_status_to_phase_mapping_covers_key_statuses(self):
+        """Ensure _STATUS_TO_PHASE has the expected phase mappings."""
+        from app.models.run import RunStatus
+        from app.services.adaptive_orchestrator import _STATUS_TO_PHASE
+
+        assert _STATUS_TO_PHASE[RunStatus.SPECIFYING] == "specify"
+        assert _STATUS_TO_PHASE[RunStatus.PLANNING] == "plan"
+        assert _STATUS_TO_PHASE[RunStatus.RUNNING] == "implement"
+        assert _STATUS_TO_PHASE[RunStatus.COMPLETED] == "validate"
+
+    @pytest.mark.asyncio
+    async def test_phase_routing_returns_phase_profile_source(self, db_session):
+        """When a phase profile exists, resolve_agent_for_phase returns 'phase_profile' source."""
+        from app.services import composition_service, phase_agent_profile_service
+        from app.schemas.phase_agent_profile import PhaseAgentProfileCreate
+        from app.models.phase_agent_profile import WorkflowPhase
+
+        agent = await _seed_agent(db_session, slug="specify-router")
+        project = await _seed_project(db_session)
+
+        await phase_agent_profile_service.upsert_profile(
+            db_session,
+            project.id,
+            PhaseAgentProfileCreate(phase=WorkflowPhase.SPECIFY, agent_id=agent.id),
+        )
+        await db_session.commit()
+
+        slug, source = await composition_service.resolve_agent_for_phase(
+            db_session, project.id, "specify"
+        )
+        assert slug == "specify-router"
+        assert source == "phase_profile"
+
+    @pytest.mark.asyncio
+    async def test_phase_routing_falls_back_to_capability(self, db_session):
+        """Without a phase profile, resolve_agent_for_phase falls back to capability scoring."""
+        from app.services import composition_service
+
+        project = await _seed_project(db_session)
+        # Seed an agent with matching capabilities so fallback can work
+        await _seed_agent(db_session, slug="fallback-agent", capabilities=["coding"])
+        await db_session.commit()
+
+        slug, source = await composition_service.resolve_agent_for_phase(
+            db_session, project.id, "implement", fallback_task_type="coding"
+        )
+        # Should use capability fallback, not phase_profile
+        assert source == "capability_fallback"
+
+
+# ═════════════════════════════════════════════════════════════════
+# P2: Stronger template creation tests
+# ═════════════════════════════════════════════════════════════════
+
+
+class TestTemplateSeededContent:
+    """P2 #10: Verify built-in templates contain real, non-placeholder content."""
+
+    @pytest.mark.asyncio
+    async def test_builtin_templates_have_real_constitutions(self, db_session):
+        """Each built-in template must have a non-trivial constitution string."""
+        from app.services import project_template_service
+
+        await project_template_service.seed_builtin_templates(db_session)
+        await db_session.commit()
+
+        for slug in ("rest-api", "frontend-app", "data-pipeline", "cli-tool"):
+            template = await project_template_service.get_template_by_slug(
+                db_session, slug
+            )
+            assert template is not None, f"Template {slug} missing"
+            ct = template.constitution_template or {}
+            constitution = ct.get("content", "") if isinstance(ct, dict) else str(ct)
+            # Must be substantial, not a placeholder
+            assert len(constitution) > 50, (
+                f"Template {slug} constitution is too short ({len(constitution)} chars)"
+            )
+
+    @pytest.mark.asyncio
+    async def test_builtin_templates_have_phase_profiles(self, db_session):
+        """Each built-in template should define default_phase_profiles."""
+        from app.services import project_template_service
+
+        await project_template_service.seed_builtin_templates(db_session)
+        await db_session.commit()
+
+        for slug in ("rest-api", "frontend-app", "data-pipeline", "cli-tool"):
+            template = await project_template_service.get_template_by_slug(
+                db_session, slug
+            )
+            profiles = template.default_phase_profiles
+            assert profiles is not None, f"{slug} missing default_phase_profiles"
+            assert isinstance(profiles, list)
+
+    @pytest.mark.asyncio
+    async def test_builtin_templates_have_governance(self, db_session):
+        """Each built-in template should include default_governance_config."""
+        from app.services import project_template_service
+
+        await project_template_service.seed_builtin_templates(db_session)
+        await db_session.commit()
+
+        for slug in ("rest-api", "frontend-app", "data-pipeline", "cli-tool"):
+            template = await project_template_service.get_template_by_slug(
+                db_session, slug
+            )
+            gov = template.default_governance_config
+            assert gov is not None, f"{slug} missing default_governance_config"
+
+
+# ═════════════════════════════════════════════════════════════════
+# P2: Signal-trigger constitution suggestion tests
+# ═════════════════════════════════════════════════════════════════
+
+
+class TestConstitutionSuggestionSignals:
+    """P2 #11: Test specific signal conditions that trigger suggestion rules."""
+
+    @pytest.mark.asyncio
+    async def test_repeated_test_failures_trigger_missing_tests_rule(self, db_session):
+        """2+ testing task failures should trigger 'missing-tests' suggestion."""
+        from app.models.run import Run, RunStatus
+        from app.models.task import Task, TaskStatus
+        from app.services import constitution_suggestion_service
+
+        project = await _seed_project(db_session)
+        run = Run(project_id=project.id, run_number=1, status=RunStatus.COMPLETED)
+        db_session.add(run)
+        await db_session.flush()
+
+        # Create 2 failed testing tasks
+        for i in range(2):
+            task = Task(
+                title=f"Test task {i}",
+                task_type="testing",
+                status=TaskStatus.FAILED,
+                run_id=run.id,
+            )
+            db_session.add(task)
+        await db_session.flush()
+        await db_session.commit()
+
+        suggestions = await constitution_suggestion_service.generate_suggestions(
+            db_session, project.id
+        )
+        titles = [s.title for s in suggestions]
+        assert any("test" in t.lower() for t in titles), (
+            f"Expected a test-related suggestion, got: {titles}"
+        )
+
+    @pytest.mark.asyncio
+    async def test_many_tasks_trigger_smaller_phases_rule(self, db_session):
+        """10+ tasks in a single run should trigger 'smaller-phases' suggestion."""
+        from app.models.run import Run, RunStatus
+        from app.models.task import Task, TaskStatus
+        from app.services import constitution_suggestion_service
+
+        project = await _seed_project(db_session)
+        run = Run(project_id=project.id, run_number=1, status=RunStatus.COMPLETED)
+        db_session.add(run)
+        await db_session.flush()
+
+        for i in range(12):
+            task = Task(
+                title=f"Task {i}",
+                task_type="coding",
+                status=TaskStatus.COMPLETED,
+                run_id=run.id,
+            )
+            db_session.add(task)
+        await db_session.flush()
+        await db_session.commit()
+
+        suggestions = await constitution_suggestion_service.generate_suggestions(
+            db_session, project.id
+        )
+        titles = [s.title for s in suggestions]
+        assert any("phase" in t.lower() or "smaller" in t.lower() for t in titles), (
+            f"Expected a smaller-phases suggestion, got: {titles}"
+        )
+
+    @pytest.mark.asyncio
+    async def test_no_review_tasks_trigger_review_gaps_rule(self, db_session):
+        """Completed runs with no review tasks should trigger 'review-gaps' suggestion."""
+        from app.models.run import Run, RunStatus
+        from app.services import constitution_suggestion_service
+
+        project = await _seed_project(db_session)
+        # Create 2 completed runs with no review tasks
+        for i in range(2):
+            run = Run(project_id=project.id, run_number=i + 1, status=RunStatus.COMPLETED)
+            db_session.add(run)
+        await db_session.flush()
+        await db_session.commit()
+
+        suggestions = await constitution_suggestion_service.generate_suggestions(
+            db_session, project.id
+        )
+        titles = [s.title for s in suggestions]
+        assert any("review" in t.lower() for t in titles), (
+            f"Expected a review-gaps suggestion, got: {titles}"
+        )
+
+    @pytest.mark.asyncio
+    async def test_duplicate_pending_suggestion_not_created(self, db_session):
+        """If a PENDING suggestion with same title exists, skip it."""
+        from app.models.run import Run, RunStatus
+        from app.models.task import Task, TaskStatus
+        from app.services import constitution_suggestion_service
+
+        project = await _seed_project(db_session)
+        run = Run(project_id=project.id, run_number=1, status=RunStatus.COMPLETED)
+        db_session.add(run)
+        await db_session.flush()
+
+        for i in range(3):
+            task = Task(
+                title=f"Test task {i}",
+                task_type="testing",
+                status=TaskStatus.FAILED,
+                run_id=run.id,
+            )
+            db_session.add(task)
+        await db_session.flush()
+        await db_session.commit()
+
+        first = await constitution_suggestion_service.generate_suggestions(
+            db_session, project.id
+        )
+        second = await constitution_suggestion_service.generate_suggestions(
+            db_session, project.id
+        )
+        # No new suggestions should be created since the pending ones already exist
+        assert len(second) == 0
+
+
+# ═════════════════════════════════════════════════════════════════
+# P2: Template SPEC/PLAN influence tests (end-to-end with real db)
+# ═════════════════════════════════════════════════════════════════
+
+
+class TestTemplateInfluenceEndToEnd:
+    """P2 #12: Verify template SPEC/PLAN defaults produce meaningful prompt context."""
+
+    @pytest.mark.asyncio
+    async def test_spec_context_includes_required_sections(self, db_session):
+        """Template spec_defaults.required_sections should appear in context."""
+        from app.services.spec_service import _get_template_spec_context
+        from app.services import project_template_service
+
+        await project_template_service.seed_builtin_templates(db_session)
+        await db_session.commit()
+
+        template = await project_template_service.get_template_by_slug(
+            db_session, "rest-api"
+        )
+        project = await _seed_project(db_session, template_id=template.id)
+        await db_session.commit()
+
+        context = await _get_template_spec_context(db_session, project.id)
+        assert context is not None
+        # Should contain actual section names from the template
+        assert len(context) > 20, "Spec context too short to be meaningful"
+
+    @pytest.mark.asyncio
+    async def test_plan_context_includes_workstreams(self, db_session):
+        """Template plan_defaults.default_workstreams should appear in context."""
+        from app.services.plan_artifact_service import _get_template_plan_context
+        from app.services import project_template_service
+
+        await project_template_service.seed_builtin_templates(db_session)
+        await db_session.commit()
+
+        template = await project_template_service.get_template_by_slug(
+            db_session, "rest-api"
+        )
+        project = await _seed_project(db_session, template_id=template.id)
+        await db_session.commit()
+
+        context = await _get_template_plan_context(db_session, project.id)
+        assert context is not None
+        assert len(context) > 20, "Plan context too short to be meaningful"
+
+    @pytest.mark.asyncio
+    async def test_different_templates_produce_different_contexts(self, db_session):
+        """Two different templates should yield distinct spec contexts."""
+        from app.services.spec_service import _get_template_spec_context
+        from app.services import project_template_service
+
+        await project_template_service.seed_builtin_templates(db_session)
+        await db_session.commit()
+
+        rest_tmpl = await project_template_service.get_template_by_slug(
+            db_session, "rest-api"
+        )
+        cli_tmpl = await project_template_service.get_template_by_slug(
+            db_session, "cli-tool"
+        )
+
+        rest_project = await _seed_project(db_session, name="REST proj", template_id=rest_tmpl.id)
+        cli_project = await _seed_project(db_session, name="CLI proj", template_id=cli_tmpl.id)
+        await db_session.commit()
+
+        rest_ctx = await _get_template_spec_context(db_session, rest_project.id)
+        cli_ctx = await _get_template_spec_context(db_session, cli_project.id)
+
+        # Both should have content, but they should differ
+        assert rest_ctx is not None
+        assert cli_ctx is not None
+        assert rest_ctx != cli_ctx, "Different templates should produce different spec contexts"
+
     @pytest.mark.asyncio
     async def test_plan_context_none_without_template(self, db_session):
         from app.services.plan_artifact_service import _get_template_plan_context

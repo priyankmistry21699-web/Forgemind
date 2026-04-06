@@ -28,6 +28,7 @@ from app.services import composition_service  # noqa: E402
 from app.services import run_memory_service  # noqa: E402
 from app.services import adaptive_orchestrator  # noqa: E402
 from app.models.task import TaskStatus  # noqa: E402
+from app.models.run import Run, RunStatus  # noqa: E402
 
 # Will be populated by FM-025
 from worker.agents import dispatch_agent  # noqa: E402
@@ -36,6 +37,14 @@ logger = logging.getLogger("forgemind.worker")
 
 POLL_INTERVAL_SECONDS = int(os.environ.get("WORKER_POLL_INTERVAL", "5"))
 MAX_TASKS_PER_CYCLE = int(os.environ.get("WORKER_MAX_TASKS_PER_CYCLE", "3"))
+
+# FM-112: Map RunStatus → WorkflowPhase name for phase-aware routing
+_STATUS_TO_PHASE: dict[RunStatus, str] = {
+    RunStatus.SPECIFYING: "specify",
+    RunStatus.PLANNING: "plan",
+    RunStatus.RUNNING: "implement",
+    RunStatus.COMPLETED: "validate",
+}
 
 
 async def process_ready_tasks() -> int:
@@ -64,11 +73,28 @@ async def process_ready_tasks() -> int:
         ready_tasks = cycle["selected_tasks"]
 
         for task in ready_tasks:
-            # Resolve which agent should handle this task
-            # Priority: assigned_agent_slug (from planner) → capability scoring
-            agent_slug = await composition_service.resolve_agent_for_task(
-                db, task.task_type, agent_hint=task.assigned_agent_slug
-            )
+            # FM-112: Phase-aware agent routing
+            # Priority: phase-agent profile → assigned_agent_slug hint → capability scoring
+            run = await db.get(Run, task.run_id)
+            agent_slug = None
+            if run:
+                phase = _STATUS_TO_PHASE.get(run.status, "implement")
+                agent_slug, source = await composition_service.resolve_agent_for_phase(
+                    db,
+                    run.project_id,
+                    phase,
+                    fallback_task_type=task.task_type,
+                )
+                if agent_slug and source == "phase_profile":
+                    logger.info(
+                        "Phase routing: task %s → agent %s (phase=%s)",
+                        task.id, agent_slug, phase,
+                    )
+            # If phase routing didn't resolve, fall back to hint-based resolution
+            if agent_slug is None:
+                agent_slug = await composition_service.resolve_agent_for_task(
+                    db, task.task_type, agent_hint=task.assigned_agent_slug
+                )
             if agent_slug is None:
                 # Fallback: try legacy task-type matching
                 agent = await agent_service.resolve_agent_for_task_type(

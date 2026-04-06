@@ -104,12 +104,14 @@ def run_local_command(
     *,
     timeout_s: int = 60,
     policy: str = "safe",
+    template_slug: str = "",
+    phase_profiles: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Execute a bounded local command.
 
     Returns dict with keys:
         run_id, command, blocked, reason, stdout, stderr,
-        returncode, duration_s, logged_at
+        returncode, duration_s, logged_at, template_slug, phase_profiles
     """
     run_id = str(uuid.uuid4())
     result: dict[str, Any] = {
@@ -122,6 +124,8 @@ def run_local_command(
         "returncode": -1,
         "duration_s": 0.0,
         "logged_at": _dt.datetime.now(_dt.timezone.utc).isoformat(),
+        "template_slug": template_slug,
+        "phase_profiles": phase_profiles or {},
     }
 
     # 1. Check always-blocked

@@ -543,10 +543,10 @@ This is the real business-logic core.
 #### Intelligence services
 
 - `chat_service` — run assistant
-- `composition_service` — capability-based agent selection
+- `composition_service` — capability-based and phase-aware agent selection
 - `run_memory_service` — contextual summary + failure analysis
 - `adaptive_retry_service` — retry policy / revision tasks
-- `adaptive_orchestrator` — smarter orchestration paths
+- `adaptive_orchestrator` — smarter orchestration paths with phase-aware re-routing
 
 #### Connector / repo services
 
@@ -576,6 +576,13 @@ This is the real business-logic core.
 - `council_service` — multi-agent decisions
 - `knowledge_service` — cross-run knowledge extraction/use
 - `audit_export_service` — export operational trails
+
+#### Phase routing & template services
+
+- `phase_agent_profile_service` — per-project phase-to-agent CRUD, agent validation
+- `project_template_service` — template CRUD, 4 built-in templates, idempotent seeding
+- `template_inheritance_service` — 3-tier governance resolution (system → template → project)
+- `constitution_suggestion_service` — signal-driven constitution improvement proposals
 
 #### Collaboration services
 

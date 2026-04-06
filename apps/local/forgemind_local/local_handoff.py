@@ -102,6 +102,8 @@ def export_snapshot(repo_root: str, *, output_path: str | None = None) -> str:
             "project_slug": cfg.project_slug,
             "repo_root": cfg.repo_root,
             "mode": cfg.mode,
+            "template_slug": cfg.template_slug,
+            "phase_profiles": cfg.phase_profiles,
             "contents": sorted(
                 str(Path(p).relative_to(bundle_dir)).replace("\\", "/")
                 for p in _walk_files(bundle_dir)

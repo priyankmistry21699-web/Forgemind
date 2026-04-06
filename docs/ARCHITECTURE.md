@@ -810,17 +810,67 @@ PENDING → SPECIFYING → PLANNING → RUNNING → COMPLETED
 
 ---
 
-## Planned: FM-111–FM-140
+### Milestone 24 — Phase Routing, Templates & Project Bootstrapping (FM-111 → FM-120)
+
+**New Models:**
+
+- `PhaseAgentProfile` — per-project phase-to-agent assignment (6 workflow phases, unique per project/phase)
+- `ProjectTemplate` — reusable project presets with JSON config (constitution, governance, phase profiles, spec/plan defaults)
+- `ConstitutionSuggestion` — knowledge-driven constitution improvement proposals (PENDING/ACCEPTED/REJECTED/EXPIRED)
+
+**New Services:**
+
+- `phase_agent_profile_service` — CRUD for phase-agent assignments, agent validation, bulk set
+- `project_template_service` — template CRUD, 4 built-in templates with real content, idempotent seeding
+- `template_inheritance_service` — 3-tier governance resolution (system → template → project), template application
+- `constitution_suggestion_service` — 5 suggestion rules, signal gathering from runs/tasks/knowledge, generate/resolve
+
+**Modified Services:**
+
+- `composition_service` — added `resolve_agent_for_phase()` for phase-aware agent routing
+- `project_service` — template-based project creation with `template_id`
+- `spec_service` — template spec_defaults injection into LLM prompts
+- `plan_artifact_service` — template plan_defaults injection into LLM prompts
+- `adaptive_orchestrator` — phase-aware agent re-routing on auto-retry
+
+**New Routes:**
+
+- `/api/projects/{id}/phase-agent-profiles` — CRUD for phase-agent assignments
+- `/api/templates` — list, get, create, update project templates
+- `/api/projects/{id}/constitution-suggestions` — generate, list, resolve suggestions
+
+**Worker Integration:**
+
+- Worker task loop uses `resolve_agent_for_phase()` before capability-based fallback
+- Adaptive orchestrator uses phase-aware routing for auto-retry agent selection
+
+| ID     | Feature                              | Description                                                                           | Status      |
+| ------ | ------------------------------------ | ------------------------------------------------------------------------------------- | ----------- |
+| FM-111 | Phase Agent Profile Data Model       | PhaseAgentProfile ORM, WorkflowPhase enum, CRUD service, schemas, routes             | ✅ Complete |
+| FM-112 | Phase-Aware Routing                  | resolve_agent_for_phase in composition_service, wired into worker + orchestrator      | ✅ Complete |
+| FM-113 | Phase Agent Profile UI               | PhaseProfileEditor component, per-phase dropdowns, project detail integration        | ✅ Complete |
+| FM-114 | Project Template Model & Seeding     | 4 built-in templates with real constitutions, governance, spec/plan defaults         | ✅ Complete |
+| FM-115 | Template-Based Project Creation      | project_service accepts template_id, seeds constitution + phase profiles             | ✅ Complete |
+| FM-116 | Template Inheritance                 | 3-tier governance resolution: system → template → project                             | ✅ Complete |
+| FM-117 | Constitution Suggestions             | 5 signal-driven rules, generate/accept/reject, never auto-applied                    | ✅ Complete |
+| FM-118 | Spec/Plan Bootstrap from Templates   | Template spec_defaults and plan_defaults injected into LLM prompts                   | ✅ Complete |
+| FM-119 | Local Mode Template Support          | Local CLI status/exec/handoff consume template_slug and phase_profiles               | ✅ Complete |
+| FM-120 | Hardening & Tests                    | 38 tests, 580 total passing, full documentation closure                               | ✅ Complete |
+
+> **All 120 tasks across 24 milestones are complete. 580 tests passing.**
+
+---
+
+## Planned: FM-121–FM-140
 
 > The following waves are **planned** and have not yet been implemented.
 > See [FORGEMIND_ROADMAP_V3.md](../FORGEMIND_ROADMAP_V3.md) for full scope.
 
 | Wave | Milestone | Tasks         | Theme                                               |
 | ---- | --------- | ------------- | --------------------------------------------------- |
-| 7    | 24        | FM-111–FM-120 | Phase routing, templates, project bootstrapping     |
 | 8    | 25        | FM-121–FM-130 | Execution memory, checkpoints, delivery artifacts   |
 | 9    | 26        | FM-131–FM-140 | Connector ecosystem, extensions, enterprise plugins |
 
 ---
 
-_This document reflects the architecture as of the latest commit on `main` (all features through FM-110 complete, FM-111–FM-140 planned)._
+_This document reflects the architecture as of the latest commit on `main` (all features through FM-120 complete, FM-121–FM-140 planned)._

@@ -104,6 +104,14 @@ def status(path: str | None) -> None:
     table.add_row("editor_integration", str(cfg.editor_integration))
     table.add_row("created_at", cfg.created_at or "—")
 
+    # FM-119: Template & phase-routing awareness
+    table.add_row("template_slug", cfg.template_slug or "—")
+    if cfg.phase_profiles:
+        profiles_str = ", ".join(f"{p}→{a}" for p, a in cfg.phase_profiles.items())
+        table.add_row("phase_profiles", profiles_str)
+    else:
+        table.add_row("phase_profiles", "— (capability-based)")
+
     # Index status
     idx_dir = os.path.join(cfg.repo_root, ".forgemind", "index")
     idx_file = os.path.join(idx_dir, "repo_manifest.json")
@@ -219,7 +227,8 @@ def local_exec(command: str, timeout: int, path: str | None) -> None:
     from forgemind_local.local_exec import run_local_command
 
     result = run_local_command(
-        repo_root, command, timeout_s=timeout, policy=cfg.execution_policy
+        repo_root, command, timeout_s=timeout, policy=cfg.execution_policy,
+        template_slug=cfg.template_slug, phase_profiles=cfg.phase_profiles,
     )
 
     if result["blocked"]:

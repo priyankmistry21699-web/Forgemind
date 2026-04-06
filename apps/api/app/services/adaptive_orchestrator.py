@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.task import Task, TaskStatus
 from app.models.approval_request import ApprovalRequest, ApprovalStatus
+from app.models.run import Run, RunStatus
 from app.services import run_memory_service, composition_service
 from app.services import event_service
 from app.models.execution_event import EventType
@@ -27,6 +28,14 @@ logger = logging.getLogger(__name__)
 
 MAX_AUTO_RETRIES = 2  # max automatic retries before leaving task failed
 CRITICAL_TASK_TYPES = {"architecture", "codegen"}  # prioritised in scheduling
+
+# FM-112: Map RunStatus → WorkflowPhase name for phase-aware routing
+_STATUS_TO_PHASE: dict[RunStatus, str] = {
+    RunStatus.SPECIFYING: "specify",
+    RunStatus.PLANNING: "plan",
+    RunStatus.RUNNING: "implement",
+    RunStatus.COMPLETED: "validate",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -119,13 +128,26 @@ async def auto_retry_task(
         )
         return None
 
-    # Try to pick a different agent via composition service
+    # FM-112: Try phase-aware routing first, then fall back to capability-based
     previous_agent = task.assigned_agent_slug
-    new_agent_slug = await composition_service.resolve_agent_for_task(
-        db,
-        task.task_type,
-        agent_hint=None,  # ignore hint to try alternatives
-    )
+    new_agent_slug = None
+
+    run = await db.get(Run, task.run_id)
+    if run:
+        phase = _STATUS_TO_PHASE.get(run.status, "implement")
+        new_agent_slug, _ = await composition_service.resolve_agent_for_phase(
+            db,
+            run.project_id,
+            phase,
+            fallback_task_type=task.task_type,
+        )
+
+    if new_agent_slug is None:
+        new_agent_slug = await composition_service.resolve_agent_for_task(
+            db,
+            task.task_type,
+            agent_hint=None,  # ignore hint to try alternatives
+        )
     if new_agent_slug == previous_agent:
         new_agent_slug = None  # will use whatever the worker picks
 
@@ -136,10 +158,9 @@ async def auto_retry_task(
     await db.flush()
 
     # Emit event
-    from app.models.run import Run
-
-    run_r = await db.execute(select(Run).where(Run.id == task.run_id))
-    run_obj = run_r.scalar_one()
+    if run is None:
+        run_r = await db.execute(select(Run).where(Run.id == task.run_id))
+        run = run_r.scalar_one()
     await event_service.emit_event(
         db,
         event_type=EventType.TASK_CLAIMED,
@@ -147,7 +168,7 @@ async def auto_retry_task(
             f"Auto-retry #{retry_count} for task '{task.title}'"
             + (f" (re-routed to {new_agent_slug})" if new_agent_slug else "")
         ),
-        project_id=run_obj.project_id,
+        project_id=run.project_id,
         run_id=task.run_id,
         task_id=task.id,
         metadata={"action": "auto_retry", "retry_count": retry_count},

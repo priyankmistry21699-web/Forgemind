@@ -210,6 +210,19 @@
 - ✅ FM-109 Approval integration (SPEC/PLAN approval requests, idempotent, opt-in gating, lifecycle gate enforcement)
 - ✅ FM-110 Tests & hardening (60 tests, 12 test classes, 542 total passing, docs/tracking closure)
 
+### Milestone 24 — Phase Routing, Templates & Project Bootstrapping (FM-111 to FM-120)
+
+- ✅ FM-111 Phase agent profile data model (PhaseAgentProfile ORM, WorkflowPhase enum, CRUD service, schemas, routes, unique project/phase constraint)
+- ✅ FM-112 Composition engine phase-aware routing (resolve_agent_for_phase in composition_service, wired into worker task loop + adaptive orchestrator auto-retry)
+- ✅ FM-113 Phase agent profile UI (PhaseProfileEditor component, per-phase agent dropdowns, mounted on project detail page, API client)
+- ✅ FM-114 Project template model and seeding (ProjectTemplate ORM, 4 built-in templates with real constitutions/governance/spec/plan defaults, idempotent seeding)
+- ✅ FM-115 Template-based project creation flow (project_service accepts template_id, seeds constitution + phase profiles, frontend template selector)
+- ✅ FM-116 Template inheritance for constitution & policies (3-tier resolution: system → template → project, resolve_governance_config)
+- ✅ FM-117 Knowledge-driven constitution suggestions (ConstitutionSuggestion ORM, 5 signal-driven rules, generate/accept/reject, never auto-applied)
+- ✅ FM-118 Spec/plan bootstrap from project templates (template spec_defaults/plan_defaults injected into LLM prompts as guidance sections)
+- ✅ FM-119 Local mode support for templates & phase profiles (CLI status display, exec context logging, handoff bundle metadata)
+- ✅ FM-120 Hardening, tests & documentation (38 tests, 580 total passing, full doc closure)
+
 ## Blocked
 
 - (none)

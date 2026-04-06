@@ -500,7 +500,33 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 | FM-099 | Handoff Snapshots                | ✅ Complete |
 | FM-100 | Hardening, Tests & Documentation | ✅ Complete |
 
-> **ForgeMind now spans 110 features across 23 milestones — a structurally self-aware, SPEC-driven AI execution platform with lifecycle gating, project constitutions, and approval-governed planning. 542 tests passing.**
+> **ForgeMind now spans 120 features across 24 milestones — a structurally self-aware, SPEC-driven AI execution platform with lifecycle gating, project constitutions, phase-aware agent routing, reusable project templates, and approval-governed planning. 580 tests passing.**
+
+## FM-111 to FM-120 — ✅ COMPLETE
+
+| ID     | Feature                                      | Status      |
+| ------ | -------------------------------------------- | ----------- |
+| FM-111 | Phase Agent Profile Data Model               | ✅ Complete |
+| FM-112 | Composition Engine Phase-Aware Routing        | ✅ Complete |
+| FM-113 | Phase Agent Profile UI                       | ✅ Complete |
+| FM-114 | Project Template Model and Seeding           | ✅ Complete |
+| FM-115 | Template-Based Project Creation Flow         | ✅ Complete |
+| FM-116 | Template Inheritance for Constitution & Policies | ✅ Complete |
+| FM-117 | Knowledge-Driven Constitution Suggestions    | ✅ Complete |
+| FM-118 | Spec/Plan Bootstrap from Project Templates   | ✅ Complete |
+| FM-119 | Local Mode Support for Templates & Profiles  | ✅ Complete |
+| FM-120 | Hardening, Tests & Documentation             | ✅ Complete |
+
+### Key Capabilities (Milestone 24)
+
+- **Phase-agent profiles**: Per-project agent-to-phase assignments (specify, plan, tasks, implement, review, validate)
+- **Phase-aware routing**: Worker and adaptive orchestrator consult phase profiles before capability-based fallback
+- **Reusable project templates**: 4 built-in templates (rest-api, frontend-app, data-pipeline, cli-tool) with real constitutions, governance config, phase profiles, and spec/plan defaults
+- **Template-based creation**: Project creation applies template defaults (constitution, phase profiles)
+- **3-tier governance inheritance**: system defaults → template → project overrides
+- **Constitution suggestions**: 5 rules evaluate run/task signals to propose constitution improvements (never auto-applied)
+- **Template-influenced SPEC/PLAN**: Template spec_defaults and plan_defaults injected into LLM prompts
+- **Local mode awareness**: Local CLI displays template/phase config, execution logs include context, handoff bundles carry template metadata
 
 ## FM-101 to FM-110 — ✅ COMPLETE
 
@@ -611,13 +637,12 @@ See [docs/TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for full details (18 items). Key
 
 ---
 
-## Planned Milestones (FM-111–FM-140)
+## Planned Milestones (FM-121–FM-140)
 
 > These milestones are **planned** and have **not yet been implemented**.
 > See [FORGEMIND_ROADMAP_V3.md](../FORGEMIND_ROADMAP_V3.md) for detailed task definitions.
 
 | Milestone | Theme                                                | Tasks         | Status     |
 | --------- | ---------------------------------------------------- | ------------- | ---------- |
-| 24        | Phase Routing, Templates & Project Bootstrapping     | FM-111–FM-120 | 🔲 Planned |
 | 25        | Execution Memory, Checkpoints & Delivery Artifacts   | FM-121–FM-130 | 🔲 Planned |
 | 26        | Connector Ecosystem, Extensions & Enterprise Plugins | FM-131–FM-140 | 🔲 Planned |
