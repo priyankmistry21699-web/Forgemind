@@ -13,21 +13,15 @@ Covers:
   FM-110: End-to-end lifecycle hardening
 """
 
-import uuid
-
 import pytest
-import pytest_asyncio
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from tests.conftest import STUB_USER_ID
 
 
 # ── Helpers ──────────────────────────────────────────────────────
 
 
 async def _make_run(db, project, *, status=None, prompt=None):
-    from app.models.run import Run, RunStatus
+    from app.models.run import Run
 
     run = Run(
         run_number=100,
