@@ -197,6 +197,19 @@
 - ✅ FM-099 Handoff snapshots (export/import zip bundles, non-destructive import, bundle inspection)
 - ✅ FM-100 Hardening, tests & documentation (53 tests, 9 test classes, response files, tracking doc updates)
 
+### Milestone 23 — SPEC-Driven Lifecycle (FM-101 to FM-110)
+
+- ✅ FM-101 SPEC artifact type + SPECIFYING status + lifecycle gating (ArtifactType.SPEC/PLAN, RunStatus.SPECIFYING, spec_artifact_id FK, transition validation gates)
+- ✅ FM-102 Project constitution model (ProjectConstitution ORM, schemas, service with upsert/delete, REST routes, prompt injection into spec/plan/chat)
+- ✅ FM-103 Constitution UI & governance hooks (ConstitutionEditor component, API client, TypeScript types, CONSTITUTION_UPDATED events, mounted on project detail page)
+- ✅ FM-104 Slash command parsing (/fm.specify, /fm.plan, /fm.tasks, /fm.implement — regex parser, execute routing, chat integration, frontend suggestions)
+- ✅ FM-105 Structured SPEC generation (LLM-powered with constitution context, stub fallback, SPEC_CREATED event, auto-transition PENDING→SPECIFYING)
+- ✅ FM-106 PLAN artifact export & linking (PLAN→SPEC FK linkage, markdown export, JSON export endpoints, auto-transition SPECIFYING→PLANNING)
+- ✅ FM-107 ADR-aware planning (architecture graph queries, ADR-001/002/003 sections, plan enrichment, prompt context injection)
+- ✅ FM-108 Spec-to-plan validation (8 rules: 4 ERROR + 4 WARNING, lifecycle gate PLANNING→RUNNING, REST endpoint, SpecPlanValidationResult)
+- ✅ FM-109 Approval integration (SPEC/PLAN approval requests, idempotent, opt-in gating, lifecycle gate enforcement)
+- ✅ FM-110 Tests & hardening (54 tests, 10 test classes, 536 total passing, docs/tracking closure)
+
 ## Blocked
 
 - (none)

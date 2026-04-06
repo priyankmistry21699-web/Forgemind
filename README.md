@@ -1659,7 +1659,7 @@ make test
 
 ## 📊 Milestone Progress
 
-### Completed: 22 Milestones — 100 Tasks ✅
+### Completed: 23 Milestones — 110 Tasks ✅
 
 | #   | Milestone                                      | Tasks                      | Status      |
 | --- | ---------------------------------------------- | -------------------------- | ----------- |
@@ -1685,6 +1685,7 @@ make test
 | 20  | **Platform Maturity**                          | FM-079 → FM-080            | ✅ Complete |
 | 21  | **Architecture Intelligence**                  | FM-081 → FM-090            | ✅ Complete |
 | 22  | **ForgeMind Local — Developer Workstation**    | FM-091 → FM-100            | ✅ Complete |
+| 23  | **SPEC-Driven Lifecycle**                      | FM-101 → FM-110            | ✅ Complete |
 
 <details>
 <summary><strong>Milestone 1 — Platform Foundation</strong></summary>
@@ -1909,6 +1910,21 @@ make test
 - FM-100: Local hardening — 53 tests covering all FM-091→FM-099 modules (config, indexing, chat, execution, patches, PR, IDE, state, handoff)
 </details>
 
+<details>
+<summary><strong>Milestone 23 — SPEC-Driven Lifecycle</strong></summary>
+
+- FM-101: SPEC artifact type + SPECIFYING status — lifecycle gating requires SPEC before PLANNING, PLAN before RUNNING
+- FM-102: Project constitution — persistent AI behavior rulebook, injected into SPEC/PLAN generation and chat
+- FM-103: Constitution UI — editor component on project detail page, governance audit events on mutations
+- FM-104: Slash commands — `/fm.specify`, `/fm.plan`, `/fm.tasks`, `/fm.implement` parsed in chat, routed to real services
+- FM-105: Structured SPEC generation — LLM-powered with constitution context, stub fallback, SPEC_CREATED event
+- FM-106: PLAN artifact & export — PLAN→SPEC FK linkage, markdown export, JSON export endpoints
+- FM-107: ADR-aware planning — architecture graph context enriches generated plans with ADR sections
+- FM-108: Spec-to-plan validation — 8 rules block execution if plan doesn't cover spec adequately
+- FM-109: Approval integration — SPEC/PLAN artifacts can require approval before lifecycle transitions
+- FM-110: Hardening — 54 tests, 536 total passing, full doc/tracking closure
+</details>
+
 ---
 
 ## 🧩 Technical Decisions
@@ -1932,7 +1948,7 @@ make test
 
 **Built with ❤️ by [Priyank Mistry](https://github.com/priyankmistry21699-web)**
 
-_ForgeMind v1.1.0 — 100 tasks completed across 22 milestones · 535 tests passing_
+_ForgeMind v1.2.0 — 110 tasks completed across 23 milestones · 536 tests passing_
 
 </div>
 

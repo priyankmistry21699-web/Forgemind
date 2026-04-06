@@ -327,8 +327,9 @@ async def plan_from_prompt(
 
     # FM-102: Check for existing project constitution for prompt injection
     constitution_section: str | None = None
-    # (Constitution injection is handled in plan_for_existing_project; for new
-    #  projects there is no constitution yet, so we pass None.)
+    # For new projects created via plan_from_prompt there is no constitution yet,
+    # so we pass None.  Constitution injection applies when re-planning an
+    # existing project (e.g. via /fm.plan slash command in spec_service/plan_artifact_service).
 
     # 0. Generate the plan (LLM with normalization, or stub)
     plan = await _generate_plan(prompt, constitution_section=constitution_section)

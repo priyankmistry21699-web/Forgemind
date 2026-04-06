@@ -17,6 +17,7 @@ import uuid
 
 import pytest
 import pytest_asyncio
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tests.conftest import STUB_USER_ID
@@ -792,3 +793,155 @@ class TestFM_Routes:
         data = resp.json()
         assert "valid" in data
         assert "issues" in data
+
+
+# ═══════════════════════════════════════════════════════════════════
+# FM-103: Governance events for constitution mutations
+# ═══════════════════════════════════════════════════════════════════
+
+
+class TestFM103_GovernanceEvents:
+    async def test_constitution_create_emits_event(self, db_session, sample_project):
+        """Creating a constitution emits CONSTITUTION_UPDATED event."""
+        from app.models.execution_event import ExecutionEvent, EventType
+        from app.services import constitution_service
+        from app.schemas.constitution import ConstitutionCreate
+
+        data = ConstitutionCreate(
+            title="Governance Rules",
+            content="Always write tests first",
+        )
+        await constitution_service.create_or_update_constitution(
+            db_session, project_id=sample_project.id, data=data
+        )
+        await db_session.flush()
+
+        result = await db_session.execute(
+            select(ExecutionEvent).where(
+                ExecutionEvent.project_id == sample_project.id,
+                ExecutionEvent.event_type == EventType.CONSTITUTION_UPDATED,
+            )
+        )
+        events = list(result.scalars().all())
+        assert len(events) >= 1
+
+    async def test_constitution_update_emits_event(self, db_session, sample_project):
+        """Updating a constitution emits another CONSTITUTION_UPDATED event."""
+        from app.models.execution_event import ExecutionEvent, EventType
+        from app.services import constitution_service
+        from app.schemas.constitution import ConstitutionCreate
+
+        data = ConstitutionCreate(title="V1", content="Rule 1")
+        await constitution_service.create_or_update_constitution(
+            db_session, project_id=sample_project.id, data=data
+        )
+        await db_session.flush()
+
+        data2 = ConstitutionCreate(title="V2", content="Rule 1 updated")
+        await constitution_service.create_or_update_constitution(
+            db_session, project_id=sample_project.id, data=data2
+        )
+        await db_session.flush()
+
+        result = await db_session.execute(
+            select(ExecutionEvent).where(
+                ExecutionEvent.project_id == sample_project.id,
+                ExecutionEvent.event_type == EventType.CONSTITUTION_UPDATED,
+            )
+        )
+        events = list(result.scalars().all())
+        assert len(events) >= 2
+
+    async def test_constitution_delete_emits_event(self, db_session, sample_project):
+        """Deleting a constitution emits CONSTITUTION_UPDATED event."""
+        from app.models.execution_event import ExecutionEvent, EventType
+        from app.services import constitution_service
+        from app.schemas.constitution import ConstitutionCreate
+
+        data = ConstitutionCreate(title="Delete me", content="Temporary")
+        await constitution_service.create_or_update_constitution(
+            db_session, project_id=sample_project.id, data=data
+        )
+        await db_session.flush()
+
+        await constitution_service.delete_constitution(
+            db_session, project_id=sample_project.id
+        )
+        await db_session.flush()
+
+        result = await db_session.execute(
+            select(ExecutionEvent).where(
+                ExecutionEvent.project_id == sample_project.id,
+                ExecutionEvent.event_type == EventType.CONSTITUTION_UPDATED,
+            )
+        )
+        events = list(result.scalars().all())
+        # At least 2: one for create, one for delete
+        assert len(events) >= 2
+
+
+# ═══════════════════════════════════════════════════════════════════
+# FM-107: ADR-aware enrichment
+# ═══════════════════════════════════════════════════════════════════
+
+
+class TestFM107_ADREnrichment:
+    async def test_build_adr_section_no_data(self, db_session, sample_project):
+        """build_adr_section returns None when project has no architecture data."""
+        from app.services import adr_service
+
+        result = await adr_service.build_adr_section(
+            db_session, project_id=sample_project.id
+        )
+        assert result is None
+
+    async def test_build_adr_section_with_nodes(self, db_session, sample_project):
+        """build_adr_section returns ADR markdown when architecture nodes exist."""
+        from app.models.architecture import (
+            ArchitectureNode, NodeType, SourceType,
+        )
+        from app.services import adr_service
+
+        node = ArchitectureNode(
+            project_id=sample_project.id,
+            node_type=NodeType.SERVICE,
+            key="api-service",
+            name="API Service",
+            path="apps/api",
+            source_type=SourceType.DECLARED,
+        )
+        db_session.add(node)
+        await db_session.flush()
+
+        result = await adr_service.build_adr_section(
+            db_session, project_id=sample_project.id
+        )
+        assert result is not None
+        assert "Architecture Decision Records" in result
+        assert "ADR-001" in result
+        assert "1 service(s)" in result
+
+    async def test_enrich_plan_with_adr_appends(self, db_session, sample_project):
+        """enrich_plan_with_adr appends ADR section to plan content."""
+        from app.models.architecture import (
+            ArchitectureNode, NodeType, SourceType,
+        )
+        from app.services import adr_service
+
+        node = ArchitectureNode(
+            project_id=sample_project.id,
+            node_type=NodeType.MODULE,
+            key="core-module",
+            name="Core Module",
+            path="apps/core",
+            source_type=SourceType.DECLARED,
+        )
+        db_session.add(node)
+        await db_session.flush()
+
+        plan = "# Execution Plan\n\nBuild stuff."
+        enriched = await adr_service.enrich_plan_with_adr(
+            db_session, project_id=sample_project.id, plan_content=plan
+        )
+        assert enriched.startswith(plan)
+        assert "Architecture Decision Records" in enriched

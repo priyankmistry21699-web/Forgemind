@@ -14,6 +14,7 @@ import { RunTaskList } from "@/components/tasks/run-task-list";
 import { PlannerResultView } from "@/components/planner/planner-result-view";
 import { ArtifactListSection } from "@/components/artifacts/artifact-list-section";
 import { ApprovalListSection } from "@/components/approvals/approval-list-section";
+import { ConstitutionEditor } from "@/components/projects/constitution-editor";
 
 const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
   draft: { bg: "bg-zinc-700", text: "text-zinc-300" },
@@ -266,6 +267,12 @@ export default function ProjectDetailPage() {
           <ApprovalListSection approvals={approvals} />
         </div>
       )}
+
+      {/* Project Constitution (FM-103) */}
+      <div>
+        <h2 className="mb-3 text-sm font-semibold">Project Constitution</h2>
+        <ConstitutionEditor projectId={projectId} />
+      </div>
     </div>
   );
 }

@@ -7,16 +7,21 @@ export interface ChatMessage {
 
 interface ChatResponse {
   reply: string;
+  command_result: {
+    command: string;
+    status: string;
+    detail?: string;
+  } | null;
 }
 
 /** Send a chat message about a specific run and get a reply. */
 export async function sendRunChat(
   runId: string,
   message: string,
-): Promise<string> {
+): Promise<{ reply: string; command_result: ChatResponse["command_result"] }> {
   const data = await apiFetch<ChatResponse>(`/runs/${runId}/chat`, {
     method: "POST",
     body: JSON.stringify({ message }),
   });
-  return data.reply;
+  return { reply: data.reply, command_result: data.command_result };
 }

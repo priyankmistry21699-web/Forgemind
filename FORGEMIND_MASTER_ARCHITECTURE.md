@@ -836,9 +836,20 @@ ForgeMind depends on:
 - `apps/local/forgemind_local/local_state.py` — cache, sync queue, mode management
 - `apps/local/forgemind_local/local_handoff.py` — export/import snapshot bundles
 
+### SPEC-Driven Lifecycle Services (FM-101–110)
+
+- `apps/api/app/services/constitution_service.py` — project constitution CRUD & prompt injection
+- `apps/api/app/services/spec_service.py` — structured SPEC generation with LLM/stub fallback
+- `apps/api/app/services/plan_artifact_service.py` — PLAN creation, SPEC linking, markdown/JSON export
+- `apps/api/app/services/slash_command_service.py` — parse & route `/fm.*` commands
+- `apps/api/app/services/spec_plan_validation_service.py` — 8-rule validation gate
+- `apps/api/app/services/spec_plan_approval_service.py` — SPEC/PLAN approval requests
+- `apps/api/app/services/adr_service.py` — ADR-aware plan enrichment from architecture graph
+- `apps/web/components/projects/constitution-editor.tsx` — UI for editing project constitutions
+
 ### Tests
 
-- `apps/api/tests/...` — API/service/integration tests (482 tests)
+- `apps/api/tests/...` — API/service/integration tests (536 tests)
 - `apps/local/tests/...` — ForgeMind Local tests (53 tests)
 - `apps/api/evals/...` — eval/quality benchmarks
 
@@ -853,6 +864,6 @@ ForgeMind depends on:
 
 ## What ForgeMind Is, In One Sentence
 
-ForgeMind is a **workspace-aware, approval-governed, multi-agent AI execution platform** that can plan projects, orchestrate execution, manage human approvals, maintain operational memory, collaborate across teams, integrate with repositories, generate code-change proposals, review them, validate them in a controlled sandbox, analyze its own architecture for structural health, drift, and compliance — and provide a **standalone developer workstation CLI** for offline repo intelligence, bounded execution, patch management, PR preparation, and team handoff.
+ForgeMind is a **workspace-aware, approval-governed, multi-agent AI execution platform** that can plan projects, orchestrate execution, manage human approvals, maintain operational memory, collaborate across teams, integrate with repositories, generate code-change proposals, review them, validate them in a controlled sandbox, analyze its own architecture for structural health, drift, and compliance, enforce **SPEC-driven lifecycle governance** with project constitutions, slash commands, ADR-aware planning, spec-to-plan validation, and approval gates — and provide a **standalone developer workstation CLI** for offline repo intelligence, bounded execution, patch management, PR preparation, and team handoff.
 
 ---

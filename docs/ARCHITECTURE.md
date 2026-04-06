@@ -763,4 +763,47 @@ apps/local/
 
 ---
 
-_This document reflects the architecture as of the latest commit on `main` (all features through FM-100 complete)._
+### Milestone 23 — SPEC-Driven Lifecycle (FM-101 → FM-110)
+
+**New Models:**
+- `ProjectConstitution` — persistent AI behavior rulebook per project (preamble, constraints, goals, anti-goals)
+
+**New Services:**
+- `constitution_service` — upsert/delete/get constitution, prompt injection helpers
+- `spec_service` — structured SPEC generation with constitution context, LLM or stub fallback
+- `plan_artifact_service` — PLAN creation linked to SPEC, markdown/JSON export
+- `slash_command_service` — parse and route `/fm.*` commands from chat
+- `spec_plan_validation_service` — 8-rule validation gate (4 ERROR + 4 WARNING) before PLANNING→RUNNING
+- `spec_plan_approval_service` — approval requests for SPEC/PLAN artifacts, lifecycle gating
+- `adr_service` — architecture graph queries, ADR-001/002/003 section generation for plans
+
+**New Routes:**
+- `/api/projects/{id}/constitution` — CRUD for project constitutions
+- `/api/runs/{id}/lifecycle/*` — SPEC approval, PLAN approval, validation, PLAN export
+- `/api/runs/{id}/chat` — slash command integration
+
+**Lifecycle Flow:**
+```
+PENDING → SPECIFYING → PLANNING → RUNNING → COMPLETED
+         ↑ /fm.specify  ↑ /fm.plan   ↑ validation gate
+         └─ SPEC artifact └─ PLAN artifact └─ approval gate
+```
+
+| ID     | Feature                          | Description                                                                          | Status      |
+| ------ | -------------------------------- | ------------------------------------------------------------------------------------ | ----------- |
+| FM-101 | SPEC Artifact & SPECIFYING       | ArtifactType.SPEC/PLAN, RunStatus.SPECIFYING, spec_artifact_id FK, transition gates | ✅ Complete |
+| FM-102 | Project Constitution             | ProjectConstitution ORM, schemas, service, REST routes, prompt injection             | ✅ Complete |
+| FM-103 | Constitution UI & Governance     | ConstitutionEditor component, API client, TypeScript types, audit events             | ✅ Complete |
+| FM-104 | Slash Command Parsing            | /fm.specify, /fm.plan, /fm.tasks, /fm.implement — regex parser, execute routing      | ✅ Complete |
+| FM-105 | Structured SPEC Generation       | LLM-powered with constitution, stub fallback, SPEC_CREATED event                    | ✅ Complete |
+| FM-106 | PLAN Artifact Export & Linking   | PLAN→SPEC FK, markdown export, JSON export endpoints                                | ✅ Complete |
+| FM-107 | ADR-Aware Planning               | Architecture graph queries, ADR sections, plan enrichment                            | ✅ Complete |
+| FM-108 | Spec-to-Plan Validation          | 8 rules (4 ERROR + 4 WARNING), lifecycle gate PLANNING→RUNNING                      | ✅ Complete |
+| FM-109 | Approval Integration             | SPEC/PLAN approval requests, idempotent, opt-in gating                              | ✅ Complete |
+| FM-110 | Tests & Hardening                | 54 tests, 10 test classes, 536 total passing, full doc closure                       | ✅ Complete |
+
+> **All 110 tasks across 23 milestones are complete. 536 tests passing.**
+
+---
+
+_This document reflects the architecture as of the latest commit on `main` (all features through FM-110 complete)._

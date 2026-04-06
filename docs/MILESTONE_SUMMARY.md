@@ -500,7 +500,32 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 | FM-099 | Handoff Snapshots                | ✅ Complete |
 | FM-100 | Hardening, Tests & Documentation | ✅ Complete |
 
-> **ForgeMind now spans 100 features across 22 milestones — a structurally self-aware AI execution platform with graph-based architecture intelligence and a standalone developer workstation companion. 535 tests passing.**
+> **ForgeMind now spans 110 features across 23 milestones — a structurally self-aware, SPEC-driven AI execution platform with lifecycle gating, project constitutions, and approval-governed planning. 536 tests passing.**
+
+## FM-101 to FM-110 — ✅ COMPLETE
+
+| ID     | Feature                              | Status      |
+| ------ | ------------------------------------ | ----------- |
+| FM-101 | SPEC Artifact & SPECIFYING Status    | ✅ Complete |
+| FM-102 | Project Constitution Model           | ✅ Complete |
+| FM-103 | Constitution UI & Governance Hooks   | ✅ Complete |
+| FM-104 | Slash Command Parsing                | ✅ Complete |
+| FM-105 | Structured SPEC Generation           | ✅ Complete |
+| FM-106 | PLAN Artifact Export & Linking        | ✅ Complete |
+| FM-107 | ADR-Aware Planning                   | ✅ Complete |
+| FM-108 | Spec-to-Plan Validation              | ✅ Complete |
+| FM-109 | Approval Integration                 | ✅ Complete |
+| FM-110 | Tests & Hardening                    | ✅ Complete |
+
+### Key Capabilities (Milestone 23)
+
+- **SPEC-driven lifecycle**: Runs follow PENDING → SPECIFYING → PLANNING → RUNNING with gating at each transition
+- **Project constitutions**: Persistent AI behavior rulebooks injected into SPEC generation, PLAN generation, and chat
+- **Slash commands**: `/fm.specify`, `/fm.plan`, `/fm.tasks`, `/fm.implement` for direct lifecycle control from chat
+- **Formal PLAN→SPEC linking**: PLAN artifacts reference their SPEC via FK, with markdown export
+- **ADR-aware planning**: Architecture graph context (nodes, drifts, rule violations) enriches generated plans
+- **Spec-to-plan validation**: 8 rules (4 ERROR, 4 WARNING) enforce plan quality before execution
+- **Approval gates**: SPEC and PLAN artifacts can require approval before lifecycle transitions proceed
 
 ## FM-071 to FM-080 — ✅ COMPLETE
 

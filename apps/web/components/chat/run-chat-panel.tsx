@@ -30,7 +30,7 @@ export function RunChatPanel({ runId }: RunChatPanelProps) {
     setSending(true);
 
     try {
-      const reply = await sendRunChat(runId, text);
+      const { reply } = await sendRunChat(runId, text);
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
     } catch {
       setMessages((prev) => [

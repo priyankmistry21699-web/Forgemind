@@ -74,7 +74,7 @@ async def build_adr_section(
     rule_results = await db.execute(
         select(ArchitectureRuleResult).where(
             ArchitectureRuleResult.project_id == project_id,
-            ArchitectureRuleResult.status == RuleResultStatus.FAIL,
+            ArchitectureRuleResult.status == RuleResultStatus.VIOLATION,
         )
     )
     violations = list(rule_results.scalars().all())
@@ -133,7 +133,7 @@ async def get_architecture_context_for_prompt(
         "### Components",
     ]
     for n in nodes[:20]:  # Cap to avoid prompt bloat
-        lines.append(f"- **{n.name}** ({n.node_type.value}): {n.description or 'No description'}")
+        lines.append(f"- **{n.name}** ({n.node_type.value}): {n.path or 'No description'}")
 
     if len(nodes) > 20:
         lines.append(f"- ... and {len(nodes) - 20} more")
@@ -141,8 +141,8 @@ async def get_architecture_context_for_prompt(
     lines.append("")
     lines.append("### Key Dependencies")
     for e in edges[:15]:
-        src = node_map.get(e.source_id)
-        tgt = node_map.get(e.target_id)
+        src = node_map.get(e.from_node_id)
+        tgt = node_map.get(e.to_node_id)
         if src and tgt:
             lines.append(f"- {src.name} → {tgt.name} ({e.edge_type.value})")
 
