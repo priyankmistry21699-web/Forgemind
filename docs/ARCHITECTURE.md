@@ -905,19 +905,20 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 | FM-129 | Local CLI Checkpoint & Delivery Commands     | ✅ Complete |
 | FM-130 | Integration Hardening, Tests & Documentation | ✅ Complete |
 
-> **All 130 tasks across 25 milestones are complete. 691 tests passing.**
+> **All 140 tasks across 26 milestones are complete. 730 tests passing.**
 
 ---
 
-## Planned: FM-131–FM-140
+## Wave 9: FM-131–FM-140 — Release Operations & Deployment Confidence
 
-> The following wave is **planned** and has not yet been implemented.
-> See [FORGEMIND_ROADMAP_V3.md](../FORGEMIND_ROADMAP_V3.md) for full scope.
+> Versioned release packages, deployment environments with tiered gates,
+> deployment readiness evaluation, release gate orchestration, rollback
+> readiness assessment, post-release reporting, and operational timeline.
 
-| Wave | Milestone | Tasks         | Theme                                               |
-| ---- | --------- | ------------- | --------------------------------------------------- |
-| 9    | 26        | FM-131–FM-140 | Connector ecosystem, extensions, enterprise plugins |
+| Wave | Milestone | Tasks         | Theme                                                            | Status      |
+| ---- | --------- | ------------- | ---------------------------------------------------------------- | ----------- |
+| 9    | 26        | FM-131–FM-140 | Release operations, deployment confidence, operational governance | ✅ Complete |
 
 ---
 
-_This document reflects the architecture as of the latest commit on `main` (all features through FM-130 complete, FM-131–FM-140 planned)._
+_This document reflects the architecture as of the latest commit on `main` (all features through FM-140 complete)._

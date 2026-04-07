@@ -1688,9 +1688,9 @@ make test
 | 23  | **SPEC-Driven Lifecycle**                      | FM-101 → FM-110            | ✅ Complete |
 | 24  | **Phase Routing, Templates & Bootstrapping**   | FM-111 → FM-120            | ✅ Complete |
 | 25  | **Execution Memory, Checkpoints & Delivery**   | FM-121 → FM-130            | ✅ Complete |
-| 26  | **Connector Ecosystem & Extensions**           | FM-131 → FM-140            | 🔲 Planned  |
+| 26  | **Release Operations & Deployment Confidence** | FM-131 → FM-140            | ✅ Complete |
 
-> **FM-131–FM-140 are planned. See [FORGEMIND_ROADMAP_V3.md](FORGEMIND_ROADMAP_V3.md) for detailed scope per task.**
+> **All 140 tasks across 26 milestones are complete. See [FORGEMIND_ROADMAP_V3.md](FORGEMIND_ROADMAP_V3.md) for detailed scope per task.**
 
 <details>
 <summary><strong>Milestone 1 — Platform Foundation</strong></summary>

@@ -701,3 +701,208 @@ class TestLocalHandoff:
         loaded = load_config(str(target))
         assert loaded is not None
         assert loaded.mode == "remote"
+
+
+# ======================================================================
+# FM-139  Local Release Awareness
+# ======================================================================
+
+
+class TestLocalRelease:
+    """FM-139: CLI release list / status / environments commands."""
+
+    # ── release list ─────────────────────────────────────────────
+
+    def test_release_list_no_dir(self, inited_repo: Path, capsys) -> None:
+        """release list with no cached releases prints dim message."""
+        from click.testing import CliRunner
+        from forgemind_local.cli import main
+
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["release", "list", "proj123", "--path", str(inited_repo)],
+        )
+        assert result.exit_code == 0
+        assert "No release packages cached locally" in result.output
+
+    def test_release_list_with_packages(self, inited_repo: Path) -> None:
+        """release list reads JSON files and renders a table."""
+        from click.testing import CliRunner
+        from forgemind_local.cli import main
+
+        pid = "test-project-id"
+        rel_dir = inited_repo / ".forgemind" / "state" / "releases" / pid
+        rel_dir.mkdir(parents=True)
+
+        (rel_dir / "pkg1.json").write_text(json.dumps({
+            "version": "1.0.0",
+            "status": "deployed",
+            "run_id": "aaaa-bbbb",
+            "created_at": "2026-04-01T12:00:00",
+        }), encoding="utf-8")
+        (rel_dir / "pkg2.json").write_text(json.dumps({
+            "version": "2.0.0",
+            "status": "draft",
+            "run_id": "cccc-dddd",
+            "created_at": "2026-04-02T14:00:00",
+        }), encoding="utf-8")
+
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["release", "list", pid, "--path", str(inited_repo)],
+        )
+        assert result.exit_code == 0
+        assert "1.0.0" in result.output
+        assert "2.0.0" in result.output
+        assert "deployed" in result.output
+
+    # ── release status ───────────────────────────────────────────
+
+    def test_release_status_no_run(self, inited_repo: Path) -> None:
+        """release status with no local run data shows dim message."""
+        from click.testing import CliRunner
+        from forgemind_local.cli import main
+
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["release", "status", "fake-run-id",
+             "--path", str(inited_repo)],
+        )
+        assert result.exit_code == 0
+        assert "No local run data" in result.output
+
+    def test_release_status_all_pass(self, inited_repo: Path) -> None:
+        """release status with a fully-ready run shows all checks passing."""
+        from click.testing import CliRunner
+        from forgemind_local.cli import main
+
+        run_id = "test-run-001"
+        runs_dir = inited_repo / ".forgemind" / "state" / "runs"
+        runs_dir.mkdir(parents=True, exist_ok=True)
+        cp_dir = inited_repo / ".forgemind" / "state" / "checkpoints" / run_id
+        cp_dir.mkdir(parents=True)
+        (cp_dir / "cp1.json").write_text("{}", encoding="utf-8")
+
+        (runs_dir / f"{run_id}.json").write_text(json.dumps({
+            "status": "completed",
+            "tasks": {"total": 3, "completed": 3, "failed": 0},
+            "approvals": {"pending": 0, "rejected": 0},
+            "has_spec": True,
+            "has_plan": True,
+        }), encoding="utf-8")
+
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["release", "status", run_id, "--path", str(inited_repo)],
+        )
+        assert result.exit_code == 0
+        assert "PASS" in result.output
+        assert "All checks passed" in result.output
+
+    def test_release_status_with_failures(self, inited_repo: Path) -> None:
+        """release status with incomplete run shows failing checks."""
+        from click.testing import CliRunner
+        from forgemind_local.cli import main
+
+        run_id = "test-run-002"
+        runs_dir = inited_repo / ".forgemind" / "state" / "runs"
+        runs_dir.mkdir(parents=True, exist_ok=True)
+
+        (runs_dir / f"{run_id}.json").write_text(json.dumps({
+            "status": "running",
+            "tasks": {"total": 5, "completed": 2, "failed": 1},
+            "approvals": {"pending": 1, "rejected": 0},
+            "has_spec": False,
+            "has_plan": True,
+        }), encoding="utf-8")
+
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["release", "status", run_id, "--path", str(inited_repo)],
+        )
+        assert result.exit_code == 0
+        assert "FAIL" in result.output
+        assert "Blocked" in result.output
+
+    def test_release_status_checks_seven(self, inited_repo: Path) -> None:
+        """release status evaluates exactly 7 checks."""
+        from click.testing import CliRunner
+        from forgemind_local.cli import main
+
+        run_id = "test-run-003"
+        runs_dir = inited_repo / ".forgemind" / "state" / "runs"
+        runs_dir.mkdir(parents=True, exist_ok=True)
+
+        (runs_dir / f"{run_id}.json").write_text(json.dumps({
+            "status": "completed",
+            "tasks": {"total": 1, "completed": 1, "failed": 0},
+            "approvals": {"pending": 0, "rejected": 0},
+            "has_spec": True,
+            "has_plan": True,
+        }), encoding="utf-8")
+
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["release", "status", run_id, "--path", str(inited_repo)],
+        )
+        assert result.exit_code == 0
+        # 7 checks total — should report pass count out of 7
+        assert "7" in result.output
+
+    # ── release environments ─────────────────────────────────────
+
+    def test_release_environments_no_dir(self, inited_repo: Path) -> None:
+        """release environments with no cached envs shows dim message."""
+        from click.testing import CliRunner
+        from forgemind_local.cli import main
+
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["release", "environments", "proj123",
+             "--path", str(inited_repo)],
+        )
+        assert result.exit_code == 0
+        assert "No environments cached locally" in result.output
+
+    def test_release_environments_with_data(self, inited_repo: Path) -> None:
+        """release environments reads JSON files and renders a table."""
+        from click.testing import CliRunner
+        from forgemind_local.cli import main
+
+        pid = "test-proj"
+        env_dir = inited_repo / ".forgemind" / "state" / "environments" / pid
+        env_dir.mkdir(parents=True)
+
+        (env_dir / "dev.json").write_text(json.dumps({
+            "name": "development",
+            "tier": "development",
+            "is_active": True,
+            "required_gates": {"gates": ["run_completed", "has_checkpoints"]},
+        }), encoding="utf-8")
+        (env_dir / "prod.json").write_text(json.dumps({
+            "name": "production",
+            "tier": "production",
+            "is_active": True,
+            "required_gates": {"gates": [
+                "run_completed", "has_checkpoints",
+                "approvals_clear",
+            ]},
+        }), encoding="utf-8")
+
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["release", "environments", pid,
+             "--path", str(inited_repo)],
+        )
+        assert result.exit_code == 0
+        assert "development" in result.output
+        assert "production" in result.output
+        assert "run_completed" in result.output

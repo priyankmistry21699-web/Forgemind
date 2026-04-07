@@ -865,13 +865,24 @@ ForgeMind depends on:
 - `apps/api/app/services/traceability_service.py` — spec/plan/implementation traceability graph
 - `apps/api/app/services/release_risk_service.py` — architecture-aware release risk summary
 - `apps/api/app/services/delivery_hardening_service.py` — delivery artifact quality gates
+- `apps/api/app/models/release_ops.py` — release package, deployment environment, gate result models
+- `apps/api/app/schemas/release_ops.py` — Pydantic schemas for release operations
+- `apps/api/app/services/release_package_service.py` — release package generation & management
+- `apps/api/app/services/environment_service.py` — deployment environment CRUD & tier management
+- `apps/api/app/services/deployment_readiness_service.py` — environment-aware deployment readiness evaluation
+- `apps/api/app/services/release_gate_service.py` — 9-gate release policy evaluation & persistence
+- `apps/api/app/services/rollback_readiness_service.py` — rollback readiness & recovery metadata
+- `apps/api/app/services/post_release_service.py` — post-release report aggregation & outcome tracking
+- `apps/api/app/services/operational_timeline_service.py` — unified operational timeline builder
+- `apps/api/app/api/routes/release_ops.py` — 19 REST endpoints for release operations
 - `apps/api/app/routers/execution_checkpoints.py` — REST endpoints for checkpoint CRUD & resume
+- `apps/api/alembic/versions/2026_04_06_0025_add_release_ops_tables.py` — release ops migration
 - `apps/api/alembic/versions/2026_04_06_0024_add_execution_checkpoints.py` — migration
 
 ### Tests
 
-- `apps/api/tests/...` — API/service/integration tests (691 tests)
-- `apps/local/tests/...` — ForgeMind Local tests (53 tests)
+- `apps/api/tests/...` — API/service/integration tests (730+ tests)
+- `apps/local/tests/...` — ForgeMind Local tests (53+ tests)
 - `apps/api/evals/...` — eval/quality benchmarks
 
 ### Docs
@@ -885,6 +896,6 @@ ForgeMind depends on:
 
 ## What ForgeMind Is, In One Sentence
 
-ForgeMind is a **workspace-aware, approval-governed, multi-agent AI execution platform** that can plan projects, orchestrate execution, manage human approvals, maintain operational memory, collaborate across teams, integrate with repositories, generate code-change proposals, review them, validate them in a controlled sandbox, analyze its own architecture for structural health, drift, and compliance, enforce **SPEC-driven lifecycle governance** with project constitutions, slash commands, ADR-aware planning, spec-to-plan validation, and approval gates, provide **execution checkpoints, auto-resume, delivery artifact bundles, traceability graphs, and architecture-aware release risk summaries** — and provide a **standalone developer workstation CLI** for offline repo intelligence, bounded execution, patch management, PR preparation, and team handoff.
+ForgeMind is a **workspace-aware, approval-governed, multi-agent AI execution platform** that can plan projects, orchestrate execution, manage human approvals, maintain operational memory, collaborate across teams, integrate with repositories, generate code-change proposals, review them, validate them in a controlled sandbox, analyze its own architecture for structural health, drift, and compliance, enforce **SPEC-driven lifecycle governance** with project constitutions, slash commands, ADR-aware planning, spec-to-plan validation, and approval gates, provide **execution checkpoints, auto-resume, delivery artifact bundles, traceability graphs, and architecture-aware release risk summaries**, deliver **release operations with versioned release packages, deployment readiness gates, release gate orchestration, rollback safety assessment, post-release reporting, and operational timeline tracking** — and provide a **standalone developer workstation CLI** for offline repo intelligence, bounded execution, patch management, PR preparation, and team handoff.
 
 ---

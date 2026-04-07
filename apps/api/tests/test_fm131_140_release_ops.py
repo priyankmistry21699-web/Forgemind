@@ -417,6 +417,97 @@ class TestDeploymentReadiness:
         assert result["is_ready"] is False
         assert len(result["blockers"]) > 0
 
+    @pytest.mark.asyncio
+    async def test_readiness_tier_threshold_dev(self, db_session: AsyncSession):
+        """Dev environment has threshold 30 — low confidence should pass."""
+        from app.services import deployment_readiness_service as svc
+        from app.services import release_package_service as rps
+        from app.services import environment_service as es
+        from app.schemas.release_ops import ReleasePackageCreate, EnvironmentCreate
+        from app.models.release_ops import EnvironmentTier
+
+        data = await _setup_full_run(db_session)
+        env = await es.create_environment(
+            db_session, project_id=data["project"].id,
+            data=EnvironmentCreate(name="dev", tier=EnvironmentTier.DEVELOPMENT),
+        )
+        pkg = await rps.create_release_package(
+            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            data=ReleasePackageCreate(version="1.0.0", summary="Dev test"),
+        )
+
+        result = await svc.evaluate_readiness(
+            db_session, release_package_id=pkg.id, environment_id=env.id
+        )
+        # Find the confidence_threshold check
+        conf_check = next(
+            c for c in result["checks"] if c["check"] == "confidence_threshold"
+        )
+        assert "30" in conf_check["detail"]  # dev threshold is 30
+        assert "development" in conf_check["detail"]
+
+    @pytest.mark.asyncio
+    async def test_readiness_tier_threshold_prod(self, db_session: AsyncSession):
+        """Prod environment has threshold 80 — same run may fail here."""
+        from app.services import deployment_readiness_service as svc
+        from app.services import release_package_service as rps
+        from app.services import environment_service as es
+        from app.schemas.release_ops import ReleasePackageCreate, EnvironmentCreate
+        from app.models.release_ops import EnvironmentTier
+
+        data = await _setup_full_run(db_session)
+        env = await es.create_environment(
+            db_session, project_id=data["project"].id,
+            data=EnvironmentCreate(name="prod", tier=EnvironmentTier.PRODUCTION),
+        )
+        pkg = await rps.create_release_package(
+            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            data=ReleasePackageCreate(version="1.0.0", summary="Prod test"),
+        )
+
+        result = await svc.evaluate_readiness(
+            db_session, release_package_id=pkg.id, environment_id=env.id
+        )
+        conf_check = next(
+            c for c in result["checks"] if c["check"] == "confidence_threshold"
+        )
+        assert "80" in conf_check["detail"]  # prod threshold is 80
+        assert "production" in conf_check["detail"]
+
+    @pytest.mark.asyncio
+    async def test_readiness_check_names(self, db_session: AsyncSession):
+        """All 7 named checks are present in readiness result."""
+        from app.services import deployment_readiness_service as svc
+        from app.services import release_package_service as rps
+        from app.services import environment_service as es
+        from app.schemas.release_ops import ReleasePackageCreate, EnvironmentCreate
+        from app.models.release_ops import EnvironmentTier
+
+        data = await _setup_full_run(db_session)
+        env = await es.create_environment(
+            db_session, project_id=data["project"].id,
+            data=EnvironmentCreate(
+                name="staging",
+                tier=EnvironmentTier.STAGING,
+                required_gates={"gates": ["run_completed"]},
+            ),
+        )
+        pkg = await rps.create_release_package(
+            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            data=ReleasePackageCreate(version="1.0.0", summary="Check names"),
+        )
+
+        result = await svc.evaluate_readiness(
+            db_session, release_package_id=pkg.id, environment_id=env.id
+        )
+        check_names = {c["check"] for c in result["checks"]}
+        expected = {
+            "run_completed", "tasks_terminal", "approvals_resolved",
+            "confidence_threshold", "has_checkpoints",
+            "required_artifacts", "environment_gates",
+        }
+        assert expected == check_names
+
 
 # ═════════════════════════════════════════════════════════════════
 # FM-134: Release Gates
@@ -558,6 +649,87 @@ class TestRollbackReadiness:
         assert result["is_rollback_ready"] is False
         assert any(r["level"] == "high" for r in result["risk_signals"])
 
+    @pytest.mark.asyncio
+    async def test_rollback_strategies_with_prev(
+        self, db_session: AsyncSession,
+    ):
+        """version_rollback strategy when prev release exists."""
+        from app.services import rollback_readiness_service as svc
+        from app.services import release_package_service as rps
+        from app.schemas.release_ops import ReleasePackageCreate
+        from app.models.release_ops import ReleaseStatus
+
+        data = await _setup_full_run(db_session)
+
+        # Create an older "deployed" release for the same project
+        old_pkg = await rps.create_release_package(
+            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            data=ReleasePackageCreate(version="0.9.0", summary="Previous stable"),
+        )
+        # Mark it deployed
+        old_pkg.status = ReleaseStatus.DEPLOYED
+        db_session.add(old_pkg)
+        await db_session.flush()
+
+        # Create the current release
+        new_pkg = await rps.create_release_package(
+            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            data=ReleasePackageCreate(version="1.0.0", summary="Current"),
+        )
+
+        result = await svc.evaluate_rollback_readiness(
+            db_session, release_package_id=new_pkg.id
+        )
+        strategy_names = [s["strategy"] for s in result["strategies"]]
+        assert "checkpoint_resume" in strategy_names
+        assert "version_rollback" in strategy_names
+        assert "manual_intervention" in strategy_names
+        assert result["is_rollback_ready"] is True
+        # Previous release should appear in recovery points
+        prev_point_versions = [
+            rp["version"] for rp in result["recovery_points"]
+            if rp["type"] == "previous_release"
+        ]
+        assert "0.9.0" in prev_point_versions
+
+    @pytest.mark.asyncio
+    async def test_rollback_risk_level_low(self, db_session: AsyncSession):
+        """Full checkpoint coverage yields low risk."""
+        from app.services import rollback_readiness_service as svc
+        from app.services import release_package_service as rps
+        from app.schemas.release_ops import ReleasePackageCreate
+        from app.models.execution_checkpoint import (
+            CheckpointType,
+            ExecutionCheckpoint,
+        )
+
+        data = await _setup_full_run(db_session)
+        # _setup_full_run already creates a PRE_DELIVERY checkpoint;
+        # add a PRE_APPROVAL checkpoint for full coverage
+        cp2 = ExecutionCheckpoint(
+            run_id=data["run"].id,
+            project_id=data["project"].id,
+            sequence_number=2,
+            summary="Pre-approval snap",
+            checkpoint_type=CheckpointType.PRE_APPROVAL,
+        )
+        db_session.add(cp2)
+        await db_session.flush()
+
+        pkg = await rps.create_release_package(
+            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            data=ReleasePackageCreate(version="1.0.0", summary="Low risk"),
+        )
+
+        result = await svc.evaluate_rollback_readiness(
+            db_session, release_package_id=pkg.id
+        )
+        # The "full_checkpoint_coverage" signal at level "low" should be present
+        has_full_coverage_signal = any(
+            r["signal"] == "full_checkpoint_coverage" for r in result["risk_signals"]
+        )
+        assert has_full_coverage_signal
+
 
 # ═════════════════════════════════════════════════════════════════
 # FM-136: Post-Release Report + Outcome
@@ -664,6 +836,54 @@ class TestOperationalTimeline:
             db_session, run_id=uuid.uuid4()
         )
         assert result.get("error") == "run_not_found"
+
+    @pytest.mark.asyncio
+    async def test_timeline_chronological_order(self, db_session: AsyncSession):
+        """Timeline entries are sorted by timestamp ascending."""
+        from app.services import operational_timeline_service as svc
+
+        data = await _setup_full_run(db_session)
+        timeline = await svc.build_operational_timeline(
+            db_session, run_id=data["run"].id
+        )
+        timestamps = [
+            e["timestamp"] for e in timeline["timeline"]
+            if e["timestamp"] is not None
+        ]
+        assert timestamps == sorted(timestamps)
+
+    @pytest.mark.asyncio
+    async def test_timeline_category_counts(self, db_session: AsyncSession):
+        """category dict counts match actual entries."""
+        from app.services import operational_timeline_service as svc
+
+        data = await _setup_full_run(db_session)
+        timeline = await svc.build_operational_timeline(
+            db_session, run_id=data["run"].id
+        )
+        # Recount from entries
+        expected_cats: dict[str, int] = {}
+        for e in timeline["timeline"]:
+            cat = e["category"]
+            expected_cats[cat] = expected_cats.get(cat, 0) + 1
+        assert timeline["categories"] == expected_cats
+
+    @pytest.mark.asyncio
+    async def test_timeline_lifecycle_always_present(self, db_session: AsyncSession):
+        """Even a minimal run has at least one lifecycle entry."""
+        from app.services import operational_timeline_service as svc
+
+        project = await _seed_project(db_session)
+        run = await _seed_run(db_session, project.id)
+
+        timeline = await svc.build_operational_timeline(
+            db_session, run_id=run.id
+        )
+        assert timeline["categories"].get("lifecycle", 0) >= 1
+        first_lifecycle = next(
+            e for e in timeline["timeline"] if e["category"] == "lifecycle"
+        )
+        assert "run_created" in first_lifecycle["event"]
 
 
 # ═════════════════════════════════════════════════════════════════

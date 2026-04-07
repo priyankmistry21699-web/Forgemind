@@ -693,11 +693,4 @@ See [docs/TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for full details (18 items). Key
 
 ---
 
-## Planned Milestones (FM-131–FM-140)
-
-> These milestones are **planned** and have **not yet been implemented**.
-> See [FORGEMIND_ROADMAP_V3.md](../FORGEMIND_ROADMAP_V3.md) for detailed task definitions.
-
-| Milestone | Theme                                                | Tasks         | Status     |
-| --------- | ---------------------------------------------------- | ------------- | ---------- |
-| 26        | Connector Ecosystem, Extensions & Enterprise Plugins | FM-131–FM-140 | 🔲 Planned |
+_All 140 tasks across 26 milestones are complete. See the FM-131–FM-140 section above for release operations details._
