@@ -16,9 +16,9 @@ DB_PATH = os.path.join(os.path.dirname(__file__), "forgemind_dev.db")
 os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{DB_PATH}"
 
 # ── 2. Patch PostgreSQL column types for SQLite compatibility ──
-from sqlalchemy.dialects.postgresql import ARRAY, UUID as PG_UUID, JSON as PG_JSON
-from sqlalchemy import Uuid, JSON
-from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.dialects.postgresql import ARRAY, UUID as PG_UUID, JSON as PG_JSON  # noqa: E402
+from sqlalchemy import Uuid, JSON  # noqa: E402
+from sqlalchemy.ext.compiler import compiles  # noqa: E402
 
 
 @compiles(ARRAY, "sqlite")
@@ -27,8 +27,8 @@ def _compile_array_sqlite(type_, compiler, **kw):
 
 
 # Import models so metadata is populated
-from app.db.base_class import Base
-from app.db.base import *  # noqa: F401, F403
+from app.db.base_class import Base  # noqa: E402
+from app.db.base import *  # noqa: E402, F401, F403
 
 
 def _patch_metadata_for_sqlite():
@@ -45,8 +45,8 @@ def _patch_metadata_for_sqlite():
 _patch_metadata_for_sqlite()
 
 # ── 3. Re-create engine with SQLite-compatible settings ──
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-import app.db.session as db_session_mod
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession  # noqa: E402
+import app.db.session as db_session_mod  # noqa: E402
 
 engine = create_async_engine(
     f"sqlite+aiosqlite:///{DB_PATH}",
