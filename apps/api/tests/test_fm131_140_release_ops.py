@@ -136,18 +136,28 @@ async def _setup_full_run(db: AsyncSession):
     t2 = await _seed_task(db, run.id, title="Implement", status=TaskStatus.COMPLETED)
 
     spec = await _seed_artifact(
-        db, run.id, project.id, title="SPEC",
-        artifact_type=ArtifactType.SPEC, content="Spec content",
+        db,
+        run.id,
+        project.id,
+        title="SPEC",
+        artifact_type=ArtifactType.SPEC,
+        content="Spec content",
     )
     plan = await _seed_artifact(
-        db, run.id, project.id, title="PLAN",
-        artifact_type=ArtifactType.PLAN, content="Plan content",
+        db,
+        run.id,
+        project.id,
+        title="PLAN",
+        artifact_type=ArtifactType.PLAN,
+        content="Plan content",
     )
 
     approval = await _seed_approval(db, run.id, project.id)
 
     cp = await _seed_checkpoint(
-        db, run.id, project.id,
+        db,
+        run.id,
+        project.id,
         checkpoint_type=CheckpointType.PRE_DELIVERY,
         summary="Pre-delivery checkpoint",
     )
@@ -217,7 +227,9 @@ class TestReleasePackageService:
 
         for v in ["1.0.0", "1.1.0"]:
             await svc.create_release_package(
-                db_session, run_id=run.id, project_id=project.id,
+                db_session,
+                run_id=run.id,
+                project_id=project.id,
                 data=ReleasePackageCreate(version=v, summary=f"v{v}"),
             )
 
@@ -232,7 +244,9 @@ class TestReleasePackageService:
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
         await svc.create_release_package(
-            db_session, run_id=run.id, project_id=project.id,
+            db_session,
+            run_id=run.id,
+            project_id=project.id,
             data=ReleasePackageCreate(version="1.0.0", summary="v1"),
         )
 
@@ -248,12 +262,15 @@ class TestReleasePackageService:
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
         pkg = await svc.create_release_package(
-            db_session, run_id=run.id, project_id=project.id,
+            db_session,
+            run_id=run.id,
+            project_id=project.id,
             data=ReleasePackageCreate(version="1.0.0", summary="v1"),
         )
 
         updated = await svc.update_release_package(
-            db_session, pkg.id,
+            db_session,
+            pkg.id,
             ReleasePackageUpdate(summary="Updated summary"),
         )
         assert updated.summary == "Updated summary"
@@ -278,7 +295,9 @@ class TestReleasePackageService:
 
         data = await _setup_full_run(db_session)
         pkg = await svc.generate_release_package(
-            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            db_session,
+            run_id=data["run"].id,
+            project_id=data["project"].id,
             version="2.5.0",
         )
         assert pkg.version == "2.5.0"
@@ -318,7 +337,8 @@ class TestEnvironmentService:
         project = await _seed_project(db_session)
         for name in ["dev", "staging", "prod"]:
             await svc.create_environment(
-                db_session, project_id=project.id,
+                db_session,
+                project_id=project.id,
                 data=EnvironmentCreate(name=name),
             )
         items = await svc.list_environments(db_session, project.id)
@@ -331,11 +351,13 @@ class TestEnvironmentService:
 
         project = await _seed_project(db_session)
         env = await svc.create_environment(
-            db_session, project_id=project.id,
+            db_session,
+            project_id=project.id,
             data=EnvironmentCreate(name="staging"),
         )
         updated = await svc.update_environment(
-            db_session, env.id,
+            db_session,
+            env.id,
             EnvironmentUpdate(description="Updated staging"),
         )
         assert updated.description == "Updated staging"
@@ -347,7 +369,8 @@ class TestEnvironmentService:
 
         project = await _seed_project(db_session)
         env = await svc.create_environment(
-            db_session, project_id=project.id,
+            db_session,
+            project_id=project.id,
             data=EnvironmentCreate(name="temp"),
         )
         result = await svc.delete_environment(db_session, env.id)
@@ -376,11 +399,14 @@ class TestDeploymentReadiness:
         data = await _setup_full_run(db_session)
 
         env = await es.create_environment(
-            db_session, project_id=data["project"].id,
+            db_session,
+            project_id=data["project"].id,
             data=EnvironmentCreate(name="dev", tier=EnvironmentTier.DEVELOPMENT),
         )
         pkg = await rps.create_release_package(
-            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            db_session,
+            run_id=data["run"].id,
+            project_id=data["project"].id,
             data=ReleasePackageCreate(version="1.0.0", summary="Test"),
         )
 
@@ -403,11 +429,14 @@ class TestDeploymentReadiness:
         run = await _seed_run(db_session, project.id)  # RUNNING status
 
         env = await es.create_environment(
-            db_session, project_id=project.id,
+            db_session,
+            project_id=project.id,
             data=EnvironmentCreate(name="prod", tier=EnvironmentTier.PRODUCTION),
         )
         pkg = await rps.create_release_package(
-            db_session, run_id=run.id, project_id=project.id,
+            db_session,
+            run_id=run.id,
+            project_id=project.id,
             data=ReleasePackageCreate(version="0.1.0", summary="Incomplete"),
         )
 
@@ -428,11 +457,14 @@ class TestDeploymentReadiness:
 
         data = await _setup_full_run(db_session)
         env = await es.create_environment(
-            db_session, project_id=data["project"].id,
+            db_session,
+            project_id=data["project"].id,
             data=EnvironmentCreate(name="dev", tier=EnvironmentTier.DEVELOPMENT),
         )
         pkg = await rps.create_release_package(
-            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            db_session,
+            run_id=data["run"].id,
+            project_id=data["project"].id,
             data=ReleasePackageCreate(version="1.0.0", summary="Dev test"),
         )
 
@@ -457,11 +489,14 @@ class TestDeploymentReadiness:
 
         data = await _setup_full_run(db_session)
         env = await es.create_environment(
-            db_session, project_id=data["project"].id,
+            db_session,
+            project_id=data["project"].id,
             data=EnvironmentCreate(name="prod", tier=EnvironmentTier.PRODUCTION),
         )
         pkg = await rps.create_release_package(
-            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            db_session,
+            run_id=data["run"].id,
+            project_id=data["project"].id,
             data=ReleasePackageCreate(version="1.0.0", summary="Prod test"),
         )
 
@@ -485,7 +520,8 @@ class TestDeploymentReadiness:
 
         data = await _setup_full_run(db_session)
         env = await es.create_environment(
-            db_session, project_id=data["project"].id,
+            db_session,
+            project_id=data["project"].id,
             data=EnvironmentCreate(
                 name="staging",
                 tier=EnvironmentTier.STAGING,
@@ -493,7 +529,9 @@ class TestDeploymentReadiness:
             ),
         )
         pkg = await rps.create_release_package(
-            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            db_session,
+            run_id=data["run"].id,
+            project_id=data["project"].id,
             data=ReleasePackageCreate(version="1.0.0", summary="Check names"),
         )
 
@@ -502,9 +540,13 @@ class TestDeploymentReadiness:
         )
         check_names = {c["check"] for c in result["checks"]}
         expected = {
-            "run_completed", "tasks_terminal", "approvals_resolved",
-            "confidence_threshold", "has_checkpoints",
-            "required_artifacts", "environment_gates",
+            "run_completed",
+            "tasks_terminal",
+            "approvals_resolved",
+            "confidence_threshold",
+            "has_checkpoints",
+            "required_artifacts",
+            "environment_gates",
         }
         assert expected == check_names
 
@@ -525,13 +567,13 @@ class TestReleaseGates:
 
         data = await _setup_full_run(db_session)
         pkg = await rps.create_release_package(
-            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            db_session,
+            run_id=data["run"].id,
+            project_id=data["project"].id,
             data=ReleasePackageCreate(version="1.0.0", summary="Full run"),
         )
 
-        result = await svc.evaluate_gates(
-            db_session, release_package_id=pkg.id
-        )
+        result = await svc.evaluate_gates(db_session, release_package_id=pkg.id)
         assert "total_gates" in result
         assert result["total_gates"] > 0
         assert "gate_results" in result
@@ -546,13 +588,13 @@ class TestReleaseGates:
         run = await _seed_run(db_session, project.id)  # RUNNING — not completed
 
         pkg = await rps.create_release_package(
-            db_session, run_id=run.id, project_id=project.id,
+            db_session,
+            run_id=run.id,
+            project_id=project.id,
             data=ReleasePackageCreate(version="0.1.0", summary="Incomplete"),
         )
 
-        result = await svc.evaluate_gates(
-            db_session, release_package_id=pkg.id
-        )
+        result = await svc.evaluate_gates(db_session, release_package_id=pkg.id)
         assert result["failed"] > 0
         assert result["all_passed"] is False
         assert result["package_status"] == "gated"
@@ -566,7 +608,9 @@ class TestReleaseGates:
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
         pkg = await rps.create_release_package(
-            db_session, run_id=run.id, project_id=project.id,
+            db_session,
+            run_id=run.id,
+            project_id=project.id,
             data=ReleasePackageCreate(version="0.1.0", summary="Test gates"),
         )
 
@@ -585,14 +629,17 @@ class TestReleaseGates:
 
         data = await _setup_full_run(db_session)
         env = await es.create_environment(
-            db_session, project_id=data["project"].id,
+            db_session,
+            project_id=data["project"].id,
             data=EnvironmentCreate(
                 name="staging",
                 required_gates={"gates": ["run_completed", "has_checkpoints"]},
             ),
         )
         pkg = await rps.create_release_package(
-            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            db_session,
+            run_id=data["run"].id,
+            project_id=data["project"].id,
             data=ReleasePackageCreate(version="1.0.0", summary="Custom gates"),
         )
 
@@ -618,7 +665,9 @@ class TestRollbackReadiness:
 
         data = await _setup_full_run(db_session)
         pkg = await rps.create_release_package(
-            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            db_session,
+            run_id=data["run"].id,
+            project_id=data["project"].id,
             data=ReleasePackageCreate(version="1.0.0", summary="Has checkpoints"),
         )
 
@@ -639,7 +688,9 @@ class TestRollbackReadiness:
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
         pkg = await rps.create_release_package(
-            db_session, run_id=run.id, project_id=project.id,
+            db_session,
+            run_id=run.id,
+            project_id=project.id,
             data=ReleasePackageCreate(version="0.1.0", summary="No checkpoints"),
         )
 
@@ -651,7 +702,8 @@ class TestRollbackReadiness:
 
     @pytest.mark.asyncio
     async def test_rollback_strategies_with_prev(
-        self, db_session: AsyncSession,
+        self,
+        db_session: AsyncSession,
     ):
         """version_rollback strategy when prev release exists."""
         from app.services import rollback_readiness_service as svc
@@ -663,7 +715,9 @@ class TestRollbackReadiness:
 
         # Create an older "deployed" release for the same project
         old_pkg = await rps.create_release_package(
-            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            db_session,
+            run_id=data["run"].id,
+            project_id=data["project"].id,
             data=ReleasePackageCreate(version="0.9.0", summary="Previous stable"),
         )
         # Mark it deployed
@@ -673,7 +727,9 @@ class TestRollbackReadiness:
 
         # Create the current release
         new_pkg = await rps.create_release_package(
-            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            db_session,
+            run_id=data["run"].id,
+            project_id=data["project"].id,
             data=ReleasePackageCreate(version="1.0.0", summary="Current"),
         )
 
@@ -687,7 +743,8 @@ class TestRollbackReadiness:
         assert result["is_rollback_ready"] is True
         # Previous release should appear in recovery points
         prev_point_versions = [
-            rp["version"] for rp in result["recovery_points"]
+            rp["version"]
+            for rp in result["recovery_points"]
             if rp["type"] == "previous_release"
         ]
         assert "0.9.0" in prev_point_versions
@@ -717,7 +774,9 @@ class TestRollbackReadiness:
         await db_session.flush()
 
         pkg = await rps.create_release_package(
-            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            db_session,
+            run_id=data["run"].id,
+            project_id=data["project"].id,
             data=ReleasePackageCreate(version="1.0.0", summary="Low risk"),
         )
 
@@ -747,7 +806,9 @@ class TestPostReleaseReport:
 
         data = await _setup_full_run(db_session)
         pkg = await rps.create_release_package(
-            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            db_session,
+            run_id=data["run"].id,
+            project_id=data["project"].id,
             data=ReleasePackageCreate(version="1.0.0", summary="Full release"),
         )
 
@@ -771,13 +832,17 @@ class TestPostReleaseReport:
 
         data = await _setup_full_run(db_session)
         pkg = await rps.create_release_package(
-            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            db_session,
+            run_id=data["run"].id,
+            project_id=data["project"].id,
             data=ReleasePackageCreate(version="1.0.0", summary="Deploy test"),
         )
 
         result = await svc.record_outcome(
-            db_session, release_package_id=pkg.id,
-            status=ReleaseStatus.DEPLOYED, notes="Deployed successfully",
+            db_session,
+            release_package_id=pkg.id,
+            status=ReleaseStatus.DEPLOYED,
+            notes="Deployed successfully",
         )
         assert result["new_status"] == "deployed"
         assert result["outcome_notes"] == "Deployed successfully"
@@ -791,12 +856,15 @@ class TestPostReleaseReport:
 
         data = await _setup_full_run(db_session)
         pkg = await rps.create_release_package(
-            db_session, run_id=data["run"].id, project_id=data["project"].id,
+            db_session,
+            run_id=data["run"].id,
+            project_id=data["project"].id,
             data=ReleasePackageCreate(version="1.0.0", summary="Bad outcome"),
         )
 
         result = await svc.record_outcome(
-            db_session, release_package_id=pkg.id,
+            db_session,
+            release_package_id=pkg.id,
             status=ReleaseStatus.DRAFT,  # invalid outcome
         )
         assert "error" in result
@@ -832,9 +900,7 @@ class TestOperationalTimeline:
     async def test_timeline_not_found(self, db_session: AsyncSession):
         from app.services import operational_timeline_service as svc
 
-        result = await svc.build_operational_timeline(
-            db_session, run_id=uuid.uuid4()
-        )
+        result = await svc.build_operational_timeline(db_session, run_id=uuid.uuid4())
         assert result.get("error") == "run_not_found"
 
     @pytest.mark.asyncio
@@ -847,8 +913,7 @@ class TestOperationalTimeline:
             db_session, run_id=data["run"].id
         )
         timestamps = [
-            e["timestamp"] for e in timeline["timeline"]
-            if e["timestamp"] is not None
+            e["timestamp"] for e in timeline["timeline"] if e["timestamp"] is not None
         ]
         assert timestamps == sorted(timestamps)
 
@@ -876,9 +941,7 @@ class TestOperationalTimeline:
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
 
-        timeline = await svc.build_operational_timeline(
-            db_session, run_id=run.id
-        )
+        timeline = await svc.build_operational_timeline(db_session, run_id=run.id)
         assert timeline["categories"].get("lifecycle", 0) >= 1
         first_lifecycle = next(
             e for e in timeline["timeline"] if e["category"] == "lifecycle"
@@ -896,7 +959,9 @@ class TestReleaseOpsRoutes:
 
     @pytest.mark.asyncio
     async def test_create_and_list_environments(
-        self, db_session: AsyncSession, client: AsyncClient,
+        self,
+        db_session: AsyncSession,
+        client: AsyncClient,
     ):
         project = await _seed_project(db_session)
         await db_session.commit()
@@ -918,7 +983,9 @@ class TestReleaseOpsRoutes:
 
     @pytest.mark.asyncio
     async def test_create_and_get_release_package(
-        self, db_session: AsyncSession, client: AsyncClient,
+        self,
+        db_session: AsyncSession,
+        client: AsyncClient,
     ):
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
@@ -940,7 +1007,9 @@ class TestReleaseOpsRoutes:
 
     @pytest.mark.asyncio
     async def test_list_run_release_packages(
-        self, db_session: AsyncSession, client: AsyncClient,
+        self,
+        db_session: AsyncSession,
+        client: AsyncClient,
     ):
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
@@ -957,7 +1026,9 @@ class TestReleaseOpsRoutes:
 
     @pytest.mark.asyncio
     async def test_list_project_releases(
-        self, db_session: AsyncSession, client: AsyncClient,
+        self,
+        db_session: AsyncSession,
+        client: AsyncClient,
     ):
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
@@ -973,7 +1044,9 @@ class TestReleaseOpsRoutes:
 
     @pytest.mark.asyncio
     async def test_evaluate_gates_route(
-        self, db_session: AsyncSession, client: AsyncClient,
+        self,
+        db_session: AsyncSession,
+        client: AsyncClient,
     ):
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
@@ -995,7 +1068,9 @@ class TestReleaseOpsRoutes:
 
     @pytest.mark.asyncio
     async def test_list_gate_results_route(
-        self, db_session: AsyncSession, client: AsyncClient,
+        self,
+        db_session: AsyncSession,
+        client: AsyncClient,
     ):
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
@@ -1017,7 +1092,9 @@ class TestReleaseOpsRoutes:
 
     @pytest.mark.asyncio
     async def test_rollback_readiness_route(
-        self, db_session: AsyncSession, client: AsyncClient,
+        self,
+        db_session: AsyncSession,
+        client: AsyncClient,
     ):
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
@@ -1039,7 +1116,9 @@ class TestReleaseOpsRoutes:
 
     @pytest.mark.asyncio
     async def test_post_release_report_route(
-        self, db_session: AsyncSession, client: AsyncClient,
+        self,
+        db_session: AsyncSession,
+        client: AsyncClient,
     ):
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
@@ -1059,7 +1138,9 @@ class TestReleaseOpsRoutes:
 
     @pytest.mark.asyncio
     async def test_record_outcome_route(
-        self, db_session: AsyncSession, client: AsyncClient,
+        self,
+        db_session: AsyncSession,
+        client: AsyncClient,
     ):
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
@@ -1080,7 +1161,9 @@ class TestReleaseOpsRoutes:
 
     @pytest.mark.asyncio
     async def test_operational_timeline_route(
-        self, db_session: AsyncSession, client: AsyncClient,
+        self,
+        db_session: AsyncSession,
+        client: AsyncClient,
     ):
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
@@ -1094,7 +1177,9 @@ class TestReleaseOpsRoutes:
 
     @pytest.mark.asyncio
     async def test_update_release_package_route(
-        self, db_session: AsyncSession, client: AsyncClient,
+        self,
+        db_session: AsyncSession,
+        client: AsyncClient,
     ):
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
@@ -1115,7 +1200,9 @@ class TestReleaseOpsRoutes:
 
     @pytest.mark.asyncio
     async def test_update_environment_route(
-        self, db_session: AsyncSession, client: AsyncClient,
+        self,
+        db_session: AsyncSession,
+        client: AsyncClient,
     ):
         project = await _seed_project(db_session)
         await db_session.commit()
@@ -1135,7 +1222,9 @@ class TestReleaseOpsRoutes:
 
     @pytest.mark.asyncio
     async def test_delete_environment_route(
-        self, db_session: AsyncSession, client: AsyncClient,
+        self,
+        db_session: AsyncSession,
+        client: AsyncClient,
     ):
         project = await _seed_project(db_session)
         await db_session.commit()

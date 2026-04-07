@@ -60,7 +60,9 @@ async def create_release_package(
     )
     db.add(pkg)
     await db.flush()
-    logger.info("Created release package %s (v%s) for run %s", pkg.id, pkg.version, run_id)
+    logger.info(
+        "Created release package %s (v%s) for run %s", pkg.id, pkg.version, run_id
+    )
     return pkg
 
 
@@ -125,9 +127,7 @@ async def _build_artifact_manifest(
     run_id: uuid.UUID,
 ) -> dict[str, Any]:
     """Build an artifact manifest from all run artifacts."""
-    result = await db.execute(
-        select(Artifact).where(Artifact.run_id == run_id)
-    )
+    result = await db.execute(select(Artifact).where(Artifact.run_id == run_id))
     artifacts = list(result.scalars().all())
 
     by_type: dict[str, list[dict]] = {}
@@ -162,12 +162,14 @@ async def _build_changelog(
     entries = []
     for t in tasks:
         if t.status == TaskStatus.COMPLETED:
-            entries.append({
-                "task_id": str(t.id),
-                "title": t.title,
-                "task_type": t.task_type,
-                "agent": t.assigned_agent_slug,
-            })
+            entries.append(
+                {
+                    "task_id": str(t.id),
+                    "title": t.title,
+                    "task_type": t.task_type,
+                    "agent": t.assigned_agent_slug,
+                }
+            )
 
     return {
         "total_changes": len(entries),

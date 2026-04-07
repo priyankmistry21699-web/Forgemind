@@ -439,7 +439,9 @@ async def try_auto_complete_run(
             summary=f"Pre-delivery snapshot — {len(tasks)} tasks terminal",
         )
     except Exception:
-        logger.warning("Pre-delivery checkpoint failed for run %s", run_id, exc_info=True)
+        logger.warning(
+            "Pre-delivery checkpoint failed for run %s", run_id, exc_info=True
+        )
 
     run.status = RunStatus.COMPLETED
     await db.flush()

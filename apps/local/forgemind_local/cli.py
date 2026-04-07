@@ -684,7 +684,9 @@ def review(run_id: str, path: str | None) -> None:
         console.print(f"  [red]Failed: {failed_tasks}[/red]")
         # Show failure details if available
         for fail_info in tasks.get("failure_details", []):
-            console.print(f"    • {fail_info.get('title', '?')}: {fail_info.get('error', 'unknown')}")
+            console.print(
+                f"    • {fail_info.get('title', '?')}: {fail_info.get('error', 'unknown')}"
+            )
 
     approvals = run_data.get("approvals", {})
     if approvals:
@@ -708,7 +710,9 @@ def review(run_id: str, path: str | None) -> None:
     if failed_tasks > 0:
         risks.append(f"[red]HIGH[/red]: {failed_tasks} task(s) failed")
     if approvals.get("pending", 0) > 0:
-        risks.append(f"[yellow]MEDIUM[/yellow]: {approvals['pending']} approval(s) pending")
+        risks.append(
+            f"[yellow]MEDIUM[/yellow]: {approvals['pending']} approval(s) pending"
+        )
     if approvals.get("rejected", 0) > 0:
         risks.append(f"[red]HIGH[/red]: {approvals['rejected']} approval(s) rejected")
     if not run_data.get("has_spec"):
@@ -815,11 +819,13 @@ def release_status(run_id: str, path: str | None) -> None:
     total = tasks.get("total", 0)
     completed = tasks.get("completed", 0)
     failed = tasks.get("failed", 0)
-    checks.append((
-        "Tasks terminal",
-        total > 0 and completed + failed >= total,
-        f"{completed}/{total} completed, {failed} failed",
-    ))
+    checks.append(
+        (
+            "Tasks terminal",
+            total > 0 and completed + failed >= total,
+            f"{completed}/{total} completed, {failed} failed",
+        )
+    )
 
     # No failed tasks
     checks.append(("No failed tasks", failed == 0, f"{failed} failed"))
@@ -828,11 +834,13 @@ def release_status(run_id: str, path: str | None) -> None:
     approvals = run_data.get("approvals", {})
     pending = approvals.get("pending", 0)
     rejected = approvals.get("rejected", 0)
-    checks.append((
-        "Approvals clear",
-        pending == 0 and rejected == 0,
-        f"{pending} pending, {rejected} rejected",
-    ))
+    checks.append(
+        (
+            "Approvals clear",
+            pending == 0 and rejected == 0,
+            f"{pending} pending, {rejected} rejected",
+        )
+    )
 
     # Has SPEC
     checks.append(("Has SPEC", run_data.get("has_spec", False), ""))

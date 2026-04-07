@@ -53,9 +53,7 @@ async def generate_post_release_report(
         return {"error": "release_package_not_found"}
 
     # Task outcomes
-    task_result = await db.execute(
-        select(Task).where(Task.run_id == pkg.run_id)
-    )
+    task_result = await db.execute(select(Task).where(Task.run_id == pkg.run_id))
     tasks = list(task_result.scalars().all())
     task_summary = _build_task_summary(tasks)
 
@@ -171,7 +169,9 @@ async def record_outcome(
     await db.flush()
     logger.info(
         "Release %s outcome recorded: %s → %s",
-        release_package_id, old_status.value, status.value,
+        release_package_id,
+        old_status.value,
+        status.value,
     )
 
     return {
@@ -211,11 +211,13 @@ def _build_task_summary(tasks: list[Task]) -> dict[str, Any]:
 def _build_gate_summary(gates: list[ReleaseGateResult]) -> dict[str, Any]:
     results = []
     for g in gates:
-        results.append({
-            "gate": g.gate_name,
-            "status": g.gate_status.value,
-            "detail": g.detail,
-        })
+        results.append(
+            {
+                "gate": g.gate_name,
+                "status": g.gate_status.value,
+                "detail": g.detail,
+            }
+        )
     passed = sum(1 for g in gates if g.gate_status.value == "passed")
     failed = sum(1 for g in gates if g.gate_status.value == "failed")
     return {

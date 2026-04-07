@@ -1,6 +1,6 @@
 # ForgeMind — Complete Project Roadmap v2
 
-> ⚠️ **LEGACY** — This file is the expanded v2 roadmap. It has been superseded by [FORGEMIND_ROADMAP_V3.md](FORGEMIND_ROADMAP_V3.md), which is the active source of truth covering FM-001 through FM-120 (24 milestones complete, 580 tests passing) and planning for FM-121–FM-140.
+> ⚠️ **LEGACY** — This file is the expanded v2 roadmap. It has been superseded by [FORGEMIND_ROADMAP_V3.md](FORGEMIND_ROADMAP_V3.md), which is the active source of truth covering FM-001 through FM-140 (26 milestones complete, 746 tests passing). All 140 tasks are now complete.
 
 > **A Secure Autonomous Engineering Platform that turns high-level goals into complete, connected, verifiable software systems — with architecture generation, connector intelligence, local workspace access, approval-based execution, and long-term project drift awareness.**
 

@@ -1656,8 +1656,8 @@ Wave 8 adds **checkpoint-based execution control** and **delivery artifact synth
 
 ### Status Tracker
 
-| FM     | Title                                       | Status     |
-| ------ | ------------------------------------------- | ---------- |
+| FM     | Title                                       | Status      |
+| ------ | ------------------------------------------- | ----------- |
 | FM-121 | Checkpoint Task Type and Run Integration    | ✅ Complete |
 | FM-122 | Replay-Aware Checkpoint Rollback            | ✅ Complete |
 | FM-123 | Adaptive Checkpoint Injection Logic         | ✅ Complete |
@@ -1785,14 +1785,14 @@ Wave 9 introduces **release operations** — versioned release packages, deploym
 | ------ | ------------------------------------------------- | ----------- |
 | FM-131 | Release Package Model & Generation                | ✅ Complete |
 | FM-132 | Deployment Environment Model & Targets            | ✅ Complete |
-| FM-133 | Environment-Aware Deployment Readiness Evaluation  | ✅ Complete |
-| FM-134 | Release Gates & Operational Policy Checks          | ✅ Complete |
-| FM-135 | Rollback Readiness & Recovery Metadata             | ✅ Complete |
-| FM-136 | Post-Release Report & Outcome Tracking             | ✅ Complete |
-| FM-137 | Operational Timeline View                          | ✅ Complete |
-| FM-138 | Frontend Release Operations Surface                | ✅ Complete |
-| FM-139 | Local Mode Release Awareness                       | ✅ Complete |
-| FM-140 | Tests, Docs & Hardening                            | ✅ Complete |
+| FM-133 | Environment-Aware Deployment Readiness Evaluation | ✅ Complete |
+| FM-134 | Release Gates & Operational Policy Checks         | ✅ Complete |
+| FM-135 | Rollback Readiness & Recovery Metadata            | ✅ Complete |
+| FM-136 | Post-Release Report & Outcome Tracking            | ✅ Complete |
+| FM-137 | Operational Timeline View                         | ✅ Complete |
+| FM-138 | Frontend Release Operations Surface               | ✅ Complete |
+| FM-139 | Local Mode Release Awareness                      | ✅ Complete |
+| FM-140 | Tests, Docs & Hardening                           | ✅ Complete |
 
 ### Milestone 26 — Release Operations & Deployment Confidence (FM-131 to FM-140)
 
@@ -1801,6 +1801,7 @@ Wave 9 introduces **release operations** — versioned release packages, deploym
 **Goal:** Versioned release bundles with auto-generated manifests, changelogs, and confidence snapshots.
 
 **What was built:**
+
 - `ReleasePackage` ORM model with status lifecycle (draft → ready → gated → approved → deployed → rolled_back → failed)
 - Auto-generation from run state: artifact manifest, changelog from completed tasks, confidence snapshot, rollback metadata
 - CRUD service + auto-versioning (`0.{n}.0`)
@@ -1810,6 +1811,7 @@ Wave 9 introduces **release operations** — versioned release packages, deploym
 **Goal:** Model deployment targets (dev/staging/production/canary) with configurable gate requirements.
 
 **What was built:**
+
 - `DeploymentEnvironment` model with tier enum, configurable required_gates JSON, promotion chains (self-FK)
 - Full CRUD service for environment lifecycle
 
@@ -1818,6 +1820,7 @@ Wave 9 introduces **release operations** — versioned release packages, deploym
 **Goal:** Evaluate whether a release package is ready for a target environment using real signals.
 
 **What was built:**
+
 - 7-check readiness evaluator: run_completed, tasks_terminal, approvals_resolved, confidence_threshold (tier-aware: dev=30, staging=50, canary=65, prod=80), has_checkpoints, required_artifacts (SPEC+PLAN), environment_gates
 - Returns: is_ready, checks[], blockers[], confidence_score
 
@@ -1826,6 +1829,7 @@ Wave 9 introduces **release operations** — versioned release packages, deploym
 **Goal:** Configurable release gates evaluated against real run signals, with per-gate pass/fail persistence.
 
 **What was built:**
+
 - 9 built-in gates: run_completed, all_tasks_terminal, no_failed_tasks, approvals_clear, confidence_minimum, has_spec_artifact, has_plan_artifact, has_checkpoints, no_rejections
 - Environment-configurable gate selection
 - `ReleaseGateResult` persisted per evaluation
@@ -1836,6 +1840,7 @@ Wave 9 introduces **release operations** — versioned release packages, deploym
 **Goal:** Assess rollback options from checkpoint chains, previous releases, and recovery strategies.
 
 **What was built:**
+
 - Recovery point enumeration (checkpoints + previous releases)
 - Strategy recommendations: checkpoint_resume, version_rollback, manual_intervention
 - Risk signal analysis (no_checkpoints = HIGH, no_pre_delivery = MEDIUM, etc.)
@@ -1845,6 +1850,7 @@ Wave 9 introduces **release operations** — versioned release packages, deploym
 **Goal:** Comprehensive post-release reports and outcome recording.
 
 **What was built:**
+
 - Report generator aggregating: task outcomes, gate results, approval summary, artifact inventory, checkpoint coverage, event count
 - Outcome recording endpoint (deployed/rolled_back/failed) with notes
 
@@ -1853,6 +1859,7 @@ Wave 9 introduces **release operations** — versioned release packages, deploym
 **Goal:** Unified chronological timeline of all release-related events.
 
 **What was built:**
+
 - Merged timeline from: run lifecycle, execution events, checkpoints, approvals, release packages, gate results, tasks
 - Sorted chronologically with category counts
 
@@ -1861,6 +1868,7 @@ Wave 9 introduces **release operations** — versioned release packages, deploym
 **Goal:** UI for browsing releases, evaluating gates, and checking rollback readiness.
 
 **What was built:**
+
 - TypeScript types (`types/release-ops.ts`), API client (`lib/release-ops.ts`)
 - Release dashboard page (`dashboard/releases/page.tsx`) with gate evaluation and rollback panels
 - Sidebar navigation entry
@@ -1870,6 +1878,7 @@ Wave 9 introduces **release operations** — versioned release packages, deploym
 **Goal:** CLI commands for local release status, readiness checking, and environment listing.
 
 **What was built:**
+
 - `forgemind release list <project_id>` — list cached release packages
 - `forgemind release status <run_id>` — local readiness checks (7 checks from state files)
 - `forgemind release environments <project_id>` — list cached environments
@@ -1879,23 +1888,24 @@ Wave 9 introduces **release operations** — versioned release packages, deploym
 **Goal:** Test coverage, lint validation, and documentation for FM-131–139.
 
 **What was built:**
+
 - 39 tests across 8 test classes: service-layer + HTTP route integration
 - Alembic migration 0025 for 3 new tables
 - Model registration in db/base.py, route registration in router.py
-- Ruff lint clean, all 730 tests passing (677 backend + 53 local)
+- Ruff lint clean, all 746 tests passing (685 backend + 61 local)
 
 ---
 
 ## Roadmap Summary
 
-| Wave | Milestones | Tasks      | Theme                                               | Status      |
-| ---- | ---------- | ---------- | --------------------------------------------------- | ----------- |
-| 1    | 1–9        | FM-001–045 | Platform foundation through pre-release             | ✅ Complete |
-| 2    | 10–13      | FM-046–070 | Intelligence, collaboration, code ops               | ✅ Complete |
-| 3    | 14–20      | FM-071–080 | Frontend parity, RBAC, CI/CD, observability         | ✅ Complete |
-| 4    | 21         | FM-081–090 | Architecture intelligence                           | ✅ Complete |
-| 5    | 22         | FM-091–100 | Developer workstation (ForgeMind Local)             | ✅ Complete |
-| 6    | 23         | FM-101–110 | SPEC-driven lifecycle                               | ✅ Complete |
-| 7    | 24         | FM-111–120 | Phase routing, templates, project bootstrapping     | ✅ Complete |
-| 8    | 25         | FM-121–130 | Execution memory, checkpoints, delivery artifacts   | ✅ Complete |
+| Wave | Milestones | Tasks      | Theme                                                 | Status      |
+| ---- | ---------- | ---------- | ----------------------------------------------------- | ----------- |
+| 1    | 1–9        | FM-001–045 | Platform foundation through pre-release               | ✅ Complete |
+| 2    | 10–13      | FM-046–070 | Intelligence, collaboration, code ops                 | ✅ Complete |
+| 3    | 14–20      | FM-071–080 | Frontend parity, RBAC, CI/CD, observability           | ✅ Complete |
+| 4    | 21         | FM-081–090 | Architecture intelligence                             | ✅ Complete |
+| 5    | 22         | FM-091–100 | Developer workstation (ForgeMind Local)               | ✅ Complete |
+| 6    | 23         | FM-101–110 | SPEC-driven lifecycle                                 | ✅ Complete |
+| 7    | 24         | FM-111–120 | Phase routing, templates, project bootstrapping       | ✅ Complete |
+| 8    | 25         | FM-121–130 | Execution memory, checkpoints, delivery artifacts     | ✅ Complete |
 | 9    | 26         | FM-131–140 | Release operations, deployment confidence, governance | ✅ Complete |

@@ -1659,7 +1659,7 @@ make test
 
 ## 📊 Milestone Progress
 
-### Completed: 24 Milestones — 120 Tasks ✅
+### Completed: 26 Milestones — 140 Tasks ✅
 
 | #   | Milestone                                      | Tasks                      | Status      |
 | --- | ---------------------------------------------- | -------------------------- | ----------- |
@@ -1968,7 +1968,7 @@ make test
 
 **Built with ❤️ by [Priyank Mistry](https://github.com/priyankmistry21699-web)**
 
-_ForgeMind v1.4.0 — 130 tasks completed across 25 milestones · 691 tests passing_
+_ForgeMind v1.5.0 — 140 tasks completed across 26 milestones · 746 tests passing_
 
 </div>
 

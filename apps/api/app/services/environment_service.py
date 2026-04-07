@@ -32,7 +32,12 @@ async def create_environment(
     )
     db.add(env)
     await db.flush()
-    logger.info("Created environment '%s' (%s) for project %s", env.name, env.tier.value, project_id)
+    logger.info(
+        "Created environment '%s' (%s) for project %s",
+        env.name,
+        env.tier.value,
+        project_id,
+    )
     return env
 
 

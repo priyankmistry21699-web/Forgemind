@@ -95,7 +95,10 @@ class ReleasePackage(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
     )
 
     # Relationships
@@ -103,7 +106,9 @@ class ReleasePackage(Base):
     run = relationship("Run")
     target_environment = relationship("DeploymentEnvironment")
     gate_results = relationship(
-        "ReleaseGateResult", back_populates="release_package", cascade="all, delete-orphan"
+        "ReleaseGateResult",
+        back_populates="release_package",
+        cascade="all, delete-orphan",
     )
 
     __table_args__ = (
@@ -145,12 +150,17 @@ class DeploymentEnvironment(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
     )
 
     # Relationships
     project = relationship("Project")
-    promotion_target = relationship("DeploymentEnvironment", remote_side="DeploymentEnvironment.id")
+    promotion_target = relationship(
+        "DeploymentEnvironment", remote_side="DeploymentEnvironment.id"
+    )
 
     __table_args__ = (
         Index("ix_deployment_environments_project_id", "project_id"),

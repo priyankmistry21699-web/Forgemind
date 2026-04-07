@@ -66,7 +66,9 @@ async def evaluate_gates(
     gate_names: list[str] = list(_BUILTIN_GATES)
     if environment_id:
         env_result = await db.execute(
-            select(DeploymentEnvironment).where(DeploymentEnvironment.id == environment_id)
+            select(DeploymentEnvironment).where(
+                DeploymentEnvironment.id == environment_id
+            )
         )
         env = env_result.scalar_one_or_none()
         if env and env.required_gates:
@@ -95,11 +97,13 @@ async def evaluate_gates(
         )
         db.add(gate_row)
 
-        results.append({
-            "gate": gate_name,
-            "status": result.status.value,
-            "detail": result.detail,
-        })
+        results.append(
+            {
+                "gate": gate_name,
+                "status": result.status.value,
+                "detail": result.detail,
+            }
+        )
 
     await db.flush()
 
@@ -157,8 +161,13 @@ class _GateContext:
     """Pre-fetched context for gate evaluation."""
 
     __slots__ = (
-        "run", "tasks", "approvals", "artifacts", "checkpoints",
-        "confidence", "artifact_types",
+        "run",
+        "tasks",
+        "approvals",
+        "artifacts",
+        "checkpoints",
+        "confidence",
+        "artifact_types",
     )
 
     def __init__(self) -> None:

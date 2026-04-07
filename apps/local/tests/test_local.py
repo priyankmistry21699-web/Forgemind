@@ -735,18 +735,28 @@ class TestLocalRelease:
         rel_dir = inited_repo / ".forgemind" / "state" / "releases" / pid
         rel_dir.mkdir(parents=True)
 
-        (rel_dir / "pkg1.json").write_text(json.dumps({
-            "version": "1.0.0",
-            "status": "deployed",
-            "run_id": "aaaa-bbbb",
-            "created_at": "2026-04-01T12:00:00",
-        }), encoding="utf-8")
-        (rel_dir / "pkg2.json").write_text(json.dumps({
-            "version": "2.0.0",
-            "status": "draft",
-            "run_id": "cccc-dddd",
-            "created_at": "2026-04-02T14:00:00",
-        }), encoding="utf-8")
+        (rel_dir / "pkg1.json").write_text(
+            json.dumps(
+                {
+                    "version": "1.0.0",
+                    "status": "deployed",
+                    "run_id": "aaaa-bbbb",
+                    "created_at": "2026-04-01T12:00:00",
+                }
+            ),
+            encoding="utf-8",
+        )
+        (rel_dir / "pkg2.json").write_text(
+            json.dumps(
+                {
+                    "version": "2.0.0",
+                    "status": "draft",
+                    "run_id": "cccc-dddd",
+                    "created_at": "2026-04-02T14:00:00",
+                }
+            ),
+            encoding="utf-8",
+        )
 
         runner = CliRunner()
         result = runner.invoke(
@@ -768,8 +778,7 @@ class TestLocalRelease:
         runner = CliRunner()
         result = runner.invoke(
             main,
-            ["release", "status", "fake-run-id",
-             "--path", str(inited_repo)],
+            ["release", "status", "fake-run-id", "--path", str(inited_repo)],
         )
         assert result.exit_code == 0
         assert "No local run data" in result.output
@@ -786,13 +795,18 @@ class TestLocalRelease:
         cp_dir.mkdir(parents=True)
         (cp_dir / "cp1.json").write_text("{}", encoding="utf-8")
 
-        (runs_dir / f"{run_id}.json").write_text(json.dumps({
-            "status": "completed",
-            "tasks": {"total": 3, "completed": 3, "failed": 0},
-            "approvals": {"pending": 0, "rejected": 0},
-            "has_spec": True,
-            "has_plan": True,
-        }), encoding="utf-8")
+        (runs_dir / f"{run_id}.json").write_text(
+            json.dumps(
+                {
+                    "status": "completed",
+                    "tasks": {"total": 3, "completed": 3, "failed": 0},
+                    "approvals": {"pending": 0, "rejected": 0},
+                    "has_spec": True,
+                    "has_plan": True,
+                }
+            ),
+            encoding="utf-8",
+        )
 
         runner = CliRunner()
         result = runner.invoke(
@@ -812,13 +826,18 @@ class TestLocalRelease:
         runs_dir = inited_repo / ".forgemind" / "state" / "runs"
         runs_dir.mkdir(parents=True, exist_ok=True)
 
-        (runs_dir / f"{run_id}.json").write_text(json.dumps({
-            "status": "running",
-            "tasks": {"total": 5, "completed": 2, "failed": 1},
-            "approvals": {"pending": 1, "rejected": 0},
-            "has_spec": False,
-            "has_plan": True,
-        }), encoding="utf-8")
+        (runs_dir / f"{run_id}.json").write_text(
+            json.dumps(
+                {
+                    "status": "running",
+                    "tasks": {"total": 5, "completed": 2, "failed": 1},
+                    "approvals": {"pending": 1, "rejected": 0},
+                    "has_spec": False,
+                    "has_plan": True,
+                }
+            ),
+            encoding="utf-8",
+        )
 
         runner = CliRunner()
         result = runner.invoke(
@@ -838,13 +857,18 @@ class TestLocalRelease:
         runs_dir = inited_repo / ".forgemind" / "state" / "runs"
         runs_dir.mkdir(parents=True, exist_ok=True)
 
-        (runs_dir / f"{run_id}.json").write_text(json.dumps({
-            "status": "completed",
-            "tasks": {"total": 1, "completed": 1, "failed": 0},
-            "approvals": {"pending": 0, "rejected": 0},
-            "has_spec": True,
-            "has_plan": True,
-        }), encoding="utf-8")
+        (runs_dir / f"{run_id}.json").write_text(
+            json.dumps(
+                {
+                    "status": "completed",
+                    "tasks": {"total": 1, "completed": 1, "failed": 0},
+                    "approvals": {"pending": 0, "rejected": 0},
+                    "has_spec": True,
+                    "has_plan": True,
+                }
+            ),
+            encoding="utf-8",
+        )
 
         runner = CliRunner()
         result = runner.invoke(
@@ -865,8 +889,7 @@ class TestLocalRelease:
         runner = CliRunner()
         result = runner.invoke(
             main,
-            ["release", "environments", "proj123",
-             "--path", str(inited_repo)],
+            ["release", "environments", "proj123", "--path", str(inited_repo)],
         )
         assert result.exit_code == 0
         assert "No environments cached locally" in result.output
@@ -880,27 +903,39 @@ class TestLocalRelease:
         env_dir = inited_repo / ".forgemind" / "state" / "environments" / pid
         env_dir.mkdir(parents=True)
 
-        (env_dir / "dev.json").write_text(json.dumps({
-            "name": "development",
-            "tier": "development",
-            "is_active": True,
-            "required_gates": {"gates": ["run_completed", "has_checkpoints"]},
-        }), encoding="utf-8")
-        (env_dir / "prod.json").write_text(json.dumps({
-            "name": "production",
-            "tier": "production",
-            "is_active": True,
-            "required_gates": {"gates": [
-                "run_completed", "has_checkpoints",
-                "approvals_clear",
-            ]},
-        }), encoding="utf-8")
+        (env_dir / "dev.json").write_text(
+            json.dumps(
+                {
+                    "name": "development",
+                    "tier": "development",
+                    "is_active": True,
+                    "required_gates": {"gates": ["run_completed", "has_checkpoints"]},
+                }
+            ),
+            encoding="utf-8",
+        )
+        (env_dir / "prod.json").write_text(
+            json.dumps(
+                {
+                    "name": "production",
+                    "tier": "production",
+                    "is_active": True,
+                    "required_gates": {
+                        "gates": [
+                            "run_completed",
+                            "has_checkpoints",
+                            "approvals_clear",
+                        ]
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
 
         runner = CliRunner()
         result = runner.invoke(
             main,
-            ["release", "environments", pid,
-             "--path", str(inited_repo)],
+            ["release", "environments", pid, "--path", str(inited_repo)],
         )
         assert result.exit_code == 0
         assert "development" in result.output

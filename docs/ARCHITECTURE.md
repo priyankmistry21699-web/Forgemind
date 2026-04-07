@@ -73,13 +73,13 @@ ForgeMind is an **operator-centered AI execution platform** that dynamically ass
 
 ### Testing
 
-| Component   | Technology                   | Purpose                                    |
-| ----------- | ---------------------------- | ------------------------------------------ |
-| Framework   | pytest (>=8.0.0)             | Test runner                                |
-| Async       | pytest-asyncio               | Async test support                         |
-| HTTP Client | httpx (AsyncClient)          | API integration tests                      |
-| Test DB     | aiosqlite (in-memory SQLite) | Fast isolated test database                |
-| Total Tests | **691** (all passing)        | Backend 638 + Local 53 (through FM-130)    |
+| Component   | Technology                   | Purpose                                 |
+| ----------- | ---------------------------- | --------------------------------------- |
+| Framework   | pytest (>=8.0.0)             | Test runner                             |
+| Async       | pytest-asyncio               | Async test support                      |
+| HTTP Client | httpx (AsyncClient)          | API integration tests                   |
+| Test DB     | aiosqlite (in-memory SQLite) | Fast isolated test database             |
+| Total Tests | **746** (all passing)        | Backend 685 + Local 61 (through FM-140) |
 
 ---
 
@@ -915,8 +915,8 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 > deployment readiness evaluation, release gate orchestration, rollback
 > readiness assessment, post-release reporting, and operational timeline.
 
-| Wave | Milestone | Tasks         | Theme                                                            | Status      |
-| ---- | --------- | ------------- | ---------------------------------------------------------------- | ----------- |
+| Wave | Milestone | Tasks         | Theme                                                             | Status      |
+| ---- | --------- | ------------- | ----------------------------------------------------------------- | ----------- |
 | 9    | 26        | FM-131–FM-140 | Release operations, deployment confidence, operational governance | ✅ Complete |
 
 ---

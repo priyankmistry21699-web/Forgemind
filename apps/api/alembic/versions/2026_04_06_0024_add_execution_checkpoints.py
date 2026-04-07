@@ -61,15 +61,9 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id"),
-        sa.ForeignKeyConstraint(
-            ["run_id"], ["runs.id"], ondelete="CASCADE"
-        ),
-        sa.ForeignKeyConstraint(
-            ["task_id"], ["tasks.id"], ondelete="SET NULL"
-        ),
-        sa.ForeignKeyConstraint(
-            ["project_id"], ["projects.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["run_id"], ["runs.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["task_id"], ["tasks.id"], ondelete="SET NULL"),
+        sa.ForeignKeyConstraint(["project_id"], ["projects.id"], ondelete="CASCADE"),
     )
     op.create_index(
         "ix_execution_checkpoints_run_id",

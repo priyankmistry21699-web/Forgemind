@@ -35,7 +35,9 @@ def upgrade() -> None:
         sa.Column("config", sa.JSON(), nullable=True),
         sa.Column("required_gates", sa.JSON(), nullable=True),
         sa.Column("promotion_target_id", sa.Uuid(), nullable=True),
-        sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.text("true")),
+        sa.Column(
+            "is_active", sa.Boolean(), nullable=False, server_default=sa.text("true")
+        ),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -56,8 +58,14 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index("ix_deployment_environments_project_id", "deployment_environments", ["project_id"])
-    op.create_index("ix_deployment_environments_tier", "deployment_environments", ["tier"])
+    op.create_index(
+        "ix_deployment_environments_project_id",
+        "deployment_environments",
+        ["project_id"],
+    )
+    op.create_index(
+        "ix_deployment_environments_tier", "deployment_environments", ["tier"]
+    )
 
     op.create_table(
         "release_packages",
@@ -99,7 +107,9 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index("ix_release_packages_project_id", "release_packages", ["project_id"])
+    op.create_index(
+        "ix_release_packages_project_id", "release_packages", ["project_id"]
+    )
     op.create_index("ix_release_packages_run_id", "release_packages", ["run_id"])
     op.create_index("ix_release_packages_status", "release_packages", ["status"])
 

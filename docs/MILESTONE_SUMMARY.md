@@ -500,22 +500,22 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 | FM-099 | Handoff Snapshots                | ✅ Complete |
 | FM-100 | Hardening, Tests & Documentation | ✅ Complete |
 
-> **ForgeMind now spans 140 features across 26 milestones — a structurally self-aware, SPEC-driven AI execution platform with lifecycle gating, project constitutions, phase-aware agent routing, reusable project templates, persistent execution checkpoints, delivery artifact generation, lifecycle traceability, explainable release confidence scoring, versioned release packages, deployment environments, configurable release gates, rollback readiness analysis, post-release reporting, and unified operational timelines. 730 tests passing.**
+> **ForgeMind now spans 140 features across 26 milestones — a structurally self-aware, SPEC-driven AI execution platform with lifecycle gating, project constitutions, phase-aware agent routing, reusable project templates, persistent execution checkpoints, delivery artifact generation, lifecycle traceability, explainable release confidence scoring, versioned release packages, deployment environments, configurable release gates, rollback readiness analysis, post-release reporting, and unified operational timelines. 746 tests passing (685 backend + 61 local).**
 
 ## FM-131 to FM-140 — ✅ COMPLETE
 
-| ID     | Feature                                            | Status      |
-| ------ | -------------------------------------------------- | ----------- |
-| FM-131 | Release Package Model & Generation                 | ✅ Complete |
-| FM-132 | Deployment Environment Model & Targets             | ✅ Complete |
-| FM-133 | Environment-Aware Deployment Readiness Evaluation  | ✅ Complete |
-| FM-134 | Release Gates & Operational Policy Checks          | ✅ Complete |
-| FM-135 | Rollback Readiness & Recovery Metadata             | ✅ Complete |
-| FM-136 | Post-Release Report & Outcome Tracking             | ✅ Complete |
-| FM-137 | Operational Timeline View                          | ✅ Complete |
-| FM-138 | Frontend Release Operations Surface                | ✅ Complete |
-| FM-139 | Local Mode Release Awareness                       | ✅ Complete |
-| FM-140 | Tests, Docs & Hardening                            | ✅ Complete |
+| ID     | Feature                                           | Status      |
+| ------ | ------------------------------------------------- | ----------- |
+| FM-131 | Release Package Model & Generation                | ✅ Complete |
+| FM-132 | Deployment Environment Model & Targets            | ✅ Complete |
+| FM-133 | Environment-Aware Deployment Readiness Evaluation | ✅ Complete |
+| FM-134 | Release Gates & Operational Policy Checks         | ✅ Complete |
+| FM-135 | Rollback Readiness & Recovery Metadata            | ✅ Complete |
+| FM-136 | Post-Release Report & Outcome Tracking            | ✅ Complete |
+| FM-137 | Operational Timeline View                         | ✅ Complete |
+| FM-138 | Frontend Release Operations Surface               | ✅ Complete |
+| FM-139 | Local Mode Release Awareness                      | ✅ Complete |
+| FM-140 | Tests, Docs & Hardening                           | ✅ Complete |
 
 ### Key Capabilities (Milestone 26)
 
@@ -532,18 +532,18 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 
 ## FM-121 to FM-130 — ✅ COMPLETE
 
-| ID     | Feature                                        | Status      |
-| ------ | ---------------------------------------------- | ----------- |
-| FM-121 | Execution Checkpoint Model & CRUD              | ✅ Complete |
-| FM-122 | Auto-Checkpoint on Phase Transitions           | ✅ Complete |
-| FM-123 | Resume-from-Checkpoint Semantics               | ✅ Complete |
-| FM-124 | Delivery Artifact Generation                   | ✅ Complete |
-| FM-125 | Review Package Assembly                        | ✅ Complete |
-| FM-126 | Lifecycle Traceability Graph                   | ✅ Complete |
-| FM-127 | Run Memory Enrichment                          | ✅ Complete |
-| FM-128 | Release Confidence Scoring                     | ✅ Complete |
-| FM-129 | Local CLI Checkpoint & Delivery Commands       | ✅ Complete |
-| FM-130 | Integration Hardening, Tests & Documentation   | ✅ Complete |
+| ID     | Feature                                      | Status      |
+| ------ | -------------------------------------------- | ----------- |
+| FM-121 | Execution Checkpoint Model & CRUD            | ✅ Complete |
+| FM-122 | Auto-Checkpoint on Phase Transitions         | ✅ Complete |
+| FM-123 | Resume-from-Checkpoint Semantics             | ✅ Complete |
+| FM-124 | Delivery Artifact Generation                 | ✅ Complete |
+| FM-125 | Review Package Assembly                      | ✅ Complete |
+| FM-126 | Lifecycle Traceability Graph                 | ✅ Complete |
+| FM-127 | Run Memory Enrichment                        | ✅ Complete |
+| FM-128 | Release Confidence Scoring                   | ✅ Complete |
+| FM-129 | Local CLI Checkpoint & Delivery Commands     | ✅ Complete |
+| FM-130 | Integration Hardening, Tests & Documentation | ✅ Complete |
 
 ### Key Capabilities (Milestone 25)
 

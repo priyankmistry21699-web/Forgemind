@@ -301,9 +301,7 @@ async def resume_from_checkpoint(
 
     # Stale approvals: existed at checkpoint but since removed
     cp_approvals = (checkpoint.approval_snapshot or {}).get("approvals", [])
-    current_approval_ids = {
-        a["id"] for a in current_approvals.get("approvals", [])
-    }
+    current_approval_ids = {a["id"] for a in current_approvals.get("approvals", [])}
     stale_approvals = [a for a in cp_approvals if a["id"] not in current_approval_ids]
 
     task_counts = current_status.get("task_counts", {})
@@ -321,9 +319,7 @@ async def resume_from_checkpoint(
         "stale_approvals": stale_approvals,
         "tasks_reset": reset_tasks,
         "run_status_change": (
-            f"{old_run_status} → running"
-            if old_run_status != "running"
-            else None
+            f"{old_run_status} → running" if old_run_status != "running" else None
         ),
         "constraints": {
             "approvals_pending": current_approvals.get("pending_count", 0),
@@ -341,7 +337,9 @@ async def resume_from_checkpoint(
             "checkpoint_id": str(checkpoint_id),
             "resume_type": checkpoint.checkpoint_type.value,
             "tasks_reset": len(reset_tasks),
-            "run_status_change": old_run_status if old_run_status != "running" else None,
+            "run_status_change": old_run_status
+            if old_run_status != "running"
+            else None,
         },
     )
 

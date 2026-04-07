@@ -68,31 +68,35 @@ async def evaluate_readiness(
     run_result = await db.execute(select(Run).where(Run.id == pkg.run_id))
     run = run_result.scalar_one_or_none()
     run_completed = run is not None and run.status == RunStatus.COMPLETED
-    checks.append({
-        "check": "run_completed",
-        "passed": run_completed,
-        "detail": f"Run status: {run.status.value if run else 'not found'}",
-    })
+    checks.append(
+        {
+            "check": "run_completed",
+            "passed": run_completed,
+            "detail": f"Run status: {run.status.value if run else 'not found'}",
+        }
+    )
     if not run_completed:
         blockers.append("Run has not completed successfully")
 
     # Check 2: Task completion
-    task_result = await db.execute(
-        select(Task).where(Task.run_id == pkg.run_id)
-    )
+    task_result = await db.execute(select(Task).where(Task.run_id == pkg.run_id))
     tasks = list(task_result.scalars().all())
     total = len(tasks)
     completed = sum(1 for t in tasks if t.status == TaskStatus.COMPLETED)
     failed = sum(1 for t in tasks if t.status == TaskStatus.FAILED)
-    all_terminal = all(
-        t.status in (TaskStatus.COMPLETED, TaskStatus.SKIPPED) for t in tasks
-    ) if tasks else False
+    all_terminal = (
+        all(t.status in (TaskStatus.COMPLETED, TaskStatus.SKIPPED) for t in tasks)
+        if tasks
+        else False
+    )
 
-    checks.append({
-        "check": "tasks_terminal",
-        "passed": all_terminal,
-        "detail": f"{completed}/{total} completed, {failed} failed",
-    })
+    checks.append(
+        {
+            "check": "tasks_terminal",
+            "passed": all_terminal,
+            "detail": f"{completed}/{total} completed, {failed} failed",
+        }
+    )
     if failed > 0:
         blockers.append(f"{failed} task(s) in FAILED state")
 
@@ -104,11 +108,13 @@ async def evaluate_readiness(
     pending = sum(1 for a in approvals if a.status == "pending")
     rejected = sum(1 for a in approvals if a.status == "rejected")
     approvals_clear = pending == 0 and rejected == 0
-    checks.append({
-        "check": "approvals_resolved",
-        "passed": approvals_clear,
-        "detail": f"{len(approvals)} total, {pending} pending, {rejected} rejected",
-    })
+    checks.append(
+        {
+            "check": "approvals_resolved",
+            "passed": approvals_clear,
+            "detail": f"{len(approvals)} total, {pending} pending, {rejected} rejected",
+        }
+    )
     if pending > 0:
         blockers.append(f"{pending} approval(s) still pending")
     if rejected > 0:
@@ -119,11 +125,13 @@ async def evaluate_readiness(
     confidence = pkg.confidence_snapshot or {}
     score = confidence.get("score", 0)
     meets_threshold = score >= threshold
-    checks.append({
-        "check": "confidence_threshold",
-        "passed": meets_threshold,
-        "detail": f"Score {score}/100 vs threshold {threshold} ({env.tier.value})",
-    })
+    checks.append(
+        {
+            "check": "confidence_threshold",
+            "passed": meets_threshold,
+            "detail": f"Score {score}/100 vs threshold {threshold} ({env.tier.value})",
+        }
+    )
     if not meets_threshold:
         blockers.append(
             f"Confidence {score} below {env.tier.value} threshold ({threshold})"
@@ -135,11 +143,13 @@ async def evaluate_readiness(
     )
     checkpoints = list(cp_result.scalars().all())
     has_checkpoints = len(checkpoints) > 0
-    checks.append({
-        "check": "has_checkpoints",
-        "passed": has_checkpoints,
-        "detail": f"{len(checkpoints)} checkpoint(s) recorded",
-    })
+    checks.append(
+        {
+            "check": "has_checkpoints",
+            "passed": has_checkpoints,
+            "detail": f"{len(checkpoints)} checkpoint(s) recorded",
+        }
+    )
 
     # Check 6: Required artifacts
     artifact_result = await db.execute(
@@ -149,21 +159,25 @@ async def evaluate_readiness(
     artifact_types = {a.artifact_type for a in artifacts}
     has_spec = ArtifactType.SPEC in artifact_types
     has_plan = ArtifactType.PLAN in artifact_types
-    checks.append({
-        "check": "required_artifacts",
-        "passed": has_spec and has_plan,
-        "detail": f"SPEC: {'yes' if has_spec else 'no'}, PLAN: {'yes' if has_plan else 'no'}",
-    })
+    checks.append(
+        {
+            "check": "required_artifacts",
+            "passed": has_spec and has_plan,
+            "detail": f"SPEC: {'yes' if has_spec else 'no'}, PLAN: {'yes' if has_plan else 'no'}",
+        }
+    )
 
     # Check 7: Environment-specific required gates
     required_gates = env.required_gates or {}
     gate_names = required_gates.get("gates", [])
     if gate_names:
-        checks.append({
-            "check": "environment_gates",
-            "passed": True,  # gates evaluated separately via FM-134
-            "detail": f"{len(gate_names)} gate(s) configured (evaluated separately)",
-        })
+        checks.append(
+            {
+                "check": "environment_gates",
+                "passed": True,  # gates evaluated separately via FM-134
+                "detail": f"{len(gate_names)} gate(s) configured (evaluated separately)",
+            }
+        )
 
     # Overall
     all_passed = all(c["passed"] for c in checks)
