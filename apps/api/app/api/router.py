@@ -41,6 +41,7 @@ from app.api.routes.project_templates import router as templates_router
 from app.api.routes.constitution_suggestions import router as suggestions_router
 from app.api.routes.checkpoints import router as checkpoints_router
 from app.api.routes.delivery import router as delivery_router
+from app.api.routes.release_ops import router as release_ops_router
 
 api_router = APIRouter()
 
@@ -166,3 +167,6 @@ api_router.include_router(checkpoints_router, tags=["checkpoints"])
 
 # Delivery, Review, Traceability, Memory, Confidence (FM-124–128)
 api_router.include_router(delivery_router, tags=["delivery"])
+
+# Release Operations (FM-131–137)
+api_router.include_router(release_ops_router, tags=["release-ops"])

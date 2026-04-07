@@ -738,6 +738,173 @@ def review(run_id: str, path: str | None) -> None:
         console.print("  [green]✓ Ready for release[/green]")
 
 
+# ════════════════════════════════════════════════════════════════════
+# FM-139  release — local release awareness
+# ════════════════════════════════════════════════════════════════════
+
+
+@main.group()
+def release() -> None:
+    """Local release awareness commands."""
+
+
+@release.command("list")
+@click.argument("project_id")
+@click.option("--path", default=None)
+def release_list(project_id: str, path: str | None) -> None:
+    """List locally cached release packages for a project."""
+    repo_root = path or detect_repo_root()
+    if not repo_root:
+        console.print("[red]Not inside a git repo.[/red]")
+        raise SystemExit(1)
+
+    rel_dir = os.path.join(repo_root, ".forgemind", "state", "releases", project_id)
+    if not os.path.isdir(rel_dir):
+        console.print("[dim]No release packages cached locally.[/dim]")
+        return
+
+    tbl = Table(title=f"Releases — Project {project_id[:8]}")
+    tbl.add_column("Version")
+    tbl.add_column("Status")
+    tbl.add_column("Run")
+    tbl.add_column("Created")
+
+    for f in sorted(os.listdir(rel_dir)):
+        if not f.endswith(".json"):
+            continue
+        with open(os.path.join(rel_dir, f), encoding="utf-8") as fh:
+            rel = json.load(fh)
+        tbl.add_row(
+            rel.get("version", "?"),
+            rel.get("status", "?"),
+            (rel.get("run_id") or "?")[:8],
+            (rel.get("created_at") or "")[:19],
+        )
+    console.print(tbl)
+
+
+@release.command("status")
+@click.argument("run_id")
+@click.option("--path", default=None)
+def release_status(run_id: str, path: str | None) -> None:
+    """Show release readiness for a run based on local state."""
+    repo_root = path or detect_repo_root()
+    if not repo_root:
+        console.print("[red]Not inside a git repo.[/red]")
+        raise SystemExit(1)
+
+    runs_dir = os.path.join(repo_root, ".forgemind", "state", "runs")
+    run_file = os.path.join(runs_dir, f"{run_id}.json")
+    if not os.path.isfile(run_file):
+        console.print("[dim]No local run data. Sync first.[/dim]")
+        return
+
+    with open(run_file, encoding="utf-8") as fh:
+        run_data = json.load(fh)
+
+    console.print(f"[bold]Release Readiness — Run {run_id[:8]}[/bold]\n")
+
+    checks: list[tuple[str, bool, str]] = []
+
+    # Run completed
+    run_status = run_data.get("status", "unknown")
+    checks.append(("Run completed", run_status == "completed", f"Status: {run_status}"))
+
+    # Tasks terminal
+    tasks = run_data.get("tasks", {})
+    total = tasks.get("total", 0)
+    completed = tasks.get("completed", 0)
+    failed = tasks.get("failed", 0)
+    checks.append((
+        "Tasks terminal",
+        total > 0 and completed + failed >= total,
+        f"{completed}/{total} completed, {failed} failed",
+    ))
+
+    # No failed tasks
+    checks.append(("No failed tasks", failed == 0, f"{failed} failed"))
+
+    # Approvals clear
+    approvals = run_data.get("approvals", {})
+    pending = approvals.get("pending", 0)
+    rejected = approvals.get("rejected", 0)
+    checks.append((
+        "Approvals clear",
+        pending == 0 and rejected == 0,
+        f"{pending} pending, {rejected} rejected",
+    ))
+
+    # Has SPEC
+    checks.append(("Has SPEC", run_data.get("has_spec", False), ""))
+
+    # Has PLAN
+    checks.append(("Has PLAN", run_data.get("has_plan", False), ""))
+
+    # Has checkpoints
+    cp_dir = os.path.join(repo_root, ".forgemind", "state", "checkpoints", run_id)
+    cp_count = 0
+    if os.path.isdir(cp_dir):
+        cp_count = len([f for f in os.listdir(cp_dir) if f.endswith(".json")])
+    checks.append(("Has checkpoints", cp_count > 0, f"{cp_count} checkpoints"))
+
+    tbl = Table(title="Readiness Checks")
+    tbl.add_column("Check")
+    tbl.add_column("Result")
+    tbl.add_column("Detail")
+
+    blockers = 0
+    for name, passed, detail in checks:
+        if passed:
+            tbl.add_row(name, "[green]✓ PASS[/green]", detail)
+        else:
+            tbl.add_row(name, "[red]✗ FAIL[/red]", detail)
+            blockers += 1
+
+    console.print(tbl)
+    passed_ct = len(checks) - blockers
+    console.print(f"\n  Passed: {passed_ct}/{len(checks)}")
+    if blockers:
+        console.print(f"  [red]Blocked: {blockers} checks failed[/red]")
+    else:
+        console.print("  [green]All checks passed — ready for release[/green]")
+
+
+@release.command("environments")
+@click.argument("project_id")
+@click.option("--path", default=None)
+def release_environments(project_id: str, path: str | None) -> None:
+    """List locally cached deployment environments for a project."""
+    repo_root = path or detect_repo_root()
+    if not repo_root:
+        console.print("[red]Not inside a git repo.[/red]")
+        raise SystemExit(1)
+
+    env_dir = os.path.join(repo_root, ".forgemind", "state", "environments", project_id)
+    if not os.path.isdir(env_dir):
+        console.print("[dim]No environments cached locally.[/dim]")
+        return
+
+    tbl = Table(title=f"Environments — Project {project_id[:8]}")
+    tbl.add_column("Name")
+    tbl.add_column("Tier")
+    tbl.add_column("Active")
+    tbl.add_column("Gates")
+
+    for f in sorted(os.listdir(env_dir)):
+        if not f.endswith(".json"):
+            continue
+        with open(os.path.join(env_dir, f), encoding="utf-8") as fh:
+            env = json.load(fh)
+        gates = env.get("required_gates", {}).get("gates", [])
+        tbl.add_row(
+            env.get("name", "?"),
+            env.get("tier", "?"),
+            "✓" if env.get("is_active") else "✗",
+            ", ".join(gates) if gates else "—",
+        )
+    console.print(tbl)
+
+
 # ── entrypoint ─────────────────────────────────────────────────────
 
 if __name__ == "__main__":

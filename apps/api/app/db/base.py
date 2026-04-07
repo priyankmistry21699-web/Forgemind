@@ -61,3 +61,10 @@ from app.models.constitution_suggestion import ConstitutionSuggestion  # noqa: F
 
 # FM-121–130: Execution checkpoints, delivery, traceability
 from app.models.execution_checkpoint import ExecutionCheckpoint  # noqa: F401
+
+# FM-131–140: Release operations
+from app.models.release_ops import (  # noqa: F401
+    ReleasePackage,
+    DeploymentEnvironment,
+    ReleaseGateResult,
+)

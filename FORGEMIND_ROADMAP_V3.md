@@ -1519,7 +1519,7 @@ By the end of FM-110, ForgeMind is a fully SPEC-driven AI execution platform wit
 
 # Completed Roadmap — FM-111 to FM-120 | Planned — FM-121 to FM-140
 
-> FM-111 through FM-120 are **complete**. FM-121 through FM-130 are **complete**. The following milestones (FM-131–FM-140) are **planned** and have **not yet been implemented**. They represent the next wave of ForgeMind development.
+> FM-111 through FM-120 are **complete**. FM-121 through FM-130 are **complete**. FM-131 through FM-140 are **complete** — redefined from "Connector Ecosystem" to **Release Operations, Deployment Confidence, Environment Intelligence, and Operational Governance**.
 
 ---
 
@@ -1773,132 +1773,116 @@ Wave 8 adds **checkpoint-based execution control** and **delivery artifact synth
 
 ---
 
-## Wave 9 — Connector Ecosystem, Extensions, and Enterprise Pluginability (FM-131–FM-140)
+## Wave 9 — Release Operations, Deployment Confidence & Operational Governance (FM-131–FM-140)
 
 ### Overview
 
-Wave 9 transforms ForgeMind's hardcoded connector system into a **registry-based extension ecosystem** — enabling discovery, installation, marketplace UI, credential management, and community-contributed extension packs.
+Wave 9 introduces **release operations** — versioned release packages, deployment environments, configurable release gates, rollback readiness analysis, post-release reporting, and unified operational timelines. All signals are built from real run state (confidence scores, checkpoints, approvals, artifacts) rather than simulated deployment.
 
 ### Status Tracker
 
-| FM     | Title                                           | Status     |
-| ------ | ----------------------------------------------- | ---------- |
-| FM-131 | Connector Registry Data Model                   | 🔲 Planned |
-| FM-132 | Registry-Backed Connector Discovery API         | 🔲 Planned |
-| FM-133 | Connector Install / Activation Workflow         | 🔲 Planned |
-| FM-134 | Connector Marketplace UI                        | 🔲 Planned |
-| FM-135 | Connector Capability and Credential Metadata    | 🔲 Planned |
-| FM-136 | Hardcoded Connector Migration to Registry Model | 🔲 Planned |
-| FM-137 | Project/Workspace Extension Permissions         | 🔲 Planned |
-| FM-138 | Local Mode Connector Awareness                  | 🔲 Planned |
-| FM-139 | Community / Custom Extension Pack Framework     | 🔲 Planned |
-| FM-140 | Extension Ecosystem Hardening                   | 🔲 Planned |
+| FM     | Title                                             | Status      |
+| ------ | ------------------------------------------------- | ----------- |
+| FM-131 | Release Package Model & Generation                | ✅ Complete |
+| FM-132 | Deployment Environment Model & Targets            | ✅ Complete |
+| FM-133 | Environment-Aware Deployment Readiness Evaluation  | ✅ Complete |
+| FM-134 | Release Gates & Operational Policy Checks          | ✅ Complete |
+| FM-135 | Rollback Readiness & Recovery Metadata             | ✅ Complete |
+| FM-136 | Post-Release Report & Outcome Tracking             | ✅ Complete |
+| FM-137 | Operational Timeline View                          | ✅ Complete |
+| FM-138 | Frontend Release Operations Surface                | ✅ Complete |
+| FM-139 | Local Mode Release Awareness                       | ✅ Complete |
+| FM-140 | Tests, Docs & Hardening                            | ✅ Complete |
 
-### Milestone 26 — Connector Ecosystem & Extensions (FM-131 to FM-140)
+### Milestone 26 — Release Operations & Deployment Confidence (FM-131 to FM-140)
 
-#### FM-131 — Connector Registry Data Model
+#### FM-131 — Release Package Model & Generation
 
-**Goal:** Replace the current hardcoded connector list with a registry-backed data model.
+**Goal:** Versioned release bundles with auto-generated manifests, changelogs, and confidence snapshots.
 
-**Planned scope:**
+**What was built:**
+- `ReleasePackage` ORM model with status lifecycle (draft → ready → gated → approved → deployed → rolled_back → failed)
+- Auto-generation from run state: artifact manifest, changelog from completed tasks, confidence snapshot, rollback metadata
+- CRUD service + auto-versioning (`0.{n}.0`)
 
-- `ConnectorDefinition` ORM model — name, type, version, capability_tags, config_schema
-- `ConnectorInstance` ORM model — per-workspace/project connector installations
-- Migration from existing `RepoConnection` / `ConnectorConfig` models
+#### FM-132 — Deployment Environment Model & Targets
 
-#### FM-132 — Registry-Backed Connector Discovery API
+**Goal:** Model deployment targets (dev/staging/production/canary) with configurable gate requirements.
 
-**Goal:** Provide an API for discovering available connectors from the registry.
+**What was built:**
+- `DeploymentEnvironment` model with tier enum, configurable required_gates JSON, promotion chains (self-FK)
+- Full CRUD service for environment lifecycle
 
-**Planned scope:**
+#### FM-133 — Environment-Aware Deployment Readiness Evaluation
 
-- `GET /connectors/registry` — list available connectors with filtering
-- `GET /connectors/registry/{id}` — connector detail with config schema
-- Search by type, capability, compatibility
+**Goal:** Evaluate whether a release package is ready for a target environment using real signals.
 
-#### FM-133 — Connector Install / Activation Workflow
+**What was built:**
+- 7-check readiness evaluator: run_completed, tasks_terminal, approvals_resolved, confidence_threshold (tier-aware: dev=30, staging=50, canary=65, prod=80), has_checkpoints, required_artifacts (SPEC+PLAN), environment_gates
+- Returns: is_ready, checks[], blockers[], confidence_score
 
-**Goal:** Enable installing and activating connectors from the registry into a project or workspace.
+#### FM-134 — Release Gates & Operational Policy Checks
 
-**Planned scope:**
+**Goal:** Configurable release gates evaluated against real run signals, with per-gate pass/fail persistence.
 
-- Install endpoint: `POST /connectors/install`
-- Activation/deactivation toggle
-- Config validation against connector's config_schema
-- Dependency resolution between connectors
+**What was built:**
+- 9 built-in gates: run_completed, all_tasks_terminal, no_failed_tasks, approvals_clear, confidence_minimum, has_spec_artifact, has_plan_artifact, has_checkpoints, no_rejections
+- Environment-configurable gate selection
+- `ReleaseGateResult` persisted per evaluation
+- Auto-transitions package status (draft → ready on all-pass, → gated on failure)
 
-#### FM-134 — Connector Marketplace UI
+#### FM-135 — Rollback Readiness & Recovery Metadata
 
-**Goal:** Frontend marketplace for browsing, installing, and managing connectors.
+**Goal:** Assess rollback options from checkpoint chains, previous releases, and recovery strategies.
 
-**Planned scope:**
+**What was built:**
+- Recovery point enumeration (checkpoints + previous releases)
+- Strategy recommendations: checkpoint_resume, version_rollback, manual_intervention
+- Risk signal analysis (no_checkpoints = HIGH, no_pre_delivery = MEDIUM, etc.)
 
-- Marketplace browse page with category filtering
-- Connector detail cards with capability descriptions
-- Install/remove actions with confirmation
-- Installed connectors management panel
+#### FM-136 — Post-Release Report & Outcome Tracking
 
-#### FM-135 — Connector Capability and Credential Metadata
+**Goal:** Comprehensive post-release reports and outcome recording.
 
-**Goal:** Formalize connector capabilities and credential requirements in the registry.
+**What was built:**
+- Report generator aggregating: task outcomes, gate results, approval summary, artifact inventory, checkpoint coverage, event count
+- Outcome recording endpoint (deployed/rolled_back/failed) with notes
 
-**Planned scope:**
+#### FM-137 — Operational Timeline View
 
-- Capability schema: read, write, execute, notify, sync
-- Credential requirement declarations per connector
-- Integration with existing credential vault (FM-041–045)
-- Validation that required credentials exist before activation
+**Goal:** Unified chronological timeline of all release-related events.
 
-#### FM-136 — Hardcoded Connector Migration to Registry Model
+**What was built:**
+- Merged timeline from: run lifecycle, execution events, checkpoints, approvals, release packages, gate results, tasks
+- Sorted chronologically with category counts
 
-**Goal:** Migrate existing built-in connectors (GitHub, GitLab, local repo) to the registry model.
+#### FM-138 — Frontend Release Operations Surface
 
-**Planned scope:**
+**Goal:** UI for browsing releases, evaluating gates, and checking rollback readiness.
 
-- Create registry entries for all existing connector types
-- Backward-compatible migration path
-- Preserve existing connector configurations
+**What was built:**
+- TypeScript types (`types/release-ops.ts`), API client (`lib/release-ops.ts`)
+- Release dashboard page (`dashboard/releases/page.tsx`) with gate evaluation and rollback panels
+- Sidebar navigation entry
 
-#### FM-137 — Project/Workspace Extension Permissions
+#### FM-139 — Local Mode Release Awareness
 
-**Goal:** RBAC controls for connector installation and usage at project and workspace levels.
+**Goal:** CLI commands for local release status, readiness checking, and environment listing.
 
-**Planned scope:**
+**What was built:**
+- `forgemind release list <project_id>` — list cached release packages
+- `forgemind release status <run_id>` — local readiness checks (7 checks from state files)
+- `forgemind release environments <project_id>` — list cached environments
 
-- Permission: `CONNECTOR_INSTALL`, `CONNECTOR_CONFIGURE`, `CONNECTOR_USE`
-- Workspace-level connector allowlists
-- Project-level connector overrides
+#### FM-140 — Tests, Docs & Hardening
 
-#### FM-138 — Local Mode Connector Awareness
+**Goal:** Test coverage, lint validation, and documentation for FM-131–139.
 
-**Goal:** Extend ForgeMind Local to understand and interact with registry connectors.
-
-**Planned scope:**
-
-- Local connector config in `.forgemind/connectors.yaml`
-- Offline connector capability checking
-- Sync connector state in handoff bundles
-
-#### FM-139 — Community / Custom Extension Pack Framework
-
-**Goal:** Enable community-contributed extension packs that bundle connectors, templates, and phase profiles.
-
-**Planned scope:**
-
-- Extension pack manifest format
-- Pack validation and safety scanning
-- Import/export extension packs
-- Community contribution guidelines
-
-#### FM-140 — Extension Ecosystem Hardening
-
-**Goal:** Test coverage and hardening for FM-131–139.
-
-**Planned scope:**
-
-- Comprehensive tests for registry, installation, marketplace, permissions
-- E2E tests for connector lifecycle: discover → install → configure → activate → use → remove
-- Documentation and response files
+**What was built:**
+- 39 tests across 8 test classes: service-layer + HTTP route integration
+- Alembic migration 0025 for 3 new tables
+- Model registration in db/base.py, route registration in router.py
+- Ruff lint clean, all 730 tests passing (677 backend + 53 local)
 
 ---
 
@@ -1914,4 +1898,4 @@ Wave 9 transforms ForgeMind's hardcoded connector system into a **registry-based
 | 6    | 23         | FM-101–110 | SPEC-driven lifecycle                               | ✅ Complete |
 | 7    | 24         | FM-111–120 | Phase routing, templates, project bootstrapping     | ✅ Complete |
 | 8    | 25         | FM-121–130 | Execution memory, checkpoints, delivery artifacts   | ✅ Complete |
-| 9    | 26         | FM-131–140 | Connector ecosystem, extensions, enterprise plugins | 🔲 Planned  |
+| 9    | 26         | FM-131–140 | Release operations, deployment confidence, governance | ✅ Complete |

@@ -1,6 +1,6 @@
 # ForgeMind — Milestone Summary
 
-> Last updated: 2026-04-04 (after FM-130 — execution memory, checkpoints & delivery artifacts complete)
+> Last updated: 2026-04-06 (after FM-140 — release operations, deployment confidence & operational governance complete)
 
 ---
 
@@ -500,7 +500,35 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 | FM-099 | Handoff Snapshots                | ✅ Complete |
 | FM-100 | Hardening, Tests & Documentation | ✅ Complete |
 
-> **ForgeMind now spans 130 features across 25 milestones — a structurally self-aware, SPEC-driven AI execution platform with lifecycle gating, project constitutions, phase-aware agent routing, reusable project templates, persistent execution checkpoints, delivery artifact generation, lifecycle traceability, and explainable release confidence scoring. 691 tests passing.**
+> **ForgeMind now spans 140 features across 26 milestones — a structurally self-aware, SPEC-driven AI execution platform with lifecycle gating, project constitutions, phase-aware agent routing, reusable project templates, persistent execution checkpoints, delivery artifact generation, lifecycle traceability, explainable release confidence scoring, versioned release packages, deployment environments, configurable release gates, rollback readiness analysis, post-release reporting, and unified operational timelines. 730 tests passing.**
+
+## FM-131 to FM-140 — ✅ COMPLETE
+
+| ID     | Feature                                            | Status      |
+| ------ | -------------------------------------------------- | ----------- |
+| FM-131 | Release Package Model & Generation                 | ✅ Complete |
+| FM-132 | Deployment Environment Model & Targets             | ✅ Complete |
+| FM-133 | Environment-Aware Deployment Readiness Evaluation  | ✅ Complete |
+| FM-134 | Release Gates & Operational Policy Checks          | ✅ Complete |
+| FM-135 | Rollback Readiness & Recovery Metadata             | ✅ Complete |
+| FM-136 | Post-Release Report & Outcome Tracking             | ✅ Complete |
+| FM-137 | Operational Timeline View                          | ✅ Complete |
+| FM-138 | Frontend Release Operations Surface                | ✅ Complete |
+| FM-139 | Local Mode Release Awareness                       | ✅ Complete |
+| FM-140 | Tests, Docs & Hardening                            | ✅ Complete |
+
+### Key Capabilities (Milestone 26)
+
+- **Release packages**: Versioned bundles auto-generated from run state with artifact manifests, changelogs, confidence snapshots, and rollback metadata
+- **Deployment environments**: Tiered targets (dev/staging/canary/production) with configurable required gates and promotion chains
+- **Deployment readiness**: 7-check evaluator with tier-aware confidence thresholds (dev=30, staging=50, canary=65, prod=80)
+- **Release gates**: 9 built-in policy gates evaluated against real run signals; per-gate pass/fail persistence with auto package status transitions
+- **Rollback readiness**: Recovery point enumeration from checkpoints and previous releases; strategy recommendations with risk assessment
+- **Post-release reports**: Aggregated task outcomes, gate results, approval summaries, artifact inventories, checkpoint coverage
+- **Outcome tracking**: Record deployment outcomes (deployed/rolled_back/failed) with notes
+- **Operational timeline**: Unified chronological view merging run lifecycle events, checkpoints, approvals, releases, gates, and tasks
+- **Frontend surface**: Release dashboard with gate evaluation panels, rollback readiness views, and status badges
+- **Local CLI**: Release list, status (7 local readiness checks), and environment listing commands
 
 ## FM-121 to FM-130 — ✅ COMPLETE
 

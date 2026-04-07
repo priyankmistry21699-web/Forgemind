@@ -236,6 +236,19 @@
 - ✅ FM-129 Architecture-aware release risk summary (release_risk_service, local CLI confidence/review/checkpoint save strengthened, handoff import checkpoint restore)
 - ✅ FM-130 Delivery artifact hardening (delivery_hardening_service, quality gates, validation pipeline)
 
+### Milestone 26 — Release Operations & Deployment Confidence (FM-131 to FM-140)
+
+- ✅ FM-131 Release package model & generation (ReleasePackage ORM, auto-manifest/changelog/confidence, CRUD service)
+- ✅ FM-132 Deployment environment model & targets (DeploymentEnvironment ORM with tiers, required_gates, promotion chains)
+- ✅ FM-133 Environment-aware deployment readiness (7-check evaluator, tier-aware confidence thresholds)
+- ✅ FM-134 Release gates & operational policy checks (9 built-in gates, per-gate persistence, auto status transitions)
+- ✅ FM-135 Rollback readiness & recovery metadata (recovery points, strategies, risk assessment)
+- ✅ FM-136 Post-release report & outcome tracking (aggregated report, outcome recording endpoint)
+- ✅ FM-137 Operational timeline view (unified chronological timeline, category counts)
+- ✅ FM-138 Frontend release operations surface (TypeScript types, API client, dashboard page, sidebar nav)
+- ✅ FM-139 Local mode release awareness (CLI release list/status/environments commands)
+- ✅ FM-140 Tests, docs & hardening (39 tests, Alembic 0025, lint clean, 730 total tests passing)
+
 ## Blocked
 
 - (none)
