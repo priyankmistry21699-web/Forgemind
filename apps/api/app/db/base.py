@@ -101,3 +101,4 @@ from app.models.enterprise_governance import (  # noqa: F401
     IpAllowlistEntry,
     RetentionPolicy,
 )
+from app.models.sso_configuration import SSOConfiguration  # noqa: F401

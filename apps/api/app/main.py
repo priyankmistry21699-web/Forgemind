@@ -9,6 +9,7 @@ from app.api.router import api_router
 from app.core.rate_limit import RateLimitMiddleware
 from app.core.logging_middleware import RequestLoggingMiddleware
 from app.core.metrics_middleware import MetricsMiddleware
+from app.core.ip_allowlist_middleware import IPAllowlistMiddleware
 from app.core.error_handlers import register_error_handlers
 
 
@@ -60,6 +61,9 @@ def create_app() -> FastAPI:
 
     # Metrics collection (FM-078)
     app.add_middleware(MetricsMiddleware)
+
+    # IP allowlist enforcement (FM-178) — checks workspace governance_settings
+    app.add_middleware(IPAllowlistMiddleware)
 
     # Mount routers
     app.include_router(api_router)

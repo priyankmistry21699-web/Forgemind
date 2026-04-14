@@ -93,6 +93,63 @@ async def get_credential(
     return result.scalar_one_or_none()
 
 
+# ── FM-179: Secret resolution & rotation lifecycle ───────────────
+
+
+async def resolve_secret(
+    db: AsyncSession,
+    credential_id: uuid.UUID,
+    *,
+    allowed_scopes: list[str] | None = None,
+) -> str | None:
+    """Resolve the actual secret value for a credential.
+
+    Used by agent runners and connectors at execution time.
+    Returns the plaintext env var value, or None if not set.
+    Optionally enforces scope restrictions.
+    """
+    result = await db.execute(
+        select(CredentialVault).where(CredentialVault.id == credential_id)
+    )
+    cred = result.scalar_one_or_none()
+    if cred is None:
+        return None
+
+    # Scope enforcement
+    if allowed_scopes is not None and cred.scopes:
+        cred_scopes = set(cred.scopes) if isinstance(cred.scopes, list) else set()
+        if not cred_scopes.intersection(allowed_scopes):
+            return None  # Scope mismatch — deny access
+
+    # Check status
+    if cred.status in ("EXPIRED", "REVOKED"):
+        return None
+
+    return os.environ.get(cred.env_key)
+
+
+async def rotate_credential(
+    db: AsyncSession,
+    credential_id: uuid.UUID,
+) -> CredentialVault | None:
+    """Mark a credential as rotated — updates last_rotated_at timestamp.
+
+    Actual secret rotation (generating new API keys, etc.) happens
+    externally. This tracks the rotation event for audit purposes.
+    """
+    result = await db.execute(
+        select(CredentialVault).filter(CredentialVault.id == credential_id)
+    )
+    cred = result.scalar_one_or_none()
+    if cred is None:
+        return None
+
+    cred.last_rotated_at = sa_func.now()
+    cred.status = "ACTIVE"  # Reset status after rotation
+    db.add(cred)
+    return cred
+
+
 async def list_credentials(
     db: AsyncSession,
     *,

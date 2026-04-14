@@ -43,6 +43,18 @@ class Workspace(Base):
     )
     settings: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
+    # FM-171: Governance settings — org-level governance metadata
+    governance_settings: Mapped[dict | None] = mapped_column(
+        JSON, nullable=True, default=None
+    )
+    # Expected keys:
+    #   plan_tier: str (free/team/enterprise)
+    #   compliance_level: str (none/basic/soc2/hipaa)
+    #   sso_enforced: bool
+    #   ip_enforcement_enabled: bool
+    #   data_region: str | None
+    #   audit_retention_days: int | None
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

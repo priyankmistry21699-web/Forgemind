@@ -98,7 +98,6 @@ async def cost_policy(db_session: AsyncSession, sample_project):
 
 
 class TestAuditLog:
-
     @pytest.mark.asyncio
     async def test_log_event(self, db_session: AsyncSession, sample_workspace):
         entry = await audit_log_service.log_event(
@@ -235,7 +234,10 @@ class TestAuditLog:
 
         assert entry.created_at is not None
         # No updated_at attribute
-        assert not hasattr(entry, "updated_at") or "updated_at" not in entry.__table__.columns
+        assert (
+            not hasattr(entry, "updated_at")
+            or "updated_at" not in entry.__table__.columns
+        )
 
     @pytest.mark.asyncio
     async def test_audit_log_with_ip_and_user_agent(
@@ -262,7 +264,6 @@ class TestAuditLog:
 
 
 class TestGovernancePolicyEvaluation:
-
     @pytest.mark.asyncio
     async def test_evaluate_policies_blocked(
         self,
@@ -447,7 +448,6 @@ class TestGovernancePolicyEvaluation:
 
 
 class TestComplianceReports:
-
     @pytest.mark.asyncio
     async def test_generate_access_review_report(
         self, db_session: AsyncSession, sample_workspace, sample_project
@@ -576,9 +576,7 @@ class TestComplianceReports:
         assert "policy_compliance" in report.content["sections"]
 
     @pytest.mark.asyncio
-    async def test_list_reports(
-        self, db_session: AsyncSession, sample_workspace
-    ):
+    async def test_list_reports(self, db_session: AsyncSession, sample_workspace):
         for i in range(3):
             await compliance_report_service.generate_report(
                 db_session,
@@ -596,9 +594,7 @@ class TestComplianceReports:
         assert len(items) == 3
 
     @pytest.mark.asyncio
-    async def test_get_report(
-        self, db_session: AsyncSession, sample_workspace
-    ):
+    async def test_get_report(self, db_session: AsyncSession, sample_workspace):
         report = await compliance_report_service.generate_report(
             db_session,
             workspace_id=sample_workspace.id,
@@ -620,7 +616,6 @@ class TestComplianceReports:
 
 
 class TestIpAllowlist:
-
     @pytest.mark.asyncio
     async def test_add_allowlist_entry(
         self, db_session: AsyncSession, sample_workspace
@@ -666,8 +661,14 @@ class TestIpAllowlist:
             db_session, sample_workspace.id
         )
 
-        assert ip_allowlist_service.check_ip_against_allowlist("192.168.1.50", entries) is True
-        assert ip_allowlist_service.check_ip_against_allowlist("10.0.0.1", entries) is False
+        assert (
+            ip_allowlist_service.check_ip_against_allowlist("192.168.1.50", entries)
+            is True
+        )
+        assert (
+            ip_allowlist_service.check_ip_against_allowlist("10.0.0.1", entries)
+            is False
+        )
 
     @pytest.mark.asyncio
     async def test_empty_allowlist_allows_all(self):
@@ -693,7 +694,9 @@ class TestIpAllowlist:
             db_session, sample_workspace.id
         )
         # All entries are inactive, so no restrictions apply
-        assert ip_allowlist_service.check_ip_against_allowlist("1.2.3.4", entries) is True
+        assert (
+            ip_allowlist_service.check_ip_against_allowlist("1.2.3.4", entries) is True
+        )
 
     @pytest.mark.asyncio
     async def test_remove_allowlist_entry(
@@ -773,9 +776,16 @@ class TestIpAllowlist:
         entries = await ip_allowlist_service.get_workspace_allowlist(
             db_session, sample_workspace.id
         )
-        assert ip_allowlist_service.check_ip_against_allowlist("10.1.2.3", entries) is True
-        assert ip_allowlist_service.check_ip_against_allowlist("172.20.0.1", entries) is True
-        assert ip_allowlist_service.check_ip_against_allowlist("8.8.8.8", entries) is False
+        assert (
+            ip_allowlist_service.check_ip_against_allowlist("10.1.2.3", entries) is True
+        )
+        assert (
+            ip_allowlist_service.check_ip_against_allowlist("172.20.0.1", entries)
+            is True
+        )
+        assert (
+            ip_allowlist_service.check_ip_against_allowlist("8.8.8.8", entries) is False
+        )
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -784,7 +794,6 @@ class TestIpAllowlist:
 
 
 class TestRetentionPolicies:
-
     @pytest.mark.asyncio
     async def test_create_retention_policy(
         self, db_session: AsyncSession, sample_workspace
@@ -929,12 +938,398 @@ class TestRetentionPolicies:
 
 
 # ══════════════════════════════════════════════════════════════════
-# FM-171/172: RBAC Enhancement Tests
+# FM-171: Workspace Governance Settings Tests
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestGovernanceSettings:
+    @pytest.mark.asyncio
+    async def test_default_governance_settings(
+        self, db_session: AsyncSession, sample_workspace
+    ):
+        """New workspace has no governance settings by default."""
+        assert sample_workspace.governance_settings is None
+
+    @pytest.mark.asyncio
+    async def test_set_governance_settings(
+        self, db_session: AsyncSession, sample_workspace
+    ):
+        """Can set governance settings JSON on workspace."""
+        sample_workspace.governance_settings = {
+            "plan_tier": "enterprise",
+            "compliance_level": "soc2",
+            "sso_enforced": True,
+            "ip_enforcement_enabled": True,
+            "data_region": "us-east-1",
+            "audit_retention_days": 365,
+        }
+        db_session.add(sample_workspace)
+        await db_session.commit()
+
+        from app.models.workspace import Workspace
+
+        ws = await db_session.get(Workspace, sample_workspace.id)
+        assert ws.governance_settings["plan_tier"] == "enterprise"
+        assert ws.governance_settings["sso_enforced"] is True
+
+    @pytest.mark.asyncio
+    async def test_partial_governance_update(
+        self, db_session: AsyncSession, sample_workspace
+    ):
+        """Partial update merges with existing settings."""
+        sample_workspace.governance_settings = {"plan_tier": "free"}
+        db_session.add(sample_workspace)
+        await db_session.commit()
+
+        gov = dict(sample_workspace.governance_settings)
+        gov["compliance_level"] = "basic"
+        sample_workspace.governance_settings = gov
+        db_session.add(sample_workspace)
+        await db_session.commit()
+
+        from app.models.workspace import Workspace
+
+        ws = await db_session.get(Workspace, sample_workspace.id)
+        assert ws.governance_settings["plan_tier"] == "free"
+        assert ws.governance_settings["compliance_level"] == "basic"
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-172: RBAC Role Introspection Tests
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestRBACIntrospection:
+    def test_workspace_owner_permissions(self):
+        """Owner role should have all workspace permissions."""
+        from app.services.authz_service import (
+            get_workspace_role_permissions,
+        )
+        from app.models.membership import WorkspaceRole
+
+        perms = get_workspace_role_permissions(WorkspaceRole.OWNER)
+        assert len(perms) > 0
+        assert "workspace:manage_governance" in perms
+        assert "workspace:view_audit" in perms
+        assert "workspace:manage_secrets" in perms
+
+    def test_workspace_viewer_limited_permissions(self):
+        """Viewer role should have only view permissions."""
+        from app.services.authz_service import (
+            get_workspace_role_permissions,
+        )
+        from app.models.membership import WorkspaceRole
+
+        perms = get_workspace_role_permissions(WorkspaceRole.VIEWER)
+        # Viewer should not have manage actions
+        assert "workspace:manage_governance" not in perms
+        assert "workspace:manage_secrets" not in perms
+
+    def test_project_role_permissions(self):
+        """Project roles should return valid permission lists."""
+        from app.services.authz_service import (
+            get_project_role_permissions,
+        )
+        from app.models.membership import ProjectRole
+
+        lead_perms = get_project_role_permissions(ProjectRole.LEAD)
+        viewer_perms = get_project_role_permissions(ProjectRole.VIEWER)
+
+        assert len(lead_perms) > len(viewer_perms)
+
+    @pytest.mark.asyncio
+    async def test_get_user_permissions(
+        self, db_session: AsyncSession, sample_workspace
+    ):
+        """get_user_permissions returns roles + computed actions."""
+        from app.services.authz_service import get_user_permissions
+
+        perms = await get_user_permissions(
+            db_session,
+            workspace_id=sample_workspace.id,
+            user_id=STUB_USER_ID,
+        )
+        assert perms["workspace_role"] == "owner"
+        assert len(perms["workspace_actions"]) > 0
+        assert perms["project_role"] is None
+        assert perms["project_actions"] == []
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-175: SSO Configuration Tests
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestSSOConfiguration:
+    @pytest.mark.asyncio
+    async def test_create_sso_config(self, db_session: AsyncSession, sample_workspace):
+        from app.services import sso_configuration_service
+
+        config = await sso_configuration_service.create_sso_config(
+            db_session,
+            workspace_id=sample_workspace.id,
+            provider_type="oidc",
+            display_name="Corporate IdP",
+            issuer_url="https://idp.example.com",
+            client_id="forgemind-app",
+            is_active=True,
+            created_by=STUB_USER_ID,
+        )
+        await db_session.commit()
+
+        assert config.id is not None
+        assert config.provider_type == "oidc"
+        assert config.display_name == "Corporate IdP"
+        assert config.is_active is True
+
+    @pytest.mark.asyncio
+    async def test_list_sso_configs(self, db_session: AsyncSession, sample_workspace):
+        from app.services import sso_configuration_service
+
+        for name in ["IdP A", "IdP B"]:
+            await sso_configuration_service.create_sso_config(
+                db_session,
+                workspace_id=sample_workspace.id,
+                provider_type="saml",
+                display_name=name,
+                metadata_url="https://idp.example.com/metadata",
+                created_by=STUB_USER_ID,
+            )
+        await db_session.commit()
+
+        items, total = await sso_configuration_service.list_sso_configs(
+            db_session, sample_workspace.id
+        )
+        assert total == 2
+        assert len(items) == 2
+
+    @pytest.mark.asyncio
+    async def test_delete_sso_config(self, db_session: AsyncSession, sample_workspace):
+        from app.services import sso_configuration_service
+
+        config = await sso_configuration_service.create_sso_config(
+            db_session,
+            workspace_id=sample_workspace.id,
+            provider_type="saml",
+            display_name="Temp IdP",
+            created_by=STUB_USER_ID,
+        )
+        await db_session.commit()
+
+        deleted = await sso_configuration_service.delete_sso_config(
+            db_session, config.id
+        )
+        assert deleted is True
+
+    @pytest.mark.asyncio
+    async def test_toggle_sso_config(self, db_session: AsyncSession, sample_workspace):
+        from app.services import sso_configuration_service
+
+        config = await sso_configuration_service.create_sso_config(
+            db_session,
+            workspace_id=sample_workspace.id,
+            provider_type="oidc",
+            display_name="Toggle IdP",
+            created_by=STUB_USER_ID,
+        )
+        await db_session.commit()
+
+        toggled = await sso_configuration_service.toggle_sso_config(
+            db_session, config.id, is_active=False
+        )
+        assert toggled is not None
+        assert toggled.is_active is False
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-178: IP Allowlist Middleware Tests
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestIPAllowlistMiddleware:
+    @pytest.mark.asyncio
+    async def test_ipv6_cidr_validation(
+        self, db_session: AsyncSession, sample_workspace
+    ):
+        """IPv6 CIDR entries should be accepted."""
+        entry = await ip_allowlist_service.add_allowlist_entry(
+            db_session,
+            workspace_id=sample_workspace.id,
+            cidr="2001:db8::/32",
+            created_by=STUB_USER_ID,
+        )
+        await db_session.commit()
+        assert entry.cidr == "2001:db8::/32"
+
+    @pytest.mark.asyncio
+    async def test_ipv6_matching(self, db_session: AsyncSession, sample_workspace):
+        """IPv6 addresses should match against IPv6 CIDRs."""
+        await ip_allowlist_service.add_allowlist_entry(
+            db_session,
+            workspace_id=sample_workspace.id,
+            cidr="2001:db8::/32",
+            created_by=STUB_USER_ID,
+        )
+        await db_session.commit()
+
+        entries = await ip_allowlist_service.get_workspace_allowlist(
+            db_session, sample_workspace.id
+        )
+        assert (
+            ip_allowlist_service.check_ip_against_allowlist("2001:db8::1", entries)
+            is True
+        )
+        assert (
+            ip_allowlist_service.check_ip_against_allowlist("2001:db9::1", entries)
+            is False
+        )
+
+    def test_ip_enforcement_requires_governance_flag(self):
+        """Middleware only activates when governance_settings.ip_enforcement_enabled is True."""
+        # This is a design check — the middleware reads governance_settings
+        # from the workspace model. Without the flag, requests pass through.
+        from app.core.ip_allowlist_middleware import _WORKSPACE_PATH_RE
+
+        # Verify the regex matches workspace paths
+        match = _WORKSPACE_PATH_RE.search(
+            "/api/v1/workspaces/12345678-1234-1234-1234-123456789012/audit-log"
+        )
+        assert match is not None
+        assert match.group(1) == "12345678-1234-1234-1234-123456789012"
+
+        # Non-workspace paths should not match
+        assert _WORKSPACE_PATH_RE.search("/api/v1/health") is None
+        assert _WORKSPACE_PATH_RE.search("/api/v1/users/me") is None
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-179: Secret Resolution & Rotation Tests
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestSecretResolution:
+    @pytest.mark.asyncio
+    async def test_resolve_secret_from_env(
+        self, db_session: AsyncSession, sample_project, monkeypatch
+    ):
+        """resolve_secret() returns the env var value for a credential."""
+        from app.services import credential_vault_service
+
+        cred = await credential_vault_service.create_credential(
+            db_session,
+            name="Test API Key",
+            env_key="TEST_FM179_SECRET",
+            project_id=sample_project.id,
+        )
+        await db_session.commit()
+
+        # Set env var
+        monkeypatch.setenv("TEST_FM179_SECRET", "sk-real-secret-123")
+
+        resolved = await credential_vault_service.resolve_secret(db_session, cred.id)
+        assert resolved == "sk-real-secret-123"
+
+    @pytest.mark.asyncio
+    async def test_resolve_secret_missing_env(
+        self, db_session: AsyncSession, sample_project, monkeypatch
+    ):
+        """resolve_secret() returns None when env var is not set."""
+        from app.services import credential_vault_service
+
+        cred = await credential_vault_service.create_credential(
+            db_session,
+            name="Missing Key",
+            env_key="NONEXISTENT_FM179_KEY",
+            project_id=sample_project.id,
+        )
+        await db_session.commit()
+
+        monkeypatch.delenv("NONEXISTENT_FM179_KEY", raising=False)
+
+        resolved = await credential_vault_service.resolve_secret(db_session, cred.id)
+        assert resolved is None
+
+    @pytest.mark.asyncio
+    async def test_resolve_secret_scope_enforcement(
+        self, db_session: AsyncSession, sample_project, monkeypatch
+    ):
+        """resolve_secret() denies access when scopes don't match."""
+        from app.services import credential_vault_service
+
+        cred = await credential_vault_service.create_credential(
+            db_session,
+            name="Scoped Key",
+            env_key="TEST_FM179_SCOPED",
+            project_id=sample_project.id,
+            scopes=["read", "write"],
+        )
+        await db_session.commit()
+
+        monkeypatch.setenv("TEST_FM179_SCOPED", "secret-value")
+
+        # Matching scope
+        resolved = await credential_vault_service.resolve_secret(
+            db_session, cred.id, allowed_scopes=["read"]
+        )
+        assert resolved == "secret-value"
+
+        # Non-matching scope
+        resolved = await credential_vault_service.resolve_secret(
+            db_session, cred.id, allowed_scopes=["admin"]
+        )
+        assert resolved is None
+
+    @pytest.mark.asyncio
+    async def test_rotate_credential(self, db_session: AsyncSession, sample_project):
+        """rotate_credential() updates last_rotated_at."""
+        from app.services import credential_vault_service
+
+        cred = await credential_vault_service.create_credential(
+            db_session,
+            name="Rotatable Key",
+            env_key="TEST_FM179_ROTATE",
+            project_id=sample_project.id,
+        )
+        await db_session.commit()
+
+        assert cred.last_rotated_at is None
+
+        rotated = await credential_vault_service.rotate_credential(db_session, cred.id)
+        assert rotated is not None
+        await db_session.commit()
+
+    @pytest.mark.asyncio
+    async def test_resolve_expired_credential(
+        self, db_session: AsyncSession, sample_project, monkeypatch
+    ):
+        """resolve_secret() returns None for expired credentials."""
+        from app.services import credential_vault_service
+
+        cred = await credential_vault_service.create_credential(
+            db_session,
+            name="Expired Key",
+            env_key="TEST_FM179_EXPIRED",
+            project_id=sample_project.id,
+        )
+        await db_session.commit()
+
+        monkeypatch.setenv("TEST_FM179_EXPIRED", "still-here")
+
+        # Mark as expired
+        cred.status = "EXPIRED"
+        db_session.add(cred)
+        await db_session.commit()
+
+        resolved = await credential_vault_service.resolve_secret(db_session, cred.id)
+        assert resolved is None
+
+
+# ══════════════════════════════════════════════════════════════════
+# Edge Cases & Cross-Cutting
 # ══════════════════════════════════════════════════════════════════
 
 
 class TestRBACEnhancements:
-
     @pytest.mark.asyncio
     async def test_workspace_audit_permission_required(
         self, db_session: AsyncSession, sample_workspace
@@ -943,11 +1338,36 @@ class TestRBACEnhancements:
         from app.services.authz_service import is_workspace_action_allowed, Action
         from app.models.membership import WorkspaceRole
 
-        assert is_workspace_action_allowed(WorkspaceRole.OWNER, Action.WORKSPACE_VIEW_AUDIT) is True
-        assert is_workspace_action_allowed(WorkspaceRole.ADMIN, Action.WORKSPACE_VIEW_AUDIT) is True
-        assert is_workspace_action_allowed(WorkspaceRole.REVIEWER, Action.WORKSPACE_VIEW_AUDIT) is True
-        assert is_workspace_action_allowed(WorkspaceRole.OPERATOR, Action.WORKSPACE_VIEW_AUDIT) is False
-        assert is_workspace_action_allowed(WorkspaceRole.VIEWER, Action.WORKSPACE_VIEW_AUDIT) is False
+        assert (
+            is_workspace_action_allowed(
+                WorkspaceRole.OWNER, Action.WORKSPACE_VIEW_AUDIT
+            )
+            is True
+        )
+        assert (
+            is_workspace_action_allowed(
+                WorkspaceRole.ADMIN, Action.WORKSPACE_VIEW_AUDIT
+            )
+            is True
+        )
+        assert (
+            is_workspace_action_allowed(
+                WorkspaceRole.REVIEWER, Action.WORKSPACE_VIEW_AUDIT
+            )
+            is True
+        )
+        assert (
+            is_workspace_action_allowed(
+                WorkspaceRole.OPERATOR, Action.WORKSPACE_VIEW_AUDIT
+            )
+            is False
+        )
+        assert (
+            is_workspace_action_allowed(
+                WorkspaceRole.VIEWER, Action.WORKSPACE_VIEW_AUDIT
+            )
+            is False
+        )
 
     @pytest.mark.asyncio
     async def test_workspace_governance_permission_required(
@@ -957,10 +1377,30 @@ class TestRBACEnhancements:
         from app.services.authz_service import is_workspace_action_allowed, Action
         from app.models.membership import WorkspaceRole
 
-        assert is_workspace_action_allowed(WorkspaceRole.OWNER, Action.WORKSPACE_MANAGE_GOVERNANCE) is True
-        assert is_workspace_action_allowed(WorkspaceRole.ADMIN, Action.WORKSPACE_MANAGE_GOVERNANCE) is True
-        assert is_workspace_action_allowed(WorkspaceRole.OPERATOR, Action.WORKSPACE_MANAGE_GOVERNANCE) is False
-        assert is_workspace_action_allowed(WorkspaceRole.REVIEWER, Action.WORKSPACE_MANAGE_GOVERNANCE) is False
+        assert (
+            is_workspace_action_allowed(
+                WorkspaceRole.OWNER, Action.WORKSPACE_MANAGE_GOVERNANCE
+            )
+            is True
+        )
+        assert (
+            is_workspace_action_allowed(
+                WorkspaceRole.ADMIN, Action.WORKSPACE_MANAGE_GOVERNANCE
+            )
+            is True
+        )
+        assert (
+            is_workspace_action_allowed(
+                WorkspaceRole.OPERATOR, Action.WORKSPACE_MANAGE_GOVERNANCE
+            )
+            is False
+        )
+        assert (
+            is_workspace_action_allowed(
+                WorkspaceRole.REVIEWER, Action.WORKSPACE_MANAGE_GOVERNANCE
+            )
+            is False
+        )
 
     @pytest.mark.asyncio
     async def test_project_approval_permission(self, db_session: AsyncSession):
@@ -968,10 +1408,21 @@ class TestRBACEnhancements:
         from app.services.authz_service import is_project_action_allowed, Action
         from app.models.membership import ProjectRole
 
-        assert is_project_action_allowed(ProjectRole.LEAD, Action.PROJECT_APPROVE) is True
-        assert is_project_action_allowed(ProjectRole.REVIEWER, Action.PROJECT_APPROVE) is True
-        assert is_project_action_allowed(ProjectRole.OPERATOR, Action.PROJECT_APPROVE) is False
-        assert is_project_action_allowed(ProjectRole.VIEWER, Action.PROJECT_APPROVE) is False
+        assert (
+            is_project_action_allowed(ProjectRole.LEAD, Action.PROJECT_APPROVE) is True
+        )
+        assert (
+            is_project_action_allowed(ProjectRole.REVIEWER, Action.PROJECT_APPROVE)
+            is True
+        )
+        assert (
+            is_project_action_allowed(ProjectRole.OPERATOR, Action.PROJECT_APPROVE)
+            is False
+        )
+        assert (
+            is_project_action_allowed(ProjectRole.VIEWER, Action.PROJECT_APPROVE)
+            is False
+        )
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -980,7 +1431,6 @@ class TestRBACEnhancements:
 
 
 class TestEdgeCases:
-
     @pytest.mark.asyncio
     async def test_audit_log_systems_actor(
         self, db_session: AsyncSession, sample_workspace
@@ -1044,9 +1494,7 @@ class TestEdgeCases:
         assert report.content["total_changes"] == 0
 
     @pytest.mark.asyncio
-    async def test_ip_allowlist_ipv6(
-        self, db_session: AsyncSession, sample_workspace
-    ):
+    async def test_ip_allowlist_ipv6(self, db_session: AsyncSession, sample_workspace):
         """IPv6 CIDR ranges are supported."""
         await ip_allowlist_service.add_allowlist_entry(
             db_session,

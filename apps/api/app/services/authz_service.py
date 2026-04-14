@@ -197,3 +197,49 @@ def is_workspace_action_allowed(role: WorkspaceRole, action: Action) -> bool:
 def is_project_action_allowed(role: ProjectRole, action: Action) -> bool:
     """Pure check without DB — use when you already have the role."""
     return role in PROJECT_PERMISSIONS.get(action, set())
+
+
+# ── Role introspection (FM-172) ──────────────────────────────────
+
+
+def get_workspace_role_permissions(role: WorkspaceRole) -> list[str]:
+    """Return all actions permitted for a workspace role."""
+    return sorted(
+        action.value
+        for action, allowed_roles in WORKSPACE_PERMISSIONS.items()
+        if role in allowed_roles
+    )
+
+
+def get_project_role_permissions(role: ProjectRole) -> list[str]:
+    """Return all actions permitted for a project role."""
+    return sorted(
+        action.value
+        for action, allowed_roles in PROJECT_PERMISSIONS.items()
+        if role in allowed_roles
+    )
+
+
+async def get_user_permissions(
+    db: AsyncSession,
+    *,
+    workspace_id: uuid.UUID,
+    user_id: uuid.UUID,
+    project_id: uuid.UUID | None = None,
+) -> dict:
+    """Return the user's roles and computed permissions for a workspace/project."""
+    ws_role = await get_workspace_role(db, workspace_id, user_id)
+    ws_actions = get_workspace_role_permissions(ws_role) if ws_role else []
+
+    proj_role = None
+    proj_actions: list[str] = []
+    if project_id:
+        proj_role = await get_project_role(db, project_id, user_id)
+        proj_actions = get_project_role_permissions(proj_role) if proj_role else []
+
+    return {
+        "workspace_role": ws_role.value if ws_role else None,
+        "workspace_actions": ws_actions,
+        "project_role": proj_role.value if proj_role else None,
+        "project_actions": proj_actions,
+    }

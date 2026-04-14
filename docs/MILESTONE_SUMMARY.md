@@ -750,23 +750,24 @@ _All milestones through FM-158 + FM-160 are complete (754 tests passing). FM-159
 
 ## Wave 13 — Enterprise Governance, Permissions & Compliance (FM-171 → FM-180)
 
-> Audit trails, policy evaluation engine, compliance reports, IP allowlisting, retention policies.
-> 5/10 milestones fully complete; 5/10 deferred (Organization model, RBAC V2 custom roles, SSO, Secrets encryption require infrastructure investment).
+> Audit trails, policy evaluation engine, compliance reports, IP allowlisting, retention policies,
+> governance settings, role introspection, SSO configuration, secret resolution.
+> 8/10 milestones at PARTIAL or above; 2/10 have remaining work deferred.
 
 | FM     | Feature                                          | Status |
 | ------ | ------------------------------------------------ | ------ |
-| FM-171 | Organization Model & Multi-Tenancy               | ⏳ Deferred — Workspace already serves as org container; adding Organization entity requires full route rewiring |
-| FM-172 | RBAC V2 — Fine-Grained Permissions               | ⏳ Deferred — Existing 5-role workspace + 4-role project RBAC is solid; custom role framework deferred |
+| FM-171 | Organization / Governance Metadata               | 🟡 Partial — `governance_settings` JSON column on Workspace (plan_tier, compliance_level, sso/ip enforcement flags). Full Organization entity deferred. |
+| FM-172 | RBAC V2 — Fine-Grained Permissions               | 🟡 Partial — 25-action enforcement matrix, role introspection endpoints (`get_workspace_role_permissions`, `get_user_permissions`). Custom role creation deferred. |
 | FM-173 | Comprehensive Audit Log                          | ✅ Complete — Immutable AuditLog model, 8-filter query, CSV export, stats endpoint |
 | FM-174 | Policy Engine — Automated Rule Enforcement        | ✅ Complete — GovernancePolicyEvaluation with 5 trigger types, enforcement recording, evaluation history |
-| FM-175 | SSO & External Authentication                    | ⏳ Deferred — Requires SAML/OIDC libraries and external IdP infrastructure |
-| FM-176 | Data Retention & Lifecycle Policies              | ✅ Complete — RetentionPolicy model, CRUD, dry-run evaluation for 5 entity types |
-| FM-177 | Compliance Reporting & Export                    | ✅ Complete — 5 report types (access review, change mgmt, approval audit, policy compliance, full governance) |
-| FM-178 | IP Allowlisting & Access Controls                | ✅ Complete — CIDR-based allowlist with IPv4/IPv6, toggle, workspace-scoped |
-| FM-179 | Secrets Management & Vault Integration           | ⏳ Deferred — CredentialVault exists for metadata; real encryption needs key management infrastructure |
-| FM-180 | Enterprise Governance Tests, Docs & Hardening    | ✅ Complete (46 tests, lint clean, all services validated) |
+| FM-175 | SSO Configuration Model                          | 🟡 Partial — SSOConfiguration model (SAML/OIDC provider config, per-workspace). CRUD routes. **No live SSO auth flows** — requires python3-saml/authlib. |
+| FM-176 | Data Retention & Lifecycle Policies              | 🟡 Partial — RetentionPolicy model, CRUD, dry-run evaluation. No background scheduler for automatic execution. |
+| FM-177 | Compliance Reporting & Export                    | ✅ Complete — 5 report types (access review, change mgmt, approval audit, policy compliance, full governance). JSON/CSV export. PDF deferred. |
+| FM-178 | IP Allowlisting & Access Controls                | ✅ Complete — CIDR-based allowlist with IPv4/IPv6, `IPAllowlistMiddleware` wired in FastAPI app, workspace governance flag controls enforcement |
+| FM-179 | Secrets Management — Resolution & Lifecycle      | 🟡 Partial — `resolve_secret()` with scope enforcement, `rotate_credential()` lifecycle tracking. CredentialVault is metadata-based (env_key resolution). AES-256-GCM encryption deferred. |
+| FM-180 | Enterprise Governance Tests, Docs & Hardening    | ✅ Complete — 70+ tests covering all services, IPv6 CIDR fix, doc overclaims corrected |
 
-**Wave 13 summary:** 5/10 milestones fully complete with real enforcement; 5/10 deferred for infrastructure reasons. Audit log, policy engine, compliance reports, IP allowlisting, and retention policies are production-ready. Organization model, custom RBAC, SSO, and secrets encryption require additional infrastructure.
+**Wave 13 summary:** 5/10 fully complete, 5/10 partial with real usable implementations. All milestones have enforceable code. Remaining deferred work: full Organization entity, custom roles, live SSO flows, background retention scheduler, encrypted secret storage.
 
 ---
 

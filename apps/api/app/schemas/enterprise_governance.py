@@ -166,7 +166,7 @@ class IpAllowlistList(BaseModel):
 
 
 class IpAllowlistCreate(BaseModel):
-    cidr: str = Field(..., min_length=1, max_length=50, pattern=r"^[\d./]+$")
+    cidr: str = Field(..., min_length=1, max_length=50, pattern=r"^[\da-fA-F.:/ ]+$")
     description: str | None = None
     is_active: bool = True
 
@@ -209,3 +209,73 @@ class RetentionPolicyUpdate(BaseModel):
     action: RetentionAction | None = None
     is_active: bool | None = None
     legal_hold: bool | None = None
+
+
+# ── Workspace Governance Settings (FM-171) ──────────────────────
+
+
+class GovernanceSettingsRead(BaseModel):
+    plan_tier: str = "free"
+    compliance_level: str = "none"
+    sso_enforced: bool = False
+    ip_enforcement_enabled: bool = False
+    data_region: str | None = None
+    audit_retention_days: int | None = None
+
+
+class GovernanceSettingsUpdate(BaseModel):
+    plan_tier: str | None = Field(None, pattern=r"^(free|team|enterprise)$")
+    compliance_level: str | None = Field(None, pattern=r"^(none|basic|soc2|hipaa)$")
+    sso_enforced: bool | None = None
+    ip_enforcement_enabled: bool | None = None
+    data_region: str | None = None
+    audit_retention_days: int | None = Field(None, gt=0, le=36500)
+
+
+# ── SSO Configuration (FM-175) ──────────────────────────────────
+
+
+class SSOConfigurationRead(BaseModel):
+    id: uuid.UUID
+    workspace_id: uuid.UUID
+    provider_type: str
+    display_name: str
+    metadata_url: str | None
+    client_id: str | None
+    issuer_url: str | None
+    is_active: bool
+    auto_provision: bool
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class SSOConfigurationCreate(BaseModel):
+    provider_type: str = Field(..., pattern=r"^(saml|oidc)$")
+    display_name: str = Field(..., min_length=1, max_length=200)
+    metadata_url: str | None = None
+    client_id: str | None = None
+    issuer_url: str | None = None
+    is_active: bool = True
+    auto_provision: bool = True
+
+
+class SSOConfigurationList(BaseModel):
+    items: list[SSOConfigurationRead]
+    total: int
+
+
+# ── Role Permissions Introspection (FM-172) ─────────────────────
+
+
+class RolePermissionRead(BaseModel):
+    role: str
+    actions: list[str]
+
+
+class PermissionsIntrospectionResponse(BaseModel):
+    workspace_role: str | None = None
+    project_role: str | None = None
+    workspace_actions: list[str] = Field(default_factory=list)
+    project_actions: list[str] = Field(default_factory=list)

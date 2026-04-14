@@ -20,6 +20,11 @@ from app.services import (
     compliance_report_service,
     ip_allowlist_service,
     retention_policy_service,
+    sso_configuration_service,
+)
+from app.services.authz_service import (
+    check_project_permission,
+    get_user_permissions,
 )
 from app.schemas.enterprise_governance import (
     AuditLogRead,
@@ -38,13 +43,18 @@ from app.schemas.enterprise_governance import (
     RetentionPolicyList,
     RetentionPolicyCreate,
     RetentionPolicyUpdate,
+    GovernanceSettingsRead,
+    GovernanceSettingsUpdate,
+    SSOConfigurationRead,
+    SSOConfigurationList,
+    SSOConfigurationCreate,
+    PermissionsIntrospectionResponse,
 )
 from app.models.enterprise_governance import (
     AuditOutcome,
     PolicyEvalResult,
     ComplianceReportType,
 )
-from app.services.authz_service import check_project_permission
 
 router = APIRouter()
 
@@ -176,9 +186,7 @@ async def evaluate_project_policies(
     Returns whether the action is allowed, with details of each
     policy evaluation. Requires PROJECT_VIEW permission.
     """
-    await check_project_permission(
-        db, project_id, current_user_id, Action.PROJECT_VIEW
-    )
+    await check_project_permission(db, project_id, current_user_id, Action.PROJECT_VIEW)
 
     result = await governance_engine_service.evaluate_policies(
         db,
@@ -220,9 +228,7 @@ async def list_project_policy_evaluations(
 
     Requires PROJECT_VIEW permission.
     """
-    await check_project_permission(
-        db, project_id, current_user_id, Action.PROJECT_VIEW
-    )
+    await check_project_permission(db, project_id, current_user_id, Action.PROJECT_VIEW)
 
     items, total = await governance_engine_service.list_evaluations(
         db,
@@ -497,9 +503,7 @@ async def toggle_ip_allowlist_entry(
         db, workspace_id, current_user_id, Action.WORKSPACE_MANAGE_GOVERNANCE
     )
 
-    entry = await ip_allowlist_service.toggle_allowlist_entry(
-        db, entry_id, is_active
-    )
+    entry = await ip_allowlist_service.toggle_allowlist_entry(db, entry_id, is_active)
     if entry is None:
         raise HTTPException(status_code=404, detail="Entry not found")
 
@@ -663,3 +667,197 @@ async def evaluate_retention_policies(
     return await retention_policy_service.evaluate_retention(
         db, workspace_id, dry_run=dry_run
     )
+
+
+# ══════════════════════════════════════════════════════════════════
+# Workspace Governance Settings (FM-171)
+# ══════════════════════════════════════════════════════════════════
+
+
+@router.get(
+    "/workspaces/{workspace_id}/governance-settings",
+    response_model=GovernanceSettingsRead,
+)
+async def get_governance_settings(
+    workspace_id: uuid.UUID,
+    current_user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get workspace governance settings.
+
+    Requires WORKSPACE_VIEW_AUDIT permission.
+    """
+    await check_workspace_permission(
+        db, workspace_id, current_user_id, Action.WORKSPACE_VIEW_AUDIT
+    )
+
+    from app.models.workspace import Workspace
+
+    ws = await db.get(Workspace, workspace_id)
+    if ws is None:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+
+    gov = ws.governance_settings or {}
+    return GovernanceSettingsRead(**gov)
+
+
+@router.put(
+    "/workspaces/{workspace_id}/governance-settings",
+    response_model=GovernanceSettingsRead,
+)
+async def update_governance_settings(
+    workspace_id: uuid.UUID,
+    body: GovernanceSettingsUpdate,
+    current_user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Update workspace governance settings.
+
+    Requires WORKSPACE_MANAGE_GOVERNANCE permission.
+    """
+    await check_workspace_permission(
+        db, workspace_id, current_user_id, Action.WORKSPACE_MANAGE_GOVERNANCE
+    )
+
+    from app.models.workspace import Workspace
+
+    ws = await db.get(Workspace, workspace_id)
+    if ws is None:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+
+    gov = dict(ws.governance_settings or {})
+    updates = body.model_dump(exclude_unset=True)
+    gov.update(updates)
+    ws.governance_settings = gov
+    db.add(ws)
+    await db.commit()
+
+    return GovernanceSettingsRead(**gov)
+
+
+# ══════════════════════════════════════════════════════════════════
+# Role Permissions Introspection (FM-172)
+# ══════════════════════════════════════════════════════════════════
+
+
+@router.get(
+    "/workspaces/{workspace_id}/my-permissions",
+    response_model=PermissionsIntrospectionResponse,
+)
+async def get_my_permissions(
+    workspace_id: uuid.UUID,
+    project_id: uuid.UUID | None = Query(None),
+    current_user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get the current user's roles and computed permissions.
+
+    Returns all actions the user can perform in the given
+    workspace (and optionally project).
+    """
+    perms = await get_user_permissions(
+        db,
+        workspace_id=workspace_id,
+        user_id=current_user_id,
+        project_id=project_id,
+    )
+    return PermissionsIntrospectionResponse(**perms)
+
+
+# ══════════════════════════════════════════════════════════════════
+# SSO Configuration (FM-175)
+# ══════════════════════════════════════════════════════════════════
+
+
+@router.get(
+    "/workspaces/{workspace_id}/sso-configurations",
+    response_model=SSOConfigurationList,
+)
+async def list_sso_configurations(
+    workspace_id: uuid.UUID,
+    offset: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    current_user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """List SSO configurations for a workspace.
+
+    Requires WORKSPACE_MANAGE_GOVERNANCE permission.
+    """
+    await check_workspace_permission(
+        db, workspace_id, current_user_id, Action.WORKSPACE_MANAGE_GOVERNANCE
+    )
+
+    items, total = await sso_configuration_service.list_sso_configs(
+        db, workspace_id, offset=offset, limit=limit
+    )
+
+    return SSOConfigurationList(
+        items=[SSOConfigurationRead.model_validate(i) for i in items],
+        total=total,
+    )
+
+
+@router.post(
+    "/workspaces/{workspace_id}/sso-configurations",
+    response_model=SSOConfigurationRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_sso_configuration(
+    workspace_id: uuid.UUID,
+    body: SSOConfigurationCreate,
+    current_user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Create an SSO provider configuration.
+
+    NOTE: This stores IdP connection parameters. Live SAML/OIDC
+    authentication flows require external libraries and are not
+    yet implemented.
+
+    Requires WORKSPACE_MANAGE_GOVERNANCE permission.
+    """
+    await check_workspace_permission(
+        db, workspace_id, current_user_id, Action.WORKSPACE_MANAGE_GOVERNANCE
+    )
+
+    config = await sso_configuration_service.create_sso_config(
+        db,
+        workspace_id=workspace_id,
+        provider_type=body.provider_type,
+        display_name=body.display_name,
+        metadata_url=body.metadata_url,
+        client_id=body.client_id,
+        issuer_url=body.issuer_url,
+        is_active=body.is_active,
+        auto_provision=body.auto_provision,
+        created_by=current_user_id,
+    )
+    await db.commit()
+
+    return SSOConfigurationRead.model_validate(config)
+
+
+@router.delete(
+    "/workspaces/{workspace_id}/sso-configurations/{config_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_sso_configuration(
+    workspace_id: uuid.UUID,
+    config_id: uuid.UUID,
+    current_user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete an SSO configuration.
+
+    Requires WORKSPACE_MANAGE_GOVERNANCE permission.
+    """
+    await check_workspace_permission(
+        db, workspace_id, current_user_id, Action.WORKSPACE_MANAGE_GOVERNANCE
+    )
+
+    deleted = await sso_configuration_service.delete_sso_config(db, config_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="SSO configuration not found")
+
+    await db.commit()
