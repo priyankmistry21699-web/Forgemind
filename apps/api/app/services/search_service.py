@@ -280,17 +280,21 @@ async def search(
     project_id: uuid.UUID | None = None,
     entity_types: list[SearchEntityType] | None = None,
     entity_status: str | None = None,
+    created_after: datetime | None = None,
+    created_before: datetime | None = None,
     limit: int = 20,
     offset: int = 0,
     user_id: uuid.UUID | None = None,
-) -> tuple[list[dict], int]:
+    include_facets: bool = False,
+) -> tuple[list[dict], int, dict | None]:
     """Execute a search query against the index.
 
-    Returns (results, total_count).
+    Returns (results, total_count, facets).
     Each result is a dict with entity_type, entity_id, title, snippet, score.
+    Facets (when requested) include counts by entity_type and status.
     """
     if not query or not query.strip():
-        return [], 0
+        return [], 0, None
 
     terms = query.strip().lower().split()
 
@@ -307,7 +311,7 @@ async def search(
 
     base_filter = and_(*conditions) if conditions else None
     if base_filter is None:
-        return [], 0
+        return [], 0, None
 
     filters = [base_filter]
 
@@ -319,6 +323,12 @@ async def search(
 
     if entity_status:
         filters.append(SearchIndex.entity_status == entity_status)
+
+    # Date-range filtering
+    if created_after:
+        filters.append(SearchIndex.created_at >= created_after)
+    if created_before:
+        filters.append(SearchIndex.created_at <= created_before)
 
     # RBAC filter for cross-project search: limit to projects user is member of
     if not project_id and user_id:
@@ -387,7 +397,42 @@ async def search(
 
     # Sort by score descending
     items.sort(key=lambda x: x["score"], reverse=True)
-    return items, total
+
+    # Facet aggregation (counts by entity_type and status)
+    facets = None
+    if include_facets:
+        type_facet_q = (
+            select(
+                SearchIndex.entity_type,
+                sa_func.count().label("count"),
+            )
+            .where(where_clause)
+            .group_by(SearchIndex.entity_type)
+        )
+        type_rows = (await db.execute(type_facet_q)).all()
+
+        status_facet_q = (
+            select(
+                SearchIndex.entity_status,
+                sa_func.count().label("count"),
+            )
+            .where(where_clause)
+            .group_by(SearchIndex.entity_status)
+        )
+        status_rows = (await db.execute(status_facet_q)).all()
+
+        facets = {
+            "entity_type": {
+                row.entity_type.value if hasattr(row.entity_type, "value") else str(row.entity_type): row.count
+                for row in type_rows
+            },
+            "entity_status": {
+                (row.entity_status or "unknown"): row.count
+                for row in status_rows
+            },
+        }
+
+    return items, total, facets
 
 
 def _build_snippet(text: str, terms: list[str], max_len: int = 200) -> str:

@@ -52,7 +52,7 @@ class TestSearchIndexing:
         await search_service.index_task(db_session, sample_task)
         await db_session.commit()
 
-        items, total = await search_service.search(db_session, query="Test Task")
+        items, total, _ = await search_service.search(db_session, query="Test Task")
         assert total >= 1
         assert any(i["entity_id"] == str(sample_task.id) for i in items)
 
@@ -61,7 +61,7 @@ class TestSearchIndexing:
         await search_service.index_artifact(db_session, sample_artifact)
         await db_session.commit()
 
-        items, total = await search_service.search(db_session, query="Architecture")
+        items, total, _ = await search_service.search(db_session, query="Architecture")
         assert total >= 1
         assert any(i["entity_id"] == str(sample_artifact.id) for i in items)
 
@@ -70,7 +70,7 @@ class TestSearchIndexing:
         await search_service.index_run(db_session, sample_run)
         await db_session.commit()
 
-        items, total = await search_service.search(db_session, query="Run")
+        items, total, _ = await search_service.search(db_session, query="Run")
         assert total >= 1
 
     @pytest.mark.asyncio
@@ -86,7 +86,7 @@ class TestSearchIndexing:
         await search_service.index_task(db_session, sample_task)
         await db_session.commit()
 
-        items, _ = await search_service.search(db_session, query="Updated Task Title")
+        items, _, _ = await search_service.search(db_session, query="Updated Task Title")
         matches = [i for i in items if i["entity_id"] == str(sample_task.id)]
         assert len(matches) == 1
 
@@ -100,7 +100,7 @@ class TestSearchIndexing:
         )
         await db_session.commit()
 
-        items, total = await search_service.search(
+        items, total, _ = await search_service.search(
             db_session,
             query="Test Task",
             entity_types=[SearchEntityType.TASK],
@@ -118,7 +118,7 @@ class TestSearchQuery:
         await search_service.index_task(db_session, sample_task)
         await db_session.commit()
 
-        items, total = await search_service.search(
+        items, total, _ = await search_service.search(
             db_session, query="Test", project_id=sample_project.id
         )
         assert total >= 1
@@ -131,7 +131,7 @@ class TestSearchQuery:
         await search_service.index_artifact(db_session, sample_artifact)
         await db_session.commit()
 
-        items, total = await search_service.search(
+        items, total, _ = await search_service.search(
             db_session,
             query="Test",
             entity_types=[SearchEntityType.ARTIFACT],
@@ -141,7 +141,7 @@ class TestSearchQuery:
 
     @pytest.mark.asyncio
     async def test_search_no_results(self, db_session: AsyncSession):
-        items, total = await search_service.search(
+        items, total, _ = await search_service.search(
             db_session, query="xyznonexistent999"
         )
         assert total == 0
@@ -171,7 +171,7 @@ class TestSearchQuery:
             await search_service.index_task(db_session, t)
         await db_session.commit()
 
-        items, total = await search_service.search(
+        items, total, _ = await search_service.search(
             db_session, query="Pagination", limit=2, offset=0
         )
         assert len(items) <= 2
@@ -184,7 +184,7 @@ class TestSearchQuery:
         await search_service.index_artifact(db_session, sample_artifact)
         await db_session.commit()
 
-        items, _ = await search_service.search(db_session, query="Architecture")
+        items, _, _ = await search_service.search(db_session, query="Architecture")
         assert len(items) >= 1
         assert items[0]["snippet"]  # should have a snippet
 
@@ -257,7 +257,7 @@ class TestCrossProjectSearch:
         await db_session.commit()
 
         # Search with user_id for RBAC filtering
-        items, total = await search_service.search(
+        items, total, _ = await search_service.search(
             db_session, query="Test", user_id=STUB_USER_ID
         )
         assert total >= 1
@@ -773,7 +773,7 @@ class TestEdgeCases:
     @pytest.mark.asyncio
     async def test_search_special_characters(self, db_session: AsyncSession):
         """Search with special characters should not crash."""
-        items, total = await search_service.search(
+        items, total, _ = await search_service.search(
             db_session, query="test@#$%^&*()"
         )
         assert isinstance(items, list)

@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     redis_port: int = Field(default=6379, alias="REDIS_PORT")
     redis_url: str = Field(default="", alias="REDIS_URL")
 
+    # GitHub Integration
+    github_webhook_secret: str = Field(default="", alias="GITHUB_WEBHOOK_SECRET")
+    github_app_id: str = Field(default="", alias="GITHUB_APP_ID")
+    github_private_key: str = Field(default="", alias="GITHUB_PRIVATE_KEY")
+
     # LLM / Planner
     planner_model: str = Field(default="gpt-4o", alias="PLANNER_MODEL")
     planner_temperature: float = Field(default=0.4, alias="PLANNER_TEMPERATURE")

@@ -145,7 +145,7 @@ async def evaluate_retention(
 
     Args:
         dry_run: If True, only report what would be affected. If False,
-                 actually mark entities (not implemented in this pass).
+                 actually delete/archive matching entities.
 
     Returns summary of entities affected per policy.
     """
@@ -162,6 +162,7 @@ async def evaluate_retention(
     for policy in policies:
         cutoff = now - timedelta(days=policy.retention_days)
         affected_count = 0
+        deleted_count = 0
 
         if policy.entity_type == "run":
             conditions = [Run.created_at < cutoff]
@@ -182,6 +183,17 @@ async def evaluate_retention(
             )
             affected_count = (await db.execute(count_q)).scalar() or 0
 
+            if not dry_run and affected_count > 0 and policy.action == RetentionAction.DELETE:
+                from sqlalchemy import delete as sa_delete
+
+                del_q = sa_delete(Run).where(and_(*conditions))
+                del_result = await db.execute(del_q)
+                deleted_count = del_result.rowcount
+                logger.info(
+                    "retention: EXECUTED delete for runs workspace=%s cutoff=%s deleted=%d",
+                    workspace_id, cutoff.isoformat(), deleted_count,
+                )
+
         elif policy.entity_type == "audit_log":
             conditions = [
                 AuditLog.workspace_id == workspace_id,
@@ -194,6 +206,17 @@ async def evaluate_retention(
             )
             affected_count = (await db.execute(count_q)).scalar() or 0
 
+            if not dry_run and affected_count > 0 and policy.action == RetentionAction.DELETE:
+                from sqlalchemy import delete as sa_delete
+
+                del_q = sa_delete(AuditLog).where(and_(*conditions))
+                del_result = await db.execute(del_q)
+                deleted_count = del_result.rowcount
+                logger.info(
+                    "retention: EXECUTED delete for audit_logs workspace=%s cutoff=%s deleted=%d",
+                    workspace_id, cutoff.isoformat(), deleted_count,
+                )
+
         results.append({
             "policy_id": str(policy.id),
             "entity_type": policy.entity_type,
@@ -201,6 +224,7 @@ async def evaluate_retention(
             "action": policy.action.value,
             "cutoff_date": cutoff.isoformat(),
             "affected_count": affected_count,
+            "deleted_count": deleted_count,
             "dry_run": dry_run,
         })
 
@@ -210,4 +234,6 @@ async def evaluate_retention(
         "policies_evaluated": len(policies),
         "results": results,
         "total_affected": sum(r["affected_count"] for r in results),
+        "total_deleted": sum(r["deleted_count"] for r in results),
+        "dry_run": dry_run,
     }

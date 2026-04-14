@@ -48,6 +48,7 @@ from app.api.routes.annotations import router as annotations_router
 from app.api.routes.github_integration import router as github_router
 from app.api.routes.search_knowledge import router as search_knowledge_router
 from app.api.routes.enterprise_governance import router as enterprise_governance_router
+from app.api.routes.collaboration import router as collaboration_router
 
 api_router = APIRouter()
 
@@ -188,3 +189,6 @@ api_router.include_router(search_knowledge_router, tags=["search", "knowledge", 
 
 # Enterprise Governance, Permissions & Compliance (FM-171–180)
 api_router.include_router(enterprise_governance_router, tags=["enterprise-governance", "audit", "compliance"])
+
+# Task Assignment, Approval Delegation, Project Overview (FM-147/148/150)
+api_router.include_router(collaboration_router, tags=["collaboration", "assignments", "delegations"])

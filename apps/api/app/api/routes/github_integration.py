@@ -6,6 +6,7 @@ FM-151–160.
 import uuid
 
 from fastapi import APIRouter, Depends, Request, HTTPException
+from pydantic import BaseModel as _BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
@@ -107,10 +108,27 @@ async def receive_webhook(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    """Receive GitHub webhook events."""
+    """Receive GitHub webhook events.
+
+    Verifies HMAC-SHA256 signature when GITHUB_WEBHOOK_SECRET is configured.
+    """
+    from app.core.config import settings
+
+    payload_bytes = await request.body()
+
+    # Enforce signature verification when a webhook secret is configured
+    if settings.github_webhook_secret:
+        signature = request.headers.get("X-Hub-Signature-256", "")
+        if not webhook_service.verify_github_signature(
+            payload_bytes, signature, settings.github_webhook_secret
+        ):
+            raise HTTPException(status_code=401, detail="Invalid webhook signature")
+
     event_type = request.headers.get("X-GitHub-Event", "ping")
     delivery_id = request.headers.get("X-GitHub-Delivery")
-    payload = await request.json()
+    import json as _json
+
+    payload = _json.loads(payload_bytes)
 
     event = await webhook_service.ingest_event(db, event_type, delivery_id, payload)
 
@@ -273,3 +291,118 @@ async def replay_webhook(
         "event_type": event.event_type,
         "result": str(result) if result else None,
     }
+
+
+# ---------------------------------------------------------------------------
+# FM-154/157: Outbound GitHub Actions — PR comments & commit status
+# ---------------------------------------------------------------------------
+
+
+class _PRCommentBody(_BaseModel):
+    body: str
+
+
+class _CommitStatusBody(_BaseModel):
+    state: str  # pending, success, failure, error
+    description: str = ""
+    target_url: str | None = None
+    context: str = "forgemind/ci"
+
+
+@router.post("/prs/{pr_link_id}/comments")
+async def post_pr_comment(
+    pr_link_id: uuid.UUID,
+    body: _PRCommentBody,
+    db: AsyncSession = Depends(get_db),
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Post a comment on a GitHub PR via the outbound API.
+
+    Requires GITHUB_WEBHOOK_SECRET or a configured installation token.
+    Resolves the PR's repo owner/name from the linked repository.
+    """
+    from app.models.github_integration import PullRequestLink, RepositoryLink
+    from app.services.github_client import post_pr_comment as gh_post_comment
+    from app.services.github_client import GitHubClientError
+    from app.core.config import settings
+
+    pr = await db.get(PullRequestLink, pr_link_id)
+    if pr is None:
+        raise HTTPException(status_code=404, detail="PR link not found")
+
+    repo = await db.get(RepositoryLink, pr.repository_link_id)
+    if repo is None:
+        raise HTTPException(status_code=404, detail="Repository link not found")
+
+    # Parse owner/repo from full_name (e.g. "owner/repo")
+    parts = repo.full_name.split("/", 1)
+    if len(parts) != 2:
+        raise HTTPException(status_code=400, detail="Invalid repo full_name format")
+    owner, repo_name = parts
+
+    # Use webhook secret as token fallback (in real deployment, use installation token)
+    token = settings.github_webhook_secret or ""
+    if not token:
+        raise HTTPException(
+            status_code=503,
+            detail="GitHub credentials not configured — set GITHUB_WEBHOOK_SECRET or installation token",
+        )
+
+    try:
+        comment = await gh_post_comment(owner, repo_name, pr.pr_number, body.body, token)
+        return {
+            "posted": True,
+            "github_comment_id": comment.id,
+            "html_url": comment.html_url,
+        }
+    except GitHubClientError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.post("/repos/{repo_link_id}/statuses/{sha}")
+async def create_commit_status(
+    repo_link_id: uuid.UUID,
+    sha: str,
+    body: _CommitStatusBody,
+    db: AsyncSession = Depends(get_db),
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Create a commit status on GitHub (pending/success/failure/error)."""
+    from app.models.github_integration import RepositoryLink
+    from app.services.github_client import create_commit_status as gh_create_status
+    from app.services.github_client import GitHubClientError
+    from app.core.config import settings
+
+    repo = await db.get(RepositoryLink, repo_link_id)
+    if repo is None:
+        raise HTTPException(status_code=404, detail="Repository link not found")
+
+    parts = repo.full_name.split("/", 1)
+    if len(parts) != 2:
+        raise HTTPException(status_code=400, detail="Invalid repo full_name format")
+    owner, repo_name = parts
+
+    token = settings.github_webhook_secret or ""
+    if not token:
+        raise HTTPException(
+            status_code=503,
+            detail="GitHub credentials not configured",
+        )
+
+    try:
+        status = await gh_create_status(
+            owner, repo_name, sha,
+            state=body.state,
+            description=body.description,
+            target_url=body.target_url,
+            context=body.context,
+            token=token,
+        )
+        return {
+            "posted": True,
+            "state": status.state,
+            "context": status.context,
+            "description": status.description,
+        }
+    except GitHubClientError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)

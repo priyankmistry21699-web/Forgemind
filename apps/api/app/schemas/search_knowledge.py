@@ -36,6 +36,7 @@ class SearchResponse(BaseModel):
     items: list[SearchResult]
     scope: str | None = None
     filters: dict | None = None
+    facets: dict | None = None
 
 
 # ── FM-162: Semantic / Similar Search ────────────────────────────

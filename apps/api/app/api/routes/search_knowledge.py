@@ -63,6 +63,9 @@ async def search(
     project_id: uuid.UUID | None = Query(None),
     entity_type: str | None = Query(None, description="Comma-separated: task,artifact,comment,run,project,knowledge,annotation,approval"),
     entity_status: str | None = Query(None),
+    created_after: str | None = Query(None, description="ISO date filter (e.g. 2026-01-01)"),
+    created_before: str | None = Query(None, description="ISO date filter"),
+    facets: bool = Query(False, description="Include facet counts by entity_type and status"),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
@@ -72,6 +75,7 @@ async def search(
 
     - With project_id: scoped search within one project
     - Without project_id: cross-project search (RBAC filtered)
+    - With facets=true: returns aggregation counts by entity_type and status
     """
     if project_id:
         await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
@@ -87,24 +91,46 @@ async def search(
                 detail=f"Invalid entity_type. Valid: {[e.value for e in SearchEntityType]}",
             )
 
-    items, total = await search_service.search(
+    # Parse date-range filters
+    from datetime import datetime as _dt
+
+    dt_after = None
+    dt_before = None
+    if created_after:
+        try:
+            dt_after = _dt.fromisoformat(created_after)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid created_after date format")
+    if created_before:
+        try:
+            dt_before = _dt.fromisoformat(created_before)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid created_before date format")
+
+    items, total, facet_data = await search_service.search(
         db,
         query=q,
         project_id=project_id,
         entity_types=types,
         entity_status=entity_status,
+        created_after=dt_after,
+        created_before=dt_before,
         limit=limit,
         offset=offset,
         user_id=user_id if not project_id else None,
+        include_facets=facets,
     )
 
-    return SearchResponse(
+    resp = SearchResponse(
         query=q,
         total=total,
         items=items,
         scope=f"project:{project_id}" if project_id else "global",
         filters={"entity_type": entity_type, "entity_status": entity_status},
     )
+    if facet_data:
+        resp.facets = facet_data
+    return resp
 
 
 # ── FM-162: Find Similar ─────────────────────────────────────────
