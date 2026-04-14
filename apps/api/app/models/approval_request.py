@@ -61,6 +61,11 @@ class ApprovalRequest(Base):
         DateTime(timezone=True), nullable=True
     )
 
+    # FM-148: Expiration — auto-escalate after timeout
+    expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

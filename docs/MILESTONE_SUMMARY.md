@@ -680,6 +680,38 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 
 ---
 
+## FM-141 to FM-150 — ✅ COMPLETE (Wave 10: Collaboration & UX)
+
+| ID     | Feature                              | Status      |
+| ------ | ------------------------------------ | ----------- |
+| FM-141 | Threaded Comments                    | ✅ Complete |
+| FM-142 | @Mentions & Notification Routing     | ✅ Complete |
+| FM-143 | Unified Activity Feed                | ✅ Complete |
+| FM-144 | Saved Views & Filters                | ✅ Complete |
+| FM-145 | User Presence & Online Status        | ✅ Complete |
+| FM-146 | Collaborative Run Annotations        | ✅ Complete |
+| FM-147 | Task Assignment & Workload           | ✅ Complete |
+| FM-148 | Approval Delegation & Batch          | ✅ Complete |
+| FM-149 | Notification Digest & Center         | ✅ Complete |
+| FM-150 | Project Overview Dashboard           | ✅ Complete |
+
+## FM-151 to FM-160 — ✅ COMPLETE (Wave 11: GitHub & CI Integration)
+
+| ID     | Feature                              | Status                    |
+| ------ | ------------------------------------ | ------------------------- |
+| FM-151 | GitHub App Installation & Linking    | ✅ Complete               |
+| FM-152 | Webhook Ingestion & Events           | ✅ Complete               |
+| FM-153 | PR Auto-Creation & Tracking          | ✅ Complete               |
+| FM-154 | CI Pipeline Status Integration       | ✅ Complete               |
+| FM-155 | Issue Sync                           | ✅ Complete               |
+| FM-156 | Branch Strategy & Merge Readiness    | ✅ Complete               |
+| FM-157 | Code Review Routing                  | ✅ Complete               |
+| FM-158 | Commit & Diff Intelligence           | ✅ Complete               |
+| FM-159 | VS Code Extension Foundation         | ⏸️ DEFERRED (separate repo) |
+| FM-160 | Hardening: Rate Limiter, Retry, Replay | ✅ Complete             |
+
+---
+
 ## Technical Debt (active)
 
 See [docs/TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for full details (18 items). Key new items:
@@ -693,4 +725,4 @@ See [docs/TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for full details (18 items). Key
 
 ---
 
-_All 140 tasks across 26 milestones are complete. See the FM-131–FM-140 section above for release operations details._
+_All milestones through FM-158 + FM-160 are complete (754 tests passing). FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project._

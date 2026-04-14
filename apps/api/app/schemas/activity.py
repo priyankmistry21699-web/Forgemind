@@ -46,6 +46,15 @@ class PresenceUpdate(BaseModel):
     status: str = Field(default="online", max_length=20)
     current_resource_type: str | None = None
     current_resource_id: uuid.UUID | None = None
+    project_id: uuid.UUID | None = None
+
+
+class PresenceHeartbeat(BaseModel):
+    """FM-145: Heartbeat request with project context."""
+
+    project_id: uuid.UUID | None = None
+    current_resource_type: str | None = None
+    current_resource_id: uuid.UUID | None = None
 
 
 class PresenceRead(BaseModel):
@@ -54,6 +63,7 @@ class PresenceRead(BaseModel):
     status: str
     current_resource_type: str | None
     current_resource_id: uuid.UUID | None
+    project_id: uuid.UUID | None
     last_seen_at: datetime
 
     model_config = {"from_attributes": True}

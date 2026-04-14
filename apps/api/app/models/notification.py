@@ -63,6 +63,13 @@ class Notification(Base):
     body: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
+    # FM-149: Notification Center enhancements
+    category: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
+    group_key: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    dismissed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     # Optional link to a resource
     resource_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
     resource_id: Mapped[uuid.UUID | None] = mapped_column(

@@ -10,6 +10,7 @@ from app.schemas.activity import (
     ActivityFeedEntryRead,
     ActivityFeedList,
     PresenceUpdate,
+    PresenceHeartbeat,
     PresenceRead,
     PresenceList,
 )
@@ -98,6 +99,7 @@ async def update_presence(
         status=data.status,
         current_resource_type=data.current_resource_type,
         current_resource_id=data.current_resource_id,
+        project_id=data.project_id,
     )
     return PresenceRead.model_validate(p)
 
@@ -130,6 +132,42 @@ async def get_presence(
     if p is None:
         raise HTTPException(status_code=404, detail="Presence not found")
     return PresenceRead.model_validate(p)
+
+
+# ── FM-145: Heartbeat & Project-Scoped Presence ─────────────────
+
+
+@router.post("/presence/heartbeat", response_model=PresenceRead)
+async def presence_heartbeat(
+    data: PresenceHeartbeat,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+) -> PresenceRead:
+    """Record a heartbeat — marks user as 'online' with current context."""
+    p = await activity_service.heartbeat(
+        db,
+        user_id=user_id,
+        project_id=data.project_id,
+        current_resource_type=data.current_resource_type,
+        current_resource_id=data.current_resource_id,
+    )
+    return PresenceRead.model_validate(p)
+
+
+@router.get(
+    "/projects/{project_id}/presence",
+    response_model=list[PresenceRead],
+)
+async def get_project_presence(
+    project_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+) -> list[PresenceRead]:
+    """List users currently present on a project (non-offline)."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    await activity_service.apply_staleness(db)
+    items = await activity_service.list_project_presence(db, project_id)
+    return [PresenceRead.model_validate(p) for p in items]
 
 
 # ── Workspace Activity (FM-058) ─────────────────────────────────

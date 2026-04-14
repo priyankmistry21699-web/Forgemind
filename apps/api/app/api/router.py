@@ -42,6 +42,10 @@ from app.api.routes.constitution_suggestions import router as suggestions_router
 from app.api.routes.checkpoints import router as checkpoints_router
 from app.api.routes.delivery import router as delivery_router
 from app.api.routes.release_ops import router as release_ops_router
+from app.api.routes.comments import router as comments_router
+from app.api.routes.saved_views import router as saved_views_router
+from app.api.routes.annotations import router as annotations_router
+from app.api.routes.github_integration import router as github_router
 
 api_router = APIRouter()
 
@@ -170,3 +174,9 @@ api_router.include_router(delivery_router, tags=["delivery"])
 
 # Release Operations (FM-131–137)
 api_router.include_router(release_ops_router, tags=["release-ops"])
+
+# Threaded Comments (FM-141)
+api_router.include_router(comments_router, tags=["comments"])
+api_router.include_router(saved_views_router, tags=["saved-views"])
+api_router.include_router(annotations_router, tags=["annotations"])
+api_router.include_router(github_router, tags=["github"])

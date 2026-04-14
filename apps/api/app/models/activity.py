@@ -79,6 +79,8 @@ class ActivityFeedEntry(Base):
 
 
 class UserPresence(Base):
+    """FM-059 base + FM-145 enhancements: project-scoped presence with staleness."""
+
     __tablename__ = "user_presences"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -95,6 +97,14 @@ class UserPresence(Base):
     current_resource_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
     current_resource_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), nullable=True
+    )
+
+    # FM-145: Project-scoped presence
+    project_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
 
     last_seen_at: Mapped[datetime] = mapped_column(

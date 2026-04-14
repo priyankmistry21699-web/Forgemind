@@ -68,3 +68,20 @@ from app.models.release_ops import (  # noqa: F401
     DeploymentEnvironment,
     ReleaseGateResult,
 )
+
+# FM-141–150: Collaboration, UX & Team Coordination
+from app.models.comment import Comment  # noqa: F401
+from app.models.saved_view import SavedView  # noqa: F401
+from app.models.run_annotation import RunAnnotation  # noqa: F401
+from app.models.approval_delegation import ApprovalDelegation  # noqa: F401
+
+# FM-151–160: GitHub & CI Integration
+from app.models.github_integration import (  # noqa: F401
+    GitHubInstallation,
+    RepositoryLink,
+    ExternalEvent,
+    PullRequestLink,
+    CIPipelineRun,
+    IssueLink,
+    CodeOwnership,
+)
