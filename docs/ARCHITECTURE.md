@@ -763,6 +763,18 @@ apps/local/
 
 ---
 
+## Future Architecture: V5 (FM-211 → FM-250)
+
+> **Status:** Not yet implemented. See [FORGEMIND_V5_ROADMAP.md](../FORGEMIND_V5_ROADMAP.md) for the full vision.
+
+V5 evolves ForgeMind into a **dynamic multi-agent orchestration platform** adding:
+
+- **Master Orchestration Service** — interprets tasks and deploys specialized sub-agents dynamically
+- **Redis Event Bus** — inter-agent communication and messaging layer
+- **Council Deliberation** — structured proposal-debate-resolution protocol for complex decisions
+- **Graph Memory** — persistent knowledge graph for structured reasoning and relationship storage
+- **FAIR Workflow Engine** — explainable scoring with confidence/policy signals for workflow selection
+
 ### Milestone 23 — SPEC-Driven Lifecycle (FM-101 → FM-110)
 
 **New Models:**

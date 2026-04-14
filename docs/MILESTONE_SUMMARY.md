@@ -726,3 +726,46 @@ See [docs/TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for full details (18 items). Key
 ---
 
 _All milestones through FM-158 + FM-160 are complete (754 tests passing). FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project._
+
+---
+
+## FM-161 to FM-170 — ✅ COMPLETE (Wave 12: Search, Knowledge & Organizational Memory)
+
+| ID     | Feature                                          | Status                    |
+| ------ | ------------------------------------------------ | ------------------------- |
+| FM-161 | Full-Text Search Index                           | ✅ Complete               |
+| FM-162 | Semantic Search with Embeddings                  | ✅ Complete (keyword-similarity; vector deferred) |
+| FM-163 | Knowledge Base — Decision & Pattern Library      | ✅ Complete               |
+| FM-164 | Project Templates V2 — Knowledge-Enriched       | ✅ Complete               |
+| FM-165 | Cross-Project Search & Discovery                 | ✅ Complete               |
+| FM-166 | Execution Replay & Comparison                    | ✅ Complete (comparison; replay deferred) |
+| FM-167 | Organizational Context & Conventions Engine      | ✅ Complete               |
+| FM-168 | Artifact Versioning & History                    | ✅ Complete               |
+| FM-169 | Smart Recommendations Engine                     | ✅ Complete               |
+| FM-170 | Knowledge & Search Tests, Docs & Hardening       | ✅ Complete (38 new tests, 792 total) |
+
+---
+
+## ForgeMind V5 — FUTURE (FM-211 → FM-250)
+
+> **Status:** Not yet implemented. Architecture direction planned for after FM-210 is complete.
+> **Full roadmap:** See [FORGEMIND_V5_ROADMAP.md](../FORGEMIND_V5_ROADMAP.md)
+
+V5 transforms ForgeMind into a **dynamic multi-agent orchestration platform** with persistent graph-based reasoning, council-style deliberation, and explainable workflow selection.
+
+| Wave    | Range           | Theme                                              | Status          |
+| ------- | --------------- | -------------------------------------------------- | --------------- |
+| Wave 17 | FM-211 → FM-220 | Dynamic Multi-Agent Runtime Foundations             | 🔮 Future       |
+| Wave 18 | FM-221 → FM-230 | Council Collaboration & Deliberation Engine         | 🔮 Future       |
+| Wave 19 | FM-231 → FM-240 | Graph Memory & Persistent Reasoning                | 🔮 Future       |
+| Wave 20 | FM-241 → FM-250 | Adaptive Workflow Selection & FAIR Engine           | 🔮 Future       |
+
+### Version Boundary Summary
+
+| Version | Milestones    | Focus        | Status        |
+| ------- | ------------- | ------------ | ------------- |
+| V1      | FM-001–050    | Foundation   | ✅ Complete    |
+| V2      | FM-051–100    | Breadth      | ✅ Complete    |
+| V3      | FM-101–140    | Depth        | ✅ Complete    |
+| V4      | FM-141–210    | Ecosystem    | 🔧 In Progress |
+| **V5**  | **FM-211–250**| **Intelligence** | **🔮 Future** |

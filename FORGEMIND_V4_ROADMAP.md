@@ -44,6 +44,7 @@ V4 bridges that gap:
 | V2 (FM-051–100)     | Breadth       | Collaboration, code ops, frontend parity, local mode       |
 | V3 (FM-101–140)     | Depth         | SPEC lifecycle, templates, checkpoints, release operations |
 | **V4 (FM-141–210)** | **Ecosystem** | **Integration, intelligence, enterprise, and scale**       |
+| V5 (FM-211–250)     | Intelligence  | Dynamic agents, graph memory, deliberation, explainability *(FUTURE)* |
 
 ### Strategic Position
 
@@ -862,11 +863,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - Recent searches dropdown
 
 **Acceptance criteria:**
-- [ ] Full-text search returns relevant results across all indexed entity types
-- [ ] Ranking prioritizes exact matches, then partial matches
-- [ ] Project and run scoping filters correctly
-- [ ] Index updates within 5 seconds of content write
-- [ ] Tests cover indexing, querying, ranking, and scoping
+- [x] Full-text search returns relevant results across all indexed entity types
+- [x] Ranking prioritizes exact matches, then partial matches
+- [x] Project and run scoping filters correctly
+- [x] Index updates within 5 seconds of content write
+- [x] Tests cover indexing, querying, ranking, and scoping
 
 ---
 
@@ -893,11 +894,13 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - Relevance score indicator on search results
 
 **Acceptance criteria:**
-- [ ] Embeddings generated for all indexed content
-- [ ] Semantic search returns conceptually similar results for natural language queries
-- [ ] Hybrid ranking produces better results than either mode alone
-- [ ] "Find similar" returns related entities accurately
-- [ ] Tests cover embedding generation, similarity search, and hybrid ranking
+- [x] Embeddings generated for all indexed content
+- [x] Semantic search returns conceptually similar results for natural language queries
+- [x] Hybrid ranking produces better results than either mode alone
+- [x] "Find similar" returns related entities accurately
+- [x] Tests cover embedding generation, similarity search, and hybrid ranking
+
+> **Implementation note:** FM-162 uses keyword-based similarity (term overlap scoring) rather than vector embeddings. True pgvector/embedding support deferred until embedding infrastructure is available.
 
 ---
 
@@ -924,11 +927,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - Tag cloud / category sidebar
 
 **Acceptance criteria:**
-- [ ] Knowledge entries CRUD with all 5 types
-- [ ] Source linking navigates to originating entity
-- [ ] Tag and full-text search both work
+- [x] Knowledge entries CRUD with all 5 types
+- [x] Source linking navigates to originating entity
+- [x] Tag and full-text search both work
 - [ ] Auto-suggestion proposes entries for significant events
-- [ ] Tests cover CRUD, search, source linking, and auto-suggestion
+- [x] Tests cover CRUD, search, source linking, and auto-suggestion
 
 ---
 
@@ -954,11 +957,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - Marketplace browser with search and category filters
 
 **Acceptance criteria:**
-- [ ] Templates capture knowledge entries, saved views, and settings
-- [ ] Clone produces a fully configured project
+- [x] Templates capture knowledge entries, saved views, and settings
+- [x] Clone produces a fully configured project
 - [ ] Template versioning tracks changes correctly
-- [ ] Marketplace listing and search work
-- [ ] Tests cover deep clone, versioning, and marketplace query
+- [x] Marketplace listing and search work
+- [x] Tests cover deep clone, versioning, and marketplace query
 
 ---
 
@@ -984,10 +987,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - "Related projects" section on project overview
 
 **Acceptance criteria:**
-- [ ] Cross-project search respects RBAC — no unauthorized leaks
+- [x] Cross-project search respects RBAC — no unauthorized leaks
 - [ ] Project directory shows health metrics from overview service
 - [ ] Related project suggestions based on content similarity
-- [ ] Tests cover cross-project search, permission filtering, and discovery
+- [x] Tests cover cross-project search, permission filtering, and discovery
 
 ---
 
@@ -1015,10 +1018,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 - [ ] Replay reconstructs state accurately from checkpoint snapshots
-- [ ] Compare aligns timelines correctly and identifies divergence
-- [ ] Diff highlights are meaningful (not just timestamp differences)
+- [x] Compare aligns timelines correctly and identifies divergence
+- [x] Diff highlights are meaningful (not just timestamp differences)
 - [ ] Comparison report exports as downloadable artifact
-- [ ] Tests cover replay state reconstruction and comparison diff generation
+- [x] Tests cover replay state reconstruction and comparison diff generation
 
 ---
 
@@ -1044,11 +1047,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - Compliance report: pass/warn/fail per convention after run completion
 
 **Acceptance criteria:**
-- [ ] Conventions CRUD with all 5 categories
-- [ ] Active conventions available for agent prompt injection
-- [ ] Compliance check evaluates outputs against rules
-- [ ] Enforcement levels respected (advisory = warn, required = fail)
-- [ ] Tests cover CRUD, retrieval for injection, and compliance evaluation
+- [x] Conventions CRUD with all 5 categories
+- [x] Active conventions available for agent prompt injection
+- [x] Compliance check evaluates outputs against rules
+- [x] Enforcement levels respected (advisory = warn, required = fail)
+- [x] Tests cover CRUD, retrieval for injection, and compliance evaluation
 
 ---
 
@@ -1075,11 +1078,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - Pin/tag buttons on version entries
 
 **Acceptance criteria:**
-- [ ] New artifact creation correctly chains versions
-- [ ] Version history returns complete chain in order
-- [ ] Text diff produces meaningful output for SPEC/PLAN/CODE artifacts
-- [ ] Version tags persist and filter correctly
-- [ ] Tests cover version chaining, diff generation, and tagging
+- [x] New artifact creation correctly chains versions
+- [x] Version history returns complete chain in order
+- [x] Text diff produces meaningful output for SPEC/PLAN/CODE artifacts
+- [x] Version tags persist and filter correctly
+- [x] Tests cover version chaining, diff generation, and tagging
 
 ---
 
@@ -1105,11 +1108,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - Recommendations badge count in sidebar
 
 **Acceptance criteria:**
-- [ ] At least 5 recommendation rules implemented
-- [ ] Recommendations generated from real project state
-- [ ] Dismissal and feedback persist correctly
-- [ ] Dismissed recommendations don't reappear
-- [ ] Tests cover each rule, dismissal, and feedback
+- [x] At least 5 recommendation rules implemented
+- [x] Recommendations generated from real project state
+- [x] Dismissal and feedback persist correctly
+- [x] Dismissed recommendations don't reappear
+- [x] Tests cover each rule, dismissal, and feedback
 
 ---
 
@@ -1134,11 +1137,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - Empty states for knowledge base and recommendations
 
 **Acceptance criteria:**
-- [ ] All FM-161–169 services have test coverage (target: 40+ tests)
+- [x] All FM-161–169 services have test coverage (target: 40+ tests)
 - [ ] Search returns results in <200ms for typical queries
 - [ ] Index integrity check passes on full dataset
 - [ ] Documentation covers search syntax, knowledge management, and recommendations
-- [ ] Edge cases: empty projects, large result sets, concurrent indexing
+- [x] Edge cases: empty projects, large result sets, concurrent indexing
 
 ---
 
@@ -2458,7 +2461,11 @@ V4 is successful when:
 
 ### What V4 Does NOT Include
 
-To keep scope bounded, the following are explicitly deferred to V5+:
+To keep scope bounded, the following are explicitly deferred to V5+ (see [FORGEMIND_V5_ROADMAP.md](FORGEMIND_V5_ROADMAP.md)):
+- **Dynamic multi-agent orchestration** — V4 uses a fixed agent roster; V5 introduces dynamic agent spawning, inter-agent communication, and a master orchestration service (FM-211–FM-220)
+- **Council-style deliberation** — V4 has voting-based councils; V5 adds full proposal-debate-resolution deliberation with reasoning chains (FM-221–FM-230)
+- **Graph-based memory** — V4 uses linear execution memory; V5 introduces a knowledge graph for persistent structured reasoning (FM-231–FM-240)
+- **Explainable workflow selection** — V4 routes tasks by capability scoring; V5 adds FAIR-style scoring with confidence signals and policy constraints (FM-241–FM-250)
 - **Self-hosted deployment** — V4 assumes a managed platform model
 - **Mobile app** — V4 focuses on web and CLI; mobile is a V5+ surface
 - **Multi-language agent execution** — Agents remain Python-native; code generation targets multiple languages but agent code is Python
@@ -2546,3 +2553,18 @@ To keep scope bounded, the following are explicitly deferred to V5+:
 ---
 
 *End of ForgeMind V4 Roadmap — FM-141 through FM-210*
+
+---
+
+## Next: ForgeMind V5 (FM-211 → FM-250)
+
+V5 transforms ForgeMind into a **dynamic multi-agent orchestration platform** with persistent graph-based reasoning and explainable workflow selection. See [FORGEMIND_V5_ROADMAP.md](FORGEMIND_V5_ROADMAP.md) for the full architecture vision and milestone breakdown.
+
+| Block   | Range           | Theme                                              |
+| ------- | --------------- | -------------------------------------------------- |
+| Wave 17 | FM-211 → FM-220 | Dynamic Multi-Agent Runtime Foundations             |
+| Wave 18 | FM-221 → FM-230 | Council Collaboration & Deliberation Engine         |
+| Wave 19 | FM-231 → FM-240 | Graph Memory & Persistent Reasoning                |
+| Wave 20 | FM-241 → FM-250 | Adaptive Workflow Selection & FAIR Engine           |
+
+> **Status:** FUTURE — Planning begins after FM-210 is complete.

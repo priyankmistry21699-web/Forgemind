@@ -46,6 +46,7 @@ from app.api.routes.comments import router as comments_router
 from app.api.routes.saved_views import router as saved_views_router
 from app.api.routes.annotations import router as annotations_router
 from app.api.routes.github_integration import router as github_router
+from app.api.routes.search_knowledge import router as search_knowledge_router
 
 api_router = APIRouter()
 
@@ -180,3 +181,6 @@ api_router.include_router(comments_router, tags=["comments"])
 api_router.include_router(saved_views_router, tags=["saved-views"])
 api_router.include_router(annotations_router, tags=["annotations"])
 api_router.include_router(github_router, tags=["github"])
+
+# Search, Knowledge & Organizational Memory (FM-161–170)
+api_router.include_router(search_knowledge_router, tags=["search", "knowledge", "conventions", "recommendations"])

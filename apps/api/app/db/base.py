@@ -85,3 +85,10 @@ from app.models.github_integration import (  # noqa: F401
     IssueLink,
     CodeOwnership,
 )
+
+# FM-161–170: Search, Knowledge & Organizational Memory
+from app.models.search_knowledge import (  # noqa: F401
+    SearchIndex,
+    Convention,
+    Recommendation,
+)
