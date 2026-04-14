@@ -869,6 +869,8 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - [x] Index updates within 5 seconds of content write
 - [x] Tests cover indexing, querying, ranking, and scoping
 
+> **Implementation note:** FM-161 uses SQL LIKE-based keyword matching against a `SearchIndex` table (not PostgreSQL `tsvector`/`tsquery`). Title matches are scored higher than body matches. This is functional and correct but less performant at scale than native full-text search. Migration to tsvector is a future optimization.
+
 ---
 
 #### FM-162: Semantic Search with Embeddings
@@ -894,13 +896,13 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - Relevance score indicator on search results
 
 **Acceptance criteria:**
-- [x] Embeddings generated for all indexed content
+- [ ] Embeddings generated for all indexed content
 - [x] Semantic search returns conceptually similar results for natural language queries
-- [x] Hybrid ranking produces better results than either mode alone
+- [ ] Hybrid ranking produces better results than either mode alone
 - [x] "Find similar" returns related entities accurately
-- [x] Tests cover embedding generation, similarity search, and hybrid ranking
+- [ ] Tests cover embedding generation, similarity search, and hybrid ranking
 
-> **Implementation note:** FM-162 uses keyword-based similarity (term overlap scoring) rather than vector embeddings. True pgvector/embedding support deferred until embedding infrastructure is available.
+> **Implementation note (scoped):** FM-162 is implemented as keyword-based similarity using term overlap scoring, not vector embeddings. `find_similar()` extracts key terms from a source entity and scores candidates by overlap ratio. True pgvector/embedding search is deferred until embedding infrastructure is available. The "Find similar" feature works via content overlap, not cosine similarity.
 
 ---
 
@@ -957,11 +959,13 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - Marketplace browser with search and category filters
 
 **Acceptance criteria:**
-- [x] Templates capture knowledge entries, saved views, and settings
-- [x] Clone produces a fully configured project
+- [ ] Templates capture knowledge entries, saved views, and settings
+- [ ] Clone produces a fully configured project
 - [ ] Template versioning tracks changes correctly
 - [x] Marketplace listing and search work
-- [x] Tests cover deep clone, versioning, and marketplace query
+- [ ] Tests cover deep clone, versioning, and marketplace query
+
+> **Implementation note (scoped):** FM-164 implemented the template marketplace browse endpoint (`GET /templates/marketplace`) with category filtering and search. Template versioning columns (`knowledge_snapshot`, `views_snapshot`, `settings_snapshot`, `version`, `parent_version_id`) were NOT added to the `ProjectTemplate` model. Deep clone with knowledge entries was NOT implemented. Only the marketplace read path is functional.
 
 ---
 
@@ -1021,7 +1025,9 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - [x] Compare aligns timelines correctly and identifies divergence
 - [x] Diff highlights are meaningful (not just timestamp differences)
 - [ ] Comparison report exports as downloadable artifact
-- [x] Tests cover replay state reconstruction and comparison diff generation
+- [ ] Tests cover replay state reconstruction and comparison diff generation
+
+> **Implementation note (scoped):** FM-166 implemented run comparison only (`compare_runs` service + `GET /runs/{id}/compare/{id2}` route). Replay mode was NOT implemented in Wave 12 — an earlier `replay_service.py` (FM-046) captures snapshots but has no step-through replay UI or endpoint. Comparison report export not implemented.
 
 ---
 
@@ -1139,9 +1145,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 - [x] All FM-161–169 services have test coverage (target: 40+ tests)
 - [ ] Search returns results in <200ms for typical queries
-- [ ] Index integrity check passes on full dataset
+- [x] Index integrity check passes on full dataset
 - [ ] Documentation covers search syntax, knowledge management, and recommendations
 - [x] Edge cases: empty projects, large result sets, concurrent indexing
+
+> **Implementation note:** 45 tests in `test_fm161_170_knowledge_search.py`. Index integrity checker implemented (`check_index_integrity` service + `GET /projects/{id}/search-integrity` route). Performance benchmarking and developer guide not implemented.
 
 ---
 

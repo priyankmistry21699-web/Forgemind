@@ -514,6 +514,7 @@ Settings defined in `apps/api/app/core/config.py` via Pydantic `BaseSettings`:
 | `test_code_ops.py`               | Code operations                      | Mappings, patches, reviews, branches, PRs, approvals, sandbox                                                                                  |
 | `test_code_ops_enhanced.py`      | FM-061–069 enhancements              | Sync metadata, file tree, artifact mapping, patches, reviews, PR drafts, approval gates, sandbox runner (24 tests)                             |
 | `test_fm081_090_architecture.py` | FM-081–090 architecture intelligence | Graph CRUD, topology mapping, drift detection, rules, design docs, impact analysis, recommendations, approvals, RBAC, health score (~69 tests) |
+| `test_fm161_170_knowledge_search.py` | FM-161–170 knowledge & search | Search indexing, similarity, knowledge CRUD, conventions, versioning, recommendations, comparisons, integrity check (~45 tests) |
 
 ### Evaluation Tests (`apps/api/evals/`)
 
@@ -534,8 +535,9 @@ Settings defined in `apps/api/app/core/config.py` via Pydantic `BaseSettings`:
 | FM-061–069 enhanced tests          | 24      |
 | FM-071–080 feature tests           | 110     |
 | FM-081–090 architecture tests      | 69      |
+| FM-161–170 knowledge & search      | 45      |
 | Quality evals                      | 27      |
-| **Total**                          | **482** |
+| **Total**                          | **527** |
 
 ---
 
@@ -930,6 +932,27 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 | Wave | Milestone | Tasks         | Theme                                                             | Status      |
 | ---- | --------- | ------------- | ----------------------------------------------------------------- | ----------- |
 | 9    | 26        | FM-131–FM-140 | Release operations, deployment confidence, operational governance | ✅ Complete |
+
+---
+
+## Wave 12: FM-161–FM-170 — Search, Knowledge & Organizational Memory (⚙️ PARTIAL)
+
+> Full-text search, knowledge base, conventions engine, artifact versioning,
+> recommendations, run comparison, cross-project discovery. 6/10 fully complete,
+> 4/10 partially scoped (embeddings, template enrichment, replay, project directory deferred).
+
+| ID     | Feature                                     | Status                       |
+| ------ | ------------------------------------------- | ---------------------------- |
+| FM-161 | Full-Text Search Index                      | ✅ Complete (LIKE-based)     |
+| FM-162 | Semantic Search with Embeddings             | ⚠️ Partial (keyword only)   |
+| FM-163 | Knowledge Base — Decision & Pattern Library | ✅ Complete                  |
+| FM-164 | Project Templates V2                        | ⚠️ Partial (marketplace only)|
+| FM-165 | Cross-Project Search & Discovery            | ⚠️ Partial (search only)    |
+| FM-166 | Execution Replay & Comparison               | ⚠️ Partial (comparison only)|
+| FM-167 | Organizational Context & Conventions Engine | ✅ Complete                  |
+| FM-168 | Artifact Versioning & History               | ✅ Complete                  |
+| FM-169 | Smart Recommendations Engine                | ✅ Complete                  |
+| FM-170 | Knowledge & Search Tests & Hardening        | ✅ Complete (45 tests)       |
 
 ---
 

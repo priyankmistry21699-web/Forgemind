@@ -471,14 +471,14 @@ class TestArtifactVersioning:
     async def test_diff_versions(
         self, db_session: AsyncSession, sample_artifact
     ):
-        new_ver = await artifact_version_service.create_new_version(
+        _new_ver = await artifact_version_service.create_new_version(
             db_session,
             parent_artifact_id=sample_artifact.id,
             content="# Architecture\nCompletely different content",
             created_by="test-agent",
         )
         await db_session.commit()
-        assert new_ver is not None
+        assert _new_ver is not None
 
         result = await artifact_version_service.diff_versions(
             db_session, sample_artifact.id, 1, 2
@@ -510,14 +510,14 @@ class TestArtifactVersioning:
         )
         await db_session.commit()
 
-        v3 = await artifact_version_service.create_new_version(
+        _v3 = await artifact_version_service.create_new_version(
             db_session,
             parent_artifact_id=v2.id,
             content="Version 3",
             created_by="agent",
         )
         await db_session.commit()
-        assert v3 is not None
+        assert _v3 is not None
 
         versions = await artifact_version_service.get_version_history(
             db_session, sample_artifact.id
@@ -618,16 +618,16 @@ class TestRecommendations:
         await db_session.flush()
         await db_session.commit()
 
-        recs1 = await recommendation_service.generate_recommendations(
+        _recs1 = await recommendation_service.generate_recommendations(
             db_session, sample_project.id
         )
-        assert isinstance(recs1, list)
+        assert isinstance(_recs1, list)
         await db_session.commit()
 
-        recs2 = await recommendation_service.generate_recommendations(
+        _recs2 = await recommendation_service.generate_recommendations(
             db_session, sample_project.id
         )
-        assert isinstance(recs2, list)
+        assert isinstance(_recs2, list)
         await db_session.commit()
 
         # Second generation should not add duplicates
@@ -688,3 +688,154 @@ class TestModels:
         assert RecommendationType.KNOWLEDGE_GAP.value == "knowledge_gap"
         assert RecommendationType.TECH_DEBT.value == "tech_debt"
         assert RecommendationType.REUSABLE_PATTERN.value == "reusable_pattern"
+
+
+# =========================================================================
+# FM-170: Index integrity checker
+# =========================================================================
+
+
+class TestIndexIntegrity:
+    @pytest.mark.asyncio
+    async def test_integrity_after_reindex(
+        self,
+        db_session: AsyncSession,
+        sample_project,
+        sample_run,
+        sample_task,
+        sample_artifact,
+    ):
+        """After reindex, integrity check should pass (no orphans, no missing)."""
+        await search_service.reindex_project(db_session, sample_project.id)
+        await db_session.commit()
+
+        result = await search_service.check_index_integrity(
+            db_session, sample_project.id
+        )
+        assert result["passed"] is True
+        assert result["orphaned_count"] == 0
+        assert result["missing_count"] == 0
+        assert result["total_indexed"] > 0
+
+    @pytest.mark.asyncio
+    async def test_integrity_detects_missing(
+        self,
+        db_session: AsyncSession,
+        sample_project,
+        sample_run,
+        sample_task,
+        sample_artifact,
+    ):
+        """Before reindex, entities exist but are not indexed — integrity should detect missing."""
+        result = await search_service.check_index_integrity(
+            db_session, sample_project.id
+        )
+        assert result["missing_count"] > 0
+        assert result["passed"] is False
+
+    @pytest.mark.asyncio
+    async def test_integrity_empty_project(self, db_session: AsyncSession):
+        """Non-existent project should pass (nothing indexed, nothing to index)."""
+        result = await search_service.check_index_integrity(
+            db_session, uuid.uuid4()
+        )
+        assert result["total_indexed"] == 0
+        assert result["passed"] is True
+
+    @pytest.mark.asyncio
+    async def test_integrity_entity_counts(
+        self,
+        db_session: AsyncSession,
+        sample_project,
+        sample_run,
+        sample_task,
+        sample_artifact,
+    ):
+        """Entity counts should reflect actual vs indexed accurately."""
+        await search_service.reindex_project(db_session, sample_project.id)
+        await db_session.commit()
+
+        result = await search_service.check_index_integrity(
+            db_session, sample_project.id
+        )
+        for etype, counts in result["entity_counts"].items():
+            assert counts["indexed"] == counts["actual"], (
+                f"{etype}: indexed={counts['indexed']} != actual={counts['actual']}"
+            )
+
+
+# =========================================================================
+# Additional edge-case tests
+# =========================================================================
+
+
+class TestEdgeCases:
+    @pytest.mark.asyncio
+    async def test_search_special_characters(self, db_session: AsyncSession):
+        """Search with special characters should not crash."""
+        items, total = await search_service.search(
+            db_session, query="test@#$%^&*()"
+        )
+        assert isinstance(items, list)
+        assert isinstance(total, int)
+
+    @pytest.mark.asyncio
+    async def test_convention_list_category_filter(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """List conventions filtered by category."""
+        await convention_service.create_convention(
+            db_session,
+            project_id=sample_project.id,
+            category=ConventionCategory.SECURITY,
+            name="Security rule",
+            rule_text="Never expose internal errors.",
+            author_id=STUB_USER_ID,
+        )
+        await convention_service.create_convention(
+            db_session,
+            project_id=sample_project.id,
+            category=ConventionCategory.NAMING,
+            name="Naming rule",
+            rule_text="Use descriptive names.",
+            author_id=STUB_USER_ID,
+        )
+        await db_session.commit()
+
+        items, total = await convention_service.list_conventions(
+            db_session,
+            project_id=sample_project.id,
+            category=ConventionCategory.SECURITY,
+        )
+        assert total >= 1
+        assert all(c.category == ConventionCategory.SECURITY for c in items)
+
+    @pytest.mark.asyncio
+    async def test_recommendation_tech_debt_with_failures(
+        self, db_session: AsyncSession, sample_project, sample_run
+    ):
+        """Tech debt recommendation fires when 2+ tasks have failed."""
+        t1 = Task(
+            title="Failed Task 1",
+            task_type="implementation",
+            status=TaskStatus.FAILED,
+            order_index=0,
+            run_id=sample_run.id,
+        )
+        t2 = Task(
+            title="Failed Task 2",
+            task_type="review",
+            status=TaskStatus.FAILED,
+            order_index=1,
+            run_id=sample_run.id,
+        )
+        db_session.add_all([t1, t2])
+        await db_session.flush()
+
+        recs = await recommendation_service.generate_recommendations(
+            db_session, sample_project.id
+        )
+        await db_session.commit()
+
+        tech_debt = [r for r in recs if r.rec_type == RecommendationType.TECH_DEBT]
+        assert len(tech_debt) >= 1

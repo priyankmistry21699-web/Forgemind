@@ -510,3 +510,18 @@ async def reindex_project(
     count = await search_service.reindex_project(db, project_id)
     await db.commit()
     return {"project_id": str(project_id), "indexed_count": count}
+
+
+@router.get("/projects/{project_id}/search-integrity")
+async def check_search_integrity(
+    project_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+) -> dict:
+    """Check search index integrity for a project.
+
+    Compares indexed entries against actual database records. Reports
+    orphaned index entries and missing source records.
+    """
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    return await search_service.check_index_integrity(db, project_id)

@@ -729,20 +729,22 @@ _All milestones through FM-158 + FM-160 are complete (754 tests passing). FM-159
 
 ---
 
-## FM-161 to FM-170 — ✅ COMPLETE (Wave 12: Search, Knowledge & Organizational Memory)
+## FM-161 to FM-170 — ⚙️ PARTIAL (Wave 12: Search, Knowledge & Organizational Memory)
 
 | ID     | Feature                                          | Status                    |
 | ------ | ------------------------------------------------ | ------------------------- |
-| FM-161 | Full-Text Search Index                           | ✅ Complete               |
-| FM-162 | Semantic Search with Embeddings                  | ✅ Complete (keyword-similarity; vector deferred) |
-| FM-163 | Knowledge Base — Decision & Pattern Library      | ✅ Complete               |
-| FM-164 | Project Templates V2 — Knowledge-Enriched       | ✅ Complete               |
-| FM-165 | Cross-Project Search & Discovery                 | ✅ Complete               |
-| FM-166 | Execution Replay & Comparison                    | ✅ Complete (comparison; replay deferred) |
-| FM-167 | Organizational Context & Conventions Engine      | ✅ Complete               |
-| FM-168 | Artifact Versioning & History                    | ✅ Complete               |
-| FM-169 | Smart Recommendations Engine                     | ✅ Complete               |
-| FM-170 | Knowledge & Search Tests, Docs & Hardening       | ✅ Complete (38 new tests, 792 total) |
+| FM-161 | Full-Text Search Index                           | ✅ Complete (LIKE-based keyword search; tsvector deferred) |
+| FM-162 | Semantic Search with Embeddings                  | ⚠️ Partial — keyword-overlap similarity only; no embeddings/pgvector |
+| FM-163 | Knowledge Base — Decision & Pattern Library      | ✅ Complete (auto-suggestion deferred) |
+| FM-164 | Project Templates V2 — Knowledge-Enriched       | ⚠️ Partial — marketplace browse only; deep clone + versioning columns not added |
+| FM-165 | Cross-Project Search & Discovery                 | ⚠️ Partial — RBAC search works; project directory + related projects not implemented |
+| FM-166 | Execution Replay & Comparison                    | ⚠️ Partial — comparison works; replay mode not implemented |
+| FM-167 | Organizational Context & Conventions Engine      | ✅ Complete |
+| FM-168 | Artifact Versioning & History                    | ✅ Complete |
+| FM-169 | Smart Recommendations Engine                     | ✅ Complete (7 rules) |
+| FM-170 | Knowledge & Search Tests, Docs & Hardening       | ✅ Complete (45 tests, index integrity checker; perf benchmarks deferred) |
+
+**Wave 12 summary:** 6/10 milestones fully complete; 4/10 partially scoped. Core search, conventions, versioning, and recommendations are production-ready. Semantic search, template enrichment, project discovery, and replay require additional infrastructure investment.
 
 ---
 

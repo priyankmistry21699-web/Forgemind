@@ -516,3 +516,111 @@ async def find_similar(
         for c, score in scored[:limit]
         if score > 0.1
     ]
+
+
+# ── Index Integrity ──────────────────────────────────────────────
+
+
+async def check_index_integrity(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+) -> dict:
+    """Check search index integrity for a project.
+
+    Compares indexed entities against actual database records.
+    Returns a dict with: total_indexed, orphaned (index entries with no
+    matching source record), missing (source records not in index),
+    entity_counts, and passed (True if no orphans or missing).
+    """
+    # Count indexed entries for this project
+    idx_result = await db.execute(
+        select(SearchIndex).where(SearchIndex.project_id == project_id)
+    )
+    indexed = list(idx_result.scalars().all())
+    total_indexed = len(indexed)
+
+    # Group by entity type
+    indexed_by_type: dict[str, set[uuid.UUID]] = {}
+    for entry in indexed:
+        key = entry.entity_type.value
+        indexed_by_type.setdefault(key, set()).add(entry.entity_id)
+
+    # Get actual counts from source tables
+    actual_by_type: dict[str, set[uuid.UUID]] = {}
+
+    # Tasks (via runs)
+    run_ids_result = await db.execute(
+        select(Run.id).where(Run.project_id == project_id)
+    )
+    run_ids = [r for (r,) in run_ids_result.all()]
+    if run_ids:
+        task_result = await db.execute(
+            select(Task.id).where(Task.run_id.in_(run_ids))
+        )
+        actual_by_type["task"] = {r for (r,) in task_result.all()}
+
+    # Artifacts
+    art_result = await db.execute(
+        select(Artifact.id).where(Artifact.project_id == project_id)
+    )
+    actual_by_type["artifact"] = {r for (r,) in art_result.all()}
+
+    # Runs
+    actual_by_type["run"] = set(run_ids)
+
+    # Project itself
+    proj_result = await db.execute(
+        select(Project.id).where(Project.id == project_id)
+    )
+    proj = proj_result.scalar_one_or_none()
+    actual_by_type["project"] = {proj} if proj else set()
+
+    # Knowledge
+    know_result = await db.execute(
+        select(ProjectKnowledge.id).where(
+            ProjectKnowledge.project_id == project_id
+        )
+    )
+    actual_by_type["knowledge"] = {r for (r,) in know_result.all()}
+
+    # Approvals
+    appr_result = await db.execute(
+        select(ApprovalRequest.id).where(
+            ApprovalRequest.project_id == project_id
+        )
+    )
+    actual_by_type["approval"] = {r for (r,) in appr_result.all()}
+
+    # Compute orphaned and missing
+    orphaned: list[dict] = []
+    missing: list[dict] = []
+    entity_counts: dict[str, dict] = {}
+
+    check_types = ["task", "artifact", "run", "project", "knowledge", "approval"]
+    for etype in check_types:
+        idx_set = indexed_by_type.get(etype, set())
+        actual_set = actual_by_type.get(etype, set())
+
+        orph = idx_set - actual_set
+        miss = actual_set - idx_set
+
+        for eid in orph:
+            orphaned.append({"entity_type": etype, "entity_id": str(eid)})
+        for eid in miss:
+            missing.append({"entity_type": etype, "entity_id": str(eid)})
+
+        entity_counts[etype] = {
+            "indexed": len(idx_set),
+            "actual": len(actual_set),
+        }
+
+    return {
+        "project_id": str(project_id),
+        "total_indexed": total_indexed,
+        "orphaned_count": len(orphaned),
+        "missing_count": len(missing),
+        "orphaned": orphaned,
+        "missing": missing,
+        "entity_counts": entity_counts,
+        "passed": len(orphaned) == 0 and len(missing) == 0,
+    }
