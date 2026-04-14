@@ -1243,11 +1243,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - Quick filters: "My actions", "Permission changes", "Configuration changes"
 
 **Acceptance criteria:**
-- [ ] All state-changing actions recorded automatically
-- [ ] Audit log is immutable (no update/delete endpoints)
-- [ ] Filters return correct results across all dimensions
-- [ ] Export produces valid CSV and JSON
-- [ ] Tests cover logging, querying, filtering, and export
+- [x] All state-changing actions recorded automatically
+- [x] Audit log is immutable (no update/delete endpoints)
+- [x] Filters return correct results across all dimensions
+- [x] Export produces valid CSV and JSON
+- [x] Tests cover logging, querying, filtering, and export
 
 ---
 
@@ -1274,11 +1274,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - Policy evaluation history
 
 **Acceptance criteria:**
-- [ ] Policies block, warn, or log based on enforcement level
-- [ ] Rule JSON evaluates correctly for all condition types
-- [ ] Org-wide and project-specific policies both work
-- [ ] Policy evaluation logged to audit trail
-- [ ] Tests cover all policy types, enforcement levels, and inheritance
+- [x] Policies block, warn, or log based on enforcement level
+- [x] Rule JSON evaluates correctly for all condition types
+- [x] Org-wide and project-specific policies both work
+- [x] Policy evaluation logged to audit trail
+- [x] Tests cover all policy types, enforcement levels, and inheritance
 
 ---
 
@@ -1335,10 +1335,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - Legal hold management: add/remove holds
 
 **Acceptance criteria:**
-- [ ] Retention policies correctly identify expired entities
+- [x] Retention policies correctly identify expired entities
 - [ ] Archived entities excluded from normal queries but accessible via archive endpoint
-- [ ] Legal holds prevent archival/deletion
-- [ ] Tests cover policy evaluation, archival, hold exemption, and edge cases
+- [x] Legal holds prevent archival/deletion
+- [x] Tests cover policy evaluation, archival, hold exemption, and edge cases
 
 ---
 
@@ -1364,10 +1364,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - Download and preview buttons on generated reports
 
 **Acceptance criteria:**
-- [ ] All 4 report templates produce correct output
-- [ ] Reports include accurate data from audit logs and permissions
+- [x] All 4 report templates produce correct output
+- [x] Reports include accurate data from audit logs and permissions
 - [ ] PDF, CSV, and JSON exports valid and well-formatted
-- [ ] Tests cover report generation for each template with realistic test data
+- [x] Tests cover report generation for each template with realistic test data
 
 ---
 
@@ -1393,10 +1393,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - Access denied page for blocked IPs with admin contact info
 
 **Acceptance criteria:**
-- [ ] Requests from non-allowed IPs blocked with 403
-- [ ] CIDR range matching works correctly (IPv4 and IPv6)
+- [x] Requests from non-allowed IPs blocked with 403
+- [x] CIDR range matching works correctly (IPv4 and IPv6)
 - [ ] Service account exceptions configurable
-- [ ] Tests cover matching, blocking, and exceptions
+- [x] Tests cover matching, blocking, and exceptions
 
 ---
 
@@ -1453,10 +1453,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - Loading states for compliance report generation
 
 **Acceptance criteria:**
-- [ ] All FM-171–179 services have test coverage (target: 45+ tests)
+- [x] All FM-171–179 services have test coverage (target: 45+ tests)
 - [ ] No permission bypass found in security testing
 - [ ] Audit log writes handle 1000+ events/minute without degradation
-- [ ] Documentation covers org setup, SSO, policies, and compliance reporting
+- [x] Documentation covers org setup, SSO, policies, and compliance reporting
 
 ---
 

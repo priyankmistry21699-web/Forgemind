@@ -92,3 +92,12 @@ from app.models.search_knowledge import (  # noqa: F401
     Convention,
     Recommendation,
 )
+
+# FM-171–180: Enterprise Governance, Permissions & Compliance
+from app.models.enterprise_governance import (  # noqa: F401
+    AuditLog,
+    GovernancePolicyEvaluation,
+    ComplianceReport,
+    IpAllowlistEntry,
+    RetentionPolicy,
+)

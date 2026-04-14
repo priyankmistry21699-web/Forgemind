@@ -47,6 +47,7 @@ from app.api.routes.saved_views import router as saved_views_router
 from app.api.routes.annotations import router as annotations_router
 from app.api.routes.github_integration import router as github_router
 from app.api.routes.search_knowledge import router as search_knowledge_router
+from app.api.routes.enterprise_governance import router as enterprise_governance_router
 
 api_router = APIRouter()
 
@@ -184,3 +185,6 @@ api_router.include_router(github_router, tags=["github"])
 
 # Search, Knowledge & Organizational Memory (FM-161–170)
 api_router.include_router(search_knowledge_router, tags=["search", "knowledge", "conventions", "recommendations"])
+
+# Enterprise Governance, Permissions & Compliance (FM-171–180)
+api_router.include_router(enterprise_governance_router, tags=["enterprise-governance", "audit", "compliance"])

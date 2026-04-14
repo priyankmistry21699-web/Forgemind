@@ -954,6 +954,29 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 | FM-169 | Smart Recommendations Engine                | ✅ Complete                  |
 | FM-170 | Knowledge & Search Tests & Hardening        | ✅ Complete (45 tests)       |
 
+### Wave 13 — Enterprise Governance, Permissions & Compliance (FM-171 → FM-180)
+
+> Immutable audit trail, governance policy evaluation engine, compliance report generation,
+> IP allowlisting, data retention policies. 5/10 fully complete; 5/10 deferred.
+
+| ID     | Feature                                     | Status                       |
+| ------ | ------------------------------------------- | ---------------------------- |
+| FM-171 | Organization Model & Multi-Tenancy          | ⏳ Deferred                  |
+| FM-172 | RBAC V2 — Fine-Grained Permissions          | ⏳ Deferred                  |
+| FM-173 | Comprehensive Audit Log                     | ✅ Complete                  |
+| FM-174 | Policy Engine — Automated Rule Enforcement  | ✅ Complete                  |
+| FM-175 | SSO & External Authentication               | ⏳ Deferred                  |
+| FM-176 | Data Retention & Lifecycle Policies         | ✅ Complete                  |
+| FM-177 | Compliance Reporting & Export               | ✅ Complete (5 report types) |
+| FM-178 | IP Allowlisting & Access Controls           | ✅ Complete (IPv4/IPv6)      |
+| FM-179 | Secrets Management & Vault Integration      | ⏳ Deferred                  |
+| FM-180 | Enterprise Governance Tests & Hardening     | ✅ Complete (46 tests)       |
+
+**New models:** AuditLog, GovernancePolicyEvaluation, ComplianceReport, IpAllowlistEntry, RetentionPolicy
+**New services:** audit_log_service, governance_engine_service, compliance_report_service, ip_allowlist_service, retention_policy_service
+**New routes:** 16 endpoints under `/enterprise-governance` (audit log, policy eval, compliance, IP allowlist, retention)
+**Test file:** `test_fm171_180_enterprise_governance.py` (46 tests)
+
 ---
 
-_This document reflects the architecture as of the latest commit on `main` (all features through FM-140 complete)._
+_This document reflects the architecture as of the latest commit on `main` (all features through FM-180 complete)._
