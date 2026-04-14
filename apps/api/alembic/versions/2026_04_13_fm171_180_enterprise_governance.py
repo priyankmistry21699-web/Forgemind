@@ -8,7 +8,6 @@ Create Date: 2026-04-13
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
 revision = "fm171_180_enterprise_governance"
 down_revision = "fm161_170_search_knowledge"

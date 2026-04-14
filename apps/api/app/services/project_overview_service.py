@@ -11,7 +11,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.run import Run
 from app.models.task import Task, TaskStatus
 from app.models.approval_request import ApprovalRequest, ApprovalStatus
-from app.models.activity import UserPresence
 from app.models.membership import ProjectMember
 
 

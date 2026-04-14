@@ -3,11 +3,9 @@
 FM-152: Webhook Receiver & Event Ingestion.
 """
 
-import uuid
 import hashlib
 import hmac
 
-from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,9 +26,7 @@ def verify_github_signature(payload_body: bytes, signature: str, secret: str) ->
     """Verify GitHub HMAC-SHA256 webhook signature."""
     if not signature.startswith("sha256="):
         return False
-    expected = hmac.new(
-        secret.encode(), payload_body, hashlib.sha256
-    ).hexdigest()
+    expected = hmac.new(secret.encode(), payload_body, hashlib.sha256).hexdigest()
     return hmac.compare_digest(f"sha256={expected}", signature)
 
 
@@ -78,7 +74,7 @@ async def process_pr_event(
     if not pr_data:
         return None
 
-    action = event.payload.get("action", "")
+    _action = event.payload.get("action", "")
     pr_number = pr_data.get("number")
 
     # Check if PR link already exists
@@ -192,7 +188,7 @@ async def process_issues_event(
 
     gh_state = issue_data.get("state", "open")
     status = IssueLinkStatus.CLOSED if gh_state == "closed" else IssueLinkStatus.OPEN
-    labels = [l.get("name") for l in issue_data.get("labels", [])]
+    labels = [label.get("name") for label in issue_data.get("labels", [])]
 
     if issue_link:
         issue_link.status = status

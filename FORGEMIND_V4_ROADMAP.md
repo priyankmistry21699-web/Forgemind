@@ -208,7 +208,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [x] @mentions in comments generate notifications for tagged users
 - [x] Autocomplete resolves valid usernames
-- [x] Notification preferences respected
+- [ ] Notification preferences respected *(deferred)*
 - [x] Tests cover mention parsing, resolution, and notification generation
 
 ---
@@ -240,7 +240,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [x] Activity feed merges events from 5+ entity types
 - [x] Project-level and run-level scoping both work
-- [x] Cursor-based pagination returns consistent results
+- [ ] Cursor-based pagination returns consistent results *(deferred)*
 - [x] Filters narrow results correctly
 - [x] Tests cover multi-source merging, pagination, and filtering
 
@@ -274,7 +274,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - [x] Views save and restore filter state accurately
 - [x] Shared views visible to all project members
 - [x] Private views visible only to creator
-- [x] Default views seeded on project creation
+- [ ] Default views seeded on project creation *(deferred)*
 - [x] Tests cover CRUD, visibility scoping, filter restoration
 
 ---
@@ -371,9 +371,9 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Tasks can be assigned and reassigned
-- [x] Assignment history recorded as execution events
-- [x] My Work page aggregates across projects
-- [x] Workload query returns correct counts per user
+- [ ] Assignment history recorded as execution events *(deferred)*
+- [ ] My Work page aggregates across projects *(deferred)*
+- [ ] Workload query returns correct counts per user *(deferred)*
 - [x] Tests cover assign, reassign, cross-project query
 
 ---
@@ -405,10 +405,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [x] Delegated approvals route to delegate when delegator hasn't acted
-- [x] Expired approvals auto-escalate to project leads
-- [x] Batch approve/reject processes all selected items atomically
-- [x] Dashboard shows all pending approvals across projects
+- [ ] Delegated approvals route to delegate when delegator hasn't acted *(deferred)*
+- [ ] Expired approvals auto-escalate to project leads *(deferred)*
+- [ ] Batch approve/reject processes all selected items atomically *(deferred)*
+- [ ] Dashboard shows all pending approvals across projects *(deferred)*
 - [x] Tests cover delegation, expiration, batch, and dashboard
 
 ---
@@ -442,8 +442,8 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [x] Notifications generated for all tracked events (comments, approvals, task changes, releases)
 - [x] Read/unread state persists correctly
-- [x] Grouping collapses related notifications
-- [x] Digest query returns correct pending notifications
+- [ ] Grouping collapses related notifications *(deferred)*
+- [ ] Digest query returns correct pending notifications *(deferred)*
 - [x] Tests cover generation, read state, grouping, and digest query
 
 ---
@@ -474,7 +474,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [x] Overview endpoint returns health, team, and activity data in <500ms
+- [ ] Overview endpoint returns health, team, and activity data in <500ms *(deferred)*
 - [x] Health score computed from real metrics (not hardcoded)
 - [x] Team panel shows presence-aware member list
 - [x] Quick actions navigate to correct creation flows
@@ -517,9 +517,9 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [x] GitHub App installation flow completes and stores credentials
+- [ ] GitHub App installation flow completes and stores credentials *(deferred)*
 - [x] Projects can link/unlink repositories
-- [x] Token refresh works before expiry
+- [ ] Token refresh works before expiry *(deferred)*
 - [x] Repository metadata synced on link
 - [x] Tests cover installation, linking, token refresh (with mocked GitHub API)
 
@@ -550,8 +550,8 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [x] Webhook signature verification rejects invalid payloads
-- [x] All 6 event types normalized and stored correctly
+- [ ] Webhook signature verification rejects invalid payloads *(deferred)*
+- [ ] All 6 event types normalized and stored correctly *(deferred)*
 - [x] Duplicate deliveries are idempotent
 - [x] Event log queryable by type and status
 - [x] Tests cover signature verification, all event types, and deduplication
@@ -588,7 +588,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [x] PR created with correct branch, commits, and body
+- [ ] PR created with correct branch, commits, and body *(deferred)*
 - [x] PR body contains run summary, task list, and review checklist
 - [x] Bidirectional link: run → PR and PR → run (via webhook)
 - [x] PR state synced when webhook events arrive
@@ -623,8 +623,8 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] CI status correctly mapped from GitHub webhook events
-- [x] Deployment readiness includes CI check
-- [x] CI pass rate computed from historical data
+- [ ] Deployment readiness includes CI check *(deferred)*
+- [ ] CI pass rate computed from historical data *(deferred)*
 - [x] Tests cover status mapping, readiness integration, and pass rate calculation
 
 ---
@@ -656,9 +656,9 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Issues import correctly with metadata mapping
-- [x] Tasks export as GitHub issues with correct labels
-- [x] Bidirectional status sync works via webhooks
-- [x] Sync conflicts handled gracefully (last-write-wins with audit log)
+- [ ] Tasks export as GitHub issues with correct labels *(deferred)*
+- [ ] Bidirectional status sync works via webhooks *(deferred)*
+- [ ] Sync conflicts handled gracefully (last-write-wins with audit log) *(deferred)*
 - [x] Tests cover import, export, and bidirectional sync
 
 ---
@@ -724,8 +724,8 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Code ownership patterns match files correctly (glob matching)
-- [x] Reviewer scoring considers ownership, history, and workload
-- [x] Reviewers requested on GitHub PR via API
+- [ ] Reviewer scoring considers ownership, history, and workload *(deferred)*
+- [ ] Reviewers requested on GitHub PR via API *(deferred)*
 - [x] Tests cover pattern matching, scoring, and API integration (mocked)
 
 ---
@@ -757,8 +757,8 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Diff parsing extracts correct file and function changes
-- [x] Risk scoring applies configurable rules
-- [x] Impact annotations generated for sensitive paths
+- [ ] Risk scoring applies configurable rules *(deferred)*
+- [ ] Impact annotations generated for sensitive paths *(deferred)*
 - [x] Tests cover diff parsing, risk scoring, and annotation generation
 
 ---

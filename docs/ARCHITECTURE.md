@@ -79,7 +79,7 @@ ForgeMind is an **operator-centered AI execution platform** that dynamically ass
 | Async       | pytest-asyncio               | Async test support                      |
 | HTTP Client | httpx (AsyncClient)          | API integration tests                   |
 | Test DB     | aiosqlite (in-memory SQLite) | Fast isolated test database             |
-| Total Tests | **746** (all passing)        | Backend 685 + Local 61 (through FM-140) |
+| Total Tests | **864** (all passing)        | Backend 803 + Local 61 (through FM-180) |
 
 ---
 
@@ -935,6 +935,49 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 
 ---
 
+## Wave 10: FM-141–FM-150 — Collaboration, UX & Team Coordination (⚙️ PARTIAL)
+
+> Threaded comments, @mentions, activity feed, saved views, user presence,
+> run annotations, task assignment, approval delegation, notification center,
+> project overview. 3/10 fully complete, 7/10 partial (missing HTTP routes,
+> notification preferences, cursor pagination, default views, auto-escalation).
+
+| ID     | Feature                                     | Status                       |
+| ------ | ------------------------------------------- | ---------------------------- |
+| FM-141 | Threaded Comments                           | ✅ Complete                  |
+| FM-142 | @Mentions & Notification Routing            | ⚠️ Partial (no prefs model)   |
+| FM-143 | Unified Activity Feed                       | ⚠️ Partial (offset only)     |
+| FM-144 | Saved Views & Filters                       | ⚠️ Partial (no default seed)  |
+| FM-145 | User Presence & Online Status               | ✅ Complete                  |
+| FM-146 | Collaborative Run Annotations               | ✅ Complete                  |
+| FM-147 | Task Assignment & Workload                  | ⚠️ Partial (no routes)       |
+| FM-148 | Approval Delegation & Batch                 | ⚠️ Partial (no routes)       |
+| FM-149 | Notification Digest & Center                | ⚠️ Partial (no routes)       |
+| FM-150 | Project Overview Dashboard                  | ⚠️ Partial (no route)        |
+
+---
+
+## Wave 11: FM-151–FM-160 — GitHub & CI Integration (⚙️ PARTIAL)
+
+> GitHub app installation, webhook ingestion, PR tracking, CI pipeline status,
+> issue sync, branch strategy, code review routing, diff intelligence.
+> 1/10 fully complete, 8/10 partial, 1 deferred. **Zero outbound GitHub API calls.**
+
+| ID     | Feature                                     | Status                       |
+| ------ | ------------------------------------------- | ---------------------------- |
+| FM-151 | GitHub App Installation & Linking           | ⚠️ Partial (CRUD only)       |
+| FM-152 | Webhook Ingestion & Events                  | ⚠️ Partial (verify unused)   |
+| FM-153 | PR Auto-Creation & Tracking                 | ⚠️ Partial (CRUD only)       |
+| FM-154 | CI Pipeline Status Integration              | ⚠️ Partial (no pass-rate)    |
+| FM-155 | Issue Sync                                  | ⚠️ Partial (ingest only)     |
+| FM-156 | Branch Strategy & Merge Readiness           | ⚠️ Partial (no auto-branch)  |
+| FM-157 | Code Review Routing                         | ⚠️ Partial (no GH requests)  |
+| FM-158 | Commit & Diff Intelligence                  | ⚠️ Partial (no risk rules)   |
+| FM-159 | VS Code Extension Foundation                | ⏸️ Deferred (separate repo)  |
+| FM-160 | Hardening: Rate Limiter, Retry, Replay      | ✅ Complete                  |
+
+---
+
 ## Wave 12: FM-161–FM-170 — Search, Knowledge & Organizational Memory (⚙️ PARTIAL)
 
 > Full-text search, knowledge base, conventions engine, artifact versioning,
@@ -945,7 +988,7 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 | ------ | ------------------------------------------- | ---------------------------- |
 | FM-161 | Full-Text Search Index                      | ✅ Complete (LIKE-based)     |
 | FM-162 | Semantic Search with Embeddings             | ⚠️ Partial (keyword only)   |
-| FM-163 | Knowledge Base — Decision & Pattern Library | ✅ Complete                  |
+| FM-163 | Knowledge Base — Decision & Pattern Library | ⚠️ Partial (search filter only)|
 | FM-164 | Project Templates V2                        | ⚠️ Partial (marketplace only)|
 | FM-165 | Cross-Project Search & Discovery            | ⚠️ Partial (search only)    |
 | FM-166 | Execution Replay & Comparison               | ⚠️ Partial (comparison only)|
@@ -982,4 +1025,4 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 
 ---
 
-_This document reflects the architecture as of the latest commit on `main` (all features through FM-180 complete)._
+_This document reflects the architecture as of the latest commit on `main`. FM-141–FM-180: 14 COMPLETE, 25 PARTIAL, 1 DEFERRED out of 40 milestones. 864 tests passing._

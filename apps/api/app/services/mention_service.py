@@ -56,7 +56,7 @@ async def create_mention_notifications(
             user_id=uid,
             notification_type=NotificationType.SYSTEM,
             priority=NotificationPriority.NORMAL,
-            title=f"You were mentioned in a comment",
+            title="You were mentioned in a comment",
             body=preview,
             resource_type=entity_type,
             resource_id=entity_id,

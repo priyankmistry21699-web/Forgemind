@@ -181,7 +181,7 @@ class TestWebhookIngestion:
     async def test_process_pr_event(self, db_session: AsyncSession):
         project = await _seed_project(db_session)
         inst = await _seed_installation(db_session)
-        repo_link = await _seed_repo_link(db_session, inst.id, project.id)
+        await _seed_repo_link(db_session, inst.id, project.id)
 
         from app.services.webhook_service import ingest_event, process_pr_event
 
@@ -212,7 +212,7 @@ class TestWebhookIngestion:
     async def test_process_issues_event(self, db_session: AsyncSession):
         project = await _seed_project(db_session)
         inst = await _seed_installation(db_session)
-        repo_link = await _seed_repo_link(db_session, inst.id, project.id)
+        await _seed_repo_link(db_session, inst.id, project.id)
 
         from app.services.webhook_service import ingest_event, process_issues_event
 

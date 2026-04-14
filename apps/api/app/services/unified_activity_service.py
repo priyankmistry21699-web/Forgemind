@@ -5,17 +5,11 @@ Aggregates comments, task changes, approvals, artifacts, and release events.
 """
 
 import uuid
-from datetime import datetime
 
-from sqlalchemy import select, func, union_all, literal_column, literal, String, cast
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 from app.models.activity import ActivityFeedEntry
-from app.models.comment import Comment
-from app.models.task import Task
-from app.models.approval_request import ApprovalRequest
-from app.models.artifact import Artifact
 
 
 async def get_unified_activity(
@@ -59,14 +53,18 @@ async def get_unified_activity(
     total_result = await db.execute(count_q)
     total = total_result.scalar_one()
 
-    ordered = base.order_by(ActivityFeedEntry.created_at.desc()).offset(offset).limit(limit)
+    ordered = (
+        base.order_by(ActivityFeedEntry.created_at.desc()).offset(offset).limit(limit)
+    )
     result = await db.execute(ordered)
     rows = result.all()
 
     items = [
         {
             "id": str(r.id),
-            "event_type": r.activity_type.value if hasattr(r.activity_type, "value") else str(r.activity_type),
+            "event_type": r.activity_type.value
+            if hasattr(r.activity_type, "value")
+            else str(r.activity_type),
             "summary": r.summary,
             "actor_id": str(r.actor_id),
             "resource_type": r.resource_type,

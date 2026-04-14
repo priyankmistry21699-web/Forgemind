@@ -1,6 +1,6 @@
 # ForgeMind — Milestone Summary
 
-> Last updated: 2026-04-06 (after FM-140 — release operations, deployment confidence & operational governance complete)
+> Last updated: 2026-04-14 (FM-141→180 strict audit — Waves 10-13 verified)
 
 ---
 
@@ -680,35 +680,43 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 
 ---
 
-## FM-141 to FM-150 — ✅ COMPLETE (Wave 10: Collaboration & UX)
+## FM-141 to FM-150 — ⚙️ PARTIAL (Wave 10: Collaboration & UX)
 
 | ID     | Feature                              | Status      |
 | ------ | ------------------------------------ | ----------- |
 | FM-141 | Threaded Comments                    | ✅ Complete |
-| FM-142 | @Mentions & Notification Routing     | ✅ Complete |
-| FM-143 | Unified Activity Feed                | ✅ Complete |
-| FM-144 | Saved Views & Filters                | ✅ Complete |
+| FM-142 | @Mentions & Notification Routing     | ⚠️ Partial — no per-category notification preferences |
+| FM-143 | Unified Activity Feed                | ⚠️ Partial — offset pagination only; cursor-based deferred |
+| FM-144 | Saved Views & Filters                | ⚠️ Partial — default view seeding not implemented |
 | FM-145 | User Presence & Online Status        | ✅ Complete |
 | FM-146 | Collaborative Run Annotations        | ✅ Complete |
-| FM-147 | Task Assignment & Workload           | ✅ Complete |
-| FM-148 | Approval Delegation & Batch          | ✅ Complete |
-| FM-149 | Notification Digest & Center         | ✅ Complete |
-| FM-150 | Project Overview Dashboard           | ✅ Complete |
+| FM-147 | Task Assignment & Workload           | ⚠️ Partial — service only; no HTTP routes or assignment history events |
+| FM-148 | Approval Delegation & Batch          | ⚠️ Partial — model+query only; no routing/escalation logic or routes |
+| FM-149 | Notification Digest & Center         | ⚠️ Partial — no grouping logic; missing dismiss/digest HTTP routes |
+| FM-150 | Project Overview Dashboard           | ⚠️ Partial — service computes metrics but no HTTP route wired |
 
-## FM-151 to FM-160 — ✅ COMPLETE (Wave 11: GitHub & CI Integration)
+**Wave 10 summary:** 3/10 milestones fully complete, 7/10 partial. Core commenting, presence, and annotations work. Missing: notification preferences, cursor pagination, default views, task assignment routes, approval routing, notification grouping routes, project overview route.
+
+## FM-151 to FM-160 — ⚙️ PARTIAL (Wave 11: GitHub & CI Integration)
+
+> **Critical note:** Wave 11 has zero outbound GitHub API calls. All data flows inbound
+> via webhooks or manual CRUD. `verify_github_signature()` is defined but never invoked
+> from the webhook route handler.
 
 | ID     | Feature                              | Status                    |
 | ------ | ------------------------------------ | ------------------------- |
-| FM-151 | GitHub App Installation & Linking    | ✅ Complete               |
-| FM-152 | Webhook Ingestion & Events           | ✅ Complete               |
-| FM-153 | PR Auto-Creation & Tracking          | ✅ Complete               |
-| FM-154 | CI Pipeline Status Integration       | ✅ Complete               |
-| FM-155 | Issue Sync                           | ✅ Complete               |
-| FM-156 | Branch Strategy & Merge Readiness    | ✅ Complete               |
-| FM-157 | Code Review Routing                  | ✅ Complete               |
-| FM-158 | Commit & Diff Intelligence           | ✅ Complete               |
+| FM-151 | GitHub App Installation & Linking    | ⚠️ Partial — CRUD works; no token encryption, OAuth flow, or token refresh |
+| FM-152 | Webhook Ingestion & Events           | ⚠️ Partial — signature verify defined but never called in route; only 3/6 event types processed |
+| FM-153 | PR Auto-Creation & Tracking          | ⚠️ Partial — CRUD only; no actual GitHub API PR creation calls |
+| FM-154 | CI Pipeline Status Integration       | ⚠️ Partial — event ingestion works; no pass-rate calc or deployment readiness |
+| FM-155 | Issue Sync                           | ⚠️ Partial — ingest-only; no bidirectional sync, no import/export |
+| FM-156 | Branch Strategy & Merge Readiness    | ⚠️ Partial — merge readiness works; no auto-create branch |
+| FM-157 | Code Review Routing                  | ⚠️ Partial — glob ownership matching; no scoring or GH reviewer requests |
+| FM-158 | Commit & Diff Intelligence           | ⚠️ Partial — basic diff parsing; no risk rules or HTTP routes |
 | FM-159 | VS Code Extension Foundation         | ⏸️ DEFERRED (separate repo) |
 | FM-160 | Hardening: Rate Limiter, Retry, Replay | ✅ Complete             |
+
+**Wave 11 summary:** 1/10 fully complete, 8/10 partial, 1 deferred. Rate limiting, retry decorator, and webhook replay work. All GitHub integration is inbound-only scaffolding — outbound API calls, token management, and signature verification enforcement are missing.
 
 ---
 
@@ -725,7 +733,7 @@ See [docs/TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for full details (18 items). Key
 
 ---
 
-_All milestones through FM-158 + FM-160 are complete (754 tests passing). FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project._
+_Wave 10: 3/10 complete, 7 partial. Wave 11: 1/10 complete, 8 partial, 1 deferred. Wave 12: 5/10 complete, 5 partial. Wave 13: 5/10 complete, 5 partial. FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project. 864 total tests passing._
 
 ---
 
@@ -735,7 +743,7 @@ _All milestones through FM-158 + FM-160 are complete (754 tests passing). FM-159
 | ------ | ------------------------------------------------ | ------------------------- |
 | FM-161 | Full-Text Search Index                           | ✅ Complete (LIKE-based keyword search; tsvector deferred) |
 | FM-162 | Semantic Search with Embeddings                  | ⚠️ Partial — keyword-overlap similarity only; no embeddings/pgvector |
-| FM-163 | Knowledge Base — Decision & Pattern Library      | ✅ Complete (auto-suggestion deferred) |
+| FM-163 | Knowledge Base — Decision & Pattern Library      | ⚠️ Partial — knowledge-type search filter works; no dedicated CRUD, no auto-suggestion engine |
 | FM-164 | Project Templates V2 — Knowledge-Enriched       | ⚠️ Partial — marketplace browse only; deep clone + versioning columns not added |
 | FM-165 | Cross-Project Search & Discovery                 | ⚠️ Partial — RBAC search works; project directory + related projects not implemented |
 | FM-166 | Execution Replay & Comparison                    | ⚠️ Partial — comparison works; replay mode not implemented |
@@ -744,7 +752,7 @@ _All milestones through FM-158 + FM-160 are complete (754 tests passing). FM-159
 | FM-169 | Smart Recommendations Engine                     | ✅ Complete (7 rules) |
 | FM-170 | Knowledge & Search Tests, Docs & Hardening       | ✅ Complete (45 tests, index integrity checker; perf benchmarks deferred) |
 
-**Wave 12 summary:** 6/10 milestones fully complete; 4/10 partially scoped. Core search, conventions, versioning, and recommendations are production-ready. Semantic search, template enrichment, project discovery, and replay require additional infrastructure investment.
+**Wave 12 summary:** 5/10 milestones fully complete; 5/10 partially scoped. Core search, conventions, versioning, and recommendations are production-ready. Semantic search, knowledge library, template enrichment, project discovery, and replay require additional infrastructure investment.
 
 ---
 
