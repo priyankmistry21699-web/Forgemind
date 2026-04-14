@@ -7,11 +7,12 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.approval_request import ApprovalRequest, ApprovalStatus
 from app.models.approval_delegation import ApprovalDelegation
+from app.models.membership import ProjectMember, ProjectRole
 
 
 async def batch_decide(
@@ -51,10 +52,43 @@ async def get_pending_approvals_for_user(
     db: AsyncSession,
     user_id: uuid.UUID,
 ) -> list[ApprovalRequest]:
-    """All pending approvals where user is a project lead (simplified: all pending)."""
+    """Pending approvals scoped to the current user.
+
+    Returns approvals for projects where the user is:
+      1. A project lead or flagged as approver (via ProjectMember), OR
+      2. An active delegate for the project (via ApprovalDelegation).
+    """
+    # Sub-query: project IDs where user is a lead or designated approver
+    lead_projects = (
+        select(ProjectMember.project_id)
+        .where(
+            ProjectMember.user_id == user_id,
+            or_(
+                ProjectMember.role == ProjectRole.LEAD,
+                ProjectMember.is_approver.is_(True),
+            ),
+        )
+    )
+
+    # Sub-query: project IDs where user is an active delegate
+    delegated_projects = (
+        select(ApprovalDelegation.project_id)
+        .where(
+            ApprovalDelegation.delegate_id == user_id,
+            ApprovalDelegation.is_active.is_(True),
+            ApprovalDelegation.project_id.isnot(None),
+        )
+    )
+
     result = await db.execute(
         select(ApprovalRequest)
-        .where(ApprovalRequest.status == ApprovalStatus.PENDING)
+        .where(
+            ApprovalRequest.status == ApprovalStatus.PENDING,
+            or_(
+                ApprovalRequest.project_id.in_(lead_projects),
+                ApprovalRequest.project_id.in_(delegated_projects),
+            ),
+        )
         .order_by(ApprovalRequest.created_at.asc())
     )
     return list(result.scalars().all())

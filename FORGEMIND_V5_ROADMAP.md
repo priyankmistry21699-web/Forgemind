@@ -18,12 +18,12 @@ V4 built the ecosystem: team collaboration, GitHub integration, enterprise gover
 
 V5 adds 40 milestones (FM-211 → FM-250) across 4 strategic blocks:
 
-| Block   | Range           | Theme                                              |
-| ------- | --------------- | -------------------------------------------------- |
-| Wave 17 | FM-211 → FM-220 | Dynamic Multi-Agent Runtime Foundations             |
-| Wave 18 | FM-221 → FM-230 | Council Collaboration & Deliberation Engine         |
-| Wave 19 | FM-231 → FM-240 | Graph Memory & Persistent Reasoning                |
-| Wave 20 | FM-241 → FM-250 | Adaptive Workflow Selection & FAIR Engine           |
+| Block   | Range           | Theme                                       |
+| ------- | --------------- | ------------------------------------------- |
+| Wave 17 | FM-211 → FM-220 | Dynamic Multi-Agent Runtime Foundations     |
+| Wave 18 | FM-221 → FM-230 | Council Collaboration & Deliberation Engine |
+| Wave 19 | FM-231 → FM-240 | Graph Memory & Persistent Reasoning         |
+| Wave 20 | FM-241 → FM-250 | Adaptive Workflow Selection & FAIR Engine   |
 
 ### Why V5 Matters
 
@@ -43,13 +43,13 @@ V5 solves each of these by introducing:
 
 ### How V5 Differs from Earlier Versions
 
-| Version             | Focus              | Result                                                         |
-| ------------------- | ------------------ | -------------------------------------------------------------- |
-| V1 (FM-001–050)     | Foundation         | Models, agents, execution engine, pre-release infra            |
-| V2 (FM-051–100)     | Breadth            | Collaboration, code ops, frontend parity, local mode           |
-| V3 (FM-101–140)     | Depth              | SPEC lifecycle, templates, checkpoints, release operations     |
-| V4 (FM-141–210)     | Ecosystem          | Integration, intelligence, enterprise, and scale               |
-| **V5 (FM-211–250)** | **Intelligence**   | **Dynamic agents, graph memory, deliberation, explainability** |
+| Version             | Focus            | Result                                                         |
+| ------------------- | ---------------- | -------------------------------------------------------------- |
+| V1 (FM-001–050)     | Foundation       | Models, agents, execution engine, pre-release infra            |
+| V2 (FM-051–100)     | Breadth          | Collaboration, code ops, frontend parity, local mode           |
+| V3 (FM-101–140)     | Depth            | SPEC lifecycle, templates, checkpoints, release operations     |
+| V4 (FM-141–210)     | Ecosystem        | Integration, intelligence, enterprise, and scale               |
+| **V5 (FM-211–250)** | **Intelligence** | **Dynamic agents, graph memory, deliberation, explainability** |
 
 ### Strategic Position
 
@@ -101,13 +101,13 @@ V5 Architecture (Target):
 
 ### Key Technology Additions
 
-| Component              | Technology                 | Purpose                                        |
-| ---------------------- | -------------------------- | ---------------------------------------------- |
-| Agent Runtime          | Redis Streams + Workers    | Dynamic agent spawning and lifecycle management |
-| Inter-Agent Messaging  | Redis Pub/Sub + Streams    | Agent-to-agent communication bus               |
-| Graph Memory           | Neo4j or Apache AGE        | Structured relationship and reasoning storage  |
-| Deliberation Protocol  | Custom protocol over Redis | Council debate, proposal, and resolution flow  |
-| FAIR Scoring Engine    | Python service             | Weighted multi-signal workflow selection        |
+| Component             | Technology                 | Purpose                                         |
+| --------------------- | -------------------------- | ----------------------------------------------- |
+| Agent Runtime         | Redis Streams + Workers    | Dynamic agent spawning and lifecycle management |
+| Inter-Agent Messaging | Redis Pub/Sub + Streams    | Agent-to-agent communication bus                |
+| Graph Memory          | Neo4j or Apache AGE        | Structured relationship and reasoning storage   |
+| Deliberation Protocol | Custom protocol over Redis | Council debate, proposal, and resolution flow   |
+| FAIR Scoring Engine   | Python service             | Weighted multi-signal workflow selection        |
 
 ---
 
@@ -125,18 +125,18 @@ V5 Architecture (Target):
 
 #### Milestones
 
-| FM    | Title                                         | Description                                                                                                   |
-| ----- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| FM-211 | Master Orchestration Service                  | Central service that interprets incoming tasks, determines required capabilities, and plans agent deployment strategy |
-| FM-212 | Agent Blueprint & Registry V2                 | Declarative agent blueprint format (capabilities, resource needs, communication ports) replacing static agent configs |
-| FM-213 | Dynamic Agent Spawning                        | Runtime creation of agent workers as isolated processes/containers from blueprints, with health monitoring      |
-| FM-214 | Redis Event Bus — Core Messaging              | Redis Streams–based event bus for agent-to-agent and agent-to-orchestrator communication with delivery guarantees |
-| FM-215 | Agent-to-Agent Communication Protocol         | Structured message format, request/response patterns, and broadcast channels for inter-agent coordination      |
-| FM-216 | Agent Lifecycle Management                    | Start, pause, resume, terminate, and auto-scale agent workers with resource tracking and graceful shutdown      |
-| FM-217 | Task Decomposition Engine                     | Automatic breakdown of complex tasks into sub-tasks with dependency analysis, assigned to spawned sub-agents   |
-| FM-218 | Agent Capability Discovery                    | Runtime capability advertisement — agents register skills dynamically; orchestrator queries available capabilities |
-| FM-219 | Runtime Monitoring & Agent Observability       | Health dashboards, message throughput, agent CPU/memory, inter-agent latency, execution trace per agent         |
-| FM-220 | Dynamic Runtime Tests, Docs & Hardening       | Comprehensive test suite, failure injection testing, documentation, and production readiness validation         |
+| FM     | Title                                    | Description                                                                                                           |
+| ------ | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| FM-211 | Master Orchestration Service             | Central service that interprets incoming tasks, determines required capabilities, and plans agent deployment strategy |
+| FM-212 | Agent Blueprint & Registry V2            | Declarative agent blueprint format (capabilities, resource needs, communication ports) replacing static agent configs |
+| FM-213 | Dynamic Agent Spawning                   | Runtime creation of agent workers as isolated processes/containers from blueprints, with health monitoring            |
+| FM-214 | Redis Event Bus — Core Messaging         | Redis Streams–based event bus for agent-to-agent and agent-to-orchestrator communication with delivery guarantees     |
+| FM-215 | Agent-to-Agent Communication Protocol    | Structured message format, request/response patterns, and broadcast channels for inter-agent coordination             |
+| FM-216 | Agent Lifecycle Management               | Start, pause, resume, terminate, and auto-scale agent workers with resource tracking and graceful shutdown            |
+| FM-217 | Task Decomposition Engine                | Automatic breakdown of complex tasks into sub-tasks with dependency analysis, assigned to spawned sub-agents          |
+| FM-218 | Agent Capability Discovery               | Runtime capability advertisement — agents register skills dynamically; orchestrator queries available capabilities    |
+| FM-219 | Runtime Monitoring & Agent Observability | Health dashboards, message throughput, agent CPU/memory, inter-agent latency, execution trace per agent               |
+| FM-220 | Dynamic Runtime Tests, Docs & Hardening  | Comprehensive test suite, failure injection testing, documentation, and production readiness validation               |
 
 ---
 
@@ -152,18 +152,18 @@ V5 Architecture (Target):
 
 #### Milestones
 
-| FM    | Title                                         | Description                                                                                                   |
-| ----- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| FM-221 | Deliberation Protocol Specification           | Formal protocol: proposal → evidence gathering → debate rounds → synthesis → resolution, with timeouts and escalation |
-| FM-222 | Council Assembly & Role Assignment            | Dynamic council formation — select agents by expertise, assign roles (proposer, critic, synthesizer, mediator) |
-| FM-223 | Proposal & Counter-Proposal Engine            | Agents generate structured proposals with rationale; others generate counter-proposals with alternative evidence |
-| FM-224 | Evidence & Reasoning Chain Capture            | Every argument, counter-argument, and evidence citation is captured as a structured reasoning chain             |
-| FM-225 | Debate Orchestration & Turn Management        | Managed debate rounds with turn limits, relevance scoring, and convergence detection                           |
-| FM-226 | Synthesis & Resolution Engine                 | Automatic synthesis of debate outcomes into actionable decisions with confidence scores and dissent notes       |
-| FM-227 | Human Escalation & Override Protocol          | When councils deadlock or confidence is below threshold, structured escalation to human operators with context  |
-| FM-228 | Council Memory & Precedent System             | Past council decisions become searchable precedent — future councils can reference prior reasoning              |
-| FM-229 | Council Analytics & Quality Metrics           | Track deliberation quality: decision reversal rate, confidence accuracy, time-to-resolution, diversity of perspectives |
-| FM-230 | Council Engine Tests, Docs & Hardening        | End-to-end deliberation tests, edge cases (deadlocks, bad faith agents, timeout cascades), documentation       |
+| FM     | Title                                  | Description                                                                                                            |
+| ------ | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| FM-221 | Deliberation Protocol Specification    | Formal protocol: proposal → evidence gathering → debate rounds → synthesis → resolution, with timeouts and escalation  |
+| FM-222 | Council Assembly & Role Assignment     | Dynamic council formation — select agents by expertise, assign roles (proposer, critic, synthesizer, mediator)         |
+| FM-223 | Proposal & Counter-Proposal Engine     | Agents generate structured proposals with rationale; others generate counter-proposals with alternative evidence       |
+| FM-224 | Evidence & Reasoning Chain Capture     | Every argument, counter-argument, and evidence citation is captured as a structured reasoning chain                    |
+| FM-225 | Debate Orchestration & Turn Management | Managed debate rounds with turn limits, relevance scoring, and convergence detection                                   |
+| FM-226 | Synthesis & Resolution Engine          | Automatic synthesis of debate outcomes into actionable decisions with confidence scores and dissent notes              |
+| FM-227 | Human Escalation & Override Protocol   | When councils deadlock or confidence is below threshold, structured escalation to human operators with context         |
+| FM-228 | Council Memory & Precedent System      | Past council decisions become searchable precedent — future councils can reference prior reasoning                     |
+| FM-229 | Council Analytics & Quality Metrics    | Track deliberation quality: decision reversal rate, confidence accuracy, time-to-resolution, diversity of perspectives |
+| FM-230 | Council Engine Tests, Docs & Hardening | End-to-end deliberation tests, edge cases (deadlocks, bad faith agents, timeout cascades), documentation               |
 
 ---
 
@@ -179,18 +179,18 @@ V5 Architecture (Target):
 
 #### Milestones
 
-| FM    | Title                                         | Description                                                                                                   |
-| ----- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| FM-231 | Graph Memory Store Foundation                 | Graph database integration (Neo4j/Apache AGE), connection pooling, schema design for ForgeMind's domain model  |
-| FM-232 | Entity & Relationship Schema                  | Node types (Agent, Task, Decision, Artifact, Component, Pattern) and edge types (produced_by, depends_on, contradicts, supports, refines) |
-| FM-233 | Automatic Context Ingestion                   | Pipeline that automatically extracts entities and relationships from execution artifacts, decisions, and discussions |
-| FM-234 | Reasoning Chain Persistence                   | Store multi-step reasoning as connected graph paths — premises → inferences → conclusions with confidence at each step |
-| FM-235 | Graph-Aware Context Retrieval                 | Query engine that traverses the graph to assemble relevant context for agents — replaces flat prompt stuffing   |
-| FM-236 | Cross-Project Knowledge Transfer              | Graph queries that surface patterns, decisions, and lessons from other projects with relevance scoring          |
-| FM-237 | Temporal Reasoning & Decision Evolution        | Track how decisions and understanding evolve over time — see why something changed, not just what changed       |
-| FM-238 | Memory Decay & Relevance Scoring              | Time-weighted relevance — recent, frequently-referenced, and high-impact nodes are prioritized in context assembly |
-| FM-239 | Graph Visualization & Explorer                | Interactive frontend for browsing the knowledge graph — node expansion, relationship traversal, search          |
-| FM-240 | Graph Memory Tests, Docs & Hardening          | Full test coverage, graph query performance benchmarks, migration tooling, documentation                        |
+| FM     | Title                                   | Description                                                                                                                               |
+| ------ | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| FM-231 | Graph Memory Store Foundation           | Graph database integration (Neo4j/Apache AGE), connection pooling, schema design for ForgeMind's domain model                             |
+| FM-232 | Entity & Relationship Schema            | Node types (Agent, Task, Decision, Artifact, Component, Pattern) and edge types (produced_by, depends_on, contradicts, supports, refines) |
+| FM-233 | Automatic Context Ingestion             | Pipeline that automatically extracts entities and relationships from execution artifacts, decisions, and discussions                      |
+| FM-234 | Reasoning Chain Persistence             | Store multi-step reasoning as connected graph paths — premises → inferences → conclusions with confidence at each step                    |
+| FM-235 | Graph-Aware Context Retrieval           | Query engine that traverses the graph to assemble relevant context for agents — replaces flat prompt stuffing                             |
+| FM-236 | Cross-Project Knowledge Transfer        | Graph queries that surface patterns, decisions, and lessons from other projects with relevance scoring                                    |
+| FM-237 | Temporal Reasoning & Decision Evolution | Track how decisions and understanding evolve over time — see why something changed, not just what changed                                 |
+| FM-238 | Memory Decay & Relevance Scoring        | Time-weighted relevance — recent, frequently-referenced, and high-impact nodes are prioritized in context assembly                        |
+| FM-239 | Graph Visualization & Explorer          | Interactive frontend for browsing the knowledge graph — node expansion, relationship traversal, search                                    |
+| FM-240 | Graph Memory Tests, Docs & Hardening    | Full test coverage, graph query performance benchmarks, migration tooling, documentation                                                  |
 
 ---
 
@@ -206,18 +206,18 @@ V5 Architecture (Target):
 
 #### Milestones
 
-| FM    | Title                                         | Description                                                                                                   |
-| ----- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| FM-241 | FAIR Scoring Framework                        | Core scoring engine: Findability (can we locate required capabilities?), Accessibility (are agents/resources available?), Interoperability (can components work together?), Reusability (have we done this before?) |
-| FM-242 | Confidence Signal Aggregation                 | Combine multiple confidence signals: historical success rate, agent self-reported confidence, council confidence, graph memory strength |
-| FM-243 | Policy Constraint Engine                      | Organizational policies (cost limits, agent restrictions, approval requirements, compliance rules) as hard/soft constraints on workflow selection |
-| FM-244 | Workflow Candidate Generation                 | Generate multiple candidate execution strategies for a task, each with estimated cost, time, risk, and quality predictions |
-| FM-245 | Explainable Routing Decisions                 | Every workflow selection produces a human-readable explanation: "Chose Strategy A because [reasons], over Strategy B because [tradeoffs]" |
-| FM-246 | Outcome Feedback Loop                         | Execution outcomes (success, failure, quality, time, cost) feed back into FAIR scores and graph memory for continuous improvement |
-| FM-247 | A/B Workflow Experimentation                  | Run alternative strategies on similar tasks to empirically measure which approaches work best for different task types |
-| FM-248 | Operator Workflow Preferences                 | Operators can express preferences (prefer speed over quality, prefer familiar patterns, minimize cost) that influence scoring weights |
-| FM-249 | FAIR Dashboard & Audit Trail                  | Frontend dashboard showing workflow selection history, score breakdowns, outcome trends, and model accuracy over time |
-| FM-250 | FAIR Engine Tests, Docs & Hardening           | Comprehensive test suite, scoring edge cases, bias detection tests, documentation, and production validation   |
+| FM     | Title                               | Description                                                                                                                                                                                                         |
+| ------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FM-241 | FAIR Scoring Framework              | Core scoring engine: Findability (can we locate required capabilities?), Accessibility (are agents/resources available?), Interoperability (can components work together?), Reusability (have we done this before?) |
+| FM-242 | Confidence Signal Aggregation       | Combine multiple confidence signals: historical success rate, agent self-reported confidence, council confidence, graph memory strength                                                                             |
+| FM-243 | Policy Constraint Engine            | Organizational policies (cost limits, agent restrictions, approval requirements, compliance rules) as hard/soft constraints on workflow selection                                                                   |
+| FM-244 | Workflow Candidate Generation       | Generate multiple candidate execution strategies for a task, each with estimated cost, time, risk, and quality predictions                                                                                          |
+| FM-245 | Explainable Routing Decisions       | Every workflow selection produces a human-readable explanation: "Chose Strategy A because [reasons], over Strategy B because [tradeoffs]"                                                                           |
+| FM-246 | Outcome Feedback Loop               | Execution outcomes (success, failure, quality, time, cost) feed back into FAIR scores and graph memory for continuous improvement                                                                                   |
+| FM-247 | A/B Workflow Experimentation        | Run alternative strategies on similar tasks to empirically measure which approaches work best for different task types                                                                                              |
+| FM-248 | Operator Workflow Preferences       | Operators can express preferences (prefer speed over quality, prefer familiar patterns, minimize cost) that influence scoring weights                                                                               |
+| FM-249 | FAIR Dashboard & Audit Trail        | Frontend dashboard showing workflow selection history, score breakdowns, outcome trends, and model accuracy over time                                                                                               |
+| FM-250 | FAIR Engine Tests, Docs & Hardening | Comprehensive test suite, scoring edge cases, bias detection tests, documentation, and production validation                                                                                                        |
 
 ---
 
@@ -225,13 +225,13 @@ V5 Architecture (Target):
 
 ### Required Before V5 Begins
 
-| Prerequisite                    | Source   | Why Required                                                  |
-| ------------------------------- | -------- | ------------------------------------------------------------- |
-| FM-210 complete                 | V4       | All V4 ecosystem features are the foundation V5 builds on     |
-| Redis 7+ in production stack    | Infra    | Event bus, pub/sub, and streams are core V5 messaging layer   |
-| Graph database provisioned      | Infra    | Wave 19 requires Neo4j or Apache AGE deployed and accessible  |
-| Agent model refactored to async | V4       | Dynamic spawning requires agents that run as independent workers |
-| V4 API v1 stable                | FM-201+  | V5 agents and services communicate through stable APIs        |
+| Prerequisite                    | Source  | Why Required                                                     |
+| ------------------------------- | ------- | ---------------------------------------------------------------- |
+| FM-210 complete                 | V4      | All V4 ecosystem features are the foundation V5 builds on        |
+| Redis 7+ in production stack    | Infra   | Event bus, pub/sub, and streams are core V5 messaging layer      |
+| Graph database provisioned      | Infra   | Wave 19 requires Neo4j or Apache AGE deployed and accessible     |
+| Agent model refactored to async | V4      | Dynamic spawning requires agents that run as independent workers |
+| V4 API v1 stable                | FM-201+ | V5 agents and services communicate through stable APIs           |
 
 ### Cross-Block Dependencies
 
@@ -255,15 +255,16 @@ Wave 18 ────────────────────────
 
 ### Phasing
 
-| Phase   | Waves    | Milestones       | Duration (est.) |
-| ------- | -------- | ---------------- | --------------- |
-| Phase E | Wave 17  | FM-211 → FM-220  | Foundation      |
+| Phase   | Waves        | Milestones      | Duration (est.) |
+| ------- | ------------ | --------------- | --------------- |
+| Phase E | Wave 17      | FM-211 → FM-220 | Foundation      |
 | Phase F | Wave 18 + 19 | FM-221 → FM-240 | Parallel tracks |
-| Phase G | Wave 20  | FM-241 → FM-250  | Capstone        |
+| Phase G | Wave 20      | FM-241 → FM-250 | Capstone        |
 
 ### Success Criteria
 
 V5 is successful when:
+
 - Agents are dynamically spawned per-task rather than drawn from a static pool
 - Council deliberation produces measurably better decisions than single-agent execution on complex tasks
 - The knowledge graph contains 10,000+ nodes after 50 completed projects with sub-second query latency
@@ -276,6 +277,7 @@ V5 is successful when:
 ### What V5 Does NOT Include
 
 To keep scope bounded, the following are explicitly deferred to V6+:
+
 - **Self-hosted deployment** — Still assumes managed platform model
 - **Mobile app** — V5 focuses on agent intelligence, not new surfaces
 - **Multi-language agent execution** — Agents remain Python-native; polyglot runtime is V6+
@@ -286,63 +288,63 @@ To keep scope bounded, the following are explicitly deferred to V6+:
 
 ## 6. V5 Risk Assessment
 
-| Risk                                          | Likelihood | Impact | Mitigation                                                |
-| --------------------------------------------- | ---------- | ------ | --------------------------------------------------------- |
-| Graph DB adds operational complexity           | High       | Medium | Start with Apache AGE (PostgreSQL extension) to minimize new infra |
-| Redis as event bus has scaling limits           | Medium     | High   | Design for Redis Cluster from day one; Kafka migration path documented |
-| Dynamic agent spawning increases security surface | High    | High   | Agent sandboxing, capability-based permissions, resource limits |
-| Council deliberation may not converge           | Medium     | Medium | Hard timeout + human escalation protocol in FM-227        |
-| FAIR scoring model needs training data          | High       | Medium | Bootstrap from V4 execution history; A/B testing in FM-247 |
-| Over-engineering risk — complexity without ROI  | Medium     | High   | Each wave has its own hardening milestone; gate progression |
+| Risk                                              | Likelihood | Impact | Mitigation                                                             |
+| ------------------------------------------------- | ---------- | ------ | ---------------------------------------------------------------------- |
+| Graph DB adds operational complexity              | High       | Medium | Start with Apache AGE (PostgreSQL extension) to minimize new infra     |
+| Redis as event bus has scaling limits             | Medium     | High   | Design for Redis Cluster from day one; Kafka migration path documented |
+| Dynamic agent spawning increases security surface | High       | High   | Agent sandboxing, capability-based permissions, resource limits        |
+| Council deliberation may not converge             | Medium     | Medium | Hard timeout + human escalation protocol in FM-227                     |
+| FAIR scoring model needs training data            | High       | Medium | Bootstrap from V4 execution history; A/B testing in FM-247             |
+| Over-engineering risk — complexity without ROI    | Medium     | High   | Each wave has its own hardening milestone; gate progression            |
 
 ---
 
 ## Appendix: V5 Milestone Index
 
-| FM     | Title                                         | Wave |
-| ------ | --------------------------------------------- | ---- |
-| FM-211 | Master Orchestration Service                  | 17   |
-| FM-212 | Agent Blueprint & Registry V2                 | 17   |
-| FM-213 | Dynamic Agent Spawning                        | 17   |
-| FM-214 | Redis Event Bus — Core Messaging              | 17   |
-| FM-215 | Agent-to-Agent Communication Protocol         | 17   |
-| FM-216 | Agent Lifecycle Management                    | 17   |
-| FM-217 | Task Decomposition Engine                     | 17   |
-| FM-218 | Agent Capability Discovery                    | 17   |
-| FM-219 | Runtime Monitoring & Agent Observability       | 17   |
-| FM-220 | Dynamic Runtime Tests, Docs & Hardening       | 17   |
-| FM-221 | Deliberation Protocol Specification           | 18   |
-| FM-222 | Council Assembly & Role Assignment            | 18   |
-| FM-223 | Proposal & Counter-Proposal Engine            | 18   |
-| FM-224 | Evidence & Reasoning Chain Capture            | 18   |
-| FM-225 | Debate Orchestration & Turn Management        | 18   |
-| FM-226 | Synthesis & Resolution Engine                 | 18   |
-| FM-227 | Human Escalation & Override Protocol          | 18   |
-| FM-228 | Council Memory & Precedent System             | 18   |
-| FM-229 | Council Analytics & Quality Metrics           | 18   |
-| FM-230 | Council Engine Tests, Docs & Hardening        | 18   |
-| FM-231 | Graph Memory Store Foundation                 | 19   |
-| FM-232 | Entity & Relationship Schema                  | 19   |
-| FM-233 | Automatic Context Ingestion                   | 19   |
-| FM-234 | Reasoning Chain Persistence                   | 19   |
-| FM-235 | Graph-Aware Context Retrieval                 | 19   |
-| FM-236 | Cross-Project Knowledge Transfer              | 19   |
-| FM-237 | Temporal Reasoning & Decision Evolution        | 19   |
-| FM-238 | Memory Decay & Relevance Scoring              | 19   |
-| FM-239 | Graph Visualization & Explorer                | 19   |
-| FM-240 | Graph Memory Tests, Docs & Hardening          | 19   |
-| FM-241 | FAIR Scoring Framework                        | 20   |
-| FM-242 | Confidence Signal Aggregation                 | 20   |
-| FM-243 | Policy Constraint Engine                      | 20   |
-| FM-244 | Workflow Candidate Generation                 | 20   |
-| FM-245 | Explainable Routing Decisions                 | 20   |
-| FM-246 | Outcome Feedback Loop                         | 20   |
-| FM-247 | A/B Workflow Experimentation                  | 20   |
-| FM-248 | Operator Workflow Preferences                 | 20   |
-| FM-249 | FAIR Dashboard & Audit Trail                  | 20   |
-| FM-250 | FAIR Engine Tests, Docs & Hardening           | 20   |
+| FM     | Title                                    | Wave |
+| ------ | ---------------------------------------- | ---- |
+| FM-211 | Master Orchestration Service             | 17   |
+| FM-212 | Agent Blueprint & Registry V2            | 17   |
+| FM-213 | Dynamic Agent Spawning                   | 17   |
+| FM-214 | Redis Event Bus — Core Messaging         | 17   |
+| FM-215 | Agent-to-Agent Communication Protocol    | 17   |
+| FM-216 | Agent Lifecycle Management               | 17   |
+| FM-217 | Task Decomposition Engine                | 17   |
+| FM-218 | Agent Capability Discovery               | 17   |
+| FM-219 | Runtime Monitoring & Agent Observability | 17   |
+| FM-220 | Dynamic Runtime Tests, Docs & Hardening  | 17   |
+| FM-221 | Deliberation Protocol Specification      | 18   |
+| FM-222 | Council Assembly & Role Assignment       | 18   |
+| FM-223 | Proposal & Counter-Proposal Engine       | 18   |
+| FM-224 | Evidence & Reasoning Chain Capture       | 18   |
+| FM-225 | Debate Orchestration & Turn Management   | 18   |
+| FM-226 | Synthesis & Resolution Engine            | 18   |
+| FM-227 | Human Escalation & Override Protocol     | 18   |
+| FM-228 | Council Memory & Precedent System        | 18   |
+| FM-229 | Council Analytics & Quality Metrics      | 18   |
+| FM-230 | Council Engine Tests, Docs & Hardening   | 18   |
+| FM-231 | Graph Memory Store Foundation            | 19   |
+| FM-232 | Entity & Relationship Schema             | 19   |
+| FM-233 | Automatic Context Ingestion              | 19   |
+| FM-234 | Reasoning Chain Persistence              | 19   |
+| FM-235 | Graph-Aware Context Retrieval            | 19   |
+| FM-236 | Cross-Project Knowledge Transfer         | 19   |
+| FM-237 | Temporal Reasoning & Decision Evolution  | 19   |
+| FM-238 | Memory Decay & Relevance Scoring         | 19   |
+| FM-239 | Graph Visualization & Explorer           | 19   |
+| FM-240 | Graph Memory Tests, Docs & Hardening     | 19   |
+| FM-241 | FAIR Scoring Framework                   | 20   |
+| FM-242 | Confidence Signal Aggregation            | 20   |
+| FM-243 | Policy Constraint Engine                 | 20   |
+| FM-244 | Workflow Candidate Generation            | 20   |
+| FM-245 | Explainable Routing Decisions            | 20   |
+| FM-246 | Outcome Feedback Loop                    | 20   |
+| FM-247 | A/B Workflow Experimentation             | 20   |
+| FM-248 | Operator Workflow Preferences            | 20   |
+| FM-249 | FAIR Dashboard & Audit Trail             | 20   |
+| FM-250 | FAIR Engine Tests, Docs & Hardening      | 20   |
 
 ---
 
-*End of ForgeMind V5 Roadmap — FM-211 through FM-250*
-*Status: FUTURE — Not yet implemented. This is an architecture direction document.*
+_End of ForgeMind V5 Roadmap — FM-211 through FM-250_
+_Status: FUTURE — Not yet implemented. This is an architecture direction document._

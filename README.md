@@ -1694,13 +1694,13 @@ make test
 
 ### Roadmap Versions
 
-| Version | Milestones      | Focus          | Status         | Roadmap                                                      |
-| ------- | --------------- | -------------- | -------------- | ------------------------------------------------------------ |
-| V1      | FM-001 → FM-050 | Foundation     | ✅ Complete     | [FORGEMIND_ROADMAP.md](FORGEMIND_ROADMAP.md)                 |
-| V2      | FM-051 → FM-100 | Breadth        | ✅ Complete     | [FORGEMIND_ROADMAP_V2.md](FORGEMIND_ROADMAP_V2.md)           |
-| V3      | FM-101 → FM-140 | Depth          | ✅ Complete     | [FORGEMIND_ROADMAP_V3.md](FORGEMIND_ROADMAP_V3.md)           |
-| V4      | FM-141 → FM-210 | Ecosystem      | 🔧 In Progress | [FORGEMIND_V4_ROADMAP.md](FORGEMIND_V4_ROADMAP.md)           |
-| **V5**  | FM-211 → FM-250 | Intelligence   | 🔮 Future      | [FORGEMIND_V5_ROADMAP.md](FORGEMIND_V5_ROADMAP.md)           |
+| Version | Milestones      | Focus        | Status         | Roadmap                                            |
+| ------- | --------------- | ------------ | -------------- | -------------------------------------------------- |
+| V1      | FM-001 → FM-050 | Foundation   | ✅ Complete    | [FORGEMIND_ROADMAP.md](FORGEMIND_ROADMAP.md)       |
+| V2      | FM-051 → FM-100 | Breadth      | ✅ Complete    | [FORGEMIND_ROADMAP_V2.md](FORGEMIND_ROADMAP_V2.md) |
+| V3      | FM-101 → FM-140 | Depth        | ✅ Complete    | [FORGEMIND_ROADMAP_V3.md](FORGEMIND_ROADMAP_V3.md) |
+| V4      | FM-141 → FM-210 | Ecosystem    | 🔧 In Progress | [FORGEMIND_V4_ROADMAP.md](FORGEMIND_V4_ROADMAP.md) |
+| **V5**  | FM-211 → FM-250 | Intelligence | 🔮 Future      | [FORGEMIND_V5_ROADMAP.md](FORGEMIND_V5_ROADMAP.md) |
 
 > **V5 Vision:** Dynamic multi-agent orchestration with graph-based memory, council deliberation, and explainable FAIR-style workflow selection. Begins after FM-210.
 

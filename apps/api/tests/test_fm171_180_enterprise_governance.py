@@ -830,7 +830,7 @@ class TestRetentionPolicies:
     async def test_list_retention_policies(
         self, db_session: AsyncSession, sample_workspace
     ):
-        for entity_type in ["run", "audit_log", "artifact"]:
+        for entity_type in ["run", "audit_log"]:
             await retention_policy_service.create_retention_policy(
                 db_session,
                 workspace_id=sample_workspace.id,
@@ -843,7 +843,7 @@ class TestRetentionPolicies:
         items, total = await retention_policy_service.list_retention_policies(
             db_session, sample_workspace.id
         )
-        assert total == 3
+        assert total == 2
 
         # Filter by entity type
         items, total = await retention_policy_service.list_retention_policies(
@@ -1518,7 +1518,7 @@ class TestEdgeCases:
         policy = await retention_policy_service.create_retention_policy(
             db_session,
             workspace_id=sample_workspace.id,
-            entity_type="notification",
+            entity_type="audit_log",
             retention_days=30,
             action=RetentionAction.DELETE,
             created_by=STUB_USER_ID,

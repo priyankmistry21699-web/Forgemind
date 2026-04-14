@@ -16,8 +16,10 @@ from app.models.enterprise_governance import AuditLog
 
 logger = logging.getLogger(__name__)
 
-# Entity types that support retention
-SUPPORTED_ENTITY_TYPES = {"run", "audit_log", "artifact", "notification", "activity"}
+# Entity types that have full retention evaluation + delete logic.
+# Future expansion: artifact, notification, activity (requires model-specific
+# query logic in evaluate_retention before adding here).
+SUPPORTED_ENTITY_TYPES = {"run", "audit_log"}
 
 
 async def create_retention_policy(

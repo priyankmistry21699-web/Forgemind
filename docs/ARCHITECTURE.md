@@ -487,34 +487,34 @@ Settings defined in `apps/api/app/core/config.py` via Pydantic `BaseSettings`:
 
 ### Backend Tests (`apps/api/tests/`)
 
-| Test File                        | Focus                                | Coverage                                                                                                                                       |
-| -------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `test_health.py`                 | Health endpoints                     | Liveness + readiness                                                                                                                           |
-| `test_projects.py`               | Project CRUD                         | Create, list, get, update                                                                                                                      |
-| `test_planner.py`                | Planner service                      | NL prompt → plan, fallback stub                                                                                                                |
-| `test_tasks.py`                  | Task DAG                             | State transitions, ready-task, DAG                                                                                                             |
-| `test_runs.py`                   | Run management                       | Creation, listing, status                                                                                                                      |
-| `test_agents.py`                 | Agent registry                       | Seed, list, get                                                                                                                                |
-| `test_artifacts.py`              | Artifact storage                     | Versioning, CRUD, filtering                                                                                                                    |
-| `test_approvals.py`              | Approval workflow                    | Create, list, approve/reject                                                                                                                   |
-| `test_events.py`                 | Event logging                        | Emit, list, filter                                                                                                                             |
-| `test_chat.py`                   | Execution chatbot                    | Topic detection, context, fallback                                                                                                             |
-| `test_composition.py`            | Agent composition                    | Team assembly, scoring                                                                                                                         |
-| `test_connectors.py`             | Connector registry                   | List, recommendations, readiness                                                                                                               |
-| `test_memory.py`                 | Execution memory                     | Summaries, failure analysis                                                                                                                    |
-| `test_schemas.py`                | Pydantic schemas                     | Validation                                                                                                                                     |
-| `test_fm046_050.py`              | Infrastructure features              | Lifecycle, cost, governance, audit, trust (46 tests)                                                                                           |
-| `test_fm046_050_v2.py`           | FM-046–050 new features              | Replay, council, knowledge, repos, hardening (34 tests)                                                                                        |
-| `test_workspaces.py`             | Workspace CRUD                       | Create, list, get, update, delete workspaces                                                                                                   |
-| `test_members.py`                | Membership management                | Workspace + project member CRUD                                                                                                                |
-| `test_streaming.py`              | SSE streaming                        | Event generator output + route registration                                                                                                    |
-| `test_notifications.py`          | Notification system                  | Create, list, mark read, delivery config                                                                                                       |
-| `test_escalation.py`             | Escalation engine                    | Rules CRUD + escalation events                                                                                                                 |
-| `test_activity.py`               | Activity & presence                  | Activity feed + user presence upsert                                                                                                           |
-| `test_code_ops.py`               | Code operations                      | Mappings, patches, reviews, branches, PRs, approvals, sandbox                                                                                  |
-| `test_code_ops_enhanced.py`      | FM-061–069 enhancements              | Sync metadata, file tree, artifact mapping, patches, reviews, PR drafts, approval gates, sandbox runner (24 tests)                             |
-| `test_fm081_090_architecture.py` | FM-081–090 architecture intelligence | Graph CRUD, topology mapping, drift detection, rules, design docs, impact analysis, recommendations, approvals, RBAC, health score (~69 tests) |
-| `test_fm161_170_knowledge_search.py` | FM-161–170 knowledge & search | Search indexing, similarity, knowledge CRUD, conventions, versioning, recommendations, comparisons, integrity check (~45 tests) |
+| Test File                            | Focus                                | Coverage                                                                                                                                       |
+| ------------------------------------ | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `test_health.py`                     | Health endpoints                     | Liveness + readiness                                                                                                                           |
+| `test_projects.py`                   | Project CRUD                         | Create, list, get, update                                                                                                                      |
+| `test_planner.py`                    | Planner service                      | NL prompt → plan, fallback stub                                                                                                                |
+| `test_tasks.py`                      | Task DAG                             | State transitions, ready-task, DAG                                                                                                             |
+| `test_runs.py`                       | Run management                       | Creation, listing, status                                                                                                                      |
+| `test_agents.py`                     | Agent registry                       | Seed, list, get                                                                                                                                |
+| `test_artifacts.py`                  | Artifact storage                     | Versioning, CRUD, filtering                                                                                                                    |
+| `test_approvals.py`                  | Approval workflow                    | Create, list, approve/reject                                                                                                                   |
+| `test_events.py`                     | Event logging                        | Emit, list, filter                                                                                                                             |
+| `test_chat.py`                       | Execution chatbot                    | Topic detection, context, fallback                                                                                                             |
+| `test_composition.py`                | Agent composition                    | Team assembly, scoring                                                                                                                         |
+| `test_connectors.py`                 | Connector registry                   | List, recommendations, readiness                                                                                                               |
+| `test_memory.py`                     | Execution memory                     | Summaries, failure analysis                                                                                                                    |
+| `test_schemas.py`                    | Pydantic schemas                     | Validation                                                                                                                                     |
+| `test_fm046_050.py`                  | Infrastructure features              | Lifecycle, cost, governance, audit, trust (46 tests)                                                                                           |
+| `test_fm046_050_v2.py`               | FM-046–050 new features              | Replay, council, knowledge, repos, hardening (34 tests)                                                                                        |
+| `test_workspaces.py`                 | Workspace CRUD                       | Create, list, get, update, delete workspaces                                                                                                   |
+| `test_members.py`                    | Membership management                | Workspace + project member CRUD                                                                                                                |
+| `test_streaming.py`                  | SSE streaming                        | Event generator output + route registration                                                                                                    |
+| `test_notifications.py`              | Notification system                  | Create, list, mark read, delivery config                                                                                                       |
+| `test_escalation.py`                 | Escalation engine                    | Rules CRUD + escalation events                                                                                                                 |
+| `test_activity.py`                   | Activity & presence                  | Activity feed + user presence upsert                                                                                                           |
+| `test_code_ops.py`                   | Code operations                      | Mappings, patches, reviews, branches, PRs, approvals, sandbox                                                                                  |
+| `test_code_ops_enhanced.py`          | FM-061–069 enhancements              | Sync metadata, file tree, artifact mapping, patches, reviews, PR drafts, approval gates, sandbox runner (24 tests)                             |
+| `test_fm081_090_architecture.py`     | FM-081–090 architecture intelligence | Graph CRUD, topology mapping, drift detection, rules, design docs, impact analysis, recommendations, approvals, RBAC, health score (~69 tests) |
+| `test_fm161_170_knowledge_search.py` | FM-161–170 knowledge & search        | Search indexing, similarity, knowledge CRUD, conventions, versioning, recommendations, comparisons, integrity check (~45 tests)                |
 
 ### Evaluation Tests (`apps/api/evals/`)
 
@@ -942,18 +942,18 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 > project overview. 3/10 fully complete, 7/10 partial (missing HTTP routes,
 > notification preferences, cursor pagination, default views, auto-escalation).
 
-| ID     | Feature                                     | Status                       |
-| ------ | ------------------------------------------- | ---------------------------- |
-| FM-141 | Threaded Comments                           | ✅ Complete                  |
-| FM-142 | @Mentions & Notification Routing            | ⚠️ Partial (no prefs model)   |
-| FM-143 | Unified Activity Feed                       | ⚠️ Partial (offset only)     |
-| FM-144 | Saved Views & Filters                       | ⚠️ Partial (no default seed)  |
-| FM-145 | User Presence & Online Status               | ✅ Complete                  |
-| FM-146 | Collaborative Run Annotations               | ✅ Complete                  |
-| FM-147 | Task Assignment & Workload                  | ⚠️ Partial (no routes)       |
-| FM-148 | Approval Delegation & Batch                 | ⚠️ Partial (no routes)       |
-| FM-149 | Notification Digest & Center                | ⚠️ Partial (no routes)       |
-| FM-150 | Project Overview Dashboard                  | ⚠️ Partial (no route)        |
+| ID     | Feature                          | Status                       |
+| ------ | -------------------------------- | ---------------------------- |
+| FM-141 | Threaded Comments                | ✅ Complete                  |
+| FM-142 | @Mentions & Notification Routing | ⚠️ Partial (no prefs model)  |
+| FM-143 | Unified Activity Feed            | ⚠️ Partial (offset only)     |
+| FM-144 | Saved Views & Filters            | ⚠️ Partial (no default seed) |
+| FM-145 | User Presence & Online Status    | ✅ Complete                  |
+| FM-146 | Collaborative Run Annotations    | ✅ Complete                  |
+| FM-147 | Task Assignment & Workload       | ⚠️ Partial (no routes)       |
+| FM-148 | Approval Delegation & Batch      | ⚠️ Partial (no routes)       |
+| FM-149 | Notification Digest & Center     | ⚠️ Partial (no routes)       |
+| FM-150 | Project Overview Dashboard       | ⚠️ Partial (no route)        |
 
 ---
 
@@ -963,18 +963,18 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 > issue sync, branch strategy, code review routing, diff intelligence.
 > 1/10 fully complete, 8/10 partial, 1 deferred. **Zero outbound GitHub API calls.**
 
-| ID     | Feature                                     | Status                       |
-| ------ | ------------------------------------------- | ---------------------------- |
-| FM-151 | GitHub App Installation & Linking           | ⚠️ Partial (CRUD only)       |
-| FM-152 | Webhook Ingestion & Events                  | ⚠️ Partial (verify unused)   |
-| FM-153 | PR Auto-Creation & Tracking                 | ⚠️ Partial (CRUD only)       |
-| FM-154 | CI Pipeline Status Integration              | ⚠️ Partial (no pass-rate)    |
-| FM-155 | Issue Sync                                  | ⚠️ Partial (ingest only)     |
-| FM-156 | Branch Strategy & Merge Readiness           | ⚠️ Partial (no auto-branch)  |
-| FM-157 | Code Review Routing                         | ⚠️ Partial (no GH requests)  |
-| FM-158 | Commit & Diff Intelligence                  | ⚠️ Partial (no risk rules)   |
-| FM-159 | VS Code Extension Foundation                | ⏸️ Deferred (separate repo)  |
-| FM-160 | Hardening: Rate Limiter, Retry, Replay      | ✅ Complete                  |
+| ID     | Feature                                | Status                      |
+| ------ | -------------------------------------- | --------------------------- |
+| FM-151 | GitHub App Installation & Linking      | ⚠️ Partial (CRUD only)      |
+| FM-152 | Webhook Ingestion & Events             | ⚠️ Partial (verify unused)  |
+| FM-153 | PR Auto-Creation & Tracking            | ⚠️ Partial (CRUD only)      |
+| FM-154 | CI Pipeline Status Integration         | ⚠️ Partial (no pass-rate)   |
+| FM-155 | Issue Sync                             | ⚠️ Partial (ingest only)    |
+| FM-156 | Branch Strategy & Merge Readiness      | ⚠️ Partial (no auto-branch) |
+| FM-157 | Code Review Routing                    | ⚠️ Partial (no GH requests) |
+| FM-158 | Commit & Diff Intelligence             | ⚠️ Partial (no risk rules)  |
+| FM-159 | VS Code Extension Foundation           | ⏸️ Deferred (separate repo) |
+| FM-160 | Hardening: Rate Limiter, Retry, Replay | ✅ Complete                 |
 
 ---
 
@@ -984,18 +984,18 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 > recommendations, run comparison, cross-project discovery. 6/10 fully complete,
 > 4/10 partially scoped (embeddings, template enrichment, replay, project directory deferred).
 
-| ID     | Feature                                     | Status                       |
-| ------ | ------------------------------------------- | ---------------------------- |
-| FM-161 | Full-Text Search Index                      | ✅ Complete (LIKE-based)     |
-| FM-162 | Semantic Search with Embeddings             | ⚠️ Partial (keyword only)   |
-| FM-163 | Knowledge Base — Decision & Pattern Library | ⚠️ Partial (search filter only)|
-| FM-164 | Project Templates V2                        | ⚠️ Partial (marketplace only)|
-| FM-165 | Cross-Project Search & Discovery            | ⚠️ Partial (search only)    |
-| FM-166 | Execution Replay & Comparison               | ⚠️ Partial (comparison only)|
-| FM-167 | Organizational Context & Conventions Engine | ✅ Complete                  |
-| FM-168 | Artifact Versioning & History               | ✅ Complete                  |
-| FM-169 | Smart Recommendations Engine                | ✅ Complete                  |
-| FM-170 | Knowledge & Search Tests & Hardening        | ✅ Complete (45 tests)       |
+| ID     | Feature                                     | Status                          |
+| ------ | ------------------------------------------- | ------------------------------- |
+| FM-161 | Full-Text Search Index                      | ✅ Complete (LIKE-based)        |
+| FM-162 | Semantic Search with Embeddings             | ⚠️ Partial (keyword only)       |
+| FM-163 | Knowledge Base — Decision & Pattern Library | ⚠️ Partial (search filter only) |
+| FM-164 | Project Templates V2                        | ⚠️ Partial (marketplace only)   |
+| FM-165 | Cross-Project Search & Discovery            | ⚠️ Partial (search only)        |
+| FM-166 | Execution Replay & Comparison               | ⚠️ Partial (comparison only)    |
+| FM-167 | Organizational Context & Conventions Engine | ✅ Complete                     |
+| FM-168 | Artifact Versioning & History               | ✅ Complete                     |
+| FM-169 | Smart Recommendations Engine                | ✅ Complete                     |
+| FM-170 | Knowledge & Search Tests & Hardening        | ✅ Complete (45 tests)          |
 
 ### Wave 13 — Enterprise Governance, Permissions & Compliance (FM-171 → FM-180)
 
@@ -1004,18 +1004,18 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 > SSO configuration, secret resolution & rotation lifecycle.
 > 5/10 fully complete; 5/10 partial with real enforcement.
 
-| ID     | Feature                                     | Status                                     |
-| ------ | ------------------------------------------- | ------------------------------------------ |
-| FM-171 | Workspace Governance Metadata               | 🟡 Partial (governance_settings JSON)      |
-| FM-172 | RBAC V2 — Role Introspection                | 🟡 Partial (25 actions, no custom roles)   |
-| FM-173 | Comprehensive Audit Log                     | ✅ Complete                                |
-| FM-174 | Policy Engine — Automated Rule Enforcement  | ✅ Complete                                |
-| FM-175 | SSO Configuration Model                     | 🟡 Partial (config CRUD, no live flows)    |
-| FM-176 | Data Retention & Lifecycle Policies         | 🟡 Partial (CRUD + dry-run, no scheduler)  |
-| FM-177 | Compliance Reporting & Export               | ✅ Complete (5 report types, JSON/CSV)     |
-| FM-178 | IP Allowlisting & Access Controls           | ✅ Complete (middleware wired, IPv4/IPv6)   |
-| FM-179 | Secrets Resolution & Lifecycle              | 🟡 Partial (resolve/rotate, no encryption) |
-| FM-180 | Enterprise Governance Tests & Hardening     | ✅ Complete (70+ tests, docs corrected)    |
+| ID     | Feature                                    | Status                                     |
+| ------ | ------------------------------------------ | ------------------------------------------ |
+| FM-171 | Workspace Governance Metadata              | 🟡 Partial (governance_settings JSON)      |
+| FM-172 | RBAC V2 — Role Introspection               | 🟡 Partial (25 actions, no custom roles)   |
+| FM-173 | Comprehensive Audit Log                    | ✅ Complete                                |
+| FM-174 | Policy Engine — Automated Rule Enforcement | ✅ Complete                                |
+| FM-175 | SSO Configuration Model                    | 🟡 Partial (config CRUD, no live flows)    |
+| FM-176 | Data Retention & Lifecycle Policies        | 🟡 Partial (CRUD + dry-run, no scheduler)  |
+| FM-177 | Compliance Reporting & Export              | ✅ Complete (5 report types, JSON/CSV)     |
+| FM-178 | IP Allowlisting & Access Controls          | ✅ Complete (middleware wired, IPv4/IPv6)  |
+| FM-179 | Secrets Resolution & Lifecycle             | 🟡 Partial (resolve/rotate, no encryption) |
+| FM-180 | Enterprise Governance Tests & Hardening    | ✅ Complete (70+ tests, docs corrected)    |
 
 **New models:** AuditLog, GovernancePolicyEvaluation, ComplianceReport, IpAllowlistEntry, RetentionPolicy, SSOConfiguration
 **New services:** audit_log_service, governance_engine_service, compliance_report_service, ip_allowlist_service, retention_policy_service, sso_configuration_service

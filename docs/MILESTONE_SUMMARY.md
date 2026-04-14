@@ -1,6 +1,6 @@
 # ForgeMind — Milestone Summary
 
-> Last updated: 2026-04-14 (FM-141→180 strict audit — Waves 10-13 verified)
+> Last updated: 2026-04-14 (post-V4 remediation pass — FM-141→180 re-verified)
 
 ---
 
@@ -682,41 +682,41 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 
 ## FM-141 to FM-150 — ⚙️ PARTIAL (Wave 10: Collaboration & UX)
 
-| ID     | Feature                              | Status      |
-| ------ | ------------------------------------ | ----------- |
-| FM-141 | Threaded Comments                    | ✅ Complete |
-| FM-142 | @Mentions & Notification Routing     | ⚠️ Partial — no per-category notification preferences |
-| FM-143 | Unified Activity Feed                | ⚠️ Partial — offset pagination only; cursor-based deferred |
-| FM-144 | Saved Views & Filters                | ⚠️ Partial — default view seeding not implemented |
-| FM-145 | User Presence & Online Status        | ✅ Complete |
-| FM-146 | Collaborative Run Annotations        | ✅ Complete |
-| FM-147 | Task Assignment & Workload           | ⚠️ Partial — service only; no HTTP routes or assignment history events |
-| FM-148 | Approval Delegation & Batch          | ⚠️ Partial — model+query only; no routing/escalation logic or routes |
-| FM-149 | Notification Digest & Center         | ⚠️ Partial — no grouping logic; missing dismiss/digest HTTP routes |
-| FM-150 | Project Overview Dashboard           | ⚠️ Partial — service computes metrics but no HTTP route wired |
+| ID     | Feature                          | Status                                                                 |
+| ------ | -------------------------------- | ---------------------------------------------------------------------- |
+| FM-141 | Threaded Comments                | ✅ Complete                                                            |
+| FM-142 | @Mentions & Notification Routing | ⚠️ Partial — no per-category notification preferences                  |
+| FM-143 | Unified Activity Feed            | ⚠️ Partial — offset pagination only; cursor-based deferred             |
+| FM-144 | Saved Views & Filters            | ⚠️ Partial — default view seeding not implemented                      |
+| FM-145 | User Presence & Online Status    | ✅ Complete                                                            |
+| FM-146 | Collaborative Run Annotations    | ✅ Complete                                                            |
+| FM-147 | Task Assignment & Workload       | ⚠️ Partial — HTTP routes wired (assign/unassign/workload); assignment history events not recorded |
+| FM-148 | Approval Delegation & Batch      | ⚠️ Partial — delegation, batch-decide, pending (user-scoped), expired routes; auto-escalation deferred |
+| FM-149 | Notification Digest & Center     | ⚠️ Partial — no grouping logic; missing dismiss/digest HTTP routes     |
+| FM-150 | Project Overview Dashboard       | ✅ Complete — HTTP route + composite metrics (runs, tasks, approvals, health grade, team) |
 
-**Wave 10 summary:** 3/10 milestones fully complete, 7/10 partial. Core commenting, presence, and annotations work. Missing: notification preferences, cursor pagination, default views, task assignment routes, approval routing, notification grouping routes, project overview route.
+**Wave 10 summary:** 4/10 milestones fully complete, 6/10 partial. Core commenting, presence, annotations, and project overview work. Missing: notification preferences, cursor pagination, default views, assignment history events, approval auto-escalation, notification grouping routes.
 
 ## FM-151 to FM-160 — ⚙️ PARTIAL (Wave 11: GitHub & CI Integration)
 
-> **Critical note:** Wave 11 has zero outbound GitHub API calls. All data flows inbound
-> via webhooks or manual CRUD. `verify_github_signature()` is defined but never invoked
-> from the webhook route handler.
+> **Note:** Wave 11 now has outbound GitHub API capability (PR comments, commit statuses)
+> via `github_client.py` using `GITHUB_API_TOKEN`. Webhook signature verification is
+> enforced when `GITHUB_WEBHOOK_SECRET` is configured.
 
-| ID     | Feature                              | Status                    |
-| ------ | ------------------------------------ | ------------------------- |
-| FM-151 | GitHub App Installation & Linking    | ⚠️ Partial — CRUD works; no token encryption, OAuth flow, or token refresh |
-| FM-152 | Webhook Ingestion & Events           | ⚠️ Partial — signature verify defined but never called in route; only 3/6 event types processed |
-| FM-153 | PR Auto-Creation & Tracking          | ⚠️ Partial — CRUD only; no actual GitHub API PR creation calls |
-| FM-154 | CI Pipeline Status Integration       | ⚠️ Partial — event ingestion works; no pass-rate calc or deployment readiness |
-| FM-155 | Issue Sync                           | ⚠️ Partial — ingest-only; no bidirectional sync, no import/export |
-| FM-156 | Branch Strategy & Merge Readiness    | ⚠️ Partial — merge readiness works; no auto-create branch |
-| FM-157 | Code Review Routing                  | ⚠️ Partial — glob ownership matching; no scoring or GH reviewer requests |
-| FM-158 | Commit & Diff Intelligence           | ⚠️ Partial — basic diff parsing; no risk rules or HTTP routes |
-| FM-159 | VS Code Extension Foundation         | ⏸️ DEFERRED (separate repo) |
-| FM-160 | Hardening: Rate Limiter, Retry, Replay | ✅ Complete             |
+| ID     | Feature                                | Status                                                                                          |
+| ------ | -------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| FM-151 | GitHub App Installation & Linking      | ⚠️ Partial — CRUD works; no token encryption, OAuth flow, or token refresh                      |
+| FM-152 | Webhook Ingestion & Events             | ⚠️ Partial — signature verification now enforced; only 3/6 event types processed              |
+| FM-153 | PR Auto-Creation & Tracking            | ⚠️ Partial — CRUD + webhook-driven state sync; no actual GitHub API PR creation calls          |
+| FM-154 | CI Pipeline Status Integration         | ⚠️ Partial — inbound ingestion + outbound commit status posting; no pass-rate or readiness     |
+| FM-155 | Issue Sync                             | ⚠️ Partial — ingest-only; no bidirectional sync, no import/export                               |
+| FM-156 | Branch Strategy & Merge Readiness      | ⚠️ Partial — merge readiness works; no auto-create branch                                       |
+| FM-157 | Code Review Routing                    | ⚠️ Partial — glob ownership matching + outbound PR comment posting; no scoring or GH reviewer requests |
+| FM-158 | Commit & Diff Intelligence             | ⚠️ Partial — basic diff parsing; no risk rules or HTTP routes                                   |
+| FM-159 | VS Code Extension Foundation           | ⏸️ DEFERRED (separate repo)                                                                     |
+| FM-160 | Hardening: Rate Limiter, Retry, Replay | ✅ Complete                                                                                     |
 
-**Wave 11 summary:** 1/10 fully complete, 8/10 partial, 1 deferred. Rate limiting, retry decorator, and webhook replay work. All GitHub integration is inbound-only scaffolding — outbound API calls, token management, and signature verification enforcement are missing.
+**Wave 11 summary:** 1/10 fully complete, 8/10 partial, 1 deferred. Rate limiting, retry decorator, webhook replay, signature enforcement, and outbound GitHub API client work. Remaining: full App auth flow, 3 more event types, PR auto-creation, pass-rate, bidirectional issue sync, branch auto-creation, reviewer scoring, diff risk rules.
 
 ---
 
@@ -733,26 +733,26 @@ See [docs/TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for full details (18 items). Key
 
 ---
 
-_Wave 10: 3/10 complete, 7 partial. Wave 11: 1/10 complete, 8 partial, 1 deferred. Wave 12: 5/10 complete, 5 partial. Wave 13: 5/10 complete, 5 partial. FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project. 864 total tests passing._
+_Wave 10: 4/10 complete, 6 partial. Wave 11: 1/10 complete, 8 partial, 1 deferred. Wave 12: 6/10 complete, 4 partial. Wave 13: 5/10 complete, 5 partial. FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project. 16 COMPLETE, 23 PARTIAL, 1 DEFERRED across FM-141→180._
 
 ---
 
 ## FM-161 to FM-170 — ⚙️ PARTIAL (Wave 12: Search, Knowledge & Organizational Memory)
 
-| ID     | Feature                                          | Status                    |
-| ------ | ------------------------------------------------ | ------------------------- |
-| FM-161 | Full-Text Search Index                           | ✅ Complete (LIKE-based keyword search; tsvector deferred) |
-| FM-162 | Semantic Search with Embeddings                  | ⚠️ Partial — keyword-overlap similarity only; no embeddings/pgvector |
-| FM-163 | Knowledge Base — Decision & Pattern Library      | ⚠️ Partial — knowledge-type search filter works; no dedicated CRUD, no auto-suggestion engine |
-| FM-164 | Project Templates V2 — Knowledge-Enriched       | ⚠️ Partial — marketplace browse only; deep clone + versioning columns not added |
-| FM-165 | Cross-Project Search & Discovery                 | ⚠️ Partial — RBAC search works; project directory + related projects not implemented |
-| FM-166 | Execution Replay & Comparison                    | ⚠️ Partial — comparison works; replay mode not implemented |
-| FM-167 | Organizational Context & Conventions Engine      | ✅ Complete |
-| FM-168 | Artifact Versioning & History                    | ✅ Complete |
-| FM-169 | Smart Recommendations Engine                     | ✅ Complete (7 rules) |
-| FM-170 | Knowledge & Search Tests, Docs & Hardening       | ✅ Complete (45 tests, index integrity checker; perf benchmarks deferred) |
+| ID     | Feature                                     | Status                                                                                        |
+| ------ | ------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| FM-161 | Full-Text Search Index                      | ✅ Complete (LIKE-based keyword search; tsvector deferred)                                    |
+| FM-162 | Semantic Search with Embeddings             | ⚠️ Partial — keyword-overlap similarity only; no embeddings/pgvector                          |
+| FM-163 | Knowledge Base — Decision & Pattern Library | ⚠️ Partial — knowledge-type search filter works; no dedicated CRUD, no auto-suggestion engine |
+| FM-164 | Project Templates V2 — Knowledge-Enriched   | ⚠️ Partial — marketplace browse only; deep clone + versioning columns not added               |
+| FM-165 | Cross-Project Search & Discovery            | ✅ Complete — RBAC-filtered cross-project search with facet aggregation and date-range filtering |
+| FM-166 | Execution Replay & Comparison               | ⚠️ Partial — comparison works; replay mode not implemented                                    |
+| FM-167 | Organizational Context & Conventions Engine | ✅ Complete                                                                                   |
+| FM-168 | Artifact Versioning & History               | ✅ Complete                                                                                   |
+| FM-169 | Smart Recommendations Engine                | ✅ Complete (7 rules)                                                                         |
+| FM-170 | Knowledge & Search Tests, Docs & Hardening  | ✅ Complete (45 tests, index integrity checker; perf benchmarks deferred)                     |
 
-**Wave 12 summary:** 5/10 milestones fully complete; 5/10 partially scoped. Core search, conventions, versioning, and recommendations are production-ready. Semantic search, knowledge library, template enrichment, project discovery, and replay require additional infrastructure investment.
+**Wave 12 summary:** 6/10 milestones fully complete; 4/10 partially scoped. Core search with faceting, conventions, versioning, cross-project discovery, and recommendations are production-ready. Semantic search, knowledge library, template enrichment, and replay require additional infrastructure investment.
 
 ---
 
@@ -762,18 +762,18 @@ _Wave 10: 3/10 complete, 7 partial. Wave 11: 1/10 complete, 8 partial, 1 deferre
 > governance settings, role introspection, SSO configuration, secret resolution.
 > 8/10 milestones at PARTIAL or above; 2/10 have remaining work deferred.
 
-| FM     | Feature                                          | Status |
-| ------ | ------------------------------------------------ | ------ |
-| FM-171 | Organization / Governance Metadata               | 🟡 Partial — `governance_settings` JSON column on Workspace (plan_tier, compliance_level, sso/ip enforcement flags). Full Organization entity deferred. |
-| FM-172 | RBAC V2 — Fine-Grained Permissions               | 🟡 Partial — 25-action enforcement matrix, role introspection endpoints (`get_workspace_role_permissions`, `get_user_permissions`). Custom role creation deferred. |
-| FM-173 | Comprehensive Audit Log                          | ✅ Complete — Immutable AuditLog model, 8-filter query, CSV export, stats endpoint |
-| FM-174 | Policy Engine — Automated Rule Enforcement        | ✅ Complete — GovernancePolicyEvaluation with 5 trigger types, enforcement recording, evaluation history |
-| FM-175 | SSO Configuration Model                          | 🟡 Partial — SSOConfiguration model (SAML/OIDC provider config, per-workspace). CRUD routes. **No live SSO auth flows** — requires python3-saml/authlib. |
-| FM-176 | Data Retention & Lifecycle Policies              | 🟡 Partial — RetentionPolicy model, CRUD, dry-run evaluation. No background scheduler for automatic execution. |
-| FM-177 | Compliance Reporting & Export                    | ✅ Complete — 5 report types (access review, change mgmt, approval audit, policy compliance, full governance). JSON/CSV export. PDF deferred. |
-| FM-178 | IP Allowlisting & Access Controls                | ✅ Complete — CIDR-based allowlist with IPv4/IPv6, `IPAllowlistMiddleware` wired in FastAPI app, workspace governance flag controls enforcement |
-| FM-179 | Secrets Management — Resolution & Lifecycle      | 🟡 Partial — `resolve_secret()` with scope enforcement, `rotate_credential()` lifecycle tracking. CredentialVault is metadata-based (env_key resolution). AES-256-GCM encryption deferred. |
-| FM-180 | Enterprise Governance Tests, Docs & Hardening    | ✅ Complete — 70+ tests covering all services, IPv6 CIDR fix, doc overclaims corrected |
+| FM     | Feature                                       | Status                                                                                                                                                                                     |
+| ------ | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| FM-171 | Organization / Governance Metadata            | 🟡 Partial — `governance_settings` JSON column on Workspace (plan_tier, compliance_level, sso/ip enforcement flags). Full Organization entity deferred.                                    |
+| FM-172 | RBAC V2 — Fine-Grained Permissions            | 🟡 Partial — 25-action enforcement matrix, role introspection endpoints (`get_workspace_role_permissions`, `get_user_permissions`). Custom role creation deferred.                         |
+| FM-173 | Comprehensive Audit Log                       | ✅ Complete — Immutable AuditLog model, 8-filter query, CSV export, stats endpoint                                                                                                         |
+| FM-174 | Policy Engine — Automated Rule Enforcement    | ✅ Complete — GovernancePolicyEvaluation with 5 trigger types, enforcement recording, evaluation history                                                                                   |
+| FM-175 | SSO Configuration Model                       | 🟡 Partial — SSOConfiguration model (SAML/OIDC provider config, per-workspace). CRUD routes. **No live SSO auth flows** — requires python3-saml/authlib.                                   |
+| FM-176 | Data Retention & Lifecycle Policies           | 🟡 Partial — RetentionPolicy model, CRUD, dry-run + execution mode for `run` and `audit_log` entity types. No background scheduler.                                                        |
+| FM-177 | Compliance Reporting & Export                 | ✅ Complete — 5 report types (access review, change mgmt, approval audit, policy compliance, full governance). JSON/CSV export. PDF deferred.                                              |
+| FM-178 | IP Allowlisting & Access Controls             | ✅ Complete — CIDR-based allowlist with IPv4/IPv6, `IPAllowlistMiddleware` wired in FastAPI app, workspace governance flag controls enforcement                                            |
+| FM-179 | Secrets Management — Resolution & Lifecycle   | 🟡 Partial — `resolve_secret()` with scope enforcement, `rotate_credential()` lifecycle tracking. CredentialVault is metadata-based (env_key resolution). AES-256-GCM encryption deferred. |
+| FM-180 | Enterprise Governance Tests, Docs & Hardening | ✅ Complete — 70+ tests covering all services, IPv6 CIDR fix, doc overclaims corrected                                                                                                     |
 
 **Wave 13 summary:** 5/10 fully complete, 5/10 partial with real usable implementations. All milestones have enforceable code. Remaining deferred work: full Organization entity, custom roles, live SSO flows, background retention scheduler, encrypted secret storage.
 
@@ -786,19 +786,19 @@ _Wave 10: 3/10 complete, 7 partial. Wave 11: 1/10 complete, 8 partial, 1 deferre
 
 V5 transforms ForgeMind into a **dynamic multi-agent orchestration platform** with persistent graph-based reasoning, council-style deliberation, and explainable workflow selection.
 
-| Wave    | Range           | Theme                                              | Status          |
-| ------- | --------------- | -------------------------------------------------- | --------------- |
-| Wave 17 | FM-211 → FM-220 | Dynamic Multi-Agent Runtime Foundations             | 🔮 Future       |
-| Wave 18 | FM-221 → FM-230 | Council Collaboration & Deliberation Engine         | 🔮 Future       |
-| Wave 19 | FM-231 → FM-240 | Graph Memory & Persistent Reasoning                | 🔮 Future       |
-| Wave 20 | FM-241 → FM-250 | Adaptive Workflow Selection & FAIR Engine           | 🔮 Future       |
+| Wave    | Range           | Theme                                       | Status    |
+| ------- | --------------- | ------------------------------------------- | --------- |
+| Wave 17 | FM-211 → FM-220 | Dynamic Multi-Agent Runtime Foundations     | 🔮 Future |
+| Wave 18 | FM-221 → FM-230 | Council Collaboration & Deliberation Engine | 🔮 Future |
+| Wave 19 | FM-231 → FM-240 | Graph Memory & Persistent Reasoning         | 🔮 Future |
+| Wave 20 | FM-241 → FM-250 | Adaptive Workflow Selection & FAIR Engine   | 🔮 Future |
 
 ### Version Boundary Summary
 
-| Version | Milestones    | Focus        | Status        |
-| ------- | ------------- | ------------ | ------------- |
-| V1      | FM-001–050    | Foundation   | ✅ Complete    |
-| V2      | FM-051–100    | Breadth      | ✅ Complete    |
-| V3      | FM-101–140    | Depth        | ✅ Complete    |
-| V4      | FM-141–210    | Ecosystem    | 🔧 In Progress |
-| **V5**  | **FM-211–250**| **Intelligence** | **🔮 Future** |
+| Version | Milestones     | Focus            | Status         |
+| ------- | -------------- | ---------------- | -------------- |
+| V1      | FM-001–050     | Foundation       | ✅ Complete    |
+| V2      | FM-051–100     | Breadth          | ✅ Complete    |
+| V3      | FM-101–140     | Depth            | ✅ Complete    |
+| V4      | FM-141–210     | Ecosystem        | 🔧 In Progress |
+| **V5**  | **FM-211–250** | **Intelligence** | **🔮 Future**  |

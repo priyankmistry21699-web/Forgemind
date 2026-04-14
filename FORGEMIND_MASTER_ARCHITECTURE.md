@@ -761,17 +761,19 @@ ForgeMind depends on:
 
 V5 introduces four major architectural additions to the system diagram above:
 
-| Component                   | Integration Point                         | Technology           |
-| --------------------------- | ----------------------------------------- | -------------------- |
-| Master Orchestration Service | Replaces static worker/agent dispatch     | Python service       |
-| Dynamic Agent Runtime       | Agents spawned as microservice workers    | Redis Streams + Workers |
-| Council Deliberation Layer  | Extends existing council decision engine  | Custom protocol over Redis |
-| Graph Memory Store          | Replaces/augments linear execution memory | Neo4j / Apache AGE   |
-| FAIR Workflow Engine        | New routing layer above orchestrator      | Python scoring service |
+| Component                    | Integration Point                         | Technology                 |
+| ---------------------------- | ----------------------------------------- | -------------------------- |
+| Master Orchestration Service | Replaces static worker/agent dispatch     | Python service             |
+| Dynamic Agent Runtime        | Agents spawned as microservice workers    | Redis Streams + Workers    |
+| Council Deliberation Layer   | Extends existing council decision engine  | Custom protocol over Redis |
+| Graph Memory Store           | Replaces/augments linear execution memory | Neo4j / Apache AGE         |
+| FAIR Workflow Engine         | New routing layer above orchestrator      | Python scoring service     |
 
 The current V4 architecture remains the foundation — V5 adds dynamic agent spawning, inter-agent messaging via Redis, graph-based persistent reasoning, and explainable workflow selection on top of the existing platform.
-   - events
-   - project knowledge
+
+- events
+- project knowledge
+
 4. LLM generates operator-facing answer
 
 ### E. Collaboration Flow

@@ -318,7 +318,7 @@ async def post_pr_comment(
 ):
     """Post a comment on a GitHub PR via the outbound API.
 
-    Requires GITHUB_WEBHOOK_SECRET or a configured installation token.
+    Requires GITHUB_API_TOKEN (personal access token or installation token).
     Resolves the PR's repo owner/name from the linked repository.
     """
     from app.models.github_integration import PullRequestLink, RepositoryLink
@@ -340,12 +340,13 @@ async def post_pr_comment(
         raise HTTPException(status_code=400, detail="Invalid repo full_name format")
     owner, repo_name = parts
 
-    # Use webhook secret as token fallback (in real deployment, use installation token)
-    token = settings.github_webhook_secret or ""
+    # Resolve outbound API token: prefer github_api_token, never use webhook_secret
+    # (webhook_secret is an HMAC key for signature verification, not an API token)
+    token = settings.github_api_token or ""
     if not token:
         raise HTTPException(
             status_code=503,
-            detail="GitHub credentials not configured — set GITHUB_WEBHOOK_SECRET or installation token",
+            detail="GitHub credentials not configured — set GITHUB_API_TOKEN",
         )
 
     try:
@@ -382,11 +383,11 @@ async def create_commit_status(
         raise HTTPException(status_code=400, detail="Invalid repo full_name format")
     owner, repo_name = parts
 
-    token = settings.github_webhook_secret or ""
+    token = settings.github_api_token or ""
     if not token:
         raise HTTPException(
             status_code=503,
-            detail="GitHub credentials not configured",
+            detail="GitHub credentials not configured — set GITHUB_API_TOKEN",
         )
 
     try:

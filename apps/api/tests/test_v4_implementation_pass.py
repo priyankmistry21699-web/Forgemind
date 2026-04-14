@@ -290,6 +290,37 @@ class TestApprovalDelegationRoutes:
         assert data[0]["status"] == "pending"
 
     @pytest.mark.asyncio
+    async def test_pending_approvals_scoped_to_user(self, db_session: AsyncSession):
+        """Pending approvals must only return approvals for projects the user leads."""
+        from app.services.approval_enhanced_service import get_pending_approvals_for_user
+        from app.models.project import Project
+        from app.models.approval_request import ApprovalRequest, ApprovalStatus
+
+        # Create a project the user has NO membership in
+        other_project = Project(
+            name="Other Team Project",
+            description="User is not a member",
+            owner_id=uuid.uuid4(),
+        )
+        db_session.add(other_project)
+        await db_session.flush()
+        await db_session.refresh(other_project)
+
+        # Create a pending approval on that other project
+        approval = ApprovalRequest(
+            title="Should be invisible",
+            project_id=other_project.id,
+            status=ApprovalStatus.PENDING,
+        )
+        db_session.add(approval)
+        await db_session.flush()
+
+        # STUB_USER_ID should NOT see this approval
+        results = await get_pending_approvals_for_user(db_session, STUB_USER_ID)
+        invisible_ids = {str(a.id) for a in results}
+        assert str(approval.id) not in invisible_ids
+
+    @pytest.mark.asyncio
     async def test_batch_decide(self, client: AsyncClient, db_session: AsyncSession):
         project = await _seed_project(db_session)
         a1 = await _seed_approval(db_session, project.id)
@@ -626,15 +657,10 @@ class TestGitHubClient:
         project = await _seed_project(db_session)
         _, _, pr = await _seed_github_stack(db_session, project.id)
 
-        import os
-
-        original = os.environ.get("GITHUB_WEBHOOK_SECRET")
-        os.environ["GITHUB_WEBHOOK_SECRET"] = ""
-        # The route does `from app.core.config import settings` inside the function,
-        # so we need to patch at the module level attribute on the singleton
+        # The route now uses settings.github_api_token (not webhook_secret)
         from app.core.config import settings as _s
-        old_val = getattr(_s, "github_webhook_secret", "")
-        object.__setattr__(_s, "github_webhook_secret", "")
+        old_val = getattr(_s, "github_api_token", "")
+        object.__setattr__(_s, "github_api_token", "")
         try:
             resp = await client.post(
                 f"/github/prs/{pr.id}/comments",
@@ -643,11 +669,7 @@ class TestGitHubClient:
             assert resp.status_code == 503
             assert "credentials" in resp.json()["detail"].lower()
         finally:
-            object.__setattr__(_s, "github_webhook_secret", old_val)
-            if original is None:
-                os.environ.pop("GITHUB_WEBHOOK_SECRET", None)
-            else:
-                os.environ["GITHUB_WEBHOOK_SECRET"] = original
+            object.__setattr__(_s, "github_api_token", old_val)
 
     @pytest.mark.asyncio
     async def test_commit_status_route_not_found(self, client: AsyncClient):
