@@ -5,6 +5,7 @@ IP allowlisting, and retention policies.
 """
 
 import uuid
+from datetime import datetime, timezone
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -935,6 +936,147 @@ class TestRetentionPolicies:
         )
         # Legal hold policies are excluded from evaluation
         assert result["policies_evaluated"] == 0
+
+    @pytest.mark.asyncio
+    async def test_create_artifact_retention_policy(
+        self, db_session: AsyncSession, sample_workspace
+    ):
+        """FM-176: Artifact entity type is now supported."""
+        policy = await retention_policy_service.create_retention_policy(
+            db_session,
+            workspace_id=sample_workspace.id,
+            entity_type="artifact",
+            retention_days=30,
+            action=RetentionAction.DELETE,
+            created_by=STUB_USER_ID,
+        )
+        await db_session.commit()
+
+        assert policy.id is not None
+        assert policy.entity_type == "artifact"
+        assert policy.retention_days == 30
+
+    @pytest.mark.asyncio
+    async def test_evaluate_artifact_retention_dry_run(
+        self, db_session: AsyncSession, sample_workspace
+    ):
+        """FM-176: Artifact retention evaluation identifies old artifacts."""
+        from app.models.project import Project
+        from app.models.artifact import Artifact, ArtifactType
+
+        project = Project(
+            name="Retention Artifact Test",
+            owner_id=STUB_USER_ID,
+            workspace_id=sample_workspace.id,
+        )
+        db_session.add(project)
+        await db_session.flush()
+
+        # Create an old artifact
+        old_artifact = Artifact(
+            title="Old Artifact",
+            artifact_type=ArtifactType.OTHER,
+            project_id=project.id,
+            created_by="test",
+        )
+        db_session.add(old_artifact)
+        await db_session.flush()
+
+        # Backdate the artifact
+        from sqlalchemy import update
+        from datetime import timedelta
+        await db_session.execute(
+            update(Artifact)
+            .where(Artifact.id == old_artifact.id)
+            .values(created_at=datetime.now(timezone.utc) - timedelta(days=60))
+        )
+        await db_session.flush()
+
+        await retention_policy_service.create_retention_policy(
+            db_session,
+            workspace_id=sample_workspace.id,
+            entity_type="artifact",
+            retention_days=30,
+            action=RetentionAction.DELETE,
+            created_by=STUB_USER_ID,
+        )
+        await db_session.commit()
+
+        result = await retention_policy_service.evaluate_retention(
+            db_session, sample_workspace.id, dry_run=True
+        )
+
+        assert result["policies_evaluated"] >= 1
+        artifact_results = [
+            r for r in result["results"] if r["entity_type"] == "artifact"
+        ]
+        assert len(artifact_results) == 1
+        assert artifact_results[0]["affected_count"] >= 1
+        assert artifact_results[0]["dry_run"] is True
+        assert artifact_results[0]["deleted_count"] == 0  # dry run
+
+    @pytest.mark.asyncio
+    async def test_evaluate_artifact_retention_execute(
+        self, db_session: AsyncSession, sample_workspace
+    ):
+        """FM-176: Artifact retention can actually delete old artifacts."""
+        from app.models.project import Project
+        from app.models.artifact import Artifact, ArtifactType
+        from sqlalchemy import update, func as sa_func, select
+        from datetime import timedelta
+
+        project = Project(
+            name="Retention Delete Test",
+            owner_id=STUB_USER_ID,
+            workspace_id=sample_workspace.id,
+        )
+        db_session.add(project)
+        await db_session.flush()
+
+        old_artifact = Artifact(
+            title="Will Be Deleted",
+            artifact_type=ArtifactType.OTHER,
+            project_id=project.id,
+            created_by="test",
+        )
+        db_session.add(old_artifact)
+        await db_session.flush()
+
+        await db_session.execute(
+            update(Artifact)
+            .where(Artifact.id == old_artifact.id)
+            .values(created_at=datetime.now(timezone.utc) - timedelta(days=100))
+        )
+
+        await retention_policy_service.create_retention_policy(
+            db_session,
+            workspace_id=sample_workspace.id,
+            entity_type="artifact",
+            retention_days=30,
+            action=RetentionAction.DELETE,
+            created_by=STUB_USER_ID,
+        )
+        await db_session.commit()
+
+        result = await retention_policy_service.evaluate_retention(
+            db_session, sample_workspace.id, dry_run=False
+        )
+
+        artifact_results = [
+            r for r in result["results"] if r["entity_type"] == "artifact"
+        ]
+        assert len(artifact_results) == 1
+        assert artifact_results[0]["deleted_count"] >= 1
+
+        # Verify artifact was actually deleted
+        count = (
+            await db_session.execute(
+                select(sa_func.count())
+                .select_from(Artifact)
+                .where(Artifact.id == old_artifact.id)
+            )
+        ).scalar()
+        assert count == 0
 
 
 # ══════════════════════════════════════════════════════════════════

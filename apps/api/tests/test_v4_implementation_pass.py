@@ -369,6 +369,88 @@ class TestApprovalDelegationRoutes:
         data = resp.json()
         assert data["count"] >= 1
 
+    @pytest.mark.asyncio
+    async def test_escalate_expired_no_expired(self, client: AsyncClient):
+        """Escalate returns empty when no approvals are expired."""
+        resp = await client.post("/approval-delegations/escalate")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["escalated_count"] == 0
+        assert data["escalations"] == []
+
+    @pytest.mark.asyncio
+    async def test_escalate_expired_with_delegation(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
+        """Escalation finds delegates as escalation targets."""
+        project = await _seed_project(db_session)
+        from app.models.approval_request import ApprovalRequest, ApprovalStatus
+        from app.models.approval_delegation import ApprovalDelegation
+
+        delegate_id = uuid.UUID("00000000-0000-0000-0000-000000000099")
+        from app.models.user import User
+
+        delegate_user = User(
+            id=delegate_id,
+            email="delegate@test.dev",
+            display_name="Delegate User",
+        )
+        db_session.add(delegate_user)
+
+        # Create expired approval
+        expired = ApprovalRequest(
+            title="Expired With Delegate",
+            project_id=project.id,
+            status=ApprovalStatus.PENDING,
+            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+        )
+        db_session.add(expired)
+
+        # Create delegation for this project
+        delegation = ApprovalDelegation(
+            delegator_id=STUB_USER_ID,
+            delegate_id=delegate_id,
+            project_id=project.id,
+        )
+        db_session.add(delegation)
+        await db_session.flush()
+
+        resp = await client.post("/approval-delegations/escalate")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["escalated_count"] >= 1
+
+        # Find our escalation
+        matched = [e for e in data["escalations"] if e["title"] == "Expired With Delegate"]
+        assert len(matched) == 1
+        esc = matched[0]
+        assert esc["target_count"] >= 1
+        target_user_ids = [t["user_id"] for t in esc["escalation_targets"]]
+        assert str(delegate_id) in target_user_ids
+
+    @pytest.mark.asyncio
+    async def test_escalate_expired_service_direct(self, db_session: AsyncSession):
+        """Direct service-level test of escalation logic."""
+        project = await _seed_project(db_session)
+        from app.models.approval_request import ApprovalRequest, ApprovalStatus
+        from app.services import approval_enhanced_service
+
+        expired = ApprovalRequest(
+            title="Service-Level Escalation Test",
+            project_id=project.id,
+            status=ApprovalStatus.PENDING,
+            expires_at=datetime.now(timezone.utc) - timedelta(hours=2),
+        )
+        db_session.add(expired)
+        await db_session.flush()
+
+        report = await approval_enhanced_service.escalate_expired_approvals(db_session)
+        assert len(report) >= 1
+        matched = [r for r in report if r["title"] == "Service-Level Escalation Test"]
+        assert len(matched) == 1
+        # Stub user is a project lead, should be an escalation target
+        assert matched[0]["target_count"] >= 1
+
 
 # =====================================================================
 # FM-150: Project Overview HTTP Route

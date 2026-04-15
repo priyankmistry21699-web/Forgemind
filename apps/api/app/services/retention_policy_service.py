@@ -13,13 +13,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.enterprise_governance import RetentionPolicy, RetentionAction
 from app.models.run import Run
 from app.models.enterprise_governance import AuditLog
+from app.models.artifact import Artifact
 
 logger = logging.getLogger(__name__)
 
 # Entity types that have full retention evaluation + delete logic.
-# Future expansion: artifact, notification, activity (requires model-specific
-# query logic in evaluate_retention before adding here).
-SUPPORTED_ENTITY_TYPES = {"run", "audit_log"}
+SUPPORTED_ENTITY_TYPES = {"run", "audit_log", "artifact"}
 
 
 async def create_retention_policy(
@@ -216,6 +215,36 @@ async def evaluate_retention(
                 deleted_count = del_result.rowcount
                 logger.info(
                     "retention: EXECUTED delete for audit_logs workspace=%s cutoff=%s deleted=%d",
+                    workspace_id, cutoff.isoformat(), deleted_count,
+                )
+
+        elif policy.entity_type == "artifact":
+            from app.models.project import Project
+
+            conditions = [Artifact.created_at < cutoff]
+            if policy.project_id:
+                conditions.append(Artifact.project_id == policy.project_id)
+            else:
+                ws_projects = select(Project.id).where(
+                    Project.workspace_id == workspace_id
+                )
+                conditions.append(Artifact.project_id.in_(ws_projects))
+
+            count_q = (
+                select(sa_func.count())
+                .select_from(Artifact)
+                .where(and_(*conditions))
+            )
+            affected_count = (await db.execute(count_q)).scalar() or 0
+
+            if not dry_run and affected_count > 0 and policy.action == RetentionAction.DELETE:
+                from sqlalchemy import delete as sa_delete
+
+                del_q = sa_delete(Artifact).where(and_(*conditions))
+                del_result = await db.execute(del_q)
+                deleted_count = del_result.rowcount
+                logger.info(
+                    "retention: EXECUTED delete for artifacts workspace=%s cutoff=%s deleted=%d",
                     workspace_id, cutoff.isoformat(), deleted_count,
                 )
 

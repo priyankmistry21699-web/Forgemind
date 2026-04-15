@@ -1,18 +1,14 @@
-"""Outbound GitHub API client — posts comments, status checks, and syncs data.
+"""Outbound GitHub API client — creates PRs, posts comments, status checks.
 
-FM-154/157: First outbound GitHub integration — PR and issue comment posting.
+FM-153: Outbound PR creation on GitHub.
+FM-154/157: PR/issue comment posting, commit status, reviewer requests.
 
 Architecture:
 - Uses httpx.AsyncClient for non-blocking HTTP calls to api.github.com.
-- Authenticates via GitHub App installation access tokens OR personal tokens.
+- Authenticates via GITHUB_API_TOKEN (personal access token or installation token).
 - All outbound calls go through `_github_request()` for consistent error handling.
 - When credentials are unavailable, operations raise GitHubClientError so callers
   can handle gracefully (e.g. queue for retry).
-
-Honest scoping:
-- This client supports comment posting and commit status creation.
-- Full GitHub App JWT → installation token exchange is architecture-ready
-  but requires real credentials (GITHUB_APP_ID + GITHUB_PRIVATE_KEY).
 """
 
 import logging
@@ -52,6 +48,18 @@ class CommitStatus:
     target_url: str | None
     description: str
     context: str
+
+
+@dataclass
+class GitHubPullRequest:
+    """Represents a pull request created on GitHub."""
+
+    number: int
+    html_url: str
+    title: str
+    head_ref: str
+    base_ref: str
+    state: str
 
 
 async def _github_request(
@@ -204,3 +212,126 @@ async def get_repository(
 ) -> dict:
     """Fetch repository metadata from GitHub."""
     return await _github_request("GET", f"/repos/{owner}/{repo}", token=token)
+
+
+# ── Pull Request Creation ────────────────────────────────────────
+
+
+async def create_pull_request(
+    owner: str,
+    repo: str,
+    *,
+    title: str,
+    head: str,
+    base: str,
+    body: str = "",
+    draft: bool = False,
+    token: str,
+) -> GitHubPullRequest:
+    """Create a pull request on GitHub.
+
+    Args:
+        owner: Repository owner (org or user).
+        repo: Repository name.
+        title: PR title.
+        head: Branch containing the changes.
+        base: Branch to merge into.
+        body: PR description (markdown).
+        draft: Whether to create as a draft PR.
+        token: GitHub API token.
+
+    Returns:
+        GitHubPullRequest with number, URL, and branch info.
+    """
+    payload: dict = {
+        "title": title,
+        "head": head,
+        "base": base,
+        "body": body,
+        "draft": draft,
+    }
+    data = await _github_request(
+        "POST",
+        f"/repos/{owner}/{repo}/pulls",
+        token=token,
+        json_body=payload,
+    )
+    return GitHubPullRequest(
+        number=data["number"],
+        html_url=data.get("html_url", ""),
+        title=data.get("title", title),
+        head_ref=data.get("head", {}).get("ref", head),
+        base_ref=data.get("base", {}).get("ref", base),
+        state=data.get("state", "open"),
+    )
+
+
+# ── Reviewer Requests ────────────────────────────────────────────
+
+
+async def request_reviewers(
+    owner: str,
+    repo: str,
+    pr_number: int,
+    *,
+    reviewers: list[str] | None = None,
+    team_reviewers: list[str] | None = None,
+    token: str,
+) -> dict:
+    """Request reviewers on a GitHub pull request.
+
+    Uses POST /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers.
+    At least one of reviewers or team_reviewers must be provided.
+    """
+    payload: dict = {}
+    if reviewers:
+        payload["reviewers"] = reviewers
+    if team_reviewers:
+        payload["team_reviewers"] = team_reviewers
+    if not payload:
+        raise ValueError("At least one reviewer or team_reviewer must be specified")
+
+    data = await _github_request(
+        "POST",
+        f"/repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers",
+        token=token,
+        json_body=payload,
+    )
+    return {
+        "requested_reviewers": [u.get("login", "") for u in data.get("requested_reviewers", [])],
+        "requested_teams": [t.get("slug", "") for t in data.get("requested_teams", [])],
+    }
+
+
+# ── CI Pass Rate ─────────────────────────────────────────────────
+
+
+async def get_ci_pass_rate(
+    owner: str,
+    repo: str,
+    *,
+    branch: str = "main",
+    per_page: int = 20,
+    token: str,
+) -> dict:
+    """Calculate CI pass rate from recent workflow runs on a branch.
+
+    Fetches the last `per_page` completed workflow runs on the given branch
+    and computes the success rate.
+    """
+    data = await _github_request(
+        "GET",
+        f"/repos/{owner}/{repo}/actions/runs?branch={branch}&status=completed&per_page={per_page}",
+        token=token,
+    )
+    runs = data.get("workflow_runs", [])
+    if not runs:
+        return {"branch": branch, "total_runs": 0, "success_count": 0, "pass_rate": 0.0}
+
+    success_count = sum(1 for r in runs if r.get("conclusion") == "success")
+    return {
+        "branch": branch,
+        "total_runs": len(runs),
+        "success_count": success_count,
+        "pass_rate": round(success_count / len(runs) * 100, 1),
+    }

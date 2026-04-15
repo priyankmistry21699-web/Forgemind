@@ -247,6 +247,23 @@ async def expired_approvals(
     }
 
 
+@router.post("/approval-delegations/escalate")
+async def escalate_expired(
+    db: AsyncSession = Depends(get_db),
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Run delegation-aware escalation on expired approvals.
+
+    Returns an escalation report identifying the right people to notify
+    for each expired approval, considering active delegations and project leads.
+    """
+    report = await approval_enhanced_service.escalate_expired_approvals(db)
+    return {
+        "escalated_count": len(report),
+        "escalations": report,
+    }
+
+
 # ---------------------------------------------------------------------------
 # FM-150: Project Overview / Dashboard
 # ---------------------------------------------------------------------------

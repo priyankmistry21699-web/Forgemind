@@ -139,3 +139,76 @@ async def check_expired_approvals(
         )
     )
     return list(result.scalars().all())
+
+
+async def escalate_expired_approvals(
+    db: AsyncSession,
+) -> list[dict]:
+    """Delegation-aware escalation of expired approvals.
+
+    For each expired pending approval:
+    1. Find active delegates for the approval's project.
+    2. Find project leads as fallback escalation targets.
+    3. Return an escalation report with recommended targets.
+
+    This enables callers (routes, cron jobs) to notify the right people.
+    """
+    expired = await check_expired_approvals(db)
+    if not expired:
+        return []
+
+    escalation_report: list[dict] = []
+
+    for approval in expired:
+        # Find active delegates for this project
+        delegate_result = await db.execute(
+            select(ApprovalDelegation).where(
+                ApprovalDelegation.project_id == approval.project_id,
+                ApprovalDelegation.is_active.is_(True),
+            )
+        )
+        delegates = list(delegate_result.scalars().all())
+
+        # Find project leads as fallback
+        lead_result = await db.execute(
+            select(ProjectMember).where(
+                ProjectMember.project_id == approval.project_id,
+                or_(
+                    ProjectMember.role == ProjectRole.LEAD,
+                    ProjectMember.is_approver.is_(True),
+                ),
+            )
+        )
+        leads = list(lead_result.scalars().all())
+
+        # Build escalation targets: delegates first, then leads
+        targets: list[dict] = []
+        seen_user_ids: set[uuid.UUID] = set()
+
+        for d in delegates:
+            if d.delegate_id not in seen_user_ids:
+                seen_user_ids.add(d.delegate_id)
+                targets.append({
+                    "user_id": str(d.delegate_id),
+                    "role": "delegate",
+                    "delegator_id": str(d.delegator_id),
+                })
+
+        for lead in leads:
+            if lead.user_id not in seen_user_ids:
+                seen_user_ids.add(lead.user_id)
+                targets.append({
+                    "user_id": str(lead.user_id),
+                    "role": "lead" if lead.role == ProjectRole.LEAD else "approver",
+                })
+
+        escalation_report.append({
+            "approval_id": str(approval.id),
+            "title": approval.title,
+            "project_id": str(approval.project_id),
+            "expired_at": approval.expires_at.isoformat() if approval.expires_at else None,
+            "escalation_targets": targets,
+            "target_count": len(targets),
+        })
+
+    return escalation_report

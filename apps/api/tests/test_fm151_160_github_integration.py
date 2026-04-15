@@ -799,3 +799,267 @@ class TestWebhookReplay:
         body = resp.json()
         assert body["status"] == "replayed"
         assert body["event_type"] == "push"
+
+
+# =====================================================================
+# FM-153: Outbound PR Creation (client unit tests)
+# =====================================================================
+
+
+class TestGitHubClientCreatePR:
+    """Unit tests for github_client.create_pull_request()."""
+
+    @pytest.mark.asyncio
+    async def test_create_pull_request_success(self):
+        from unittest.mock import AsyncMock, patch, MagicMock
+
+        mock_response = MagicMock()
+        mock_response.status_code = 201
+        mock_response.json.return_value = {
+            "number": 42,
+            "html_url": "https://github.com/test-org/test-repo/pull/42",
+            "title": "feat: add feature",
+            "head": {"ref": "feature-branch"},
+            "base": {"ref": "main"},
+            "state": "open",
+        }
+        mock_response.is_success = True
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.request.return_value = mock_response
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            from app.services.github_client import create_pull_request
+
+            pr = await create_pull_request(
+                "test-org", "test-repo",
+                title="feat: add feature",
+                head="feature-branch",
+                base="main",
+                body="Description of changes",
+                token="test-token-123",
+            )
+
+            assert pr.number == 42
+            assert pr.html_url == "https://github.com/test-org/test-repo/pull/42"
+            assert pr.head_ref == "feature-branch"
+            assert pr.base_ref == "main"
+            assert pr.state == "open"
+
+    @pytest.mark.asyncio
+    async def test_create_pull_request_failure(self):
+        from unittest.mock import AsyncMock, patch, MagicMock
+        from app.services.github_client import GitHubClientError
+
+        mock_response = MagicMock()
+        mock_response.status_code = 422
+        mock_response.is_success = False
+        mock_response.text = "Validation Failed"
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.request.return_value = mock_response
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            from app.services.github_client import create_pull_request
+
+            with pytest.raises(GitHubClientError) as exc_info:
+                await create_pull_request(
+                    "test-org", "test-repo",
+                    title="feat: add feature",
+                    head="feature-branch",
+                    base="main",
+                    token="test-token-123",
+                )
+            assert exc_info.value.status_code == 422
+
+
+class TestGitHubClientRequestReviewers:
+    """Unit tests for github_client.request_reviewers()."""
+
+    @pytest.mark.asyncio
+    async def test_request_reviewers_success(self):
+        from unittest.mock import AsyncMock, patch, MagicMock
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "requested_reviewers": [
+                {"login": "alice"},
+                {"login": "bob"},
+            ],
+            "requested_teams": [
+                {"slug": "backend-team"},
+            ],
+        }
+        mock_response.is_success = True
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.request.return_value = mock_response
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            from app.services.github_client import request_reviewers
+
+            result = await request_reviewers(
+                "test-org", "test-repo", 42,
+                reviewers=["alice", "bob"],
+                team_reviewers=["backend-team"],
+                token="test-token-123",
+            )
+
+            assert result["requested_reviewers"] == ["alice", "bob"]
+            assert result["requested_teams"] == ["backend-team"]
+
+    @pytest.mark.asyncio
+    async def test_request_reviewers_no_reviewers_raises(self):
+        from app.services.github_client import request_reviewers
+
+        with pytest.raises(ValueError, match="At least one"):
+            await request_reviewers(
+                "test-org", "test-repo", 42,
+                token="test-token-123",
+            )
+
+
+class TestGitHubClientCIPassRate:
+    """Unit tests for github_client.get_ci_pass_rate()."""
+
+    @pytest.mark.asyncio
+    async def test_ci_pass_rate_success(self):
+        from unittest.mock import AsyncMock, patch, MagicMock
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "workflow_runs": [
+                {"conclusion": "success"},
+                {"conclusion": "success"},
+                {"conclusion": "failure"},
+                {"conclusion": "success"},
+            ]
+        }
+        mock_response.is_success = True
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.request.return_value = mock_response
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            from app.services.github_client import get_ci_pass_rate
+
+            result = await get_ci_pass_rate(
+                "test-org", "test-repo",
+                branch="main",
+                token="test-token-123",
+            )
+
+            assert result["total_runs"] == 4
+            assert result["success_count"] == 3
+            assert result["pass_rate"] == 75.0
+
+    @pytest.mark.asyncio
+    async def test_ci_pass_rate_empty(self):
+        from unittest.mock import AsyncMock, patch, MagicMock
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"workflow_runs": []}
+        mock_response.is_success = True
+
+        with patch("httpx.AsyncClient") as MockClient:
+            instance = AsyncMock()
+            instance.request.return_value = mock_response
+            instance.__aenter__ = AsyncMock(return_value=instance)
+            instance.__aexit__ = AsyncMock(return_value=False)
+            MockClient.return_value = instance
+
+            from app.services.github_client import get_ci_pass_rate
+
+            result = await get_ci_pass_rate(
+                "test-org", "test-repo", branch="main", token="test-token-123",
+            )
+            assert result["total_runs"] == 0
+            assert result["pass_rate"] == 0.0
+
+
+# =====================================================================
+# FM-153: Outbound PR Creation (route integration tests)
+# =====================================================================
+
+
+class TestCreatePRRoute:
+    @pytest.mark.asyncio
+    async def test_create_pr_repo_not_found(self, client: AsyncClient):
+        fake_id = str(uuid.uuid4())
+        resp = await client.post(
+            f"/github/repos/{fake_id}/pulls",
+            json={"title": "test pr", "head": "feature", "base": "main"},
+        )
+        assert resp.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_create_pr_no_token(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
+        """Route returns 503 when GITHUB_API_TOKEN is empty."""
+        from unittest.mock import patch
+
+        project = await _seed_project(db_session)
+        inst = await _seed_installation(db_session)
+        repo = await _seed_repo_link(db_session, inst.id, project.id)
+        await db_session.commit()
+
+        with patch("app.core.config.settings.github_api_token", ""):
+            resp = await client.post(
+                f"/github/repos/{repo.id}/pulls",
+                json={"title": "test pr", "head": "feature", "base": "main"},
+            )
+        assert resp.status_code == 503
+
+
+# =====================================================================
+# FM-157: Reviewer Request (route integration tests)
+# =====================================================================
+
+
+class TestReviewerRequestRoute:
+    @pytest.mark.asyncio
+    async def test_request_reviewers_pr_not_found(self, client: AsyncClient):
+        fake_id = str(uuid.uuid4())
+        resp = await client.post(
+            f"/github/prs/{fake_id}/reviewers",
+            json={"reviewers": ["alice"]},
+        )
+        assert resp.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_request_reviewers_no_body(self, client: AsyncClient):
+        fake_id = str(uuid.uuid4())
+        resp = await client.post(
+            f"/github/prs/{fake_id}/reviewers",
+            json={},
+        )
+        assert resp.status_code == 400
+
+
+# =====================================================================
+# FM-154: CI Pass Rate (route integration tests)
+# =====================================================================
+
+
+class TestCIPassRateRoute:
+    @pytest.mark.asyncio
+    async def test_ci_pass_rate_repo_not_found(self, client: AsyncClient):
+        fake_id = str(uuid.uuid4())
+        resp = await client.get(f"/github/repos/{fake_id}/ci/pass-rate")
+        assert resp.status_code == 404

@@ -407,3 +407,191 @@ async def create_commit_status(
         }
     except GitHubClientError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+# ---------------------------------------------------------------------------
+# FM-153: Outbound PR Creation
+# ---------------------------------------------------------------------------
+
+
+class _CreatePRBody(_BaseModel):
+    title: str
+    head: str
+    base: str = "main"
+    body: str = ""
+    draft: bool = False
+
+
+@router.post("/repos/{repo_link_id}/pulls")
+async def create_pull_request(
+    repo_link_id: uuid.UUID,
+    body: _CreatePRBody,
+    db: AsyncSession = Depends(get_db),
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Create a pull request on GitHub and record the link locally.
+
+    Requires GITHUB_API_TOKEN. Resolves owner/repo from the linked repository.
+    """
+    from app.models.github_integration import RepositoryLink
+    from app.services.github_client import create_pull_request as gh_create_pr
+    from app.services.github_client import GitHubClientError
+    from app.core.config import settings
+
+    repo = await db.get(RepositoryLink, repo_link_id)
+    if repo is None:
+        raise HTTPException(status_code=404, detail="Repository link not found")
+
+    parts = repo.full_name.split("/", 1)
+    if len(parts) != 2:
+        raise HTTPException(status_code=400, detail="Invalid repo full_name format")
+    owner, repo_name = parts
+
+    token = settings.github_api_token or ""
+    if not token:
+        raise HTTPException(
+            status_code=503,
+            detail="GitHub credentials not configured — set GITHUB_API_TOKEN",
+        )
+
+    try:
+        gh_pr = await gh_create_pr(
+            owner, repo_name,
+            title=body.title,
+            head=body.head,
+            base=body.base,
+            body=body.body,
+            draft=body.draft,
+            token=token,
+        )
+    except GitHubClientError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+    # Record the PR link in the local DB
+    pr_link = await pr_service.create_pr_link(
+        db,
+        repository_link_id=repo_link_id,
+        pr_number=gh_pr.number,
+        pr_title=gh_pr.title,
+        pr_url=gh_pr.html_url,
+        head_branch=gh_pr.head_ref,
+        base_branch=gh_pr.base_ref,
+    )
+
+    return {
+        "created": True,
+        "pr_number": gh_pr.number,
+        "html_url": gh_pr.html_url,
+        "pr_link_id": str(pr_link.id),
+    }
+
+
+# ---------------------------------------------------------------------------
+# FM-157: Reviewer Request
+# ---------------------------------------------------------------------------
+
+
+class _ReviewerRequestBody(_BaseModel):
+    reviewers: list[str] | None = None
+    team_reviewers: list[str] | None = None
+
+
+@router.post("/prs/{pr_link_id}/reviewers")
+async def request_pr_reviewers(
+    pr_link_id: uuid.UUID,
+    body: _ReviewerRequestBody,
+    db: AsyncSession = Depends(get_db),
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Request reviewers on a GitHub pull request.
+
+    Accepts individual GitHub usernames and/or team slugs.
+    Requires GITHUB_API_TOKEN.
+    """
+    from app.models.github_integration import PullRequestLink, RepositoryLink
+    from app.services.github_client import request_reviewers as gh_request_reviewers
+    from app.services.github_client import GitHubClientError
+    from app.core.config import settings
+
+    if not body.reviewers and not body.team_reviewers:
+        raise HTTPException(
+            status_code=400,
+            detail="At least one reviewer or team_reviewer must be specified",
+        )
+
+    pr = await db.get(PullRequestLink, pr_link_id)
+    if pr is None:
+        raise HTTPException(status_code=404, detail="PR link not found")
+
+    repo = await db.get(RepositoryLink, pr.repository_link_id)
+    if repo is None:
+        raise HTTPException(status_code=404, detail="Repository link not found")
+
+    parts = repo.full_name.split("/", 1)
+    if len(parts) != 2:
+        raise HTTPException(status_code=400, detail="Invalid repo full_name format")
+    owner, repo_name = parts
+
+    token = settings.github_api_token or ""
+    if not token:
+        raise HTTPException(
+            status_code=503,
+            detail="GitHub credentials not configured — set GITHUB_API_TOKEN",
+        )
+
+    try:
+        result = await gh_request_reviewers(
+            owner, repo_name, pr.pr_number,
+            reviewers=body.reviewers,
+            team_reviewers=body.team_reviewers,
+            token=token,
+        )
+        return {
+            "requested": True,
+            "pr_number": pr.pr_number,
+            **result,
+        }
+    except GitHubClientError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+# ---------------------------------------------------------------------------
+# FM-154: CI Pass Rate
+# ---------------------------------------------------------------------------
+
+
+@router.get("/repos/{repo_link_id}/ci/pass-rate")
+async def get_ci_pass_rate(
+    repo_link_id: uuid.UUID,
+    branch: str = "main",
+    db: AsyncSession = Depends(get_db),
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Get CI pass rate for a repo branch from recent GitHub Actions runs."""
+    from app.models.github_integration import RepositoryLink
+    from app.services.github_client import get_ci_pass_rate as gh_pass_rate
+    from app.services.github_client import GitHubClientError
+    from app.core.config import settings
+
+    repo = await db.get(RepositoryLink, repo_link_id)
+    if repo is None:
+        raise HTTPException(status_code=404, detail="Repository link not found")
+
+    parts = repo.full_name.split("/", 1)
+    if len(parts) != 2:
+        raise HTTPException(status_code=400, detail="Invalid repo full_name format")
+    owner, repo_name = parts
+
+    token = settings.github_api_token or ""
+    if not token:
+        raise HTTPException(
+            status_code=503,
+            detail="GitHub credentials not configured — set GITHUB_API_TOKEN",
+        )
+
+    try:
+        return await gh_pass_rate(
+            owner, repo_name, branch=branch, token=token,
+        )
+    except GitHubClientError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
