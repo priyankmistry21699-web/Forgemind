@@ -96,7 +96,8 @@ async def get_cross_project_dashboard(
 ) -> dict:
     """Aggregate dashboard across all projects the user belongs to (FM-148).
 
-    Summarises per-project health, tasks and approvals, then adds totals.
+    Returns per-project summaries with health grades, pending approval details,
+    and cross-project totals.
     """
     # Get all project IDs this user is a member of
     member_result = await db.execute(
@@ -110,7 +111,11 @@ async def get_cross_project_dashboard(
         return {"projects": [], "totals": {
             "total_runs": 0, "successful_runs": 0, "open_tasks": 0,
             "pending_approvals": 0, "project_count": 0,
+            "overall_success_rate": 100.0,
         }}
+
+    from app.models.project import Project
+    from app.models.approval_request import ApprovalRequest, ApprovalStatus
 
     summaries = []
     agg_runs = agg_success = agg_tasks = agg_approvals = 0
@@ -118,19 +123,51 @@ async def get_cross_project_dashboard(
     for pid in project_ids:
         overview = await get_project_overview(db, pid)
 
-        # Get project name
-        from app.models.project import Project
         p_result = await db.execute(select(Project.name).where(Project.id == pid))
         name = p_result.scalar_one_or_none() or "Unknown"
+
+        # Health grade based on success rate
+        total_r = overview["total_runs"]
+        success_r = overview["successful_runs"]
+        rate = (success_r / total_r * 100) if total_r > 0 else 100
+        if rate >= 90:
+            health_grade = "A"
+        elif rate >= 75:
+            health_grade = "B"
+        elif rate >= 60:
+            health_grade = "C"
+        elif rate >= 40:
+            health_grade = "D"
+        else:
+            health_grade = "F"
+
+        # Per-project pending approval details
+        pending_q = await db.execute(
+            select(ApprovalRequest).where(
+                ApprovalRequest.project_id == pid,
+                ApprovalRequest.status == ApprovalStatus.PENDING,
+            ).limit(10)
+        )
+        pending_items = [
+            {
+                "approval_id": str(a.id),
+                "task_id": str(a.task_id) if a.task_id else None,
+                "created_at": a.created_at.isoformat() if a.created_at else None,
+            }
+            for a in pending_q.scalars().all()
+        ]
 
         entry = {
             "project_id": str(pid),
             "name": name,
+            "health_grade": health_grade,
+            "success_rate": round(rate, 1),
+            "pending_approval_details": pending_items,
             **overview,
         }
         summaries.append(entry)
-        agg_runs += overview["total_runs"]
-        agg_success += overview["successful_runs"]
+        agg_runs += total_r
+        agg_success += success_r
         agg_tasks += overview["open_tasks"]
         agg_approvals += overview["pending_approvals"]
 

@@ -22,11 +22,19 @@ async def batch_decide(
     decided_by: str,
     comment: str | None = None,
 ) -> list[ApprovalRequest]:
-    """Approve or reject multiple approvals atomically."""
+    """Approve or reject multiple approvals atomically.
+
+    Uses a two-pass approach: first validates ALL items exist and are PENDING,
+    then applies changes. If any validation fails, no items are mutated.
+    """
     if status not in (ApprovalStatus.APPROVED, ApprovalStatus.REJECTED):
         raise HTTPException(status_code=400, detail="Status must be approved or rejected")
 
-    results = []
+    if not approval_ids:
+        return []
+
+    # ── Pass 1: Validate all items before mutating any ────────────
+    approvals: list[ApprovalRequest] = []
     for aid in approval_ids:
         approval = await db.get(ApprovalRequest, aid)
         if approval is None:
@@ -36,16 +44,20 @@ async def batch_decide(
                 status_code=409,
                 detail=f"Approval {aid} is already {approval.status.value}",
             )
+        approvals.append(approval)
+
+    # ── Pass 2: Apply changes atomically ──────────────────────────
+    now = datetime.now(timezone.utc)
+    for approval in approvals:
         approval.status = status
         approval.decided_by = decided_by
         approval.decision_comment = comment
-        approval.decided_at = datetime.now(timezone.utc)
-        results.append(approval)
+        approval.decided_at = now
 
     await db.flush()
-    for r in results:
+    for r in approvals:
         await db.refresh(r)
-    return results
+    return approvals
 
 
 async def get_pending_approvals_for_user(

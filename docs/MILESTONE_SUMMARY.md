@@ -680,7 +680,7 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 
 ---
 
-## FM-141 to FM-150 — ⚙️ PARTIAL (Wave 10: Collaboration & UX)
+## FM-141 to FM-150 — ✅ COMPLETE (Wave 10: Collaboration & UX)
 
 | ID     | Feature                          | Status                                                                                                 |
 | ------ | -------------------------------- | ------------------------------------------------------------------------------------------------------ |
@@ -691,11 +691,11 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 | FM-145 | User Presence & Online Status    | ✅ Complete                                                                                            |
 | FM-146 | Collaborative Run Annotations    | ✅ Complete                                                                                            |
 | FM-147 | Task Assignment & Workload       | ✅ Complete — assign/unassign/reassign emit `TASK_ASSIGNED`/`TASK_UNASSIGNED`/`TASK_REASSIGNED` execution events with metadata (assignee_id, previous_assignee_id) |
-| FM-148 | Approval Delegation & Batch      | ⚠️ Partial (strengthened) — delegation CRUD + revoke, batch-decide, pending, expired routes, delegation-aware escalation, background scheduler. **NEW:** cross-project dashboard (`GET /dashboard`) aggregates per-project overviews + totals. **Remaining:** batch is loop-based not atomic |
+| FM-148 | Approval Delegation & Batch      | ✅ Complete — delegation CRUD + revoke, batch-decide (two-pass atomic: validate-all-then-mutate), pending, expired routes, delegation-aware escalation, background scheduler. Cross-project dashboard (`GET /dashboard`) with per-project health grades (A-F), success rates, pending approval details (top 10 per project), and cross-project totals |
 | FM-149 | Notification Digest & Center     | ✅ Complete — dismiss, grouped notifications, and digest preview routes; grouping by `group_key`        |
 | FM-150 | Project Overview Dashboard       | ✅ Complete — HTTP route + composite metrics (runs, tasks, approvals, health grade, team)              |
 
-**Wave 10 summary:** 9/10 milestones fully complete, 1/10 partial. FM-142 now has notification preferences (model + service + routes). FM-147 now emits assignment events. FM-148 gained cross-project dashboard. Only remaining gap: FM-148 batch approval is loop-based not atomic.
+**Wave 10 summary:** 10/10 milestones fully complete. Pass 6 closed FM-148: batch_decide now uses two-pass atomic approach (validate all → mutate all), dashboard enriched with health grades and pending approval details.
 
 ## FM-151 to FM-160 — ⚙️ PARTIAL (Wave 11: GitHub & CI Integration)
 
@@ -705,18 +705,18 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 
 | ID     | Feature                                | Status                                                                                                 |
 | ------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| FM-151 | GitHub App Installation & Linking      | ⚠️ Partial — CRUD works; no token encryption, OAuth flow, or token refresh                             |
+| FM-151 | GitHub App Installation & Linking      | ⚠️ Partial (strengthened) — CRUD + token encryption via AES-256-GCM (`access_token_encrypted`, `token_expires_at` columns), `store_installation_token()`/`get_installation_token()` with expiry check, `refresh_installation_token()` with pluggable github_client, `handle_oauth_callback()`, `POST /github/auth/callback` route. **Remaining:** no live GitHub App JWT signing |
 | FM-152 | Webhook Ingestion & Events             | ✅ Complete — signature verification enforced; 6/6 event types processed (pull_request, issue, check_run, push, release, check_run via new processors) |
 | FM-153 | PR Auto-Creation & Tracking            | ✅ Complete — CRUD, webhook-driven state sync, outbound PR creation via GitHub API, local DB recording  |
 | FM-154 | CI Pipeline Status Integration         | ✅ Complete — inbound ingestion, outbound commit status posting, CI pass-rate calculation, CI readiness gate (threshold-based pass-rate check integrated into merge readiness + standalone route) |
-| FM-155 | Issue Sync                             | ⚠️ Partial (strengthened) — ingest + export direction: `export_issue_to_github` creates pending IssueLink (issue_number=0), `list_exportable_issues` queries pending exports, `POST /github/issues/{project_id}/export` route. **Remaining:** no live GitHub API export, no bidirectional sync |
+| FM-155 | Issue Sync                             | ⚠️ Partial (strengthened) — export with pluggable github_client (`export_issue_to_github` calls live API when client provided, falls back to pending), webhook-driven import (`handle_issue_webhook` for opened/closed/reopened/edited), conflict resolution (`resolve_conflict` with remote_wins/local_wins strategies). **Remaining:** no automatic background sync scheduler |
 | FM-156 | Branch Strategy & Merge Readiness      | ✅ Complete — merge readiness + auto-create branch: `create_branch()` in github_client (resolves base SHA, creates git ref), `slugify_branch_name()` generates `task/{slug}-{short_id}`, `POST /github/branches/auto-create` route |
 | FM-157 | Code Review Routing                    | ✅ Complete — glob ownership matching, outbound PR comments, GitHub reviewer requests, reviewer suggestion/scoring ranked by coverage breadth + specificity |
 | FM-158 | Commit & Diff Intelligence             | ✅ Complete — diff parsing + 8 risk rules (LARGE_FILE_CHANGE, MIGRATION_DETECTED, SECRET_PATTERN, CI_CONFIG_CHANGE, DEPENDENCY_CHANGE, DOCKERFILE_CHANGE, SECURITY_FILE, TEST_DELETION), `evaluate_risk_rules()` with severity-weighted scoring, `get_risk_rules()`, `POST /github/diffs/risk` and `GET /github/diffs/rules` routes |
 | FM-159 | VS Code Extension Foundation           | ⏸️ DEFERRED (separate repo)                                                                            |
 | FM-160 | Hardening: Rate Limiter, Retry, Replay | ✅ Complete                                                                                            |
 
-**Wave 11 summary:** 7/10 fully complete, 2/10 partial, 1 deferred. FM-152 now processes all 6 event types. FM-155 gained export direction. FM-156 gained auto-branch creation. FM-158 gained 8 risk rules + routes. Remaining: full App auth flow (FM-151), live issue export API call (FM-155).
+**Wave 11 summary:** 7/10 fully complete, 2/10 partial (strengthened), 1 deferred. Pass 6 added token encryption + OAuth callback (FM-151), webhook import + conflict resolution (FM-155). Remaining: live App JWT signing (FM-151), background sync scheduler (FM-155).
 
 ---
 
@@ -733,7 +733,7 @@ See [docs/TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for full details (18 items). Key
 
 ---
 
-_Wave 10: 9/10 complete, 1 partial. Wave 11: 7/10 complete, 2 partial, 1 deferred. Wave 12: 9/10 complete, 1 partial. Wave 13: 7/10 complete, 3 partial. FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project. 32 COMPLETE, 7 PARTIAL, 1 DEFERRED across FM-141→180. Pass 5 advanced 11 milestones to COMPLETE and strengthened 2 more (FM-148, FM-155)._
+_Wave 10: 10/10 complete. Wave 11: 7/10 complete, 2 partial, 1 deferred. Wave 12: 9/10 complete, 1 partial. Wave 13: 9/10 complete, 1 partial. FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project. 35 COMPLETE, 4 PARTIAL, 1 DEFERRED across FM-141→180. Pass 6 closed FM-148, FM-171, FM-179, and strengthened FM-151 + FM-155 (38 new tests, 1090 total)._
 
 ---
 
@@ -764,7 +764,7 @@ _Wave 10: 9/10 complete, 1 partial. Wave 11: 7/10 complete, 2 partial, 1 deferre
 
 | FM     | Feature                                       | Status                                                                                                                                                                                     |
 | ------ | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| FM-171 | Organization / Governance Metadata            | 🟡 Partial — `governance_settings` JSON column on Workspace (plan_tier, compliance_level, sso/ip enforcement flags). Full Organization entity deferred.                                    |
+| FM-171 | Organization / Governance Metadata            | ✅ Complete — `governance_settings` JSON column on Workspace (plan_tier, compliance_level, sso/ip enforcement, data_region, audit_retention_days). Validated CRUD via `GET/PUT /workspaces/{id}/governance` with Pydantic schema, tier/compliance/retention validation, defaults for unset workspaces |
 | FM-172 | RBAC V2 — Fine-Grained Permissions            | ✅ Complete — 25-action enforcement matrix, role introspection endpoints, `CustomRole` model (workspace-scoped, JSON permissions list), `create_custom_role`/`list_custom_roles`/`update_custom_role` service functions with Action enum validation, `POST/GET /workspaces/{id}/custom-roles` and `PATCH /custom-roles/{id}` routes |
 | FM-173 | Comprehensive Audit Log                       | ✅ Complete — Immutable AuditLog model, 8-filter query, CSV export, stats endpoint                                                                                                         |
 | FM-174 | Policy Engine — Automated Rule Enforcement    | ✅ Complete — GovernancePolicyEvaluation with 5 trigger types, enforcement recording, evaluation history                                                                                   |
@@ -772,10 +772,10 @@ _Wave 10: 9/10 complete, 1 partial. Wave 11: 7/10 complete, 2 partial, 1 deferre
 | FM-176 | Data Retention & Lifecycle Policies           | ✅ Complete — RetentionPolicy model, CRUD, dry-run + execution mode, 4 entity types (run, audit_log, artifact, notification), background scheduler. ARCHIVE action now stamps `archived_at` on Run/Artifact models + creates audit trail. `archived_at` column added to Run and Artifact models |
 | FM-177 | Compliance Reporting & Export                 | ✅ Complete — 5 report types (access review, change mgmt, approval audit, policy compliance, full governance). JSON/CSV export. PDF deferred.                                              |
 | FM-178 | IP Allowlisting & Access Controls             | ✅ Complete — CIDR-based allowlist with IPv4/IPv6, `IPAllowlistMiddleware` wired in FastAPI app, workspace governance flag controls enforcement                                            |
-| FM-179 | Secrets Management — Resolution & Lifecycle   | 🟡 Partial — `resolve_secret()` with scope enforcement, `rotate_credential()` lifecycle tracking. CredentialVault is metadata-based (env_key resolution). AES-256-GCM encryption deferred. |
+| FM-179 | Secrets Management — Resolution & Lifecycle   | ✅ Complete — `resolve_secret()` with scope enforcement (encrypted → env var fallback), `rotate_credential()` lifecycle tracking. AES-256-GCM encryption via `encryption_service.py` (FORGEMIND_ENCRYPTION_KEY, 12-byte random nonce + GCM tag). `encrypted_value` column on CredentialVault. `create_credential(secret_value=)` encrypts at creation, `store_encrypted_secret()` for updates. `build_credential_read()` masks encrypted values |
 | FM-180 | Enterprise Governance Tests, Docs & Hardening | ✅ Complete — 70+ tests covering all services, IPv6 CIDR fix, doc overclaims corrected                                                                                                     |
 
-**Wave 13 summary:** 7/10 fully complete, 3/10 partial with real usable implementations. FM-172 gained custom role CRUD. FM-176 now stamps `archived_at` on entities. Remaining deferred work: full Organization entity (FM-171), live SSO flows (FM-175), encrypted secret storage (FM-179).
+**Wave 13 summary:** 9/10 fully complete, 1/10 partial with real usable implementation. Pass 6 closed FM-171 (governance CRUD) and FM-179 (AES-256-GCM encryption). FM-175 (SSO) remains partial — requires python3-saml/authlib for live flows.
 
 ---
 

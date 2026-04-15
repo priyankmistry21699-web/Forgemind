@@ -772,3 +772,44 @@ async def auto_create_branch(
         token=token,
     )
     return result
+
+
+# ---------------------------------------------------------------------------
+# FM-151: OAuth / App Installation callback
+# ---------------------------------------------------------------------------
+
+
+class _OAuthCallbackBody(_BaseModel):
+    installation_id: int
+    access_token: str
+    expires_at: str | None = None
+
+
+@router.post("/auth/callback")
+async def github_auth_callback(
+    body: _OAuthCallbackBody,
+    db: AsyncSession = Depends(get_db),
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Handle GitHub App installation token callback (FM-151).
+
+    Stores the access token encrypted and records expiry.
+    """
+    from datetime import datetime
+
+    expires = None
+    if body.expires_at:
+        expires = datetime.fromisoformat(body.expires_at.replace("Z", "+00:00"))
+
+    inst = await github_installation_service.handle_oauth_callback(
+        db,
+        installation_id_gh=body.installation_id,
+        access_token=body.access_token,
+        expires_at=expires,
+    )
+    return {
+        "installation_id": inst.installation_id,
+        "account_login": inst.account_login,
+        "token_stored": True,
+        "expires_at": inst.token_expires_at.isoformat() if inst.token_expires_at else None,
+    }

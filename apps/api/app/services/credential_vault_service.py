@@ -1,8 +1,8 @@
 """Credential vault service — secret metadata management and resolution.
 
-SECURITY: This service NEVER stores or returns raw secret values.
-Secrets are resolved from environment variables at runtime.
-Only metadata (name, env_key, status, scopes, expiry) is persisted.
+SECURITY: This service NEVER returns raw secret values in API responses.
+Secrets can be stored AES-256-GCM encrypted in DB (FM-179) or resolved
+from environment variables at runtime.
 """
 
 import os
@@ -19,13 +19,8 @@ from app.models.connector import Connector
 logger = logging.getLogger(__name__)
 
 
-def _mask_secret(env_key: str) -> str:
-    """Return a masked preview of a secret value from environment.
-
-    Shows first 3 and last 4 characters only, e.g. 'sk-****abc1'.
-    Returns '(not set)' if the env var is missing.
-    """
-    value = os.environ.get(env_key, "")
+def _mask_value(value: str) -> str:
+    """Mask a secret value for display — shows first 3 and last 4 chars."""
     if not value:
         return "(not set)"
     if len(value) <= 8:
@@ -33,8 +28,25 @@ def _mask_secret(env_key: str) -> str:
     return value[:3] + "****" + value[-4:]
 
 
-def _is_secret_set(env_key: str) -> bool:
-    """Check if a secret environment variable is set and non-empty."""
+def _mask_secret(env_key: str, credential: "CredentialVault | None" = None) -> str:
+    """Return a masked preview of a secret value.
+
+    Checks encrypted_value first (FM-179), then falls back to env var.
+    """
+    if credential and credential.encrypted_value:
+        try:
+            from app.services.encryption_service import decrypt
+            plaintext = decrypt(credential.encrypted_value)
+            return _mask_value(plaintext)
+        except Exception:
+            return "(decrypt error)"
+    return _mask_value(os.environ.get(env_key, ""))
+
+
+def _is_secret_set(env_key: str, credential: "CredentialVault | None" = None) -> bool:
+    """Check if a secret is available (encrypted or env var)."""
+    if credential and credential.encrypted_value:
+        return True
     return bool(os.environ.get(env_key, "").strip())
 
 
@@ -50,8 +62,13 @@ async def create_credential(
     scopes: list[str] | None = None,
     expires_at: Any = None,
     metadata: dict | None = None,
+    secret_value: str | None = None,
 ) -> CredentialVault:
-    """Register a new credential in the vault."""
+    """Register a new credential in the vault.
+
+    If secret_value is provided, it is encrypted with AES-256-GCM (FM-179)
+    and stored in encrypted_value. Otherwise falls back to env var resolution.
+    """
     connector_id = None
     if connector_slug:
         result = await db.execute(
@@ -61,8 +78,15 @@ async def create_credential(
         if connector:
             connector_id = connector.id
 
+    # Encrypt the secret value if provided (FM-179)
+    encrypted_value = None
+    if secret_value:
+        from app.services.encryption_service import encrypt
+        encrypted_value = encrypt(secret_value)
+
     # Determine initial status
-    status = SecretStatus.ACTIVE if _is_secret_set(env_key) else SecretStatus.MISSING
+    has_secret = encrypted_value is not None or bool(os.environ.get(env_key, "").strip())
+    status = SecretStatus.ACTIVE if has_secret else SecretStatus.MISSING
 
     credential = CredentialVault(
         name=name,
@@ -75,6 +99,7 @@ async def create_credential(
         scopes=scopes,
         expires_at=expires_at,
         metadata_=metadata,
+        encrypted_value=encrypted_value,
     )
     db.add(credential)
     await db.flush()
@@ -104,8 +129,7 @@ async def resolve_secret(
 ) -> str | None:
     """Resolve the actual secret value for a credential.
 
-    Used by agent runners and connectors at execution time.
-    Returns the plaintext env var value, or None if not set.
+    Priority: encrypted_value (AES-256-GCM) → env var fallback.
     Optionally enforces scope restrictions.
     """
     result = await db.execute(
@@ -124,6 +148,15 @@ async def resolve_secret(
     # Check status
     if cred.status in ("EXPIRED", "REVOKED"):
         return None
+
+    # FM-179: Prefer encrypted value if present
+    if cred.encrypted_value:
+        try:
+            from app.services.encryption_service import decrypt
+            return decrypt(cred.encrypted_value)
+        except Exception:
+            logger.warning("Failed to decrypt secret %s", credential_id)
+            return None
 
     return os.environ.get(cred.env_key)
 
@@ -212,6 +245,23 @@ async def delete_credential(
     return True
 
 
+async def store_encrypted_secret(
+    db: AsyncSession,
+    credential_id: uuid.UUID,
+    secret_value: str,
+) -> CredentialVault | None:
+    """Encrypt and store a secret value for an existing credential (FM-179)."""
+    credential = await get_credential(db, credential_id)
+    if credential is None:
+        return None
+    from app.services.encryption_service import encrypt
+    credential.encrypted_value = encrypt(secret_value)
+    credential.status = SecretStatus.ACTIVE
+    await db.flush()
+    await db.refresh(credential)
+    return credential
+
+
 async def refresh_credential_statuses(db: AsyncSession) -> int:
     """Refresh the status of all credentials based on env var availability.
 
@@ -225,7 +275,7 @@ async def refresh_credential_statuses(db: AsyncSession) -> int:
         if cred.status == SecretStatus.REVOKED:
             continue  # Don't auto-change revoked secrets
 
-        is_set = _is_secret_set(cred.env_key)
+        is_set = _is_secret_set(cred.env_key, cred)
         new_status = SecretStatus.ACTIVE if is_set else SecretStatus.MISSING
 
         # Check expiry
@@ -263,8 +313,8 @@ def build_credential_read(
         "scopes": credential.scopes,
         "expires_at": credential.expires_at,
         "last_rotated_at": credential.last_rotated_at,
-        "is_set": _is_secret_set(credential.env_key),
-        "masked_preview": _mask_secret(credential.env_key),
+        "is_set": _is_secret_set(credential.env_key, credential),
+        "masked_preview": _mask_secret(credential.env_key, credential),
         "created_at": credential.created_at,
         "updated_at": credential.updated_at,
     }

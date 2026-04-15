@@ -10,6 +10,7 @@ import enum
 from sqlalchemy import (
     DateTime,
     ForeignKey,
+    LargeBinary,
     String,
     Boolean,
     Integer,
@@ -49,6 +50,15 @@ class GitHubInstallation(Base):
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     permissions: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+
+    # FM-151: Token management — encrypted access token + expiry
+    access_token_encrypted: Mapped[bytes | None] = mapped_column(
+        LargeBinary, nullable=True, default=None
+    )
+    token_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

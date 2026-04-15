@@ -1,15 +1,15 @@
 """CredentialVault model — encrypted secret metadata for connector credentials.
 
-Stores metadata about secrets (name, scope, expiry, connector link) without
-ever persisting raw secret values in the database. Actual secret values are
-resolved from environment variables at runtime.
+Stores metadata about secrets (name, scope, expiry, connector link).
+Secrets can be stored encrypted via AES-256-GCM (FM-179) or resolved
+from environment variables at runtime.
 """
 
 import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, Text, DateTime, Enum, ForeignKey, func
+from sqlalchemy import LargeBinary, String, Text, DateTime, Enum, ForeignKey, func
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -34,6 +34,11 @@ class CredentialVault(Base):
 
     # Environment variable key that holds the actual secret value
     env_key: Mapped[str] = mapped_column(String(200), nullable=False, unique=True)
+
+    # FM-179: AES-256-GCM encrypted secret value (nonce + ciphertext + tag)
+    encrypted_value: Mapped[bytes | None] = mapped_column(
+        LargeBinary, nullable=True, default=None
+    )
 
     # Connector linkage — which connector this credential is for
     connector_id: Mapped[uuid.UUID | None] = mapped_column(
