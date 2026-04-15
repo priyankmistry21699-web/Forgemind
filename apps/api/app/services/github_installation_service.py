@@ -205,4 +205,106 @@ async def handle_oauth_callback(
     await db.flush()
     await db.refresh(inst)
     return inst
+
+
+# ---------------------------------------------------------------------------
+# FM-151: Installation validation & lifecycle
+# ---------------------------------------------------------------------------
+
+
+async def validate_installation(
+    db: AsyncSession,
+    installation_pk: uuid.UUID,
+) -> dict:
+    """Check health of a GitHub installation (FM-151).
+
+    Returns a status dict with: active, has_token, token_expired,
+    expires_in_minutes, and an overall 'healthy' flag.
+    """
+    inst = await db.get(GitHubInstallation, installation_pk)
+    if inst is None:
+        raise HTTPException(status_code=404, detail="Installation not found")
+
+    has_token = inst.access_token_encrypted is not None
+    token_expired = False
+    expires_in_minutes: float | None = None
+
+    if has_token and inst.token_expires_at:
+        exp = inst.token_expires_at
+        if exp.tzinfo is None:
+            exp = exp.replace(tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
+        token_expired = exp < now
+        if not token_expired:
+            expires_in_minutes = round((exp - now).total_seconds() / 60, 1)
+
+    healthy = inst.is_active and has_token and not token_expired
+
+    return {
+        "installation_id": inst.installation_id,
+        "account_login": inst.account_login,
+        "active": inst.is_active,
+        "has_token": has_token,
+        "token_expired": token_expired,
+        "expires_in_minutes": expires_in_minutes,
+        "healthy": healthy,
+    }
+
+
+async def get_or_refresh_token(
+    db: AsyncSession,
+    installation_pk: uuid.UUID,
+    *,
+    github_client: object | None = None,
+) -> str | None:
+    """Get the current token, refreshing if expired (FM-151).
+
+    Chains: get_installation_token → if None and client available → refresh.
+    Returns plaintext token or None.
+    """
+    token = await get_installation_token(db, installation_pk)
+    if token is not None:
+        return token
+
+    # Token missing or expired — try refresh
+    if github_client is not None:
+        return await refresh_installation_token(
+            db, installation_pk, github_client=github_client,
+        )
+
+    return None
+
+
+async def list_installations_needing_refresh(
+    db: AsyncSession,
+    *,
+    expiry_window_minutes: int = 10,
+) -> list[GitHubInstallation]:
+    """Find active installations with tokens expiring within the given window.
+
+    Useful for proactive token refresh before expiry.
+    """
+    cutoff = datetime.now(timezone.utc) + timedelta(minutes=expiry_window_minutes)
+    result = await db.execute(
+        select(GitHubInstallation).where(
+            GitHubInstallation.is_active.is_(True),
+            GitHubInstallation.access_token_encrypted.isnot(None),
+            GitHubInstallation.token_expires_at.isnot(None),
+            GitHubInstallation.token_expires_at <= cutoff,
+        )
+    )
+    return list(result.scalars().all())
+
+
+async def deactivate_installation(
+    db: AsyncSession,
+    installation_pk: uuid.UUID,
+) -> GitHubInstallation:
+    """Soft-deactivate a GitHub installation (FM-151)."""
+    inst = await db.get(GitHubInstallation, installation_pk)
+    if inst is None:
+        raise HTTPException(status_code=404, detail="Installation not found")
+    inst.is_active = False
     await db.flush()
+    await db.refresh(inst)
+    return inst

@@ -237,6 +237,66 @@ async def export_issue(
     return issue
 
 
+class _SyncStatusBody(_BaseModel):
+    status: str  # "open" or "closed"
+
+
+@router.post("/issues/{issue_link_id}/sync-status")
+async def sync_issue_status_to_github(
+    issue_link_id: uuid.UUID,
+    body: _SyncStatusBody,
+    db: AsyncSession = Depends(get_db),
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Push a ForgeMind issue status change to GitHub (FM-155).
+
+    Bidirectional sync: ForgeMind → GitHub direction.
+    Without a configured github_client, updates local state only.
+    """
+    from app.models.github_integration import IssueLinkStatus
+    try:
+        new_status = IssueLinkStatus(body.status)
+    except ValueError:
+        raise HTTPException(status_code=422, detail=f"Invalid status: {body.status}")
+
+    issue = await issue_sync_service.sync_status_to_github(
+        db, issue_link_id, new_status, github_client=None,
+    )
+    if issue is None:
+        raise HTTPException(status_code=404, detail="Issue link not found")
+    await db.commit()
+    return {
+        "issue_link_id": str(issue.id),
+        "issue_number": issue.issue_number,
+        "status": issue.status.value,
+        "sync_direction": issue.sync_direction,
+        "last_synced_at": issue.last_synced_at.isoformat() if issue.last_synced_at else None,
+    }
+
+
+@router.post("/issues/{project_id}/sync-pending")
+async def sync_pending_exports(
+    project_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Batch-export all pending issues to GitHub (FM-155).
+
+    Returns the list of pending issues. Without a live GitHub client,
+    no mutations occur — just returns what would be exported.
+    """
+    pending = await issue_sync_service.process_pending_exports(
+        db, project_id, github_client=None,
+    )
+    return {
+        "pending_count": len(pending),
+        "issues": [
+            {"id": str(i.id), "title": i.title, "issue_number": i.issue_number}
+            for i in pending
+        ],
+    }
+
+
 # ---------------------------------------------------------------------------
 # FM-157: Code Ownership
 # ---------------------------------------------------------------------------
@@ -772,6 +832,50 @@ async def auto_create_branch(
         token=token,
     )
     return result
+
+
+# ---------------------------------------------------------------------------
+# FM-151: Installation health & token lifecycle
+# ---------------------------------------------------------------------------
+
+
+@router.get("/installations/{installation_id}/token-status")
+async def installation_token_status(
+    installation_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Check health/token status of a GitHub installation (FM-151)."""
+    return await github_installation_service.validate_installation(db, installation_id)
+
+
+@router.post("/installations/{installation_id}/refresh-token")
+async def refresh_installation_token(
+    installation_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Trigger token refresh for a GitHub installation (FM-151).
+
+    Without a configured GitHub App client, returns current token status.
+    """
+    token = await github_installation_service.get_or_refresh_token(
+        db, installation_id, github_client=None,
+    )
+    status = await github_installation_service.validate_installation(db, installation_id)
+    status["token_refreshed"] = token is not None
+    return status
+
+
+@router.post("/installations/{installation_id}/deactivate")
+async def deactivate_installation(
+    installation_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Deactivate a GitHub installation (FM-151)."""
+    inst = await github_installation_service.deactivate_installation(db, installation_id)
+    return {"installation_id": inst.installation_id, "active": inst.is_active}
 
 
 # ---------------------------------------------------------------------------

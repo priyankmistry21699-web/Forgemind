@@ -269,6 +269,12 @@ class IssueLinkStatus(str, enum.Enum):
     CLOSED = "closed"
 
 
+class IssueSyncDirection(str, enum.Enum):
+    INBOUND = "inbound"    # GitHub → ForgeMind
+    OUTBOUND = "outbound"  # ForgeMind → GitHub
+    BOTH = "both"          # Bidirectional
+
+
 class IssueLink(Base):
     """Links a GitHub issue to a Forgemind project/run."""
 
@@ -299,6 +305,15 @@ class IssueLink(Base):
         Enum(IssueLinkStatus), nullable=False, default=IssueLinkStatus.OPEN
     )
     labels: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+
+    # FM-155 Pass 7: Sync tracking
+    sync_direction: Mapped[str | None] = mapped_column(
+        String(20), nullable=True, default="inbound"
+    )
+    last_synced_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

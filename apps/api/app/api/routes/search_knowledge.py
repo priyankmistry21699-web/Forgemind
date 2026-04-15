@@ -159,6 +159,21 @@ async def find_similar(
     )
 
 
+@router.get("/search/suggestions")
+async def search_suggestions(
+    q: str = Query(..., min_length=1, max_length=200),
+    project_id: uuid.UUID | None = Query(None),
+    limit: int = Query(5, ge=1, le=20),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Return related search term suggestions (FM-162)."""
+    terms = await search_service.search_suggestions(
+        db, query=q, project_id=project_id, limit=limit,
+    )
+    return {"query": q, "suggestions": terms}
+
+
 # ── FM-163: Knowledge Search ─────────────────────────────────────
 
 

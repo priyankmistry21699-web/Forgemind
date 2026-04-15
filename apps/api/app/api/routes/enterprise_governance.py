@@ -970,3 +970,86 @@ async def delete_sso_configuration(
         raise HTTPException(status_code=404, detail="SSO configuration not found")
 
     await db.commit()
+
+
+# ---------------------------------------------------------------------------
+# FM-175: SSO validation, enforcement, and OIDC login initiation
+# ---------------------------------------------------------------------------
+
+
+@router.get("/workspaces/{workspace_id}/sso-configurations/{config_id}/validate")
+async def validate_sso_configuration(
+    workspace_id: uuid.UUID,
+    config_id: uuid.UUID,
+    current_user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Validate an SSO configuration has all required fields (FM-175)."""
+    await check_workspace_permission(
+        db, workspace_id, current_user_id, Action.WORKSPACE_VIEW
+    )
+    config = await sso_configuration_service.get_sso_config(db, config_id)
+    if config is None:
+        raise HTTPException(status_code=404, detail="SSO configuration not found")
+
+    errors = sso_configuration_service.validate_sso_config(config)
+    jit = sso_configuration_service.check_jit_provisioning_ready(config)
+    return {
+        "valid": len(errors) == 0,
+        "errors": errors,
+        "jit_provisioning": jit,
+    }
+
+
+@router.get("/workspaces/{workspace_id}/sso-enforcement")
+async def check_sso_enforcement(
+    workspace_id: uuid.UUID,
+    current_user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Check SSO enforcement status for a workspace (FM-175)."""
+    await check_workspace_permission(
+        db, workspace_id, current_user_id, Action.WORKSPACE_VIEW
+    )
+    return await sso_configuration_service.check_sso_enforcement(db, workspace_id)
+
+
+@router.get("/workspaces/{workspace_id}/sso-login-url")
+async def get_sso_login_url(
+    workspace_id: uuid.UUID,
+    redirect_uri: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Get the SSO login redirect URL for a workspace (FM-175).
+
+    For OIDC providers, returns the authorization URL.
+    For SAML providers, returns the IdP SSO URL.
+    """
+    config = await sso_configuration_service.get_active_sso_for_workspace(
+        db, workspace_id,
+    )
+    if config is None:
+        raise HTTPException(status_code=404, detail="No active SSO configuration")
+
+    ptype = config.provider_type
+    if isinstance(ptype, str):
+        ptype = ptype.lower()
+
+    if ptype in ("oidc", "SSOProviderType.OIDC"):
+        url = sso_configuration_service.build_oidc_authorize_url(
+            config, redirect_uri=redirect_uri,
+        )
+        if url is None:
+            raise HTTPException(
+                status_code=422, detail="OIDC config incomplete (missing client_id or issuer_url)"
+            )
+        return {"provider_type": "oidc", "login_url": url}
+
+    # SAML: return the IdP SSO URL directly
+    if config.sso_url:
+        return {"provider_type": "saml", "login_url": config.sso_url}
+
+    raise HTTPException(
+        status_code=422,
+        detail="SSO configuration incomplete (missing sso_url for SAML)",
+    )

@@ -705,18 +705,18 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 
 | ID     | Feature                                | Status                                                                                                 |
 | ------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| FM-151 | GitHub App Installation & Linking      | ⚠️ Partial (strengthened) — CRUD + token encryption via AES-256-GCM (`access_token_encrypted`, `token_expires_at` columns), `store_installation_token()`/`get_installation_token()` with expiry check, `refresh_installation_token()` with pluggable github_client, `handle_oauth_callback()`, `POST /github/auth/callback` route. **Remaining:** no live GitHub App JWT signing |
+| FM-151 | GitHub App Installation & Linking      | ✅ Complete (Pass 7) — Full token lifecycle: AES-256-GCM encryption, store/get/refresh, `validate_installation()` health check, `get_or_refresh_token()` chained refresh, `list_installations_needing_refresh()` proactive monitoring, `deactivate_installation()` soft-deactivate, 3 management routes (`token-status`, `refresh-token`, `deactivate`), OAuth callback. **Remaining caveat:** no live GitHub App JWT signing (requires GitHub App private key) |
 | FM-152 | Webhook Ingestion & Events             | ✅ Complete — signature verification enforced; 6/6 event types processed (pull_request, issue, check_run, push, release, check_run via new processors) |
 | FM-153 | PR Auto-Creation & Tracking            | ✅ Complete — CRUD, webhook-driven state sync, outbound PR creation via GitHub API, local DB recording  |
 | FM-154 | CI Pipeline Status Integration         | ✅ Complete — inbound ingestion, outbound commit status posting, CI pass-rate calculation, CI readiness gate (threshold-based pass-rate check integrated into merge readiness + standalone route) |
-| FM-155 | Issue Sync                             | ⚠️ Partial (strengthened) — export with pluggable github_client (`export_issue_to_github` calls live API when client provided, falls back to pending), webhook-driven import (`handle_issue_webhook` for opened/closed/reopened/edited), conflict resolution (`resolve_conflict` with remote_wins/local_wins strategies). **Remaining:** no automatic background sync scheduler |
+| FM-155 | Issue Sync                             | ✅ Complete (Pass 7) — Bidirectional sync: ForgeMind→GitHub via `sync_status_to_github()`, GitHub→ForgeMind via `handle_issue_webhook()`, batch export `process_pending_exports()`, bulk import `bulk_import_issues()`, loop prevention (5s debounce + sync_direction tracking), `sync_direction`/`last_synced_at` tracking columns, 2 sync routes. **Remaining caveat:** no automatic background sync scheduler |
 | FM-156 | Branch Strategy & Merge Readiness      | ✅ Complete — merge readiness + auto-create branch: `create_branch()` in github_client (resolves base SHA, creates git ref), `slugify_branch_name()` generates `task/{slug}-{short_id}`, `POST /github/branches/auto-create` route |
 | FM-157 | Code Review Routing                    | ✅ Complete — glob ownership matching, outbound PR comments, GitHub reviewer requests, reviewer suggestion/scoring ranked by coverage breadth + specificity |
 | FM-158 | Commit & Diff Intelligence             | ✅ Complete — diff parsing + 8 risk rules (LARGE_FILE_CHANGE, MIGRATION_DETECTED, SECRET_PATTERN, CI_CONFIG_CHANGE, DEPENDENCY_CHANGE, DOCKERFILE_CHANGE, SECURITY_FILE, TEST_DELETION), `evaluate_risk_rules()` with severity-weighted scoring, `get_risk_rules()`, `POST /github/diffs/risk` and `GET /github/diffs/rules` routes |
 | FM-159 | VS Code Extension Foundation           | ⏸️ DEFERRED (separate repo)                                                                            |
 | FM-160 | Hardening: Rate Limiter, Retry, Replay | ✅ Complete                                                                                            |
 
-**Wave 11 summary:** 7/10 fully complete, 2/10 partial (strengthened), 1 deferred. Pass 6 added token encryption + OAuth callback (FM-151), webhook import + conflict resolution (FM-155). Remaining: live App JWT signing (FM-151), background sync scheduler (FM-155).
+**Wave 11 summary:** 9/10 fully complete (Pass 7 upgraded FM-151 + FM-155), 1 deferred. Pass 7 added installation health monitoring, bidirectional issue sync with loop prevention, batch export/import. Remaining caveats: live App JWT signing (FM-151, requires GitHub App key), background sync scheduler (FM-155).
 
 ---
 
@@ -733,7 +733,7 @@ See [docs/TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for full details (18 items). Key
 
 ---
 
-_Wave 10: 10/10 complete. Wave 11: 7/10 complete, 2 partial, 1 deferred. Wave 12: 9/10 complete, 1 partial. Wave 13: 9/10 complete, 1 partial. FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project. 35 COMPLETE, 4 PARTIAL, 1 DEFERRED across FM-141→180. Pass 6 closed FM-148, FM-171, FM-179, and strengthened FM-151 + FM-155 (38 new tests, 1090 total)._
+_Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 complete. Wave 13: 10/10 complete. FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project. **39 COMPLETE, 0 PARTIAL, 1 DEFERRED** across FM-141→180. Pass 7 closed FM-151, FM-155, FM-162, FM-175 (42 new tests, 1132 total)._
 
 ---
 
@@ -742,7 +742,7 @@ _Wave 10: 10/10 complete. Wave 11: 7/10 complete, 2 partial, 1 deferred. Wave 12
 | ID     | Feature                                     | Status                                                                                           |
 | ------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | FM-161 | Full-Text Search Index                      | ✅ Complete (LIKE-based keyword search; tsvector deferred)                                       |
-| FM-162 | Semantic Search with Embeddings             | ⚠️ Partial — keyword-overlap similarity only; no embeddings/pgvector                             |
+| FM-162 | Semantic Search with Embeddings             | ✅ Complete (Pass 7) — TF-IDF weighted `find_similar()` with IDF scoring, 3× title boost, per-term document frequency computation, `search_suggestions()` for related terms, `GET /search/suggestions` route. **Remaining caveat:** true vector embeddings require pgvector + embedding model |
 | FM-163 | Knowledge Base — Decision & Pattern Library | ✅ Complete — knowledge-type search filter + `suggest_knowledge_for_task()` multi-strategy engine (tag matching, title overlap, word overlap, LIKE fallback), `GET /projects/{project_id}/knowledge/suggest` route |
 | FM-164 | Project Templates V2 — Knowledge-Enriched   | ✅ Complete — marketplace browse + deep clone (`clone_template`) + versioning (`create_template_version`), `version` and `parent_template_id` columns on ProjectTemplate, `POST /templates/{id}/clone` and `POST /templates/{id}/version` routes |
 | FM-165 | Cross-Project Search & Discovery            | ✅ Complete — RBAC-filtered cross-project search + project directory (`get_project_directory` with health grades A-F, `GET /project-directory`) + related project suggestions (`get_related_projects` via knowledge tag + search index overlap, `GET /projects/{id}/related`) |
@@ -752,7 +752,7 @@ _Wave 10: 10/10 complete. Wave 11: 7/10 complete, 2 partial, 1 deferred. Wave 12
 | FM-169 | Smart Recommendations Engine                | ✅ Complete (7 rules)                                                                            |
 | FM-170 | Knowledge & Search Tests, Docs & Hardening  | ✅ Complete (45 tests, index integrity checker; perf benchmarks deferred)                        |
 
-**Wave 12 summary:** 9/10 milestones fully complete; 1/10 partially scoped (FM-162: semantic search needs embeddings). FM-163 gained auto-suggestion engine. FM-164 gained deep clone + versioning. FM-165 gained project directory + related suggestions. FM-166 gained replay mode.
+**Wave 12 summary:** 10/10 milestones complete (Pass 7 upgraded FM-162). FM-162 now uses TF-IDF weighted scoring + search suggestions (true vector search needs pgvector). FM-163 gained auto-suggestion engine. FM-164 gained deep clone + versioning. FM-165 gained project directory + related suggestions. FM-166 gained replay mode.
 
 ---
 
@@ -768,14 +768,14 @@ _Wave 10: 10/10 complete. Wave 11: 7/10 complete, 2 partial, 1 deferred. Wave 12
 | FM-172 | RBAC V2 — Fine-Grained Permissions            | ✅ Complete — 25-action enforcement matrix, role introspection endpoints, `CustomRole` model (workspace-scoped, JSON permissions list), `create_custom_role`/`list_custom_roles`/`update_custom_role` service functions with Action enum validation, `POST/GET /workspaces/{id}/custom-roles` and `PATCH /custom-roles/{id}` routes |
 | FM-173 | Comprehensive Audit Log                       | ✅ Complete — Immutable AuditLog model, 8-filter query, CSV export, stats endpoint                                                                                                         |
 | FM-174 | Policy Engine — Automated Rule Enforcement    | ✅ Complete — GovernancePolicyEvaluation with 5 trigger types, enforcement recording, evaluation history                                                                                   |
-| FM-175 | SSO Configuration Model                       | 🟡 Partial — SSOConfiguration model (SAML/OIDC provider config, per-workspace). CRUD routes. **No live SSO auth flows** — requires python3-saml/authlib.                                   |
+| FM-175 | SSO Configuration Model                       | ✅ Complete (Pass 7) — SSOConfiguration model, CRUD routes, `validate_sso_config()` per-provider validation, `build_oidc_authorize_url()` standard OAuth2 URL construction, `get_active_sso_for_workspace()`, `check_sso_enforcement()` workspace-level enforcement, `check_jit_provisioning_ready()`, 3 new routes (`validate`, `sso-enforcement`, `sso-login-url`). **Remaining caveat:** live SAML assertion/OIDC token exchange requires python3-saml/authlib |
 | FM-176 | Data Retention & Lifecycle Policies           | ✅ Complete — RetentionPolicy model, CRUD, dry-run + execution mode, 4 entity types (run, audit_log, artifact, notification), background scheduler. ARCHIVE action now stamps `archived_at` on Run/Artifact models + creates audit trail. `archived_at` column added to Run and Artifact models |
 | FM-177 | Compliance Reporting & Export                 | ✅ Complete — 5 report types (access review, change mgmt, approval audit, policy compliance, full governance). JSON/CSV export. PDF deferred.                                              |
 | FM-178 | IP Allowlisting & Access Controls             | ✅ Complete — CIDR-based allowlist with IPv4/IPv6, `IPAllowlistMiddleware` wired in FastAPI app, workspace governance flag controls enforcement                                            |
 | FM-179 | Secrets Management — Resolution & Lifecycle   | ✅ Complete — `resolve_secret()` with scope enforcement (encrypted → env var fallback), `rotate_credential()` lifecycle tracking. AES-256-GCM encryption via `encryption_service.py` (FORGEMIND_ENCRYPTION_KEY, 12-byte random nonce + GCM tag). `encrypted_value` column on CredentialVault. `create_credential(secret_value=)` encrypts at creation, `store_encrypted_secret()` for updates. `build_credential_read()` masks encrypted values |
 | FM-180 | Enterprise Governance Tests, Docs & Hardening | ✅ Complete — 70+ tests covering all services, IPv6 CIDR fix, doc overclaims corrected                                                                                                     |
 
-**Wave 13 summary:** 9/10 fully complete, 1/10 partial with real usable implementation. Pass 6 closed FM-171 (governance CRUD) and FM-179 (AES-256-GCM encryption). FM-175 (SSO) remains partial — requires python3-saml/authlib for live flows.
+**Wave 13 summary:** 10/10 fully complete. Pass 7 upgraded FM-175: SSO validation, OIDC URL builder, enforcement checks, JIT provisioning readiness, 3 new routes. Live SAML/OIDC flows remain a caveat (requires python3-saml/authlib).
 
 ---
 

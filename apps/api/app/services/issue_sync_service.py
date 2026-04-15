@@ -1,11 +1,13 @@
 """Issue sync service.
 
 FM-155: Issue Synchronization — import from GitHub and export to GitHub.
-Supports live API export, webhook-driven import, and conflict resolution.
+Supports live API export, webhook-driven import, conflict resolution,
+bidirectional status sync, and pending export batch processing.
 """
 
 import uuid
 import logging
+from datetime import datetime, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +15,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.github_integration import IssueLink, IssueLinkStatus, RepositoryLink
 
 logger = logging.getLogger(__name__)
+
+# Sync loop prevention: ignore events within this window
+_SYNC_DEBOUNCE_SECONDS = 5
 
 
 async def list_issues_for_project(
@@ -99,6 +104,8 @@ async def export_issue_to_github(
         issue_url=issue_url,
         status=IssueLinkStatus.OPEN,
         labels=labels or [],
+        sync_direction="outbound",
+        last_synced_at=datetime.now(timezone.utc) if issue_number > 0 else None,
     )
     db.add(issue)
     await db.flush()
@@ -159,6 +166,8 @@ async def handle_issue_webhook(
             issue_url=issue_data.get("html_url", ""),
             status=IssueLinkStatus.OPEN,
             labels=[lbl.get("name", "") for lbl in issue_data.get("labels", [])],
+            sync_direction="inbound",
+            last_synced_at=datetime.now(timezone.utc),
         )
         db.add(issue)
         await db.flush()
@@ -167,6 +176,16 @@ async def handle_issue_webhook(
 
     if existing is None:
         return None
+
+    # Loop prevention: if we just synced outbound, skip this inbound event
+    if existing.last_synced_at:
+        ls = existing.last_synced_at
+        if ls.tzinfo is None:
+            ls = ls.replace(tzinfo=timezone.utc)
+        if (datetime.now(timezone.utc) - ls).total_seconds() < _SYNC_DEBOUNCE_SECONDS:
+            if existing.sync_direction == "outbound":
+                logger.info("Debounce: skipping inbound event for issue #%s", issue_number)
+                return existing
 
     if action == "closed":
         existing.status = IssueLinkStatus.CLOSED
@@ -177,6 +196,9 @@ async def handle_issue_webhook(
         new_title = issue_data.get("title", existing.title)
         existing.title = new_title
         existing.labels = [lbl.get("name", "") for lbl in issue_data.get("labels", [])]
+
+    existing.sync_direction = "inbound"
+    existing.last_synced_at = datetime.now(timezone.utc)
 
     await db.flush()
     await db.refresh(existing)
@@ -217,3 +239,164 @@ async def resolve_conflict(
     # local_wins: keep local state — nothing to do
 
     return issue
+
+
+# ---------------------------------------------------------------------------
+# FM-155: Bidirectional sync — ForgeMind → GitHub direction
+# ---------------------------------------------------------------------------
+
+
+async def sync_status_to_github(
+    db: AsyncSession,
+    issue_link_id: uuid.UUID,
+    new_status: IssueLinkStatus,
+    *,
+    github_client: object | None = None,
+) -> IssueLink | None:
+    """Push a ForgeMind status change to GitHub (FM-155).
+
+    Updates the local IssueLink status and, if a github_client is provided,
+    calls the GitHub API to close/reopen the issue. Marks sync_direction
+    as 'outbound' and updates last_synced_at for loop prevention.
+    """
+    issue = await db.get(IssueLink, issue_link_id)
+    if issue is None:
+        return None
+
+    old_status = issue.status
+    issue.status = new_status
+
+    # Attempt live GitHub API update
+    if github_client is not None and issue.issue_number > 0:
+        repo_link = await db.get(RepositoryLink, issue.repository_link_id)
+        if repo_link and repo_link.full_name:
+            parts = repo_link.full_name.split("/", 1)
+            if len(parts) == 2:
+                gh_state = "closed" if new_status == IssueLinkStatus.CLOSED else "open"
+                try:
+                    await github_client.update_issue(
+                        parts[0], parts[1], issue.issue_number,
+                        state=gh_state,
+                    )
+                except Exception as exc:
+                    logger.warning(
+                        "GitHub API sync failed for issue #%s: %s",
+                        issue.issue_number, exc,
+                    )
+
+    issue.sync_direction = "outbound"
+    issue.last_synced_at = datetime.now(timezone.utc)
+    await db.flush()
+    await db.refresh(issue)
+    logger.info(
+        "Synced issue #%s status: %s → %s",
+        issue.issue_number, old_status.value, new_status.value,
+    )
+    return issue
+
+
+async def process_pending_exports(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+    *,
+    github_client: object | None = None,
+) -> list[IssueLink]:
+    """Batch-export all pending issues (issue_number == 0) to GitHub.
+
+    If github_client is provided, calls the live API for each issue.
+    Returns the list of issues that were processed.
+    """
+    pending = await list_exportable_issues(db, project_id)
+    if not pending or github_client is None:
+        return pending  # Return list for visibility; no mutations without client
+
+    # Need a repo link for API calls
+    result = await db.execute(
+        select(RepositoryLink).where(
+            RepositoryLink.project_id == project_id,
+            RepositoryLink.is_active.is_(True),
+        )
+    )
+    repo_link = result.scalar_one_or_none()
+    if repo_link is None:
+        return pending
+
+    parts = repo_link.full_name.split("/", 1)
+    if len(parts) != 2:
+        return pending
+
+    exported = []
+    for issue in pending:
+        try:
+            resp = await github_client.create_issue(
+                parts[0], parts[1],
+                title=issue.title,
+                body=None,
+                labels=issue.labels or [],
+            )
+            issue.issue_number = resp.get("number", 0)
+            issue.issue_url = resp.get("html_url", issue.issue_url)
+            issue.sync_direction = "outbound"
+            issue.last_synced_at = datetime.now(timezone.utc)
+            exported.append(issue)
+        except Exception as exc:
+            logger.warning("Failed to export issue '%s': %s", issue.title, exc)
+
+    if exported:
+        await db.flush()
+        for iss in exported:
+            await db.refresh(iss)
+
+    return exported
+
+
+async def bulk_import_issues(
+    db: AsyncSession,
+    repo_link: RepositoryLink,
+    issues_payload: list[dict],
+) -> list[IssueLink]:
+    """Bulk import issues from a GitHub response payload (FM-155).
+
+    Each item in issues_payload should have: number, title, html_url, state,
+    labels (list of dicts with 'name' key).
+    Skips issues that are already linked.
+    """
+    imported = []
+    for item in issues_payload:
+        issue_number = item.get("number")
+        if not issue_number:
+            continue
+
+        # Check for existing link
+        existing_q = await db.execute(
+            select(IssueLink).where(
+                IssueLink.repository_link_id == repo_link.id,
+                IssueLink.issue_number == issue_number,
+            )
+        )
+        if existing_q.scalar_one_or_none() is not None:
+            continue
+
+        status = IssueLinkStatus.CLOSED if item.get("state") == "closed" else IssueLinkStatus.OPEN
+        labels = [lbl.get("name", "") for lbl in item.get("labels", [])]
+
+        issue = IssueLink(
+            repository_link_id=repo_link.id,
+            project_id=repo_link.project_id,
+            issue_number=issue_number,
+            title=item.get("title", ""),
+            issue_url=item.get("html_url", ""),
+            status=status,
+            labels=labels,
+            sync_direction="inbound",
+            last_synced_at=datetime.now(timezone.utc),
+        )
+        db.add(issue)
+        imported.append(issue)
+
+    if imported:
+        await db.flush()
+        for iss in imported:
+            await db.refresh(iss)
+
+    return imported

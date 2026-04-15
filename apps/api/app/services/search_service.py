@@ -458,7 +458,7 @@ def _build_snippet(text: str, terms: list[str], max_len: int = 200) -> str:
     return snippet
 
 
-# ── FM-162: Find Similar ─────────────────────────────────────────
+# ── FM-162: Find Similar (TF-IDF weighted) ───────────────────────
 
 
 async def find_similar(
@@ -468,10 +468,12 @@ async def find_similar(
     entity_id: uuid.UUID,
     limit: int = 10,
 ) -> list[dict]:
-    """Find entities similar to a given entity based on keyword overlap.
+    """Find entities similar to a given entity using TF-IDF weighted scoring.
 
-    This is a keyword-based similarity approach — extracts key terms from
-    the source entity and searches for entries with overlapping terms.
+    Improvement over basic keyword overlap:
+    - Computes inverse document frequency (IDF) so rare terms carry more weight
+    - Title matches score 3× body matches
+    - Normalizes by total key term weight for fair comparison
     Honest scoping: true semantic/vector search requires embedding infrastructure.
     """
     # Get source entity
@@ -514,6 +516,27 @@ async def find_similar(
     if not key_terms:
         return []
 
+    # ── IDF computation: count documents containing each term ──
+    total_docs_r = await db.execute(
+        select(sa_func.count()).select_from(SearchIndex)
+    )
+    total_docs = max((total_docs_r.scalar_one() or 1), 1)
+
+    import math
+    term_idf: dict[str, float] = {}
+    for term in key_terms:
+        term_like = f"%{term}%"
+        doc_count_r = await db.execute(
+            select(sa_func.count()).select_from(SearchIndex).where(
+                or_(
+                    sa_func.lower(SearchIndex.title).like(term_like),
+                    sa_func.lower(SearchIndex.body).like(term_like),
+                )
+            )
+        )
+        doc_count = max((doc_count_r.scalar_one() or 0), 1)
+        term_idf[term] = math.log(total_docs / doc_count) + 1.0
+
     # Search for entries matching these terms (exclude self)
     conditions = []
     for term in key_terms[:5]:  # Use top 5 for efficiency
@@ -540,12 +563,22 @@ async def find_similar(
     )
     candidates = list(result.scalars().all())
 
-    # Score candidates by term overlap
+    # ── TF-IDF weighted scoring ──
+    max_weight = sum(term_idf.get(t, 1.0) for t in key_terms)
     scored = []
     for candidate in candidates:
-        cand_text = f"{candidate.title} {candidate.body}".lower()
-        overlap_score = sum(1 for t in key_terms if t in cand_text) / len(key_terms)
-        scored.append((candidate, overlap_score))
+        title_lower = (candidate.title or "").lower()
+        body_lower = (candidate.body or "").lower()
+        weighted_score = 0.0
+        for t in key_terms:
+            idf = term_idf.get(t, 1.0)
+            if t in title_lower:
+                weighted_score += idf * 3.0  # Title match worth 3×
+            elif t in body_lower:
+                weighted_score += idf * 1.0
+        # Normalize
+        similarity = weighted_score / (max_weight * 3.0) if max_weight > 0 else 0.0
+        scored.append((candidate, round(similarity, 3)))
 
     scored.sort(key=lambda x: x[1], reverse=True)
 
@@ -556,11 +589,58 @@ async def find_similar(
             "project_id": str(c.project_id) if c.project_id else None,
             "title": c.title,
             "snippet": (c.body or "")[:200],
-            "similarity_score": round(score, 3),
+            "similarity_score": score,
         }
         for c, score in scored[:limit]
-        if score > 0.1
+        if score > 0.05
     ]
+
+
+async def search_suggestions(
+    db: AsyncSession,
+    *,
+    query: str,
+    project_id: uuid.UUID | None = None,
+    limit: int = 5,
+) -> list[str]:
+    """Return related search term suggestions based on indexed content.
+
+    Extracts distinctive terms from top search results to suggest
+    related queries. Useful for search-as-you-type or "related searches".
+    """
+    if not query or not query.strip():
+        return []
+
+    # Run a quick search to get top results
+    items, _total, _ = await search(
+        db, query=query, project_id=project_id, limit=10,
+    )
+    if not items:
+        return []
+
+    # Collect terms from result titles that are NOT in the original query
+    query_terms = set(query.lower().split())
+    suggestion_counter: dict[str, int] = {}
+    stopwords = {
+        "the", "a", "an", "is", "are", "was", "were", "be", "to", "of",
+        "in", "for", "on", "with", "at", "by", "from", "and", "or", "it",
+        "its", "this", "that", "not", "but", "run", "task",
+    }
+    for item in items:
+        title_words = (item.get("title") or "").lower().split()
+        for w in title_words:
+            w_clean = w.strip(".,;:!?#()[]{}\"'")
+            if (
+                len(w_clean) > 2
+                and w_clean.isalpha()
+                and w_clean not in query_terms
+                and w_clean not in stopwords
+            ):
+                suggestion_counter[w_clean] = suggestion_counter.get(w_clean, 0) + 1
+
+    # Sort by frequency, return top N
+    sorted_terms = sorted(suggestion_counter.items(), key=lambda x: x[1], reverse=True)
+    return [t for t, _ in sorted_terms[:limit]]
 
 
 # ── Index Integrity ──────────────────────────────────────────────
