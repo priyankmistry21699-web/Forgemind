@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import HTTPException
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.approval_request import ApprovalRequest, ApprovalStatus
@@ -58,6 +58,8 @@ async def get_pending_approvals_for_user(
       1. A project lead or flagged as approver (via ProjectMember), OR
       2. An active delegate for the project (via ApprovalDelegation).
     """
+    now = datetime.now(timezone.utc)
+
     # Sub-query: project IDs where user is a lead or designated approver
     lead_projects = (
         select(ProjectMember.project_id)
@@ -70,13 +72,17 @@ async def get_pending_approvals_for_user(
         )
     )
 
-    # Sub-query: project IDs where user is an active delegate
+    # Sub-query: project IDs where user is an active, non-expired delegate
     delegated_projects = (
         select(ApprovalDelegation.project_id)
         .where(
             ApprovalDelegation.delegate_id == user_id,
             ApprovalDelegation.is_active.is_(True),
             ApprovalDelegation.project_id.isnot(None),
+            or_(
+                ApprovalDelegation.active_until.is_(None),
+                ApprovalDelegation.active_until > now,
+            ),
         )
     )
 
@@ -129,13 +135,14 @@ async def list_delegations(
 async def check_expired_approvals(
     db: AsyncSession,
 ) -> list[ApprovalRequest]:
-    """Return approvals that have expired (for escalation processing)."""
+    """Return approvals that have expired and have NOT yet been escalated."""
     now = datetime.now(timezone.utc)
     result = await db.execute(
         select(ApprovalRequest).where(
             ApprovalRequest.status == ApprovalStatus.PENDING,
             ApprovalRequest.expires_at.isnot(None),
             ApprovalRequest.expires_at < now,
+            ApprovalRequest.escalated_at.is_(None),
         )
     )
     return list(result.scalars().all())
@@ -163,11 +170,17 @@ async def escalate_expired_approvals(
     escalation_report: list[dict] = []
 
     for approval in expired:
-        # Find active delegates for this project
+        now = datetime.now(timezone.utc)
+
+        # Find active, non-expired delegates for this project
         delegate_result = await db.execute(
             select(ApprovalDelegation).where(
                 ApprovalDelegation.project_id == approval.project_id,
                 ApprovalDelegation.is_active.is_(True),
+                or_(
+                    ApprovalDelegation.active_until.is_(None),
+                    ApprovalDelegation.active_until > now,
+                ),
             )
         )
         delegates = list(delegate_result.scalars().all())
@@ -227,6 +240,9 @@ async def escalate_expired_approvals(
             )
             notifications_created.append(str(notif.id))
 
+        # Mark this approval as escalated so it won't be re-processed
+        approval.escalated_at = datetime.now(timezone.utc)
+
         escalation_report.append({
             "approval_id": str(approval.id),
             "title": approval.title,
@@ -238,3 +254,43 @@ async def escalate_expired_approvals(
         })
 
     return escalation_report
+
+
+async def deactivate_expired_delegations(
+    db: AsyncSession,
+) -> int:
+    """Deactivate delegations whose active_until has passed.
+
+    Returns the number of delegations deactivated.
+    """
+    now = datetime.now(timezone.utc)
+    result = await db.execute(
+        update(ApprovalDelegation)
+        .where(
+            ApprovalDelegation.is_active.is_(True),
+            ApprovalDelegation.active_until.isnot(None),
+            ApprovalDelegation.active_until < now,
+        )
+        .values(is_active=False)
+    )
+    return result.rowcount
+
+
+async def revoke_delegation(
+    db: AsyncSession,
+    delegation_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> ApprovalDelegation | None:
+    """Revoke (deactivate) a delegation. Only the delegator can revoke."""
+    delegation = await db.get(ApprovalDelegation, delegation_id)
+    if delegation is None:
+        return None
+    if delegation.delegator_id != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Only the delegator can revoke a delegation",
+        )
+    delegation.is_active = False
+    await db.flush()
+    await db.refresh(delegation)
+    return delegation

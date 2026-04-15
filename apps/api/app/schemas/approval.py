@@ -21,6 +21,8 @@ class ApprovalRead(BaseModel):
     decided_by: str | None
     decision_comment: str | None
     decided_at: datetime | None
+    expires_at: datetime | None = None
+    escalated_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 

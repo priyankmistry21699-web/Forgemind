@@ -264,6 +264,21 @@ async def escalate_expired(
     }
 
 
+@router.delete("/approval-delegations/{delegation_id}", response_model=DelegationRead)
+async def revoke_delegation(
+    delegation_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Revoke (deactivate) an approval delegation."""
+    delegation = await approval_enhanced_service.revoke_delegation(
+        db, delegation_id, user_id
+    )
+    if delegation is None:
+        raise HTTPException(status_code=404, detail="Delegation not found")
+    return delegation
+
+
 # ---------------------------------------------------------------------------
 # FM-150: Project Overview / Dashboard
 # ---------------------------------------------------------------------------

@@ -15,18 +15,36 @@ from app.core.error_handlers import register_error_handlers
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+    import asyncio
+
     # Startup — seed default agents
     from app.db.session import async_session_factory
     from app.services.agent_service import seed_default_agents
     from app.services.project_template_service import seed_builtin_templates
+    from app.services.background_scheduler import escalation_loop, retention_loop
 
     async with async_session_factory() as session:
         await seed_default_agents(session)
         await seed_builtin_templates(session)
         await session.commit()
 
+    # Launch background scheduler tasks (FM-148 / FM-176)
+    bg_tasks: list[asyncio.Task] = []
+    if not settings.debug:
+        bg_tasks.append(asyncio.create_task(escalation_loop(), name="escalation-loop"))
+        bg_tasks.append(asyncio.create_task(retention_loop(), name="retention-loop"))
+
     yield
-    # Shutdown — dispose DB engine
+
+    # Shutdown — cancel background tasks, then dispose DB engine
+    for task in bg_tasks:
+        task.cancel()
+    for task in bg_tasks:
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
     from app.db.session import engine
 
     await engine.dispose()

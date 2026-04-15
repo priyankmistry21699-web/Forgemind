@@ -691,11 +691,11 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 | FM-145 | User Presence & Online Status    | ✅ Complete                                                                                            |
 | FM-146 | Collaborative Run Annotations    | ✅ Complete                                                                                            |
 | FM-147 | Task Assignment & Workload       | ⚠️ Partial — HTTP routes wired (assign/unassign/workload); assignment history events not recorded      |
-| FM-148 | Approval Delegation & Batch      | ⚠️ Partial — delegation, batch-decide, pending (user-scoped), expired routes, delegation-aware escalation with target resolution + notification delivery via notification_service; no background cron |
+| FM-148 | Approval Delegation & Batch      | ✅ Complete — delegation CRUD + revoke, batch-decide, pending (user-scoped with `active_until` enforcement), expired routes, delegation-aware escalation with `escalated_at` dedup + target resolution + notification delivery; background scheduler (5-min cycle) auto-deactivates expired delegations + escalates expired approvals |
 | FM-149 | Notification Digest & Center     | ⚠️ Partial — no grouping logic; missing dismiss/digest HTTP routes                                     |
 | FM-150 | Project Overview Dashboard       | ✅ Complete — HTTP route + composite metrics (runs, tasks, approvals, health grade, team)              |
 
-**Wave 10 summary:** 4/10 milestones fully complete, 6/10 partial. Core commenting, presence, annotations, and project overview work. Missing: notification preferences, cursor pagination, default views, assignment history events, approval auto-escalation, notification grouping routes.
+**Wave 10 summary:** 5/10 milestones fully complete, 5/10 partial. Core commenting, presence, annotations, project overview, and approval delegation/escalation work. Missing: notification preferences, cursor pagination, default views, assignment history events, notification grouping routes.
 
 ## FM-151 to FM-160 — ⚙️ PARTIAL (Wave 11: GitHub & CI Integration)
 
@@ -733,7 +733,7 @@ See [docs/TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for full details (18 items). Key
 
 ---
 
-_Wave 10: 4/10 complete, 6 partial. Wave 11: 4/10 complete, 5 partial, 1 deferred. Wave 12: 6/10 complete, 4 partial. Wave 13: 5/10 complete, 5 partial. FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project. 19 COMPLETE, 20 PARTIAL, 1 DEFERRED across FM-141→180._
+_Wave 10: 5/10 complete, 5 partial. Wave 11: 4/10 complete, 5 partial, 1 deferred. Wave 12: 6/10 complete, 4 partial. Wave 13: 6/10 complete, 4 partial. FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project. 21 COMPLETE, 18 PARTIAL, 1 DEFERRED across FM-141→180._
 
 ---
 
@@ -769,13 +769,13 @@ _Wave 10: 4/10 complete, 6 partial. Wave 11: 4/10 complete, 5 partial, 1 deferre
 | FM-173 | Comprehensive Audit Log                       | ✅ Complete — Immutable AuditLog model, 8-filter query, CSV export, stats endpoint                                                                                                         |
 | FM-174 | Policy Engine — Automated Rule Enforcement    | ✅ Complete — GovernancePolicyEvaluation with 5 trigger types, enforcement recording, evaluation history                                                                                   |
 | FM-175 | SSO Configuration Model                       | 🟡 Partial — SSOConfiguration model (SAML/OIDC provider config, per-workspace). CRUD routes. **No live SSO auth flows** — requires python3-saml/authlib.                                   |
-| FM-176 | Data Retention & Lifecycle Policies           | 🟡 Partial — RetentionPolicy model, CRUD, dry-run + execution mode for `run`, `audit_log`, `artifact`, and `notification` entity types (workspace-scoped via membership). No background scheduler.                                           |
+| FM-176 | Data Retention & Lifecycle Policies           | ✅ Complete — RetentionPolicy model, CRUD, dry-run + execution mode for `run`, `audit_log`, `artifact`, and `notification` entity types (workspace-scoped via membership). ARCHIVE action creates audit trail entries. Background scheduler (daily cycle) evaluates all workspace retention policies automatically. |
 | FM-177 | Compliance Reporting & Export                 | ✅ Complete — 5 report types (access review, change mgmt, approval audit, policy compliance, full governance). JSON/CSV export. PDF deferred.                                              |
 | FM-178 | IP Allowlisting & Access Controls             | ✅ Complete — CIDR-based allowlist with IPv4/IPv6, `IPAllowlistMiddleware` wired in FastAPI app, workspace governance flag controls enforcement                                            |
 | FM-179 | Secrets Management — Resolution & Lifecycle   | 🟡 Partial — `resolve_secret()` with scope enforcement, `rotate_credential()` lifecycle tracking. CredentialVault is metadata-based (env_key resolution). AES-256-GCM encryption deferred. |
 | FM-180 | Enterprise Governance Tests, Docs & Hardening | ✅ Complete — 70+ tests covering all services, IPv6 CIDR fix, doc overclaims corrected                                                                                                     |
 
-**Wave 13 summary:** 5/10 fully complete, 5/10 partial with real usable implementations. All milestones have enforceable code. Remaining deferred work: full Organization entity, custom roles, live SSO flows, background retention scheduler, encrypted secret storage.
+**Wave 13 summary:** 6/10 fully complete, 4/10 partial with real usable implementations. All milestones have enforceable code. Remaining deferred work: full Organization entity, custom roles, live SSO flows, encrypted secret storage.
 
 ---
 

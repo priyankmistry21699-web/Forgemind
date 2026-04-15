@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.enterprise_governance import RetentionPolicy, RetentionAction
 from app.models.run import Run
-from app.models.enterprise_governance import AuditLog
+from app.models.enterprise_governance import AuditLog, AuditActorType, AuditOutcome
 from app.models.artifact import Artifact
 from app.models.notification import Notification
 
@@ -137,6 +137,101 @@ async def delete_retention_policy(
     return True
 
 
+async def _count_entities(db: AsyncSession, model, conditions):
+    """Count entities matching conditions."""
+    count_q = select(sa_func.count()).select_from(model).where(and_(*conditions))
+    return (await db.execute(count_q)).scalar() or 0
+
+
+async def _delete_entities(db: AsyncSession, model, conditions, entity_type, workspace_id, cutoff):
+    """Delete entities and log the action."""
+    from sqlalchemy import delete as sa_delete
+
+    del_q = sa_delete(model).where(and_(*conditions))
+    del_result = await db.execute(del_q)
+    deleted_count = del_result.rowcount
+    logger.info(
+        "retention: EXECUTED delete for %s workspace=%s cutoff=%s deleted=%d",
+        entity_type, workspace_id, cutoff.isoformat(), deleted_count,
+    )
+    return deleted_count
+
+
+async def _archive_entities(
+    db: AsyncSession, workspace_id, policy, affected_count, cutoff
+):
+    """Record an archive audit trail — creates an immutable audit log entry
+    documenting that entities have aged past the retention threshold.
+
+    This provides compliance traceability without data destruction.
+    """
+    entry = AuditLog(
+        actor_type=AuditActorType.SYSTEM,
+        action="retention.archive",
+        resource_type=policy.entity_type,
+        workspace_id=workspace_id,
+        project_id=policy.project_id,
+        details={
+            "policy_id": str(policy.id),
+            "retention_days": policy.retention_days,
+            "cutoff_date": cutoff.isoformat(),
+            "affected_count": affected_count,
+            "action": "archive",
+        },
+        outcome=AuditOutcome.SUCCESS,
+    )
+    db.add(entry)
+    await db.flush()
+    logger.info(
+        "retention: ARCHIVED audit record for %s workspace=%s cutoff=%s count=%d",
+        policy.entity_type, workspace_id, cutoff.isoformat(), affected_count,
+    )
+    return affected_count
+
+
+async def _build_conditions(db, entity_type, policy, workspace_id, cutoff):
+    """Build query conditions for a given entity type."""
+    if entity_type == "run":
+        conditions = [Run.created_at < cutoff]
+        if policy.project_id:
+            conditions.append(Run.project_id == policy.project_id)
+        else:
+            from app.models.project import Project
+            ws_projects = select(Project.id).where(Project.workspace_id == workspace_id)
+            conditions.append(Run.project_id.in_(ws_projects))
+        return Run, conditions
+
+    elif entity_type == "audit_log":
+        conditions = [
+            AuditLog.workspace_id == workspace_id,
+            AuditLog.created_at < cutoff,
+        ]
+        return AuditLog, conditions
+
+    elif entity_type == "artifact":
+        from app.models.project import Project
+        conditions = [Artifact.created_at < cutoff]
+        if policy.project_id:
+            conditions.append(Artifact.project_id == policy.project_id)
+        else:
+            ws_projects = select(Project.id).where(Project.workspace_id == workspace_id)
+            conditions.append(Artifact.project_id.in_(ws_projects))
+        return Artifact, conditions
+
+    elif entity_type == "notification":
+        from app.models.membership import WorkspaceMember
+        ws_users = select(WorkspaceMember.user_id).where(
+            WorkspaceMember.workspace_id == workspace_id
+        )
+        conditions = [
+            Notification.user_id.in_(ws_users),
+            Notification.created_at < cutoff,
+        ]
+        return Notification, conditions
+
+    return None, []
+
+
 async def evaluate_retention(
     db: AsyncSession,
     workspace_id: uuid.UUID,
@@ -165,120 +260,25 @@ async def evaluate_retention(
         cutoff = now - timedelta(days=policy.retention_days)
         affected_count = 0
         deleted_count = 0
+        archived_count = 0
 
-        if policy.entity_type == "run":
-            conditions = [Run.created_at < cutoff]
-            if policy.project_id:
-                conditions.append(Run.project_id == policy.project_id)
-            else:
-                from app.models.project import Project
+        model, conditions = await _build_conditions(
+            db, policy.entity_type, policy, workspace_id, cutoff
+        )
 
-                ws_projects = select(Project.id).where(
-                    Project.workspace_id == workspace_id
-                )
-                conditions.append(Run.project_id.in_(ws_projects))
+        if model is not None and conditions:
+            affected_count = await _count_entities(db, model, conditions)
 
-            count_q = (
-                select(sa_func.count())
-                .select_from(Run)
-                .where(and_(*conditions))
-            )
-            affected_count = (await db.execute(count_q)).scalar() or 0
-
-            if not dry_run and affected_count > 0 and policy.action == RetentionAction.DELETE:
-                from sqlalchemy import delete as sa_delete
-
-                del_q = sa_delete(Run).where(and_(*conditions))
-                del_result = await db.execute(del_q)
-                deleted_count = del_result.rowcount
-                logger.info(
-                    "retention: EXECUTED delete for runs workspace=%s cutoff=%s deleted=%d",
-                    workspace_id, cutoff.isoformat(), deleted_count,
-                )
-
-        elif policy.entity_type == "audit_log":
-            conditions = [
-                AuditLog.workspace_id == workspace_id,
-                AuditLog.created_at < cutoff,
-            ]
-            count_q = (
-                select(sa_func.count())
-                .select_from(AuditLog)
-                .where(and_(*conditions))
-            )
-            affected_count = (await db.execute(count_q)).scalar() or 0
-
-            if not dry_run and affected_count > 0 and policy.action == RetentionAction.DELETE:
-                from sqlalchemy import delete as sa_delete
-
-                del_q = sa_delete(AuditLog).where(and_(*conditions))
-                del_result = await db.execute(del_q)
-                deleted_count = del_result.rowcount
-                logger.info(
-                    "retention: EXECUTED delete for audit_logs workspace=%s cutoff=%s deleted=%d",
-                    workspace_id, cutoff.isoformat(), deleted_count,
-                )
-
-        elif policy.entity_type == "artifact":
-            from app.models.project import Project
-
-            conditions = [Artifact.created_at < cutoff]
-            if policy.project_id:
-                conditions.append(Artifact.project_id == policy.project_id)
-            else:
-                ws_projects = select(Project.id).where(
-                    Project.workspace_id == workspace_id
-                )
-                conditions.append(Artifact.project_id.in_(ws_projects))
-
-            count_q = (
-                select(sa_func.count())
-                .select_from(Artifact)
-                .where(and_(*conditions))
-            )
-            affected_count = (await db.execute(count_q)).scalar() or 0
-
-            if not dry_run and affected_count > 0 and policy.action == RetentionAction.DELETE:
-                from sqlalchemy import delete as sa_delete
-
-                del_q = sa_delete(Artifact).where(and_(*conditions))
-                del_result = await db.execute(del_q)
-                deleted_count = del_result.rowcount
-                logger.info(
-                    "retention: EXECUTED delete for artifacts workspace=%s cutoff=%s deleted=%d",
-                    workspace_id, cutoff.isoformat(), deleted_count,
-                )
-
-        elif policy.entity_type == "notification":
-            # Notifications are scoped via user_id. To enforce workspace-level
-            # retention, find all users who are members of this workspace.
-            from app.models.membership import WorkspaceMember
-
-            ws_users = select(WorkspaceMember.user_id).where(
-                WorkspaceMember.workspace_id == workspace_id
-            )
-            conditions = [
-                Notification.user_id.in_(ws_users),
-                Notification.created_at < cutoff,
-            ]
-
-            count_q = (
-                select(sa_func.count())
-                .select_from(Notification)
-                .where(and_(*conditions))
-            )
-            affected_count = (await db.execute(count_q)).scalar() or 0
-
-            if not dry_run and affected_count > 0 and policy.action == RetentionAction.DELETE:
-                from sqlalchemy import delete as sa_delete
-
-                del_q = sa_delete(Notification).where(and_(*conditions))
-                del_result = await db.execute(del_q)
-                deleted_count = del_result.rowcount
-                logger.info(
-                    "retention: EXECUTED delete for notifications workspace=%s cutoff=%s deleted=%d",
-                    workspace_id, cutoff.isoformat(), deleted_count,
-                )
+            if not dry_run and affected_count > 0:
+                if policy.action == RetentionAction.DELETE:
+                    deleted_count = await _delete_entities(
+                        db, model, conditions,
+                        policy.entity_type, workspace_id, cutoff,
+                    )
+                elif policy.action == RetentionAction.ARCHIVE:
+                    archived_count = await _archive_entities(
+                        db, workspace_id, policy, affected_count, cutoff,
+                    )
 
         results.append({
             "policy_id": str(policy.id),
@@ -288,6 +288,7 @@ async def evaluate_retention(
             "cutoff_date": cutoff.isoformat(),
             "affected_count": affected_count,
             "deleted_count": deleted_count,
+            "archived_count": archived_count,
             "dry_run": dry_run,
         })
 
@@ -298,5 +299,6 @@ async def evaluate_retention(
         "results": results,
         "total_affected": sum(r["affected_count"] for r in results),
         "total_deleted": sum(r["deleted_count"] for r in results),
+        "total_archived": sum(r["archived_count"] for r in results),
         "dry_run": dry_run,
     }

@@ -405,11 +405,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Delegated approvals route to delegate when delegator hasn't acted _(deferred)_
-- [ ] Expired approvals auto-escalate to project leads _(deferred)_
+- [x] Delegated approvals route to delegate when delegator hasn't acted — _delegation-aware pending query enforces `active_until`; `revoke_delegation` route_
+- [x] Expired approvals auto-escalate to project leads — _`escalate_expired_approvals` stamps `escalated_at` to prevent re-escalation; background scheduler runs every 5 min_
 - [ ] Batch approve/reject processes all selected items atomically _(deferred)_
 - [ ] Dashboard shows all pending approvals across projects _(deferred)_
-- [x] Tests cover delegation, expiration, batch, and dashboard
+- [x] Tests cover delegation, expiration, batch, and dashboard — _26 tests (52 with dual backend) covering escalation dedup, delegation expiry, revoke, background cycle_
 
 ---
 
