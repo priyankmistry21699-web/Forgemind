@@ -236,6 +236,33 @@ async def match_code_owners(
     return await code_review_service.get_owners_for_files(db, repo_link_id, file_paths)
 
 
+class _SuggestReviewersBody(_BaseModel):
+    file_paths: list[str]
+    max_reviewers: int = 5
+    exclude_user_ids: list[uuid.UUID] | None = None
+
+
+@router.post("/code-owners/suggest-reviewers")
+async def suggest_reviewers(
+    repo_link_id: uuid.UUID,
+    body: _SuggestReviewersBody,
+    db: AsyncSession = Depends(get_db),
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Suggest ranked reviewers for changed files based on code ownership.
+
+    Uses CODEOWNERS patterns to score reviewers by coverage breadth and
+    pattern specificity. Returns a ranked list of suggested reviewers.
+    """
+    return await code_review_service.suggest_reviewers(
+        db,
+        repo_link_id,
+        body.file_paths,
+        max_reviewers=body.max_reviewers,
+        exclude_user_ids=body.exclude_user_ids,
+    )
+
+
 # ---------------------------------------------------------------------------
 # FM-156: Merge Readiness
 # ---------------------------------------------------------------------------
@@ -595,3 +622,28 @@ async def get_ci_pass_rate(
         )
     except GitHubClientError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.get("/repos/{repo_link_id}/ci/readiness")
+async def get_ci_readiness(
+    repo_link_id: uuid.UUID,
+    threshold: float = 70.0,
+    window: int = 20,
+    db: AsyncSession = Depends(get_db),
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Evaluate CI readiness gate for a repository.
+
+    Checks whether the historical CI pass rate meets the required threshold.
+    This is a gating signal — "pass" means the branch is stable enough.
+    Also used as a merge blocker in merge readiness evaluation.
+    """
+    from app.models.github_integration import RepositoryLink
+
+    repo = await db.get(RepositoryLink, repo_link_id)
+    if repo is None:
+        raise HTTPException(status_code=404, detail="Repository link not found")
+
+    return await merge_readiness_service.evaluate_ci_readiness(
+        db, repo_link_id, threshold=threshold, window=window,
+    )

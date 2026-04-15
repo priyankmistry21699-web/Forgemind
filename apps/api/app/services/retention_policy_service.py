@@ -14,11 +14,12 @@ from app.models.enterprise_governance import RetentionPolicy, RetentionAction
 from app.models.run import Run
 from app.models.enterprise_governance import AuditLog
 from app.models.artifact import Artifact
+from app.models.notification import Notification
 
 logger = logging.getLogger(__name__)
 
 # Entity types that have full retention evaluation + delete logic.
-SUPPORTED_ENTITY_TYPES = {"run", "audit_log", "artifact"}
+SUPPORTED_ENTITY_TYPES = {"run", "audit_log", "artifact", "notification"}
 
 
 async def create_retention_policy(
@@ -245,6 +246,37 @@ async def evaluate_retention(
                 deleted_count = del_result.rowcount
                 logger.info(
                     "retention: EXECUTED delete for artifacts workspace=%s cutoff=%s deleted=%d",
+                    workspace_id, cutoff.isoformat(), deleted_count,
+                )
+
+        elif policy.entity_type == "notification":
+            # Notifications are scoped via user_id. To enforce workspace-level
+            # retention, find all users who are members of this workspace.
+            from app.models.membership import WorkspaceMember
+
+            ws_users = select(WorkspaceMember.user_id).where(
+                WorkspaceMember.workspace_id == workspace_id
+            )
+            conditions = [
+                Notification.user_id.in_(ws_users),
+                Notification.created_at < cutoff,
+            ]
+
+            count_q = (
+                select(sa_func.count())
+                .select_from(Notification)
+                .where(and_(*conditions))
+            )
+            affected_count = (await db.execute(count_q)).scalar() or 0
+
+            if not dry_run and affected_count > 0 and policy.action == RetentionAction.DELETE:
+                from sqlalchemy import delete as sa_delete
+
+                del_q = sa_delete(Notification).where(and_(*conditions))
+                del_result = await db.execute(del_q)
+                deleted_count = del_result.rowcount
+                logger.info(
+                    "retention: EXECUTED delete for notifications workspace=%s cutoff=%s deleted=%d",
                     workspace_id, cutoff.isoformat(), deleted_count,
                 )
 

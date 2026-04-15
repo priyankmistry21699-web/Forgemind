@@ -149,10 +149,13 @@ async def escalate_expired_approvals(
     For each expired pending approval:
     1. Find active delegates for the approval's project.
     2. Find project leads as fallback escalation targets.
-    3. Return an escalation report with recommended targets.
+    3. Create an ESCALATION notification for each target via notification_service.
+    4. Return an escalation report with recommended targets and notifications.
 
-    This enables callers (routes, cron jobs) to notify the right people.
+    This enables callers (routes, cron jobs) to trigger real escalation.
     """
+    from app.services import notification_service
+
     expired = await check_expired_approvals(db)
     if not expired:
         return []
@@ -184,6 +187,7 @@ async def escalate_expired_approvals(
         # Build escalation targets: delegates first, then leads
         targets: list[dict] = []
         seen_user_ids: set[uuid.UUID] = set()
+        notifications_created: list[str] = []
 
         for d in delegates:
             if d.delegate_id not in seen_user_ids:
@@ -202,6 +206,27 @@ async def escalate_expired_approvals(
                     "role": "lead" if lead.role == ProjectRole.LEAD else "approver",
                 })
 
+        # Create notifications for each escalation target
+        for target in targets:
+            notif = await notification_service.create_notification(
+                db,
+                user_id=uuid.UUID(target["user_id"]),
+                notification_type="escalation",
+                title=f"Escalation: {approval.title}",
+                priority="high",
+                body=(
+                    f"Approval \"{approval.title}\" has expired and requires "
+                    f"attention. You are being notified as a {target['role']}."
+                ),
+                resource_type="approval_request",
+                resource_id=approval.id,
+                metadata_={
+                    "escalation_role": target["role"],
+                    "project_id": str(approval.project_id),
+                },
+            )
+            notifications_created.append(str(notif.id))
+
         escalation_report.append({
             "approval_id": str(approval.id),
             "title": approval.title,
@@ -209,6 +234,7 @@ async def escalate_expired_approvals(
             "expired_at": approval.expires_at.isoformat() if approval.expires_at else None,
             "escalation_targets": targets,
             "target_count": len(targets),
+            "notifications_created": notifications_created,
         })
 
     return escalation_report

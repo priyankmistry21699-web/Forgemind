@@ -691,7 +691,7 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 | FM-145 | User Presence & Online Status    | ✅ Complete                                                                                            |
 | FM-146 | Collaborative Run Annotations    | ✅ Complete                                                                                            |
 | FM-147 | Task Assignment & Workload       | ⚠️ Partial — HTTP routes wired (assign/unassign/workload); assignment history events not recorded      |
-| FM-148 | Approval Delegation & Batch      | ⚠️ Partial — delegation, batch-decide, pending (user-scoped), expired routes, delegation-aware escalation with target resolution; no background cron |
+| FM-148 | Approval Delegation & Batch      | ⚠️ Partial — delegation, batch-decide, pending (user-scoped), expired routes, delegation-aware escalation with target resolution + notification delivery via notification_service; no background cron |
 | FM-149 | Notification Digest & Center     | ⚠️ Partial — no grouping logic; missing dismiss/digest HTTP routes                                     |
 | FM-150 | Project Overview Dashboard       | ✅ Complete — HTTP route + composite metrics (runs, tasks, approvals, health grade, team)              |
 
@@ -708,10 +708,10 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 | FM-151 | GitHub App Installation & Linking      | ⚠️ Partial — CRUD works; no token encryption, OAuth flow, or token refresh                             |
 | FM-152 | Webhook Ingestion & Events             | ⚠️ Partial — signature verification now enforced; only 3/6 event types processed                       |
 | FM-153 | PR Auto-Creation & Tracking            | ✅ Complete — CRUD, webhook-driven state sync, outbound PR creation via GitHub API, local DB recording  |
-| FM-154 | CI Pipeline Status Integration         | ⚠️ Partial — inbound ingestion, outbound commit status posting, CI pass-rate calculation; no readiness gate |
+| FM-154 | CI Pipeline Status Integration         | ✅ Complete — inbound ingestion, outbound commit status posting, CI pass-rate calculation, CI readiness gate (threshold-based pass-rate check integrated into merge readiness + standalone route) |
 | FM-155 | Issue Sync                             | ⚠️ Partial — ingest-only; no bidirectional sync, no import/export                                      |
 | FM-156 | Branch Strategy & Merge Readiness      | ⚠️ Partial — merge readiness works; no auto-create branch                                              |
-| FM-157 | Code Review Routing                    | ⚠️ Partial — glob ownership matching, outbound PR comments, GitHub reviewer requests; no scoring      |
+| FM-157 | Code Review Routing                    | ✅ Complete — glob ownership matching, outbound PR comments, GitHub reviewer requests, reviewer suggestion/scoring ranked by coverage breadth + specificity |
 | FM-158 | Commit & Diff Intelligence             | ⚠️ Partial — basic diff parsing; no risk rules or HTTP routes                                          |
 | FM-159 | VS Code Extension Foundation           | ⏸️ DEFERRED (separate repo)                                                                            |
 | FM-160 | Hardening: Rate Limiter, Retry, Replay | ✅ Complete                                                                                            |
@@ -769,7 +769,7 @@ _Wave 10: 4/10 complete, 6 partial. Wave 11: 2/10 complete, 7 partial, 1 deferre
 | FM-173 | Comprehensive Audit Log                       | ✅ Complete — Immutable AuditLog model, 8-filter query, CSV export, stats endpoint                                                                                                         |
 | FM-174 | Policy Engine — Automated Rule Enforcement    | ✅ Complete — GovernancePolicyEvaluation with 5 trigger types, enforcement recording, evaluation history                                                                                   |
 | FM-175 | SSO Configuration Model                       | 🟡 Partial — SSOConfiguration model (SAML/OIDC provider config, per-workspace). CRUD routes. **No live SSO auth flows** — requires python3-saml/authlib.                                   |
-| FM-176 | Data Retention & Lifecycle Policies           | 🟡 Partial — RetentionPolicy model, CRUD, dry-run + execution mode for `run`, `audit_log`, and `artifact` entity types. No background scheduler.                                           |
+| FM-176 | Data Retention & Lifecycle Policies           | 🟡 Partial — RetentionPolicy model, CRUD, dry-run + execution mode for `run`, `audit_log`, `artifact`, and `notification` entity types (workspace-scoped via membership). No background scheduler.                                           |
 | FM-177 | Compliance Reporting & Export                 | ✅ Complete — 5 report types (access review, change mgmt, approval audit, policy compliance, full governance). JSON/CSV export. PDF deferred.                                              |
 | FM-178 | IP Allowlisting & Access Controls             | ✅ Complete — CIDR-based allowlist with IPv4/IPv6, `IPAllowlistMiddleware` wired in FastAPI app, workspace governance flag controls enforcement                                            |
 | FM-179 | Secrets Management — Resolution & Lifecycle   | 🟡 Partial — `resolve_secret()` with scope enforcement, `rotate_credential()` lifecycle tracking. CredentialVault is metadata-based (env_key resolution). AES-256-GCM encryption deferred. |

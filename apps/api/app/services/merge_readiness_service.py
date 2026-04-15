@@ -1,8 +1,9 @@
-"""Merge readiness evaluation — FM-156.
+"""Merge readiness evaluation — FM-156 / FM-154.
 
 Evaluates whether a pull request is ready to merge by checking:
 - All linked tasks are complete
-- CI pipeline is passing
+- CI pipeline is passing (latest run)
+- CI pass rate meets minimum threshold (historical runs)
 - Required approvals are resolved
 - No merge conflicts (via PR status)
 """
@@ -22,10 +23,13 @@ from app.models.github_integration import (
 from app.models.task import Task
 from app.models.approval_request import ApprovalRequest
 
+# Minimum CI pass rate (%) to consider a branch stable enough for merge.
+DEFAULT_CI_PASS_RATE_THRESHOLD = 70.0
+
 
 @dataclass
 class MergeBlocker:
-    category: str  # "ci", "tasks", "approvals", "pr_status"
+    category: str  # "ci", "ci_pass_rate", "tasks", "approvals", "pr_status"
     message: str
 
 
@@ -81,6 +85,21 @@ async def evaluate_merge_readiness(
         else:
             passed.append("ci_passing")
 
+        # 3b. CI pass-rate gate — historical pass rate must meet threshold
+        ci_readiness = await evaluate_ci_readiness(
+            db, pr_link.repository_link_id
+        )
+        if ci_readiness["status"] == "fail":
+            blockers.append(
+                MergeBlocker(
+                    "ci_pass_rate",
+                    f"CI pass rate {ci_readiness['pass_rate']}% below "
+                    f"threshold {ci_readiness['threshold']}%",
+                )
+            )
+        elif ci_readiness["status"] == "pass":
+            passed.append("ci_pass_rate_ok")
+
     # 4. Task check — if PR is linked to a run, all tasks in that run must be done
     if pr_link.run_id:
         incomplete_count = (
@@ -129,3 +148,61 @@ async def evaluate_merge_readiness(
         blockers=blockers,
         checks_passed=passed,
     )
+
+
+async def evaluate_ci_readiness(
+    db: AsyncSession,
+    repository_link_id: uuid.UUID,
+    *,
+    threshold: float = DEFAULT_CI_PASS_RATE_THRESHOLD,
+    window: int = 20,
+) -> dict:
+    """Evaluate CI readiness based on historical pipeline pass rate.
+
+    Queries the last `window` completed CI pipeline runs for the repository
+    and checks whether the success rate meets the required threshold.
+
+    Args:
+        repository_link_id: The repo to evaluate.
+        threshold: Minimum pass rate (0-100) to consider CI stable.
+        window: Number of recent runs to consider.
+
+    Returns:
+        Dict with status ("pass", "fail", "no_data"), pass_rate, threshold,
+        total_runs, and success_count.
+    """
+    # Query recent completed CI runs for this repo
+    runs_q = (
+        select(CIPipelineRun)
+        .where(
+            CIPipelineRun.repository_link_id == repository_link_id,
+            CIPipelineRun.status.in_([
+                CIPipelineStatus.SUCCESS,
+                CIPipelineStatus.FAILURE,
+            ]),
+        )
+        .order_by(CIPipelineRun.created_at.desc())
+        .limit(window)
+    )
+    result = await db.execute(runs_q)
+    runs = list(result.scalars().all())
+
+    if not runs:
+        return {
+            "status": "no_data",
+            "pass_rate": 0.0,
+            "threshold": threshold,
+            "total_runs": 0,
+            "success_count": 0,
+        }
+
+    success_count = sum(1 for r in runs if r.status == CIPipelineStatus.SUCCESS)
+    pass_rate = round(success_count / len(runs) * 100, 1)
+
+    return {
+        "status": "pass" if pass_rate >= threshold else "fail",
+        "pass_rate": pass_rate,
+        "threshold": threshold,
+        "total_runs": len(runs),
+        "success_count": success_count,
+    }
