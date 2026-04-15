@@ -292,3 +292,15 @@ async def project_overview(
 ):
     """Get composite project dashboard: health, runs, tasks, team, approvals."""
     return await project_overview_service.get_project_overview(db, project_id)
+
+
+@router.get("/dashboard")
+async def cross_project_dashboard(
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Aggregate dashboard across all user's projects (FM-148).
+
+    Returns per-project summaries with health grades plus global totals.
+    """
+    return await project_overview_service.get_cross_project_dashboard(db, user_id)

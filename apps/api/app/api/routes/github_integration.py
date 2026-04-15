@@ -139,6 +139,12 @@ async def receive_webhook(
         await webhook_service.process_workflow_run_event(db, event)
     elif event_type == "issues" and event.repository_link_id:
         await webhook_service.process_issues_event(db, event)
+    elif event_type == "push" and event.repository_link_id:
+        await webhook_service.process_push_event(db, event)
+    elif event_type == "release" and event.repository_link_id:
+        await webhook_service.process_release_event(db, event)
+    elif event_type == "check_run" and event.repository_link_id:
+        await webhook_service.process_check_run_event(db, event)
 
     return {"status": "accepted", "event_id": str(event.id)}
 
@@ -204,6 +210,31 @@ async def list_project_issues(
     _user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     return await issue_sync_service.list_issues_for_project(db, project_id)
+
+
+class _ExportIssueBody(_BaseModel):
+    title: str
+    body: str | None = None
+    labels: list[str] | None = None
+
+
+@router.post("/issues/{project_id}/export", response_model=IssueLinkRead, status_code=201)
+async def export_issue(
+    project_id: uuid.UUID,
+    body: _ExportIssueBody,
+    db: AsyncSession = Depends(get_db),
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Export (create) an issue from ForgeMind to GitHub (FM-155)."""
+    issue = await issue_sync_service.export_issue_to_github(
+        db,
+        project_id=project_id,
+        title=body.title,
+        body=body.body,
+        labels=body.labels,
+    )
+    await db.commit()
+    return issue
 
 
 # ---------------------------------------------------------------------------
@@ -647,3 +678,97 @@ async def get_ci_readiness(
     return await merge_readiness_service.evaluate_ci_readiness(
         db, repo_link_id, threshold=threshold, window=window,
     )
+
+
+# ---------------------------------------------------------------------------
+# FM-158: Diff Intelligence — risk rules & analysis routes
+# ---------------------------------------------------------------------------
+
+
+class _DiffAnalysisBody(_BaseModel):
+    diff_text: str
+
+
+@router.post("/diffs/analyze")
+async def analyze_diff(
+    body: _DiffAnalysisBody,
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Analyze a unified diff — file stats, impact score, and churn metrics."""
+    from app.services import diff_intelligence_service
+
+    return diff_intelligence_service.analyze_diff_stats(body.diff_text)
+
+
+@router.post("/diffs/risk")
+async def evaluate_diff_risk(
+    body: _DiffAnalysisBody,
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Evaluate risk rules against a diff (FM-158).
+
+    Returns triggered rules, risk score, and risk level.
+    """
+    from app.services import diff_intelligence_service
+
+    return diff_intelligence_service.evaluate_risk_rules(body.diff_text)
+
+
+@router.get("/diffs/rules")
+async def list_risk_rules(
+    _user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """List available diff risk rules."""
+    from app.services import diff_intelligence_service
+
+    return diff_intelligence_service.get_risk_rules()
+
+
+# ---------------------------------------------------------------------------
+# FM-156: Auto-create branch from task
+# ---------------------------------------------------------------------------
+
+
+class _AutoBranchBody(_BaseModel):
+    task_id: str
+    task_title: str
+    repo_link_id: str
+    base_branch: str = "main"
+
+
+@router.post("/branches/auto-create")
+async def auto_create_branch(
+    body: _AutoBranchBody,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Auto-create a GitHub branch named after a task (FM-156).
+
+    Generates a slug from the task title, creates the branch on GitHub,
+    and returns the branch info.
+    """
+    from app.services.github_client import create_branch, slugify_branch_name
+    from app.models.github_integration import RepositoryLink
+    from app.core.config import settings
+    import uuid as _uuid
+
+    repo_link = await db.get(RepositoryLink, _uuid.UUID(body.repo_link_id))
+    if repo_link is None:
+        raise HTTPException(status_code=404, detail="Repository link not found")
+
+    token = settings.github_api_token or ""
+    if not token:
+        raise HTTPException(
+            status_code=503,
+            detail="GitHub credentials not configured — set GITHUB_API_TOKEN",
+        )
+
+    branch_name = slugify_branch_name(body.task_title, body.task_id)
+    owner, repo_name = repo_link.full_name.split("/", 1)
+    result = await create_branch(
+        owner, repo_name,
+        branch_name=branch_name,
+        base_branch=body.base_branch,
+        token=token,
+    )
+    return result

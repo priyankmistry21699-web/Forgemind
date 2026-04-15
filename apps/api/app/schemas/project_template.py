@@ -47,6 +47,8 @@ class ProjectTemplateRead(BaseModel):
     plan_defaults: dict[str, Any] | None
     is_builtin: bool
     is_active: bool
+    version: int = 1
+    parent_template_id: uuid.UUID | None = None
     created_at: datetime
     updated_at: datetime
 

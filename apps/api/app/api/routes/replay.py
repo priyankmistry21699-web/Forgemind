@@ -198,3 +198,25 @@ async def compare_snapshots(
             detail=result["error"],
         )
     return result
+
+
+@router.post("/runs/{run_id}/replay")
+async def replay_run(
+    run_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Replay an entire run — re-execute all snapshots and compare outputs (FM-166).
+
+    Creates replay snapshots for each original step, detects divergent outcomes.
+    """
+    pid = await resolve_project_for_run(db, run_id)
+    await check_project_permission(db, pid, user_id, Action.PROJECT_RUN)
+    result = await replay_service.replay_run(db, run_id)
+    if "error" in result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=result["error"],
+        )
+    await db.commit()
+    return result

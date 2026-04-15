@@ -240,3 +240,76 @@ async def delete_knowledge(
     await db.delete(entry)
     await db.flush()
     return True
+
+
+async def suggest_knowledge_for_task(
+    db: AsyncSession,
+    *,
+    project_id: uuid.UUID,
+    task_type: str | None = None,
+    task_title: str | None = None,
+    limit: int = 5,
+) -> list[ProjectKnowledge]:
+    """Auto-suggest relevant knowledge entries for a task (FM-163).
+
+    Matches by:
+    1. Knowledge tags containing the task_type
+    2. Title keyword overlap with task_title
+    3. Same-project knowledge sorted by relevance_score
+
+    Returns entries scored and deduplicated.
+    """
+    seen_ids: set[uuid.UUID] = set()
+    suggestions: list[tuple[float, ProjectKnowledge]] = []
+
+    # Strategy 1: Tag-based matching
+    if task_type:
+        all_knowledge = await db.execute(
+            select(ProjectKnowledge)
+            .where(ProjectKnowledge.project_id == project_id)
+            .order_by(ProjectKnowledge.relevance_score.desc())
+            .limit(100)
+        )
+        for entry in all_knowledge.scalars().all():
+            if entry.id in seen_ids:
+                continue
+            score = entry.relevance_score or 0.0
+            # Boost if tag matches task_type
+            if entry.tags and task_type in entry.tags:
+                score += 20.0
+            # Boost if title contains task_type
+            if task_type.lower() in (entry.title or "").lower():
+                score += 10.0
+            # Boost if title overlaps with task_title words
+            if task_title:
+                title_words = set(task_title.lower().split())
+                entry_words = set((entry.title or "").lower().split())
+                overlap = len(title_words & entry_words)
+                score += overlap * 5.0
+            if score > 0:
+                seen_ids.add(entry.id)
+                suggestions.append((score, entry))
+
+    # Strategy 2: If no tag match, fall back to title overlap
+    if not suggestions and task_title:
+        title_terms = task_title.lower().split()
+        for term in title_terms[:3]:
+            term_like = f"%{term}%"
+            result = await db.execute(
+                select(ProjectKnowledge)
+                .where(
+                    ProjectKnowledge.project_id == project_id,
+                    sa_func.lower(ProjectKnowledge.title).like(term_like),
+                )
+                .limit(20)
+            )
+            for entry in result.scalars().all():
+                if entry.id not in seen_ids:
+                    seen_ids.add(entry.id)
+                    suggestions.append(
+                        (entry.relevance_score or 0.0 + 5.0, entry)
+                    )
+
+    # Sort by score descending, return top N
+    suggestions.sort(key=lambda x: x[0], reverse=True)
+    return [entry for _, entry in suggestions[:limit]]

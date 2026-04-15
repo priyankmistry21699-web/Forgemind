@@ -103,6 +103,11 @@ class Artifact(Base):
         nullable=False,
     )
 
+    # FM-176: Retention archive marker
+    archived_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
+
     # Relationships
     project: Mapped["Project"] = relationship(back_populates="artifacts")  # noqa: F821
     run: Mapped["Run | None"] = relationship(back_populates="artifacts")  # noqa: F821

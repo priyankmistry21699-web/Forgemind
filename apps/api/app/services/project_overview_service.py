@@ -88,3 +88,62 @@ async def get_project_overview(
         "team_members": members,
         "team_size": len(members),
     }
+
+
+async def get_cross_project_dashboard(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+) -> dict:
+    """Aggregate dashboard across all projects the user belongs to (FM-148).
+
+    Summarises per-project health, tasks and approvals, then adds totals.
+    """
+    # Get all project IDs this user is a member of
+    member_result = await db.execute(
+        select(ProjectMember.project_id).where(
+            ProjectMember.user_id == user_id,
+        )
+    )
+    project_ids = [r for (r,) in member_result.all()]
+
+    if not project_ids:
+        return {"projects": [], "totals": {
+            "total_runs": 0, "successful_runs": 0, "open_tasks": 0,
+            "pending_approvals": 0, "project_count": 0,
+        }}
+
+    summaries = []
+    agg_runs = agg_success = agg_tasks = agg_approvals = 0
+
+    for pid in project_ids:
+        overview = await get_project_overview(db, pid)
+
+        # Get project name
+        from app.models.project import Project
+        p_result = await db.execute(select(Project.name).where(Project.id == pid))
+        name = p_result.scalar_one_or_none() or "Unknown"
+
+        entry = {
+            "project_id": str(pid),
+            "name": name,
+            **overview,
+        }
+        summaries.append(entry)
+        agg_runs += overview["total_runs"]
+        agg_success += overview["successful_runs"]
+        agg_tasks += overview["open_tasks"]
+        agg_approvals += overview["pending_approvals"]
+
+    overall_rate = (agg_success / agg_runs * 100) if agg_runs > 0 else 100
+
+    return {
+        "projects": summaries,
+        "totals": {
+            "total_runs": agg_runs,
+            "successful_runs": agg_success,
+            "overall_success_rate": round(overall_rate, 1),
+            "open_tasks": agg_tasks,
+            "pending_approvals": agg_approvals,
+            "project_count": len(project_ids),
+        },
+    }

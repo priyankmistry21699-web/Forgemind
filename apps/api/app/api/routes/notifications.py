@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user_id
@@ -155,3 +156,64 @@ async def list_delivery_configs(
         items=[DeliveryConfigRead.model_validate(c) for c in items],
         total=total,
     )
+
+
+# ── FM-142: Notification Preferences ────────────────────────────
+
+
+class _PreferenceBody(BaseModel):
+    notification_type: str
+    enabled: bool = True
+    muted_until: str | None = None
+    channel_overrides: dict | None = None
+
+
+@router.get("/notifications/preferences")
+async def get_preferences(
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+) -> dict:
+    """Get all notification preferences for the current user (FM-142)."""
+    prefs = await notification_service.get_preferences(db, user_id)
+    return {
+        "items": [
+            {
+                "id": str(p.id),
+                "notification_type": p.notification_type.value
+                if hasattr(p.notification_type, "value")
+                else p.notification_type,
+                "enabled": p.enabled,
+                "muted_until": p.muted_until.isoformat() if p.muted_until else None,
+                "channel_overrides": p.channel_overrides,
+            }
+            for p in prefs
+        ],
+        "total": len(prefs),
+    }
+
+
+@router.put("/notifications/preferences")
+async def upsert_preference(
+    data: _PreferenceBody,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+) -> dict:
+    """Create or update a notification preference for a specific type (FM-142)."""
+    pref = await notification_service.upsert_preference(
+        db,
+        user_id=user_id,
+        notification_type=data.notification_type,
+        enabled=data.enabled,
+        muted_until=data.muted_until,
+        channel_overrides=data.channel_overrides,
+    )
+    await db.commit()
+    return {
+        "id": str(pref.id),
+        "notification_type": pref.notification_type.value
+        if hasattr(pref.notification_type, "value")
+        else pref.notification_type,
+        "enabled": pref.enabled,
+        "muted_until": pref.muted_until.isoformat() if pref.muted_until else None,
+        "channel_overrides": pref.channel_overrides,
+    }

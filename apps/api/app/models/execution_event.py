@@ -28,6 +28,14 @@ class EventType(str, enum.Enum):
     SPEC_CREATED = "spec_created"
     PLAN_CREATED = "plan_created"
     LIFECYCLE_TRANSITION = "lifecycle_transition"
+    # FM-147: Task assignment events
+    TASK_ASSIGNED = "task_assigned"
+    TASK_UNASSIGNED = "task_unassigned"
+    TASK_REASSIGNED = "task_reassigned"
+    # FM-152: Additional webhook event types
+    PUSH_RECEIVED = "push_received"
+    RELEASE_RECEIVED = "release_received"
+    CHECK_RUN_RECEIVED = "check_run_received"
 
 
 class ExecutionEvent(Base):

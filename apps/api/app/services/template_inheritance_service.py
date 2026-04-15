@@ -161,3 +161,105 @@ async def _seed_phase_profiles(
         seeded.append(phase_str)
 
     return seeded
+
+
+# ---------------------------------------------------------------------------
+# FM-164: Deep Clone & Template Versioning
+# ---------------------------------------------------------------------------
+
+
+async def clone_template(
+    db: AsyncSession,
+    template_id: uuid.UUID,
+    *,
+    new_slug: str,
+    new_name: str | None = None,
+) -> ProjectTemplate:
+    """Deep-clone a template: creates a new template with all nested configs copied (FM-164).
+
+    The clone gets a new slug and an incremented version, with parent_template_id
+    pointing back to the original.
+    """
+    result = await db.execute(
+        select(ProjectTemplate).where(ProjectTemplate.id == template_id)
+    )
+    source = result.scalar_one_or_none()
+    if source is None:
+        raise ValueError(f"Template {template_id} not found")
+
+    import copy as _copy
+
+    clone = ProjectTemplate(
+        slug=new_slug,
+        name=new_name or f"{source.name} (clone)",
+        description=source.description,
+        category=source.category,
+        constitution_template=_copy.deepcopy(source.constitution_template),
+        default_governance_config=_copy.deepcopy(source.default_governance_config),
+        default_phase_profiles=_copy.deepcopy(source.default_phase_profiles),
+        suggested_task_types=_copy.deepcopy(source.suggested_task_types),
+        spec_defaults=_copy.deepcopy(source.spec_defaults),
+        plan_defaults=_copy.deepcopy(source.plan_defaults),
+        is_builtin=False,
+        is_active=True,
+        version=source.version + 1,
+        parent_template_id=source.id,
+    )
+    db.add(clone)
+    await db.flush()
+    await db.refresh(clone)
+    logger.info("Cloned template %s → %s (v%d)", source.slug, clone.slug, clone.version)
+    return clone
+
+
+async def create_template_version(
+    db: AsyncSession,
+    template_id: uuid.UUID,
+    *,
+    updates: dict[str, Any],
+) -> ProjectTemplate:
+    """Create a new version of an existing template (FM-164).
+
+    The original template is kept as-is. A new entry is created with
+    incremented version number and the provided field overrides applied.
+    """
+    result = await db.execute(
+        select(ProjectTemplate).where(ProjectTemplate.id == template_id)
+    )
+    source = result.scalar_one_or_none()
+    if source is None:
+        raise ValueError(f"Template {template_id} not found")
+
+    import copy as _copy
+
+    versioned_slug = f"{source.slug}-v{source.version + 1}"
+
+    new_tpl = ProjectTemplate(
+        slug=versioned_slug,
+        name=updates.get("name", source.name),
+        description=updates.get("description", source.description),
+        category=updates.get("category", source.category),
+        constitution_template=updates.get(
+            "constitution_template", _copy.deepcopy(source.constitution_template)
+        ),
+        default_governance_config=updates.get(
+            "default_governance_config", _copy.deepcopy(source.default_governance_config)
+        ),
+        default_phase_profiles=updates.get(
+            "default_phase_profiles", _copy.deepcopy(source.default_phase_profiles)
+        ),
+        suggested_task_types=updates.get(
+            "suggested_task_types", _copy.deepcopy(source.suggested_task_types)
+        ),
+        spec_defaults=updates.get("spec_defaults", _copy.deepcopy(source.spec_defaults)),
+        plan_defaults=updates.get("plan_defaults", _copy.deepcopy(source.plan_defaults)),
+        is_builtin=False,
+        is_active=True,
+        version=source.version + 1,
+        parent_template_id=source.id,
+    )
+    db.add(new_tpl)
+    await db.flush()
+    await db.refresh(new_tpl)
+    logger.info("Versioned template %s → %s (v%d)", source.slug, new_tpl.slug, new_tpl.version)
+    return new_tpl

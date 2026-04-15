@@ -551,3 +551,39 @@ async def check_search_integrity(
     """
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     return await search_service.check_index_integrity(db, project_id)
+
+
+# ── FM-165: Project Directory & Related Suggestions ───────────────
+
+
+@router.get("/project-directory")
+async def project_directory(
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+) -> dict:
+    """Browse all accessible projects with health summaries (FM-165).
+
+    Returns a paginated directory of projects the current user can access,
+    each annotated with run stats and a health grade.
+    """
+    items, total = await search_service.get_project_directory(
+        db, user_id, limit=limit, offset=offset,
+    )
+    return {"items": items, "total": total}
+
+
+@router.get("/projects/{project_id}/related")
+async def related_projects(
+    project_id: uuid.UUID,
+    limit: int = Query(5, ge=1, le=20),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+) -> dict:
+    """Suggest related projects based on shared knowledge and content (FM-165)."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    items = await search_service.get_related_projects(
+        db, project_id, user_id, limit=limit,
+    )
+    return {"project_id": str(project_id), "related": items, "total": len(items)}

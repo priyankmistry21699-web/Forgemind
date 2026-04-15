@@ -12,6 +12,7 @@ Architecture:
 """
 
 import logging
+import re as _re
 from dataclasses import dataclass
 
 import httpx
@@ -335,3 +336,54 @@ async def get_ci_pass_rate(
         "success_count": success_count,
         "pass_rate": round(success_count / len(runs) * 100, 1),
     }
+
+
+# ── FM-156: Branch Management ───────────────────────────────────
+
+
+async def create_branch(
+    owner: str,
+    repo: str,
+    *,
+    branch_name: str,
+    base_branch: str = "main",
+    token: str,
+) -> dict:
+    """Create a branch on a GitHub repository (FM-156).
+
+    1. Resolves the SHA of the base branch head.
+    2. Creates a new git ref for the branch.
+    """
+    # Get SHA of the base branch
+    ref_data = await _github_request(
+        "GET",
+        f"/repos/{owner}/{repo}/git/ref/heads/{base_branch}",
+        token=token,
+    )
+    sha = ref_data["object"]["sha"]
+
+    # Create the new branch
+    result = await _github_request(
+        "POST",
+        f"/repos/{owner}/{repo}/git/refs",
+        token=token,
+        json_body={
+            "ref": f"refs/heads/{branch_name}",
+            "sha": sha,
+        },
+    )
+    return {
+        "branch_name": branch_name,
+        "base_branch": base_branch,
+        "sha": sha,
+        "ref": result.get("ref", f"refs/heads/{branch_name}"),
+    }
+
+
+def slugify_branch_name(task_title: str, task_id: str) -> str:
+    """Generate a clean branch name from a task title (FM-156)."""
+    slug = task_title.lower().strip()
+    slug = _re.sub(r"[^a-z0-9]+", "-", slug)
+    slug = slug.strip("-")[:50]
+    short_id = task_id[:8]
+    return f"task/{slug}-{short_id}"

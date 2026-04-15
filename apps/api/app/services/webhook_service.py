@@ -211,3 +211,88 @@ async def process_issues_event(
     if issue_link.id is None:
         await db.refresh(issue_link)
     return issue_link
+
+
+async def process_push_event(
+    db: AsyncSession,
+    event: ExternalEvent,
+) -> dict:
+    """Process a push webhook event — record branch/commit info (FM-152)."""
+    payload = event.payload
+    ref = payload.get("ref", "")
+    branch = ref.replace("refs/heads/", "") if ref.startswith("refs/heads/") else ref
+    commits = payload.get("commits", [])
+    pusher = payload.get("pusher", {}).get("name", "unknown")
+
+    event.processed = True
+    await db.flush()
+
+    return {
+        "event_id": str(event.id),
+        "branch": branch,
+        "pusher": pusher,
+        "commits_count": len(commits),
+        "head_commit": payload.get("head_commit", {}).get("id", ""),
+    }
+
+
+async def process_release_event(
+    db: AsyncSession,
+    event: ExternalEvent,
+) -> dict:
+    """Process a release webhook event (FM-152)."""
+    payload = event.payload
+    release = payload.get("release", {})
+    action = payload.get("action", "")
+
+    event.processed = True
+    await db.flush()
+
+    return {
+        "event_id": str(event.id),
+        "action": action,
+        "tag_name": release.get("tag_name", ""),
+        "name": release.get("name", ""),
+        "prerelease": release.get("prerelease", False),
+        "draft": release.get("draft", False),
+        "author": release.get("author", {}).get("login", ""),
+    }
+
+
+async def process_check_run_event(
+    db: AsyncSession,
+    event: ExternalEvent,
+) -> CIPipelineRun | None:
+    """Process a check_run webhook event into a CIPipelineRun (FM-152)."""
+    cr = event.payload.get("check_run", {})
+    if not cr:
+        return None
+
+    conclusion = cr.get("conclusion")
+    status_val = cr.get("status", "queued")
+
+    if conclusion == "success":
+        ci_status = CIPipelineStatus.SUCCESS
+    elif conclusion == "failure":
+        ci_status = CIPipelineStatus.FAILURE
+    elif conclusion in ("cancelled", "skipped", "stale"):
+        ci_status = CIPipelineStatus.CANCELLED
+    elif status_val == "in_progress":
+        ci_status = CIPipelineStatus.IN_PROGRESS
+    else:
+        ci_status = CIPipelineStatus.QUEUED
+
+    pipeline = CIPipelineRun(
+        repository_link_id=event.repository_link_id,
+        external_run_id=cr.get("id", 0),
+        workflow_name=cr.get("name", "check_run"),
+        head_sha=cr.get("head_sha", ""),
+        branch=cr.get("check_suite", {}).get("head_branch", ""),
+        status=ci_status,
+        conclusion=conclusion,
+    )
+    db.add(pipeline)
+    event.processed = True
+    await db.flush()
+    await db.refresh(pipeline)
+    return pipeline

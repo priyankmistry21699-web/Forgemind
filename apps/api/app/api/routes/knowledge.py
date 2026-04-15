@@ -169,3 +169,30 @@ async def get_knowledge_context(
         context_text=ctx["context_text"],
         entries=[ProjectKnowledgeRead.model_validate(e) for e in ctx["entries"]],
     )
+
+
+@router.get(
+    "/projects/{project_id}/knowledge/suggest",
+    response_model=list[ProjectKnowledgeRead],
+)
+async def suggest_knowledge(
+    project_id: uuid.UUID,
+    task_type: str | None = Query(None),
+    task_title: str | None = Query(None),
+    limit: int = Query(5, ge=1, le=20),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+) -> list[ProjectKnowledgeRead]:
+    """Auto-suggest relevant knowledge entries for a task context (FM-163).
+
+    Matches by tag overlap with task_type, title keyword overlap, and relevance score.
+    """
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    entries = await knowledge_service.suggest_knowledge_for_task(
+        db,
+        project_id=project_id,
+        task_type=task_type,
+        task_title=task_title,
+        limit=limit,
+    )
+    return [ProjectKnowledgeRead.model_validate(e) for e in entries]

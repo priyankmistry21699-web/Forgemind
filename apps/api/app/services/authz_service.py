@@ -243,3 +243,104 @@ async def get_user_permissions(
         "project_role": proj_role.value if proj_role else None,
         "project_actions": proj_actions,
     }
+
+
+# ── FM-172: Custom Role Management ──────────────────────────────
+
+
+async def create_custom_role(
+    db: AsyncSession,
+    *,
+    workspace_id: uuid.UUID,
+    name: str,
+    scope: str = "project",
+    description: str | None = None,
+    permissions: list[str],
+    created_by: uuid.UUID,
+):
+    """Create a custom role for a workspace (FM-172)."""
+    from app.models.enterprise_governance import CustomRole
+
+    # Validate permission strings
+    valid_actions = {a.value for a in Action}
+    invalid = set(permissions) - valid_actions
+    if invalid:
+        raise ValueError(f"Invalid permissions: {', '.join(sorted(invalid))}")
+
+    role = CustomRole(
+        workspace_id=workspace_id,
+        name=name,
+        scope=scope,
+        description=description,
+        permissions=permissions,
+        created_by=created_by,
+    )
+    db.add(role)
+    await db.flush()
+    await db.refresh(role)
+    return role
+
+
+async def list_custom_roles(
+    db: AsyncSession,
+    workspace_id: uuid.UUID,
+):
+    """List all custom roles for a workspace."""
+    from app.models.enterprise_governance import CustomRole
+
+    result = await db.execute(
+        select(CustomRole)
+        .where(CustomRole.workspace_id == workspace_id, CustomRole.is_active == True)  # noqa: E712
+        .order_by(CustomRole.name)
+    )
+    return list(result.scalars().all())
+
+
+async def get_custom_role(
+    db: AsyncSession,
+    role_id: uuid.UUID,
+):
+    """Get a single custom role by ID."""
+    from app.models.enterprise_governance import CustomRole
+
+    result = await db.execute(
+        select(CustomRole).where(CustomRole.id == role_id)
+    )
+    return result.scalar_one_or_none()
+
+
+async def update_custom_role(
+    db: AsyncSession,
+    role_id: uuid.UUID,
+    *,
+    name: str | None = None,
+    description: str | None = None,
+    permissions: list[str] | None = None,
+    is_active: bool | None = None,
+):
+    """Update a custom role."""
+    from app.models.enterprise_governance import CustomRole
+
+    result = await db.execute(
+        select(CustomRole).where(CustomRole.id == role_id)
+    )
+    role = result.scalar_one_or_none()
+    if role is None:
+        raise ValueError(f"Custom role {role_id} not found")
+
+    if name is not None:
+        role.name = name
+    if description is not None:
+        role.description = description
+    if permissions is not None:
+        valid_actions = {a.value for a in Action}
+        invalid = set(permissions) - valid_actions
+        if invalid:
+            raise ValueError(f"Invalid permissions: {', '.join(sorted(invalid))}")
+        role.permissions = permissions
+    if is_active is not None:
+        role.is_active = is_active
+
+    await db.flush()
+    await db.refresh(role)
+    return role

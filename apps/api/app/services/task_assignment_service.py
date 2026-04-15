@@ -21,10 +21,37 @@ async def assign_task(
     task = await db.get(Task, task_id)
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
+    previous_assignee = task.assignee_id
     task.assignee_id = assignee_id
     task.assigned_at = datetime.now(timezone.utc)
     await db.flush()
     await db.refresh(task)
+
+    # FM-147: Emit assignment execution event
+    from app.services.event_service import emit_event
+    from app.models.execution_event import EventType
+
+    evt = EventType.TASK_REASSIGNED if previous_assignee else EventType.TASK_ASSIGNED
+    run_id = task.run_id
+    project_id = None
+    if run_id:
+        from app.models.run import Run
+        run = await db.get(Run, run_id)
+        if run:
+            project_id = run.project_id
+
+    await emit_event(
+        db,
+        event_type=evt,
+        summary=f"Task '{task.title}' assigned to {assignee_id}",
+        project_id=project_id,
+        run_id=run_id,
+        task_id=task_id,
+        metadata={
+            "assignee_id": str(assignee_id),
+            "previous_assignee_id": str(previous_assignee) if previous_assignee else None,
+        },
+    )
     return task
 
 
@@ -35,10 +62,35 @@ async def unassign_task(
     task = await db.get(Task, task_id)
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
+    previous_assignee = task.assignee_id
     task.assignee_id = None
     task.assigned_at = None
     await db.flush()
     await db.refresh(task)
+
+    # FM-147: Emit unassignment execution event
+    from app.services.event_service import emit_event
+    from app.models.execution_event import EventType
+
+    run_id = task.run_id
+    project_id = None
+    if run_id:
+        from app.models.run import Run
+        run = await db.get(Run, run_id)
+        if run:
+            project_id = run.project_id
+
+    await emit_event(
+        db,
+        event_type=EventType.TASK_UNASSIGNED,
+        summary=f"Task '{task.title}' unassigned",
+        project_id=project_id,
+        run_id=run_id,
+        task_id=task_id,
+        metadata={
+            "previous_assignee_id": str(previous_assignee) if previous_assignee else None,
+        },
+    )
     return task
 
 

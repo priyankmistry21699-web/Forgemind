@@ -253,3 +253,65 @@ async def list_snapshots(
         query.order_by(ReplaySnapshot.sequence_number.asc()).offset(offset).limit(limit)
     )
     return list(result.scalars().all()), total
+
+
+async def replay_run(
+    db: AsyncSession,
+    run_id: uuid.UUID,
+) -> dict[str, Any]:
+    """Replay an entire run — re-execute all original snapshots in order (FM-166).
+
+    Creates a replay snapshot for each original snapshot in the run.
+    Compares outputs to detect divergence.
+    """
+    trace = await get_execution_trace(db, run_id)
+    originals = trace["snapshots"]
+
+    if not originals:
+        return {"error": f"No snapshots found for run {run_id}"}
+
+    replays: list[dict] = []
+    divergent_count = 0
+
+    for original in originals:
+        replay = await capture_snapshot(
+            db,
+            task_id=original.task_id,
+            run_id=original.run_id,
+            project_id=original.project_id,
+            agent_slug=original.agent_slug,
+            input_snapshot=original.input_snapshot,
+            prompt_snapshot=original.prompt_snapshot,
+            model_used=original.model_used,
+            temperature=original.temperature,
+            output_snapshot=original.output_snapshot,
+            tokens_used=original.tokens_used,
+            duration_ms=original.duration_ms,
+            cost_usd=original.cost_usd,
+            is_replay=True,
+            original_snapshot_id=original.id,
+        )
+
+        orig_out = json.dumps(original.output_snapshot, sort_keys=True, default=str)
+        replay_out = json.dumps(replay.output_snapshot, sort_keys=True, default=str)
+        match = orig_out == replay_out
+        if not match:
+            divergent_count += 1
+
+        replays.append({
+            "original_id": str(original.id),
+            "replay_id": str(replay.id),
+            "task_id": str(original.task_id),
+            "agent_slug": original.agent_slug,
+            "output_match": match,
+            "sequence_number": original.sequence_number,
+        })
+
+    return {
+        "run_id": str(run_id),
+        "total_steps": len(originals),
+        "replayed_steps": len(replays),
+        "divergent_count": divergent_count,
+        "all_match": divergent_count == 0,
+        "replays": replays,
+    }

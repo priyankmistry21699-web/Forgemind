@@ -669,3 +669,181 @@ async def check_index_integrity(
         "entity_counts": entity_counts,
         "passed": len(orphaned) == 0 and len(missing) == 0,
     }
+
+
+# ── FM-165: Project Directory & Related Suggestions ──────────────
+
+
+async def get_project_directory(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    *,
+    limit: int = 50,
+    offset: int = 0,
+) -> tuple[list[dict], int]:
+    """Browse all projects the user has access to, with health summaries (FM-165).
+
+    Returns a list of project directory entries with overview metrics.
+    """
+    from app.models.run import Run as RunModel
+
+    # Get project IDs the user is a member of
+    member_pids_q = select(ProjectMember.project_id).where(
+        ProjectMember.user_id == user_id
+    )
+    member_pids_result = await db.execute(member_pids_q)
+    member_pids = [r for (r,) in member_pids_result.all()]
+    total = len(member_pids)
+
+    if not member_pids:
+        return [], 0
+
+    # Load projects
+    page_pids = member_pids[offset : offset + limit]
+    projects_result = await db.execute(
+        select(Project).where(Project.id.in_(page_pids)).order_by(Project.name)
+    )
+    projects = list(projects_result.scalars().all())
+
+    entries = []
+    for proj in projects:
+        # Run stats
+        runs_r = await db.execute(
+            select(sa_func.count()).where(RunModel.project_id == proj.id)
+        )
+        total_runs = runs_r.scalar_one()
+
+        success_r = await db.execute(
+            select(sa_func.count()).where(
+                RunModel.project_id == proj.id, RunModel.status == "completed"
+            )
+        )
+        successful = success_r.scalar_one()
+
+        # Health grade
+        rate = (successful / total_runs * 100) if total_runs > 0 else 100
+        if rate >= 90:
+            grade = "A"
+        elif rate >= 75:
+            grade = "B"
+        elif rate >= 60:
+            grade = "C"
+        elif rate >= 45:
+            grade = "D"
+        else:
+            grade = "F"
+
+        entries.append({
+            "project_id": str(proj.id),
+            "name": proj.name,
+            "description": (proj.description or "")[:200],
+            "status": proj.status.value if hasattr(proj.status, "value") else str(proj.status),
+            "health_grade": grade,
+            "total_runs": total_runs,
+            "success_rate": round(rate, 1),
+            "owner_id": str(proj.owner_id) if proj.owner_id else None,
+        })
+
+    return entries, total
+
+
+async def get_related_projects(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+    user_id: uuid.UUID,
+    *,
+    limit: int = 5,
+) -> list[dict]:
+    """Suggest projects related to a given project (FM-165).
+
+    Similarity is computed from:
+    1. Shared knowledge tags / task types
+    2. Common search index keywords
+    """
+    # Get knowledge tags for target project
+    from app.models.project_knowledge import ProjectKnowledge as PK
+
+    pk_result = await db.execute(
+        select(PK).where(PK.project_id == project_id).limit(50)
+    )
+    knowledge_entries = list(pk_result.scalars().all())
+    tags: set[str] = set()
+    for k in knowledge_entries:
+        if k.tags:
+            tags.update(k.tags)
+
+    # Get search index terms for target project
+    idx_result = await db.execute(
+        select(SearchIndex).where(
+            SearchIndex.project_id == project_id,
+            SearchIndex.entity_type == SearchEntityType.PROJECT,
+        )
+    )
+    proj_idx = idx_result.scalar_one_or_none()
+    proj_terms: set[str] = set()
+    if proj_idx:
+        text = f"{proj_idx.title} {proj_idx.body}".lower()
+        proj_terms = {
+            w for w in text.split()
+            if len(w) > 3 and w.isalpha()
+        }
+
+    # Get other projects user has access to
+    member_pids_result = await db.execute(
+        select(ProjectMember.project_id).where(
+            ProjectMember.user_id == user_id,
+            ProjectMember.project_id != project_id,
+        )
+    )
+    other_pids = [r for (r,) in member_pids_result.all()]
+    if not other_pids:
+        return []
+
+    scored: list[tuple[float, dict]] = []
+    for pid in other_pids:
+        score = 0.0
+
+        # Tag overlap
+        if tags:
+            other_pk = await db.execute(
+                select(PK).where(PK.project_id == pid).limit(50)
+            )
+            other_tags: set[str] = set()
+            for k in other_pk.scalars().all():
+                if k.tags:
+                    other_tags.update(k.tags)
+            tag_overlap = len(tags & other_tags)
+            score += tag_overlap * 10.0
+
+        # Search index term overlap
+        if proj_terms:
+            other_idx = await db.execute(
+                select(SearchIndex).where(
+                    SearchIndex.project_id == pid,
+                    SearchIndex.entity_type == SearchEntityType.PROJECT,
+                )
+            )
+            other_proj_idx = other_idx.scalar_one_or_none()
+            if other_proj_idx:
+                other_text = f"{other_proj_idx.title} {other_proj_idx.body}".lower()
+                other_terms = {
+                    w for w in other_text.split()
+                    if len(w) > 3 and w.isalpha()
+                }
+                term_overlap = len(proj_terms & other_terms)
+                score += term_overlap * 2.0
+
+        if score > 0:
+            # Load project info
+            p_result = await db.execute(select(Project).where(Project.id == pid))
+            p = p_result.scalar_one_or_none()
+            if p:
+                scored.append((score, {
+                    "project_id": str(p.id),
+                    "name": p.name,
+                    "description": (p.description or "")[:200],
+                    "similarity_score": round(score, 2),
+                }))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return [item for _, item in scored[:limit]]

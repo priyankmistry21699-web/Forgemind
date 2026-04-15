@@ -50,6 +50,11 @@ class Run(Base):
         nullable=False,
     )
 
+    # FM-176: Retention archive marker
+    archived_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
+
     # Relationships
     project: Mapped["Project"] = relationship(back_populates="runs")  # noqa: F821
     tasks: Mapped[list["Task"]] = relationship(  # noqa: F821

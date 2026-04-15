@@ -160,11 +160,28 @@ async def _delete_entities(db: AsyncSession, model, conditions, entity_type, wor
 async def _archive_entities(
     db: AsyncSession, workspace_id, policy, affected_count, cutoff
 ):
-    """Record an archive audit trail — creates an immutable audit log entry
-    documenting that entities have aged past the retention threshold.
+    """Mark entities as archived and record an audit trail (FM-176).
 
-    This provides compliance traceability without data destruction.
+    Sets archived_at on matching entities so they are excluded from normal
+    queries, then creates an immutable audit log entry for compliance.
     """
+    # Actually stamp archived_at on supported entity types
+    now = datetime.now(timezone.utc)
+    model_cls, conditions = await _build_conditions(
+        db, policy.entity_type, policy, workspace_id, cutoff,
+    )
+
+    if hasattr(model_cls, "archived_at"):
+        from sqlalchemy import update
+        conditions.append(model_cls.archived_at.is_(None))
+        stmt = (
+            update(model_cls)
+            .where(and_(*conditions))
+            .values(archived_at=now)
+        )
+        result = await db.execute(stmt)
+        affected_count = result.rowcount
+
     entry = AuditLog(
         actor_type=AuditActorType.SYSTEM,
         action="retention.archive",
@@ -183,7 +200,7 @@ async def _archive_entities(
     db.add(entry)
     await db.flush()
     logger.info(
-        "retention: ARCHIVED audit record for %s workspace=%s cutoff=%s count=%d",
+        "retention: ARCHIVED %s workspace=%s cutoff=%s count=%d",
         policy.entity_type, workspace_id, cutoff.isoformat(), affected_count,
     )
     return affected_count

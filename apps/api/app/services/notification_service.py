@@ -7,6 +7,7 @@ from app.core.metrics import inc_counter
 from app.models.notification import (
     Notification,
     NotificationDeliveryConfig,
+    NotificationPreference,
 )
 
 
@@ -142,3 +143,92 @@ async def list_delivery_configs(
     ).scalar_one()
     result = await db.execute(query.order_by(NotificationDeliveryConfig.created_at))
     return list(result.scalars().all()), total
+
+
+# ── FM-142: Notification Preferences ────────────────────────────
+
+
+async def get_preferences(
+    db: AsyncSession, user_id: uuid.UUID
+) -> list[NotificationPreference]:
+    """Get all notification preferences for a user."""
+    result = await db.execute(
+        select(NotificationPreference)
+        .where(NotificationPreference.user_id == user_id)
+        .order_by(NotificationPreference.notification_type)
+    )
+    return list(result.scalars().all())
+
+
+async def upsert_preference(
+    db: AsyncSession,
+    *,
+    user_id: uuid.UUID,
+    notification_type: str,
+    enabled: bool = True,
+    muted_until: str | None = None,
+    channel_overrides: dict | None = None,
+) -> NotificationPreference:
+    """Create or update a notification preference for a specific type."""
+    from datetime import datetime
+
+    result = await db.execute(
+        select(NotificationPreference).where(
+            NotificationPreference.user_id == user_id,
+            NotificationPreference.notification_type == notification_type,
+        )
+    )
+    pref = result.scalar_one_or_none()
+
+    if pref:
+        pref.enabled = enabled
+        if muted_until is not None:
+            pref.muted_until = datetime.fromisoformat(muted_until) if muted_until else None
+        if channel_overrides is not None:
+            pref.channel_overrides = channel_overrides
+    else:
+        pref = NotificationPreference(
+            user_id=user_id,
+            notification_type=notification_type,
+            enabled=enabled,
+            muted_until=datetime.fromisoformat(muted_until) if muted_until else None,
+            channel_overrides=channel_overrides,
+        )
+        db.add(pref)
+
+    await db.flush()
+    await db.refresh(pref)
+    return pref
+
+
+async def is_notification_allowed(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    notification_type: str,
+) -> bool:
+    """Check if a user has opted in (or not opted out) for a notification type."""
+    from datetime import datetime, timezone
+
+    result = await db.execute(
+        select(NotificationPreference).where(
+            NotificationPreference.user_id == user_id,
+            NotificationPreference.notification_type == notification_type,
+        )
+    )
+    pref = result.scalar_one_or_none()
+    if pref is None:
+        return True  # Default: allowed
+
+    if not pref.enabled:
+        return False
+
+    if pref.muted_until:
+        muted = pref.muted_until
+        now = datetime.now(timezone.utc)
+        # Handle naive datetimes (e.g. SQLite)
+        if muted.tzinfo is None:
+            muted = muted.replace(tzinfo=timezone.utc)
+        if muted > now:
+            return False
+
+    return True

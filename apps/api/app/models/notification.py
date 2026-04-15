@@ -127,3 +127,50 @@ class NotificationDeliveryConfig(Base):
 
     def __repr__(self) -> str:
         return f"<DeliveryConfig {self.channel.value} for={self.user_id}>"
+
+
+# FM-142: Per-user, per-type notification preferences
+
+
+class NotificationPreference(Base):
+    """User-level mute / enable settings for each notification type.
+
+    Allows users to opt-out of specific notification types or channels
+    while keeping others active.
+    """
+
+    __tablename__ = "notification_preferences"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    notification_type: Mapped[NotificationType] = mapped_column(
+        Enum(NotificationType, name="notification_type"),
+        nullable=False,
+    )
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    muted_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    channel_overrides: Mapped[dict | None] = mapped_column(
+        JSON, nullable=True
+    )  # e.g. {"email": false, "slack": true}
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    def __repr__(self) -> str:
+        return f"<NotificationPreference {self.notification_type.value} user={self.user_id} enabled={self.enabled}>"

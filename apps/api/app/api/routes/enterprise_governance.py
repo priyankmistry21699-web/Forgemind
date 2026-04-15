@@ -9,11 +9,17 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import PlainTextResponse
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user_id
 from app.db.session import get_db
 from app.services.authz_service import check_workspace_permission, Action
+from app.services.authz_service import (
+    create_custom_role,
+    list_custom_roles,
+    update_custom_role,
+)
 from app.services import (
     audit_log_service,
     governance_engine_service,
@@ -762,6 +768,109 @@ async def get_my_permissions(
         project_id=project_id,
     )
     return PermissionsIntrospectionResponse(**perms)
+
+
+# ── FM-172: Custom Role Management ───────────────────────────────
+
+
+class _CustomRoleCreate(BaseModel):
+    name: str
+    scope: str = "project"
+    description: str | None = None
+    permissions: list[str]
+
+
+class _CustomRoleUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    permissions: list[str] | None = None
+    is_active: bool | None = None
+
+
+@router.post("/workspaces/{workspace_id}/custom-roles", status_code=201)
+async def create_role(
+    workspace_id: uuid.UUID,
+    body: _CustomRoleCreate,
+    current_user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Create a custom role with specific permissions (FM-172)."""
+    await check_workspace_permission(db, workspace_id, current_user_id, Action.WORKSPACE_MANAGE_MEMBERS)
+    try:
+        role = await create_custom_role(
+            db,
+            workspace_id=workspace_id,
+            name=body.name,
+            scope=body.scope,
+            description=body.description,
+            permissions=body.permissions,
+            created_by=current_user_id,
+        )
+        await db.commit()
+        return {
+            "id": str(role.id),
+            "name": role.name,
+            "scope": role.scope,
+            "description": role.description,
+            "permissions": role.permissions,
+            "is_active": role.is_active,
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/workspaces/{workspace_id}/custom-roles")
+async def list_roles(
+    workspace_id: uuid.UUID,
+    current_user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """List all custom roles in a workspace (FM-172)."""
+    roles = await list_custom_roles(db, workspace_id)
+    return {
+        "items": [
+            {
+                "id": str(r.id),
+                "name": r.name,
+                "scope": r.scope,
+                "description": r.description,
+                "permissions": r.permissions,
+                "is_active": r.is_active,
+            }
+            for r in roles
+        ],
+        "total": len(roles),
+    }
+
+
+@router.patch("/custom-roles/{role_id}")
+async def update_role(
+    role_id: uuid.UUID,
+    body: _CustomRoleUpdate,
+    current_user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Update a custom role (FM-172)."""
+    try:
+        role = await update_custom_role(
+            db,
+            role_id,
+            name=body.name,
+            description=body.description,
+            permissions=body.permissions,
+            is_active=body.is_active,
+        )
+        await db.commit()
+        return {
+            "id": str(role.id),
+            "name": role.name,
+            "scope": role.scope,
+            "description": role.description,
+            "permissions": role.permissions,
+            "is_active": role.is_active,
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 # ══════════════════════════════════════════════════════════════════
