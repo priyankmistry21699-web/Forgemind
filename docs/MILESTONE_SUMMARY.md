@@ -1,6 +1,6 @@
 # ForgeMind — Milestone Summary
 
-> Last updated: 2026-04-14 (post-V4 remediation pass — FM-141→180 re-verified)
+> Last updated: 2026-04-15 (post-V4 pass 2 — FM-141→180 re-verified after c6b169d)
 
 ---
 
@@ -716,7 +716,7 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 | FM-159 | VS Code Extension Foundation           | ⏸️ DEFERRED (separate repo)                                                                            |
 | FM-160 | Hardening: Rate Limiter, Retry, Replay | ✅ Complete                                                                                            |
 
-**Wave 11 summary:** 1/10 fully complete, 8/10 partial, 1 deferred. Rate limiting, retry decorator, webhook replay, signature enforcement, and outbound GitHub API client work. Remaining: full App auth flow, 3 more event types, PR auto-creation, pass-rate, bidirectional issue sync, branch auto-creation, reviewer scoring, diff risk rules.
+**Wave 11 summary:** 4/10 fully complete, 5/10 partial, 1 deferred. PR auto-creation, CI pipeline integration (with readiness gate), code review routing (with reviewer scoring), and rate limiting/retry/replay are complete. Remaining: full App auth flow, 3 more event types, bidirectional issue sync, branch auto-creation, diff risk rules.
 
 ---
 
@@ -733,7 +733,7 @@ See [docs/TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for full details (18 items). Key
 
 ---
 
-_Wave 10: 4/10 complete, 6 partial. Wave 11: 2/10 complete, 7 partial, 1 deferred. Wave 12: 6/10 complete, 4 partial. Wave 13: 5/10 complete, 5 partial. FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project. 17 COMPLETE, 22 PARTIAL, 1 DEFERRED across FM-141→180._
+_Wave 10: 4/10 complete, 6 partial. Wave 11: 4/10 complete, 5 partial, 1 deferred. Wave 12: 6/10 complete, 4 partial. Wave 13: 5/10 complete, 5 partial. FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project. 19 COMPLETE, 20 PARTIAL, 1 DEFERRED across FM-141→180._
 
 ---
 

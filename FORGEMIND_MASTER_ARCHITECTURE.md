@@ -901,7 +901,7 @@ The current V4 architecture remains the foundation — V5 adds dynamic agent spa
 
 ### Tests
 
-- `apps/api/tests/...` — API/service/integration tests (864 tests)
+- `apps/api/tests/...` — API/service/integration tests (936 tests)
 - `apps/local/tests/...` — ForgeMind Local tests (61 tests)
 - `apps/api/evals/...` — eval/quality benchmarks
 

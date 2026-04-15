@@ -1025,4 +1025,4 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 
 ---
 
-_This document reflects the architecture as of the latest commit on `main`. FM-141–FM-180: 14 COMPLETE, 25 PARTIAL, 1 DEFERRED out of 40 milestones. 864 tests passing._
+_This document reflects the architecture as of the latest commit on `main`. FM-141–FM-180: 19 COMPLETE, 20 PARTIAL, 1 DEFERRED out of 40 milestones. 936 tests passing._
