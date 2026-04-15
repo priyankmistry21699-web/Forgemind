@@ -9,11 +9,14 @@ from app.schemas.notification import (
     NotificationCreate,
     NotificationRead,
     NotificationList,
+    GroupedNotificationList,
+    GroupedNotificationItem,
     DeliveryConfigCreate,
     DeliveryConfigRead,
     DeliveryConfigList,
 )
 from app.services import notification_service
+from app.services import notification_digest_service
 
 router = APIRouter()
 
@@ -79,6 +82,46 @@ async def mark_all_read(
 ) -> dict:
     count = await notification_service.mark_all_read(db, user_id)
     return {"marked": count}
+
+
+# ── FM-149: Dismiss, Grouped, Digest ────────────────────────────
+
+
+@router.post(
+    "/notifications/{notification_id}/dismiss", response_model=NotificationRead
+)
+async def dismiss_notification(
+    notification_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+) -> NotificationRead:
+    n = await notification_digest_service.dismiss_notification(
+        db, notification_id, user_id
+    )
+    if n is None:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    return NotificationRead.model_validate(n)
+
+
+@router.get("/notifications/grouped", response_model=GroupedNotificationList)
+async def get_grouped_notifications(
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+) -> GroupedNotificationList:
+    items = await notification_digest_service.get_grouped_notifications(db, user_id)
+    return GroupedNotificationList(
+        items=[GroupedNotificationItem(**i) for i in items],
+        total=len(items),
+    )
+
+
+@router.get("/notifications/digest", response_model=list[NotificationRead])
+async def get_digest_preview(
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+) -> list[NotificationRead]:
+    items = await notification_digest_service.get_digest_preview(db, user_id)
+    return [NotificationRead.model_validate(n) for n in items]
 
 
 # ── Delivery Config ──────────────────────────────────────────────

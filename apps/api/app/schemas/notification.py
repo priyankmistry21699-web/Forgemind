@@ -32,6 +32,9 @@ class NotificationRead(BaseModel):
     title: str
     body: str | None
     is_read: bool
+    category: str | None = None
+    group_key: str | None = None
+    dismissed_at: datetime | None = None
     resource_type: str | None
     resource_id: uuid.UUID | None
     metadata_: dict | None
@@ -44,6 +47,23 @@ class NotificationList(BaseModel):
     items: list[NotificationRead]
     total: int
     unread_count: int
+
+
+# ── FM-149: Grouped & Digest schemas ────────────────────────────
+
+
+class GroupedNotificationItem(BaseModel):
+    group_key: str | None
+    count: int
+    latest_id: str
+    latest_title: str
+    notification_type: str
+    latest_created_at: str
+
+
+class GroupedNotificationList(BaseModel):
+    items: list[GroupedNotificationItem]
+    total: int
 
 
 # ── Delivery Config ──────────────────────────────────────────────

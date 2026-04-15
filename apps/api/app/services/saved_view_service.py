@@ -85,3 +85,51 @@ async def delete_saved_view(
         raise HTTPException(status_code=403, detail="Only the creator can delete this view")
     await db.delete(view)
     await db.flush()
+
+
+# ── FM-144: Default view seeding ─────────────────────────────────
+
+_DEFAULT_VIEWS = [
+    {
+        "name": "My tasks",
+        "entity_type": "task",
+        "filter_json": {"assigned_to": "__me__"},
+        "visibility": ViewVisibility.TEAM,
+    },
+    {
+        "name": "Pending approvals",
+        "entity_type": "approval",
+        "filter_json": {"status": "pending"},
+        "visibility": ViewVisibility.TEAM,
+    },
+    {
+        "name": "Failed runs",
+        "entity_type": "run",
+        "filter_json": {"status": "failed"},
+        "visibility": ViewVisibility.TEAM,
+    },
+]
+
+
+async def seed_default_views(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+    creator_id: uuid.UUID,
+) -> list[SavedView]:
+    """Seed default views on project creation (FM-144)."""
+    views: list[SavedView] = []
+    for defn in _DEFAULT_VIEWS:
+        view = SavedView(
+            project_id=project_id,
+            creator_id=creator_id,
+            name=defn["name"],
+            entity_type=defn["entity_type"],
+            filter_json=defn["filter_json"],
+            visibility=defn["visibility"],
+        )
+        db.add(view)
+        views.append(view)
+    await db.flush()
+    for v in views:
+        await db.refresh(v)
+    return views

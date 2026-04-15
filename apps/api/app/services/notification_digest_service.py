@@ -82,3 +82,55 @@ async def get_digest_preview(
         .limit(100)
     )
     return list(result.scalars().all())
+
+
+async def get_grouped_notifications(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+) -> list[dict]:
+    """Return unread notifications collapsed by group_key (FM-149).
+
+    Notifications sharing the same non-null group_key are collapsed into a
+    single entry with a count.  Ungrouped notifications appear individually.
+    """
+    base = select(Notification).where(
+        Notification.user_id == user_id,
+        Notification.dismissed_at.is_(None),
+        Notification.is_read.is_(False),
+    )
+    result = await db.execute(base.order_by(Notification.created_at.desc()).limit(200))
+    all_notifs = list(result.scalars().all())
+
+    groups: dict[str, list[Notification]] = {}
+    ungrouped: list[Notification] = []
+    for n in all_notifs:
+        if n.group_key:
+            groups.setdefault(n.group_key, []).append(n)
+        else:
+            ungrouped.append(n)
+
+    items: list[dict] = []
+    for key, notifs in groups.items():
+        latest = notifs[0]
+        items.append({
+            "group_key": key,
+            "count": len(notifs),
+            "latest_id": str(latest.id),
+            "latest_title": latest.title,
+            "notification_type": latest.notification_type.value
+            if hasattr(latest.notification_type, "value")
+            else str(latest.notification_type),
+            "latest_created_at": latest.created_at.isoformat(),
+        })
+    for n in ungrouped:
+        items.append({
+            "group_key": None,
+            "count": 1,
+            "latest_id": str(n.id),
+            "latest_title": n.title,
+            "notification_type": n.notification_type.value
+            if hasattr(n.notification_type, "value")
+            else str(n.notification_type),
+            "latest_created_at": n.created_at.isoformat(),
+        })
+    return items

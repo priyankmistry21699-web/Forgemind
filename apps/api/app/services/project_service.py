@@ -41,6 +41,11 @@ async def create_project(
                 db, project, template
             )
 
+    # FM-144: Seed default views on project creation
+    from app.services.saved_view_service import seed_default_views
+
+    await seed_default_views(db, project.id, owner_id)
+
     return project
 
 

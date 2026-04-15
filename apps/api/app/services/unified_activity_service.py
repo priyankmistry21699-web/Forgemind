@@ -5,6 +5,7 @@ Aggregates comments, task changes, approvals, artifacts, and release events.
 """
 
 import uuid
+from datetime import datetime
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,15 +21,16 @@ async def get_unified_activity(
     event_types: list[str] | None = None,
     limit: int = 50,
     offset: int = 0,
-) -> tuple[list[dict], int]:
+    cursor: datetime | None = None,
+) -> tuple[list[dict], int, str | None]:
     """Return a merged, chronological activity stream.
 
     Merges data from activity_feed_entries plus inline comment/task/approval events.
     When run_id is provided, returns only events related to that run.
+
+    If *cursor* is provided, returns entries older than the cursor timestamp
+    (for forward pagination). Returns (items, total, next_cursor).
     """
-    # Strategy: query the primary ActivityFeedEntry table with optional filters.
-    # For run-level, we filter by resource_type='run' and resource_id=run_id,
-    # or any activity whose resource ties back to the run.
     base = select(
         ActivityFeedEntry.id,
         ActivityFeedEntry.activity_type,
@@ -49,13 +51,21 @@ async def get_unified_activity(
     if event_types:
         base = base.where(ActivityFeedEntry.activity_type.in_(event_types))
 
+    # Cursor-based pagination: fetch entries older than cursor (FM-143)
+    if cursor is not None:
+        base = base.where(ActivityFeedEntry.created_at < cursor)
+
     count_q = select(func.count()).select_from(base.subquery())
     total_result = await db.execute(count_q)
     total = total_result.scalar_one()
 
     ordered = (
-        base.order_by(ActivityFeedEntry.created_at.desc()).offset(offset).limit(limit)
+        base.order_by(ActivityFeedEntry.created_at.desc())
     )
+    if cursor is None:
+        ordered = ordered.offset(offset)
+    ordered = ordered.limit(limit)
+
     result = await db.execute(ordered)
     rows = result.all()
 
@@ -74,4 +84,9 @@ async def get_unified_activity(
         for r in rows
     ]
 
-    return items, total
+    # Compute next_cursor from the oldest item in this page
+    next_cursor: str | None = None
+    if items and len(items) == limit:
+        next_cursor = items[-1]["timestamp"]
+
+    return items, total, next_cursor

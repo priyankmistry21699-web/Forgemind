@@ -37,6 +37,26 @@ class ActivityFeedEntryRead(BaseModel):
 class ActivityFeedList(BaseModel):
     items: list[ActivityFeedEntryRead]
     total: int
+    next_cursor: str | None = None
+
+
+# ── FM-143: Cursor-paginated unified activity ────────────────────
+
+
+class UnifiedActivityItem(BaseModel):
+    id: str
+    event_type: str
+    summary: str
+    actor_id: str
+    resource_type: str | None
+    resource_id: str | None
+    timestamp: str
+
+
+class UnifiedActivityList(BaseModel):
+    items: list[UnifiedActivityItem]
+    total: int
+    next_cursor: str | None = None
 
 
 # ── Presence ─────────────────────────────────────────────────────

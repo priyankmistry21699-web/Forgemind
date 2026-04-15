@@ -686,16 +686,16 @@ ForgeMind Local is a standalone CLI companion that provides offline repo intelli
 | ------ | -------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | FM-141 | Threaded Comments                | ✅ Complete                                                                                            |
 | FM-142 | @Mentions & Notification Routing | ⚠️ Partial — no per-category notification preferences                                                  |
-| FM-143 | Unified Activity Feed            | ⚠️ Partial — offset pagination only; cursor-based deferred                                             |
-| FM-144 | Saved Views & Filters            | ⚠️ Partial — default view seeding not implemented                                                      |
+| FM-143 | Unified Activity Feed            | ✅ Complete — cursor-based pagination on project/run activity routes; `next_cursor` in response         |
+| FM-144 | Saved Views & Filters            | ✅ Complete — default views (My tasks, Pending approvals, Failed runs) seeded on project creation       |
 | FM-145 | User Presence & Online Status    | ✅ Complete                                                                                            |
 | FM-146 | Collaborative Run Annotations    | ✅ Complete                                                                                            |
 | FM-147 | Task Assignment & Workload       | ⚠️ Partial — HTTP routes wired (assign/unassign/workload); assignment history events not recorded      |
 | FM-148 | Approval Delegation & Batch      | ⚠️ Partial (strengthened) — delegation CRUD + revoke, batch-decide, pending (user-scoped with `active_until` enforcement), expired routes, delegation-aware escalation with `escalated_at` dedup + target resolution + notification delivery; background scheduler (5-min cycle) auto-deactivates expired delegations + escalates expired approvals. **Remaining:** batch is loop-based not atomic; cross-project dashboard is flat list only |
-| FM-149 | Notification Digest & Center     | ⚠️ Partial — no grouping logic; missing dismiss/digest HTTP routes                                     |
+| FM-149 | Notification Digest & Center     | ✅ Complete — dismiss, grouped notifications, and digest preview routes; grouping by `group_key`        |
 | FM-150 | Project Overview Dashboard       | ✅ Complete — HTTP route + composite metrics (runs, tasks, approvals, health grade, team)              |
 
-**Wave 10 summary:** 4/10 milestones fully complete, 6/10 partial. Core commenting, presence, annotations, and project overview work. FM-148 significantly strengthened (escalation dedup, delegation expiry, revocation, background scheduler) but 2/4 acceptance criteria remain deferred. Missing: notification preferences, cursor pagination, default views, assignment history events, atomic batch approval, cross-project dashboard, notification grouping routes.
+**Wave 10 summary:** 7/10 milestones fully complete, 3/10 partial. Core commenting, presence, annotations, project overview, activity feed (with cursor pagination), saved views (with default seeding), and notification center (with grouping/digest) work. FM-148 significantly strengthened (escalation dedup, delegation expiry, revocation, background scheduler) but 2/4 acceptance criteria remain deferred. Missing: notification preferences, assignment history events, atomic batch approval, cross-project dashboard.
 
 ## FM-151 to FM-160 — ⚙️ PARTIAL (Wave 11: GitHub & CI Integration)
 
@@ -733,7 +733,7 @@ See [docs/TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for full details (18 items). Key
 
 ---
 
-_Wave 10: 4/10 complete, 6 partial. Wave 11: 4/10 complete, 5 partial, 1 deferred. Wave 12: 6/10 complete, 4 partial. Wave 13: 5/10 complete, 5 partial. FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project. 19 COMPLETE, 20 PARTIAL, 1 DEFERRED across FM-141→180._
+_Wave 10: 7/10 complete, 3 partial. Wave 11: 4/10 complete, 5 partial, 1 deferred. Wave 12: 5/10 complete, 5 partial. Wave 13: 5/10 complete, 5 partial. FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project. 21 COMPLETE, 18 PARTIAL, 1 DEFERRED across FM-141→180._
 
 ---
 
@@ -745,14 +745,14 @@ _Wave 10: 4/10 complete, 6 partial. Wave 11: 4/10 complete, 5 partial, 1 deferre
 | FM-162 | Semantic Search with Embeddings             | ⚠️ Partial — keyword-overlap similarity only; no embeddings/pgvector                             |
 | FM-163 | Knowledge Base — Decision & Pattern Library | ⚠️ Partial — knowledge-type search filter works; no dedicated CRUD, no auto-suggestion engine    |
 | FM-164 | Project Templates V2 — Knowledge-Enriched   | ⚠️ Partial — marketplace browse only; deep clone + versioning columns not added                  |
-| FM-165 | Cross-Project Search & Discovery            | ✅ Complete — RBAC-filtered cross-project search with facet aggregation and date-range filtering |
+| FM-165 | Cross-Project Search & Discovery            | ⚠️ Partial — RBAC-filtered cross-project search works; project directory and related-project suggestions not implemented |
 | FM-166 | Execution Replay & Comparison               | ⚠️ Partial — comparison works; replay mode not implemented                                       |
 | FM-167 | Organizational Context & Conventions Engine | ✅ Complete                                                                                      |
 | FM-168 | Artifact Versioning & History               | ✅ Complete                                                                                      |
 | FM-169 | Smart Recommendations Engine                | ✅ Complete (7 rules)                                                                            |
 | FM-170 | Knowledge & Search Tests, Docs & Hardening  | ✅ Complete (45 tests, index integrity checker; perf benchmarks deferred)                        |
 
-**Wave 12 summary:** 6/10 milestones fully complete; 4/10 partially scoped. Core search with faceting, conventions, versioning, cross-project discovery, and recommendations are production-ready. Semantic search, knowledge library, template enrichment, and replay require additional infrastructure investment.
+**Wave 12 summary:** 5/10 milestones fully complete; 5/10 partially scoped. Core search with faceting, conventions, versioning, and recommendations are production-ready. Cross-project search works but discovery UX (project directory, related suggestions) is missing. Semantic search, knowledge library, template enrichment, and replay require additional infrastructure investment.
 
 ---
 

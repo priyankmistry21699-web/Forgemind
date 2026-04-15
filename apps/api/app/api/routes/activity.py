@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +10,8 @@ from app.schemas.activity import (
     ActivityFeedEntryCreate,
     ActivityFeedEntryRead,
     ActivityFeedList,
+    UnifiedActivityItem,
+    UnifiedActivityList,
     PresenceUpdate,
     PresenceHeartbeat,
     PresenceRead,
@@ -16,6 +19,7 @@ from app.schemas.activity import (
 )
 from app.services import activity_service
 from app.services import user_activity_service
+from app.services import unified_activity_service
 from app.services.authz_service import (
     check_project_permission,
     check_workspace_permission,
@@ -81,6 +85,54 @@ async def list_activities(
     return ActivityFeedList(
         items=[ActivityFeedEntryRead.model_validate(e) for e in items],
         total=total,
+    )
+
+
+# ── FM-143: Cursor-based unified activity ────────────────────────
+
+
+@router.get(
+    "/projects/{project_id}/activity",
+    response_model=UnifiedActivityList,
+)
+async def get_project_activity(
+    project_id: uuid.UUID,
+    cursor: str | None = Query(None, description="ISO-8601 timestamp cursor"),
+    limit: int = Query(50, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+) -> UnifiedActivityList:
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    cursor_dt = datetime.fromisoformat(cursor) if cursor else None
+    items, total, next_cursor = await unified_activity_service.get_unified_activity(
+        db, project_id=project_id, limit=limit, cursor=cursor_dt,
+    )
+    return UnifiedActivityList(
+        items=[UnifiedActivityItem(**i) for i in items],
+        total=total,
+        next_cursor=next_cursor,
+    )
+
+
+@router.get(
+    "/runs/{run_id}/activity",
+    response_model=UnifiedActivityList,
+)
+async def get_run_activity(
+    run_id: uuid.UUID,
+    cursor: str | None = Query(None, description="ISO-8601 timestamp cursor"),
+    limit: int = Query(50, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+) -> UnifiedActivityList:
+    cursor_dt = datetime.fromisoformat(cursor) if cursor else None
+    items, total, next_cursor = await unified_activity_service.get_unified_activity(
+        db, run_id=run_id, limit=limit, cursor=cursor_dt,
+    )
+    return UnifiedActivityList(
+        items=[UnifiedActivityItem(**i) for i in items],
+        total=total,
+        next_cursor=next_cursor,
     )
 
 

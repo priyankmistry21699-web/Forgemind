@@ -240,7 +240,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [x] Activity feed merges events from 5+ entity types
 - [x] Project-level and run-level scoping both work
-- [ ] Cursor-based pagination returns consistent results _(deferred)_
+- [x] Cursor-based pagination returns consistent results — _cursor param on `GET /projects/{id}/activity` and `GET /runs/{id}/activity`; `next_cursor` in response_
 - [x] Filters narrow results correctly
 - [x] Tests cover multi-source merging, pagination, and filtering
 
@@ -274,7 +274,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - [x] Views save and restore filter state accurately
 - [x] Shared views visible to all project members
 - [x] Private views visible only to creator
-- [ ] Default views seeded on project creation _(deferred)_
+- [x] Default views seeded on project creation — _"My tasks", "Pending approvals", "Failed runs" auto-created via `seed_default_views()` in `create_project()`_
 - [x] Tests cover CRUD, visibility scoping, filter restoration
 
 ---
@@ -442,8 +442,8 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [x] Notifications generated for all tracked events (comments, approvals, task changes, releases)
 - [x] Read/unread state persists correctly
-- [ ] Grouping collapses related notifications _(deferred)_
-- [ ] Digest query returns correct pending notifications _(deferred)_
+- [x] Grouping collapses related notifications — _`get_grouped_notifications()` groups by `group_key`, `GET /notifications/grouped` route_
+- [x] Digest query returns correct pending notifications — _`get_digest_preview()` returns unread+undismissed, `GET /notifications/digest` route_
 - [x] Tests cover generation, read state, grouping, and digest query
 
 ---
