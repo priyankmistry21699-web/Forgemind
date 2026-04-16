@@ -1708,7 +1708,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [x] At least 5 anti-pattern and 3 positive-pattern rules implemented _(8 built-in rules seeded via seed_builtin_rules)_
+- [x] At least 5 anti-pattern and 3 positive-pattern rules implemented _(8 anti-pattern + 3 positive-pattern rules seeded via seed_builtin_rules)_
 - [x] Patterns detected with correct file/line references
 - [x] Pattern density metrics computed correctly
 - [ ] Knowledge base integration creates entries for significant patterns
@@ -2182,7 +2182,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [x] Summary includes all configured sections with accurate data
 - [ ] Non-technical language used in generated text
-- [x] Summary stored as versioned artifact _(save_executive_summary + get_summary_artifacts)_
+- [ ] Summary stored as versioned artifact _(save_executive_summary + get_summary_artifacts exist but use in-memory storage; not DB-persisted)_
 - [x] Tests cover generation with realistic multi-project data
 
 ---
@@ -2245,7 +2245,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [x] All core endpoint groups accessible via `/api/v1/` _(ecosystem router prefix changed to /api/v1/ecosystem)_
+- [ ] All core endpoint groups accessible via `/api/v1/` _(only ecosystem router uses /api/v1/ prefix; core routes not yet versioned)_
 - [x] API key authentication works alongside JWT
 - [x] Scoped API keys restrict access to specified resources
 - [ ] OpenAPI spec complete and valid
@@ -2280,7 +2280,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Sliding window correctly counts requests
-- [x] Rate limit headers present on API responses _(require_rate_limit() wired as Depends on create_api_key route)_
+- [ ] Rate limit headers present on all API responses _(require_rate_limit() applied only to create_api_key; not yet on all routes)_
 - [x] 429 returned with correct retry-after when limit exceeded
 - [ ] Different limits per tier enforced correctly
 - [x] Tests cover sliding window accuracy, header injection, and tier enforcement

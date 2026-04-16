@@ -525,6 +525,16 @@ BUILTIN_RULES: list[dict[str, str]] = [
      "severity": "warning", "description": "Mutable default argument (list/dict)"},
     {"name": "assert-in-production", "rule_definition": r"^\s*assert\s+", "severity": "warning",
      "description": "assert statements are stripped with -O; use explicit checks"},
+    # --- positive-pattern rules ---
+    {"name": "type-annotations", "pattern_type": "positive_pattern",
+     "rule_definition": r"def\s+\w+\([^)]*:\s*\w+", "severity": "info",
+     "description": "Function uses type annotations for parameters"},
+    {"name": "logging-usage", "pattern_type": "positive_pattern",
+     "rule_definition": r"logger\.\w+\(|logging\.\w+\(", "severity": "info",
+     "description": "Proper logging framework used instead of print()"},
+    {"name": "context-manager", "pattern_type": "positive_pattern",
+     "rule_definition": r"\bwith\s+\w+", "severity": "info",
+     "description": "Context manager used for resource management"},
 ]
 
 
@@ -547,7 +557,7 @@ async def seed_builtin_rules(
         rule = PatternRule(
             name=defn["name"],
             description=defn.get("description"),
-            pattern_type=PatternType.ANTI_PATTERN,
+            pattern_type=PatternType(defn.get("pattern_type", "anti_pattern")),
             language=language,
             rule_definition=defn["rule_definition"],
             severity=PatternSeverity(defn["severity"]),

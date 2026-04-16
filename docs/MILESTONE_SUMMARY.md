@@ -791,7 +791,7 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 | FM-182 | Change Impact Analysis                    | 🔶 Partial — BFS traversal works; no explicit risk scoring; no test/source file separation                           |
 | FM-183 | Test Coverage Mapping                     | 🔶 Partial — Static mapping + upsert; no coverage report parser (pytest-cov/istanbul/LCOV)                           |
 | FM-184 | Intelligent Test Selection                | ⏳ Deferred — requires FM-182 + FM-183 composition                                                                   |
-| FM-185 | Code Pattern Detection                    | 🔶 Partial — Regex scan engine; zero built-in rules shipped; no KB integration                                       |
+| FM-185 | Code Pattern Detection                    | 🔶 Partial — Regex scan engine + 11 built-in rules (8 anti-pattern + 3 positive-pattern); no KB integration                                       |
 | FM-186 | Technical Debt Tracking                   | 🔶 Partial — All 4 debt sources (comment/pattern/age/complexity) detected and scored; budget warning not implemented |
 | FM-187 | Test Flakiness Detection                  | 🔶 Partial — Flakiness scoring works; quarantine flag exists but no gate enforcement                                 |
 | FM-188 | Code Complexity Metrics                   | 🔶 Partial — Cyclomatic + cognitive complexity computed; no trend tracking across snapshots                          |
@@ -818,7 +818,7 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 | FM-196 | Portfolio Overview — Multi-Project Dashboard | 🔶 Partial — Service-layer sort/filter for 4 dims added but route does not forward params; N+1 not yet optimized                               |
 | FM-197 | Custom Dashboards & Widgets                  | 🔶 Partial — Dashboard CRUD complete; no widget rendering or data source resolution                                                            |
 | FM-198 | Scheduled Reports & Alerts                   | 🔶 Partial — Alerts with cooldown enforcement + trigger history; no scheduled report execution engine                                          |
-| FM-199 | Executive Summary Generator                  | 🔶 Partial — Aggregates health/velocity/quality/execution; no NLP generation; no artifact storage                                              |
+| FM-199 | Executive Summary Generator                  | 🔶 Partial — Aggregates health/velocity/quality/execution; in-memory artifact store (not DB-persisted); no NLP generation                              |
 | FM-200 | Analytics Tests, Docs & Hardening            | 🔶 Partial — 32 tests (target 40+); no perf benchmarks; no docs                                                                                |
 
 **Wave 15 summary:** 0 COMPLETE / 10 PARTIAL / 0 DEFERRED. Service-layer analytics working: auto-computed health dimensions, budget enforcement, approval velocity, quality gates, portfolio sort/filter. Route integration pending for most new functions. Remaining gaps: auto-capture timings, LLM call recording, widget rendering, report execution engine.
@@ -832,8 +832,8 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 
 | FM     | Feature                                       | Status                                                                                               |
 | ------ | --------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| FM-201 | Public API v1 — Core Endpoints                | 🔶 Partial — API key gen/validate/revoke + scope enforcement; no /api/v1/ routing; no OpenAPI spec   |
-| FM-202 | API Rate Limiting & Throttling                | 🔶 Partial — require_rate_limit() dependency exists but not applied to any route; no per-tier limits |
+| FM-201 | Public API v1 — Core Endpoints                | 🔶 Partial — API key gen/validate/revoke + scope enforcement; /api/v1/ecosystem prefix works; core routes not yet versioned   |
+| FM-202 | API Rate Limiting & Throttling                | 🔶 Partial — require_rate_limit() applied to create_api_key route; not yet on all routes; no per-tier limits |
 | FM-203 | Webhook Subscription System                   | 🔶 Partial — HTTP dispatch via httpx + HMAC signing + delivery tracking + fire_event; retry works    |
 | FM-204 | Slack Integration                             | ⏳ Deferred — external integration                                                                   |
 | FM-205 | Jira Integration                              | ⏳ Deferred — external integration                                                                   |
