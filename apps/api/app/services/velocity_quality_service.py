@@ -284,11 +284,13 @@ async def evaluate_quality_gates(
     project_id: uuid.UUID,
     *,
     gates: dict[str, dict[str, Any]] | None = None,
+    exclude_quarantined: bool = True,
 ) -> dict[str, Any]:
     """Evaluate quality gates against latest snapshot.
 
+    FM-187: When exclude_quarantined=True, adjusts test_pass_rate to
+    exclude quarantined tests from the gate evaluation.
     Returns pass/fail status and list of gate violations (warnings).
-    gates overrides DEFAULT_QUALITY_GATES with custom thresholds.
     """
     effective_gates = {**DEFAULT_QUALITY_GATES, **(gates or {})}
 
@@ -300,14 +302,53 @@ async def evaluate_quality_gates(
             "gates_evaluated": 0,
             "violations": [],
             "warnings": [],
+            "quarantined_excluded": exclude_quarantined,
             "message": "No quality snapshot available — gates skipped",
         }
+
+    # FM-187: Build a modified snapshot dict that excludes quarantined tests
+    snapshot_values: dict[str, float] = {
+        "test_pass_rate": snapshot.test_pass_rate,
+        "defect_density": snapshot.defect_density,
+        "rollback_rate": snapshot.rollback_rate,
+        "review_coverage": snapshot.review_coverage,
+    }
+    quarantined_count = 0
+
+    if exclude_quarantined:
+        from app.models.code_intelligence import TestResult, TestOutcome
+        from sqlalchemy import case as sa_case
+
+        # Count non-quarantined pass/fail
+        q = await db.execute(
+            select(
+                sa_func.count(TestResult.id).label("total"),
+                sa_func.sum(
+                    sa_case((TestResult.outcome == TestOutcome.PASSED, 1), else_=0)
+                ).label("passed"),
+            ).where(
+                TestResult.project_id == project_id,
+                TestResult.quarantined.is_(False),
+            )
+        )
+        row = q.one()
+        if row.total and row.total > 0:
+            snapshot_values["test_pass_rate"] = round((row.passed or 0) / row.total, 4)
+
+        # Count quarantined
+        qc = await db.execute(
+            select(sa_func.count(sa_func.distinct(TestResult.test_name))).where(
+                TestResult.project_id == project_id,
+                TestResult.quarantined.is_(True),
+            )
+        )
+        quarantined_count = qc.scalar_one()
 
     violations: list[dict[str, Any]] = []
     warnings: list[dict[str, Any]] = []
 
     for metric_name, gate_cfg in effective_gates.items():
-        value = getattr(snapshot, metric_name, None)
+        value = snapshot_values.get(metric_name)
         if value is None:
             continue
 
@@ -345,6 +386,8 @@ async def evaluate_quality_gates(
         "gates_evaluated": len(effective_gates),
         "violations": violations,
         "warnings": warnings,
+        "quarantined_excluded": exclude_quarantined,
+        "quarantined_count": quarantined_count,
     }
 
 

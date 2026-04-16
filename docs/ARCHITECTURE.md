@@ -73,12 +73,12 @@ ForgeMind is an **operator-centered AI execution platform** that dynamically ass
 
 ### Testing
 
-| Component   | Technology                   | Purpose                                 |
-| ----------- | ---------------------------- | --------------------------------------- |
-| Framework   | pytest (>=8.0.0)             | Test runner                             |
-| Async       | pytest-asyncio               | Async test support                      |
-| HTTP Client | httpx (AsyncClient)          | API integration tests                   |
-| Test DB     | aiosqlite (in-memory SQLite) | Fast isolated test database             |
+| Component   | Technology                   | Purpose                          |
+| ----------- | ---------------------------- | -------------------------------- |
+| Framework   | pytest (>=8.0.0)             | Test runner                      |
+| Async       | pytest-asyncio               | Async test support               |
+| HTTP Client | httpx (AsyncClient)          | API integration tests            |
+| Test DB     | aiosqlite (in-memory SQLite) | Fast isolated test database      |
 | Total Tests | **1157** (all passing)       | Backend + Local (through FM-180) |
 
 ---
@@ -941,18 +941,18 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 > run annotations, task assignment, approval delegation, notification center,
 > project overview. 10/10 complete (Passes 1–7 closed all gaps).
 
-| ID     | Feature                          | Status                       |
-| ------ | -------------------------------- | ---------------------------- |
-| FM-141 | Threaded Comments                | ✅ Complete                  |
-| FM-142 | @Mentions & Notification Routing | ✅ Complete                  |
-| FM-143 | Unified Activity Feed            | ✅ Complete                  |
-| FM-144 | Saved Views & Filters            | ✅ Complete                  |
-| FM-145 | User Presence & Online Status    | ✅ Complete                  |
-| FM-146 | Collaborative Run Annotations    | ✅ Complete                  |
-| FM-147 | Task Assignment & Workload       | ✅ Complete                  |
-| FM-148 | Approval Delegation & Batch      | ✅ Complete                  |
-| FM-149 | Notification Digest & Center     | ✅ Complete                  |
-| FM-150 | Project Overview Dashboard       | ✅ Complete                  |
+| ID     | Feature                          | Status      |
+| ------ | -------------------------------- | ----------- |
+| FM-141 | Threaded Comments                | ✅ Complete |
+| FM-142 | @Mentions & Notification Routing | ✅ Complete |
+| FM-143 | Unified Activity Feed            | ✅ Complete |
+| FM-144 | Saved Views & Filters            | ✅ Complete |
+| FM-145 | User Presence & Online Status    | ✅ Complete |
+| FM-146 | Collaborative Run Annotations    | ✅ Complete |
+| FM-147 | Task Assignment & Workload       | ✅ Complete |
+| FM-148 | Approval Delegation & Batch      | ✅ Complete |
+| FM-149 | Notification Digest & Center     | ✅ Complete |
+| FM-150 | Project Overview Dashboard       | ✅ Complete |
 
 ---
 
@@ -983,18 +983,18 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 > recommendations, run comparison, cross-project discovery. 10/10 complete.
 > FM-162 upgraded with real embedding vectors (litellm), cosine similarity, hybrid ranking.
 
-| ID     | Feature                                     | Status                                        |
-| ------ | ------------------------------------------- | --------------------------------------------- |
-| FM-161 | Full-Text Search Index                      | ✅ Complete (LIKE-based)                      |
+| ID     | Feature                                     | Status                                                              |
+| ------ | ------------------------------------------- | ------------------------------------------------------------------- |
+| FM-161 | Full-Text Search Index                      | ✅ Complete (LIKE-based)                                            |
 | FM-162 | Semantic Search with Embeddings             | ✅ Complete (litellm embeddings, cosine similarity, hybrid ranking) |
-| FM-163 | Knowledge Base — Decision & Pattern Library | ✅ Complete                                   |
-| FM-164 | Project Templates V2                        | ✅ Complete                                   |
-| FM-165 | Cross-Project Search & Discovery            | ✅ Complete                                   |
-| FM-166 | Execution Replay & Comparison               | ✅ Complete                                   |
-| FM-167 | Organizational Context & Conventions Engine | ✅ Complete                                   |
-| FM-168 | Artifact Versioning & History               | ✅ Complete                                   |
-| FM-169 | Smart Recommendations Engine                | ✅ Complete                                   |
-| FM-170 | Knowledge & Search Tests & Hardening        | ✅ Complete (45 tests)                        |
+| FM-163 | Knowledge Base — Decision & Pattern Library | ✅ Complete                                                         |
+| FM-164 | Project Templates V2                        | ✅ Complete                                                         |
+| FM-165 | Cross-Project Search & Discovery            | ✅ Complete                                                         |
+| FM-166 | Execution Replay & Comparison               | ✅ Complete                                                         |
+| FM-167 | Organizational Context & Conventions Engine | ✅ Complete                                                         |
+| FM-168 | Artifact Versioning & History               | ✅ Complete                                                         |
+| FM-169 | Smart Recommendations Engine                | ✅ Complete                                                         |
+| FM-170 | Knowledge & Search Tests & Hardening        | ✅ Complete (45 tests)                                              |
 
 ### Wave 13 — Enterprise Governance, Permissions & Compliance (FM-171 → FM-180) (✅ COMPLETE)
 
@@ -1003,18 +1003,18 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 > SSO configuration, secret resolution & rotation lifecycle.
 > 10/10 complete (Passes 1–7 closed all gaps).
 
-| ID     | Feature                                    | Status                                     |
-| ------ | ------------------------------------------ | ------------------------------------------ |
-| FM-171 | Workspace Governance Metadata              | ✅ Complete                                |
-| FM-172 | RBAC V2 — Role Introspection               | ✅ Complete                                |
-| FM-173 | Comprehensive Audit Log                    | ✅ Complete                                |
-| FM-174 | Policy Engine — Automated Rule Enforcement | ✅ Complete                                |
-| FM-175 | SSO Configuration Model                    | ✅ Complete                                |
-| FM-176 | Data Retention & Lifecycle Policies        | ✅ Complete                                |
-| FM-177 | Compliance Reporting & Export              | ✅ Complete (5 report types, JSON/CSV)     |
-| FM-178 | IP Allowlisting & Access Controls          | ✅ Complete (middleware wired, IPv4/IPv6)  |
-| FM-179 | Secrets Resolution & Lifecycle             | ✅ Complete                                |
-| FM-180 | Enterprise Governance Tests & Hardening    | ✅ Complete (70+ tests, docs corrected)    |
+| ID     | Feature                                    | Status                                    |
+| ------ | ------------------------------------------ | ----------------------------------------- |
+| FM-171 | Workspace Governance Metadata              | ✅ Complete                               |
+| FM-172 | RBAC V2 — Role Introspection               | ✅ Complete                               |
+| FM-173 | Comprehensive Audit Log                    | ✅ Complete                               |
+| FM-174 | Policy Engine — Automated Rule Enforcement | ✅ Complete                               |
+| FM-175 | SSO Configuration Model                    | ✅ Complete                               |
+| FM-176 | Data Retention & Lifecycle Policies        | ✅ Complete                               |
+| FM-177 | Compliance Reporting & Export              | ✅ Complete (5 report types, JSON/CSV)    |
+| FM-178 | IP Allowlisting & Access Controls          | ✅ Complete (middleware wired, IPv4/IPv6) |
+| FM-179 | Secrets Resolution & Lifecycle             | ✅ Complete                               |
+| FM-180 | Enterprise Governance Tests & Hardening    | ✅ Complete (70+ tests, docs corrected)   |
 
 **New models:** AuditLog, GovernancePolicyEvaluation, ComplianceReport, IpAllowlistEntry, RetentionPolicy, SSOConfiguration
 **New services:** audit_log_service, governance_engine_service, compliance_report_service, ip_allowlist_service, retention_policy_service, sso_configuration_service

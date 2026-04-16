@@ -370,14 +370,22 @@ async def get_complexity_hotspots(
     metric_type: MetricType = MetricType.CYCLOMATIC,
     exceeds_only: bool = True,
     limit: int = 20,
+    since_days: int | None = None,
 ) -> list[ComplexityMetric]:
-    """Get functions/files with highest complexity."""
+    """Get functions/files with highest complexity.
+
+    FM-188: Optional since_days filter for trend tracking across snapshots.
+    """
     query = select(ComplexityMetric).where(
         ComplexityMetric.project_id == project_id,
         ComplexityMetric.metric_type == metric_type,
     )
     if exceeds_only:
         query = query.where(ComplexityMetric.exceeds_threshold.is_(True))
+    if since_days is not None:
+        from datetime import datetime, timedelta, timezone
+        cutoff = datetime.now(timezone.utc) - timedelta(days=since_days)
+        query = query.where(ComplexityMetric.snapshot_date >= cutoff)
 
     result = await db.execute(
         query.order_by(ComplexityMetric.value.desc()).limit(limit)

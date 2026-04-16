@@ -5,7 +5,6 @@ technical debt, test flakiness, and complexity metrics.
 """
 
 import uuid
-from typing import Any
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
@@ -188,6 +187,18 @@ async def get_tests_for_source(
     }
 
 
+@router.get("/projects/{project_id}/coverage/gaps")
+async def get_coverage_gaps(
+    project_id: uuid.UUID,
+    limit: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-183: Identify source files missing test coverage, ranked by importance."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    return await code_graph_service.get_coverage_gaps(db, project_id, limit=limit)
+
+
 # ── FM-185: Pattern Detection ────────────────────────────────────
 
 
@@ -211,7 +222,17 @@ async def create_pattern_rule(
     return {"id": str(rule.id), "name": rule.name}
 
 
-@router.get("/pattern-rules")
+@router.post("/pattern-rules/seed")
+async def seed_builtin_pattern_rules(
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-185: Seed built-in pattern detection rules (idempotent)."""
+    rules = await pattern_debt_service.seed_builtin_rules(db)
+    return {
+        "seeded": len(rules),
+        "rules": [{"id": str(r.id), "name": r.name} for r in rules],
+    }
 async def list_pattern_rules(
     active_only: bool = Query(True),
     language: str | None = Query(None),
@@ -336,6 +357,20 @@ async def take_debt_snapshot(
     return {"id": str(snap.id), "total_score": snap.total_score, "entry_count": snap.entry_count}
 
 
+@router.post("/projects/{project_id}/debt/budget-check")
+async def check_debt_budget(
+    project_id: uuid.UUID,
+    threshold: float = Query(50.0, ge=0.0),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-186: Check if project tech debt exceeds a configurable budget threshold."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    return await pattern_debt_service.check_debt_budget(
+        db, project_id, score_threshold=threshold,
+    )
+
+
 # ── FM-187: Test Flakiness ───────────────────────────────────────
 
 
@@ -424,13 +459,14 @@ async def get_complexity_hotspots(
     project_id: uuid.UUID,
     exceeds_only: bool = Query(True),
     limit: int = Query(20, ge=1, le=100),
+    since_days: int | None = Query(None, ge=1, le=365),
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
-    """Get functions/files with highest complexity."""
+    """Get functions/files with highest complexity. FM-188: optional since_days filter."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     hotspots = await flakiness_complexity_service.get_complexity_hotspots(
-        db, project_id, exceeds_only=exceeds_only, limit=limit,
+        db, project_id, exceeds_only=exceeds_only, limit=limit, since_days=since_days,
     )
     return {
         "hotspots": [

@@ -1024,3 +1024,172 @@ class TestRateLimitHeaders:
         from app.services.api_key_service import require_rate_limit
         dep = require_rate_limit(max_requests=50)
         assert callable(dep)
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-191 Enhancement: Time-Window Filtering (since_days)
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestTimeWindowFiltering:
+    @pytest.mark.asyncio
+    async def test_get_execution_metrics_with_since_days(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """since_days filters metrics to recent window."""
+        await execution_health_service.record_execution_metric(
+            db_session, project_id=sample_project.id,
+            metric_type=ExecutionMetricType.EXECUTION_TIME, value_ms=1000,
+        )
+        await db_session.commit()
+
+        items, total = await execution_health_service.get_execution_metrics(
+            db_session, sample_project.id, since_days=7,
+        )
+        assert total >= 1  # Just recorded within 7 days
+
+    @pytest.mark.asyncio
+    async def test_get_execution_metrics_since_days_zero_result(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """since_days=0 should still work (returns nothing or recent)."""
+        items, total = await execution_health_service.get_execution_metrics(
+            db_session, sample_project.id, since_days=1,
+        )
+        # No metrics recorded → 0
+        assert total == 0
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-193: Budget Enforcement Wiring
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestBudgetEnforcement:
+    @pytest.mark.asyncio
+    async def test_check_budget_no_config(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """No budget config → returns a result (may indicate no budget set)."""
+        result = await execution_health_service.check_budget(db_session, sample_project.id)
+        # check_budget may return status or raise; validate shape
+        assert isinstance(result, dict)
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-195 Enhancement: Quality Gates with Quarantine Exclusion
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestQualityGatesQuarantine:
+    @pytest.mark.asyncio
+    async def test_quality_gates_with_quarantine_flag(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """evaluate_quality_gates returns quarantined_excluded field."""
+        result = await velocity_quality_service.evaluate_quality_gates(
+            db_session, sample_project.id, exclude_quarantined=True,
+        )
+        assert "quarantined_excluded" in result
+        assert result["quarantined_excluded"] is True
+
+    @pytest.mark.asyncio
+    async def test_quality_gates_without_quarantine_exclusion(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """exclude_quarantined=False still works."""
+        result = await velocity_quality_service.evaluate_quality_gates(
+            db_session, sample_project.id, exclude_quarantined=False,
+        )
+        assert result["quarantined_excluded"] is False
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-196: Portfolio Sort/Filter Forwarding
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestPortfolioSortFilter:
+    @pytest.mark.asyncio
+    async def test_portfolio_with_sort(self, db_session: AsyncSession, sample_project):
+        """get_portfolio_summary accepts sort_by and sort_order."""
+        result = await velocity_quality_service.get_portfolio_summary(
+            db_session, [sample_project.id], sort_by="health", sort_order="asc",
+        )
+        assert "projects" in result
+
+    @pytest.mark.asyncio
+    async def test_portfolio_with_filter(self, db_session: AsyncSession, sample_project):
+        """get_portfolio_summary accepts filter_min_runs."""
+        result = await velocity_quality_service.get_portfolio_summary(
+            db_session, [sample_project.id], filter_min_runs=0,
+        )
+        assert "projects" in result
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-197: Widget Data Resolution
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestWidgetDataResolution:
+    @pytest.mark.asyncio
+    async def test_resolve_widget_velocity(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """resolve_widget_data returns velocity data."""
+        result = await dashboard_alert_service.resolve_widget_data(
+            db_session, sample_project.id, "velocity",
+        )
+        assert result["widget_type"] == "velocity"  
+        assert "data" in result
+
+    @pytest.mark.asyncio
+    async def test_resolve_widget_unknown_type(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """Unknown widget type → 400 error."""
+        from fastapi import HTTPException
+        with pytest.raises(HTTPException) as exc_info:
+            await dashboard_alert_service.resolve_widget_data(
+                db_session, sample_project.id, "nonexistent_widget",
+            )
+        assert exc_info.value.status_code == 400
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-199: Executive Summary Artifact Storage
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestSummaryArtifacts:
+    @pytest.mark.asyncio
+    async def test_save_executive_summary_artifact(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """save_executive_summary stores a versioned artifact."""
+        artifact = await dashboard_alert_service.save_executive_summary(
+            db_session, sample_project.id
+        )
+        assert artifact["version"] == 1
+        assert "summary" in artifact
+        assert "stored_at" in artifact
+
+    @pytest.mark.asyncio
+    async def test_save_multiple_artifacts(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """Multiple saves produce incrementing versions."""
+        a1 = await dashboard_alert_service.save_executive_summary(
+            db_session, sample_project.id
+        )
+        a2 = await dashboard_alert_service.save_executive_summary(
+            db_session, sample_project.id
+        )
+        assert a2["version"] > a1["version"]
+
+    def test_get_summary_artifacts_empty(self):
+        """No stored artifacts → empty list."""
+        import uuid as _uuid
+        result = dashboard_alert_service.get_summary_artifacts(_uuid.uuid4())
+        assert result == []

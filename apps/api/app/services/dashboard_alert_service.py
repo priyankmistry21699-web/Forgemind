@@ -369,3 +369,99 @@ async def generate_executive_summary(
         "execution_metrics": exec_summary.get("metrics", []),
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
+
+
+# ── FM-199: Executive Summary Artifact Storage ───────────────────
+
+# In-memory store for versioned summaries (production: persist to DB table)
+_summary_artifacts: dict[str, list[dict[str, Any]]] = {}
+
+
+async def save_executive_summary(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+) -> dict[str, Any]:
+    """Generate and store a versioned executive summary artifact."""
+    summary = await generate_executive_summary(db, project_id)
+    key = str(project_id)
+    if key not in _summary_artifacts:
+        _summary_artifacts[key] = []
+    version = len(_summary_artifacts[key]) + 1
+    artifact = {
+        "version": version,
+        "summary": summary,
+        "stored_at": datetime.now(timezone.utc).isoformat(),
+    }
+    _summary_artifacts[key].append(artifact)
+    return artifact
+
+
+def get_summary_artifacts(project_id: uuid.UUID) -> list[dict[str, Any]]:
+    """Retrieve stored executive summary artifacts for a project."""
+    return _summary_artifacts.get(str(project_id), [])
+
+
+# ── FM-197: Widget Data Resolution ───────────────────────────────
+
+WIDGET_DATA_SOURCES = {
+    "health_score": "execution_health_service.get_latest_health",
+    "velocity": "velocity_quality_service.compute_velocity",
+    "quality": "velocity_quality_service.get_latest_quality",
+    "execution_metrics": "execution_health_service.get_execution_metrics_summary",
+    "debt_summary": "pattern_debt_service.get_debt_summary",
+    "complexity_summary": "flakiness_complexity_service.get_complexity_summary",
+    "flakiness_summary": "flakiness_complexity_service.get_test_flakiness_summary",
+}
+
+
+async def resolve_widget_data(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+    widget_type: str,
+) -> dict[str, Any]:
+    """FM-197: Resolve a widget data source and return real metric data.
+
+    widget_type must be one of the known WIDGET_DATA_SOURCES keys.
+    """
+    if widget_type not in WIDGET_DATA_SOURCES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unknown widget type: {widget_type}. "
+                   f"Valid: {', '.join(sorted(WIDGET_DATA_SOURCES))}",
+        )
+
+    from app.services import execution_health_service as ehs
+    from app.services import velocity_quality_service as vqs
+    from app.services import pattern_debt_service as pds
+    from app.services import flakiness_complexity_service as fcs
+
+    resolvers = {
+        "health_score": lambda: ehs.get_latest_health(db, project_id),
+        "velocity": lambda: vqs.compute_velocity(db, project_id),
+        "quality": lambda: vqs.get_latest_quality(db, project_id),
+        "execution_metrics": lambda: ehs.get_execution_metrics_summary(db, project_id),
+        "debt_summary": lambda: pds.get_debt_summary(db, project_id),
+        "complexity_summary": lambda: fcs.get_complexity_summary(db, project_id),
+        "flakiness_summary": lambda: fcs.get_test_flakiness_summary(db, project_id),
+    }
+
+    result = await resolvers[widget_type]()
+
+    # Normalize ORM objects to dicts
+    if result is None:
+        return {"widget_type": widget_type, "data": None}
+    if hasattr(result, "__dict__"):
+        data = {
+            k: v for k, v in result.__dict__.items()
+            if not k.startswith("_")
+        }
+        # Serialize UUIDs and enums
+        for k, v in data.items():
+            if hasattr(v, "value"):
+                data[k] = v.value
+            elif isinstance(v, uuid.UUID):
+                data[k] = str(v)
+    else:
+        data = result
+
+    return {"widget_type": widget_type, "project_id": str(project_id), "data": data}

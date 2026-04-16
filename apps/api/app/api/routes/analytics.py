@@ -5,7 +5,6 @@ portfolio, dashboards, alerts, scheduled reports, executive summaries.
 """
 
 import uuid
-from typing import Any
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
@@ -50,6 +49,9 @@ class QualitySnapshotRequest(BaseModel):
 
 class PortfolioRequest(BaseModel):
     project_ids: list[uuid.UUID]
+    sort_by: str | None = None
+    sort_order: str = "desc"
+    filter_min_runs: int | None = None
 
 
 class DashboardCreateRequest(BaseModel):
@@ -111,19 +113,21 @@ async def get_execution_metrics(
     project_id: uuid.UUID,
     metric_type: str | None = Query(None),
     run_id: uuid.UUID | None = Query(None),
+    since_days: int | None = Query(None, ge=1, le=365),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
-    """List execution metrics with optional filters."""
+    """List execution metrics with optional filters. FM-191: since_days time-window."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     mt = None
     if metric_type:
         from app.models.analytics_metrics import ExecutionMetricType
         mt = ExecutionMetricType(metric_type)
     items, total = await execution_health_service.get_execution_metrics(
-        db, project_id, metric_type=mt, run_id=run_id, limit=limit, offset=offset,
+        db, project_id, metric_type=mt, run_id=run_id,
+        since_days=since_days, limit=limit, offset=offset,
     )
     return {
         "total": total,
@@ -267,6 +271,17 @@ async def get_budget(
     }
 
 
+@router.post("/projects/{project_id}/budget/check")
+async def check_budget(
+    project_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-193: Check budget against current spend, enforce if configured."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    return await execution_health_service.check_budget(db, project_id)
+
+
 # ── FM-194: Velocity ─────────────────────────────────────────────
 
 
@@ -280,6 +295,33 @@ async def get_velocity(
     """Get velocity metrics for a project."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     return await velocity_quality_service.compute_velocity(db, project_id, days=days)
+
+
+@router.get("/projects/{project_id}/velocity/approval")
+async def get_approval_velocity(
+    project_id: uuid.UUID,
+    days: int = Query(30, ge=1, le=365),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-194: Get approval pipeline velocity metrics."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    return await velocity_quality_service.compute_approval_velocity(db, project_id, days=days)
+
+
+@router.get("/projects/{project_id}/velocity/comparison")
+async def get_velocity_comparison(
+    project_id: uuid.UUID,
+    days: int = Query(30, ge=1, le=365),
+    compare_days: int = Query(30, ge=1, le=365),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-194: Compare velocity between current and previous period."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    return await velocity_quality_service.compute_velocity_comparison(
+        db, project_id, days=days, compare_days=compare_days,
+    )
 
 
 # ── FM-195: Quality Metrics ──────────────────────────────────────
@@ -335,6 +377,20 @@ async def get_quality_trend(
     return await velocity_quality_service.get_quality_trend(db, project_id, limit=limit)
 
 
+@router.post("/projects/{project_id}/quality/gates")
+async def evaluate_quality_gates(
+    project_id: uuid.UUID,
+    exclude_quarantined: bool = Query(True),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-195: Evaluate quality gates against latest snapshot. FM-187: excludes quarantined tests."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    return await velocity_quality_service.evaluate_quality_gates(
+        db, project_id, exclude_quarantined=exclude_quarantined,
+    )
+
+
 # ── FM-196: Portfolio ────────────────────────────────────────────
 
 
@@ -345,7 +401,11 @@ async def get_portfolio(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Get aggregate analytics across multiple projects."""
-    return await velocity_quality_service.get_portfolio_summary(db, data.project_ids)
+    return await velocity_quality_service.get_portfolio_summary(
+        db, data.project_ids,
+        sort_by=data.sort_by, sort_order=data.sort_order,
+        filter_min_runs=data.filter_min_runs,
+    )
 
 
 # ── FM-197: Dashboards ───────────────────────────────────────────
@@ -427,7 +487,17 @@ async def delete_dashboard(
     return {"deleted": True}
 
 
-# ── FM-198: Scheduled Reports & Alerts ───────────────────────────
+@router.get("/dashboards/{dashboard_id}/widgets/{widget_type}")
+async def get_widget_data(
+    dashboard_id: uuid.UUID,
+    widget_type: str,
+    project_id: uuid.UUID = Query(...),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-197: Resolve live data for a dashboard widget."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    return await dashboard_alert_service.resolve_widget_data(db, project_id, widget_type)
 
 
 @router.post("/scheduled-reports")
@@ -503,6 +573,54 @@ async def list_alerts(
     }
 
 
+@router.post("/alerts/{alert_id}/evaluate")
+async def evaluate_alert(
+    alert_id: uuid.UUID,
+    current_value: float = Query(...),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-198: Evaluate an alert against the given metric value."""
+    return await dashboard_alert_service.evaluate_alert(db, alert_id, current_value)
+
+
+@router.post("/alerts/{alert_id}/trigger")
+async def trigger_alert(
+    alert_id: uuid.UUID,
+    current_value: float = Query(...),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-198: Manually trigger an alert."""
+    return await dashboard_alert_service.trigger_alert(db, alert_id, current_value)
+
+
+@router.get("/alerts/{alert_id}/history")
+async def get_alert_history(
+    alert_id: uuid.UUID,
+    limit: int = Query(50, ge=1, le=200),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-198: Get alert trigger history."""
+    return await dashboard_alert_service.get_alert_history(db, alert_id, limit=limit)
+
+
+@router.put("/scheduled-reports/{report_id}")
+async def update_scheduled_report(
+    report_id: uuid.UUID,
+    data: ScheduledReportRequest,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-198: Update a scheduled report."""
+    return await dashboard_alert_service.update_scheduled_report(
+        db, report_id,
+        name=data.name, metrics=data.metrics,
+        schedule_cron=data.schedule_cron, recipients=data.recipients,
+    )
+
+
 # ── FM-199: Executive Summary ────────────────────────────────────
 
 
@@ -515,3 +633,23 @@ async def get_executive_summary(
     """Generate a comprehensive executive summary for a project."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     return await dashboard_alert_service.generate_executive_summary(db, project_id)
+
+
+@router.post("/projects/{project_id}/executive-summary/store")
+async def store_executive_summary(
+    project_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-199: Generate and store a versioned executive summary artifact."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_EDIT)
+    return await dashboard_alert_service.save_executive_summary(db, project_id)
+
+
+@router.get("/projects/{project_id}/executive-summary/artifacts")
+async def get_summary_artifacts(
+    project_id: uuid.UUID,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-199: List stored executive summary artifacts."""
+    return {"items": dashboard_alert_service.get_summary_artifacts(project_id)}

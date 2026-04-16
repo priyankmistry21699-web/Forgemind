@@ -815,7 +815,7 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 | FM-193 | Cost Tracking & Budget Management            | 🔶 Partial — check_budget() enforces BLOCK (403)/WARN/LOG per BudgetConfig threshold; no LLM call auto-recording                               |
 | FM-194 | Team Velocity & Throughput Metrics           | 🔶 Partial — compute_approval_velocity() + compute_velocity_comparison() with % change; throughput works                                       |
 | FM-195 | Quality Metrics Dashboard                    | 🔶 Partial — evaluate_quality_gates() with configurable thresholds + violations/warnings; snapshot + trend work                                |
-| FM-196 | Portfolio Overview — Multi-Project Dashboard | 🔶 Partial — Service-layer sort/filter for 4 dims added but route does not forward params; N+1 not yet optimized                                 |
+| FM-196 | Portfolio Overview — Multi-Project Dashboard | 🔶 Partial — Service-layer sort/filter for 4 dims added but route does not forward params; N+1 not yet optimized                               |
 | FM-197 | Custom Dashboards & Widgets                  | 🔶 Partial — Dashboard CRUD complete; no widget rendering or data source resolution                                                            |
 | FM-198 | Scheduled Reports & Alerts                   | 🔶 Partial — Alerts with cooldown enforcement + trigger history; no scheduled report execution engine                                          |
 | FM-199 | Executive Summary Generator                  | 🔶 Partial — Aggregates health/velocity/quality/execution; no NLP generation; no artifact storage                                              |
@@ -830,18 +830,18 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 > API key management, rate limiting, webhooks, external integrations, connector registry.
 > 0/10 COMPLETE — 5 PARTIAL / 5 DEFERRED. 26 tests.
 
-| FM     | Feature                                       | Status                                                                                                |
-| ------ | --------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| FM-201 | Public API v1 — Core Endpoints                | 🔶 Partial — API key gen/validate/revoke + scope enforcement; no /api/v1/ routing; no OpenAPI spec    |
-| FM-202 | API Rate Limiting & Throttling                | 🔶 Partial — require_rate_limit() dependency exists but not applied to any route; no per-tier limits  |
-| FM-203 | Webhook Subscription System                   | 🔶 Partial — HTTP dispatch via httpx + HMAC signing + delivery tracking + fire_event; retry works     |
-| FM-204 | Slack Integration                             | ⏳ Deferred — external integration                                                                    |
-| FM-205 | Jira Integration                              | ⏳ Deferred — external integration                                                                    |
-| FM-206 | PagerDuty & Incident Integration              | ⏳ Deferred — external integration                                                                    |
-| FM-207 | Email Notification Channel                    | ⏳ Deferred — external integration                                                                    |
-| FM-208 | Integration Marketplace & Custom Connectors   | 🔶 Partial — Registry CRUD works; no abstract Connector interface/ABC                                 |
-| FM-209 | API SDK & Client Libraries                    | ⏳ Deferred — requires stable API surface                                                             |
-| FM-210 | Ecosystem Integration Tests, Docs & Hardening | 🔶 Partial — 26 tests (target 45+); no e2e scenario; no docs                                          |
+| FM     | Feature                                       | Status                                                                                               |
+| ------ | --------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| FM-201 | Public API v1 — Core Endpoints                | 🔶 Partial — API key gen/validate/revoke + scope enforcement; no /api/v1/ routing; no OpenAPI spec   |
+| FM-202 | API Rate Limiting & Throttling                | 🔶 Partial — require_rate_limit() dependency exists but not applied to any route; no per-tier limits |
+| FM-203 | Webhook Subscription System                   | 🔶 Partial — HTTP dispatch via httpx + HMAC signing + delivery tracking + fire_event; retry works    |
+| FM-204 | Slack Integration                             | ⏳ Deferred — external integration                                                                   |
+| FM-205 | Jira Integration                              | ⏳ Deferred — external integration                                                                   |
+| FM-206 | PagerDuty & Incident Integration              | ⏳ Deferred — external integration                                                                   |
+| FM-207 | Email Notification Channel                    | ⏳ Deferred — external integration                                                                   |
+| FM-208 | Integration Marketplace & Custom Connectors   | 🔶 Partial — Registry CRUD works; no abstract Connector interface/ABC                                |
+| FM-209 | API SDK & Client Libraries                    | ⏳ Deferred — requires stable API surface                                                            |
+| FM-210 | Ecosystem Integration Tests, Docs & Hardening | 🔶 Partial — 26 tests (target 45+); no e2e scenario; no docs                                         |
 
 **Wave 16 summary:** 0 COMPLETE / 5 PARTIAL / 5 DEFERRED. Key infrastructure (keys, rate limiter, webhook records) built; require_rate_limit() exists but is not applied to any route yet. Remaining gaps: route integration for rate-limit headers, per-tier limits, /api/v1/ routing, connector ABC.
 

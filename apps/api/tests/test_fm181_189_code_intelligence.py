@@ -777,3 +777,211 @@ class TestAllDebtScan:
         assert DebtType.COMMENT in types   # TODO marker
         assert DebtType.AGE in types        # Old file
         assert DebtType.COMPLEXITY in types  # Complex function
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-181 Enhancement: Incremental Scan (Hash-based skip)
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestIncrementalScan:
+    @pytest.mark.asyncio
+    async def test_scan_skip_unchanged_file(self, db_session: AsyncSession, sample_project):
+        """Second scan of identical source should reuse cached result."""
+        source = "import os\nimport json\n"
+        deps1 = await code_graph_service.scan_file_dependencies(
+            db_session, project_id=sample_project.id,
+            file_path="app/cached.py", source_code=source,
+        )
+        await db_session.commit()
+
+        # Same file, same content — should skip scan
+        deps2 = await code_graph_service.scan_file_dependencies(
+            db_session, project_id=sample_project.id,
+            file_path="app/cached.py", source_code=source,
+        )
+        # Returns existing deps (fast path)
+        assert len(deps2) == len(deps1)
+
+    @pytest.mark.asyncio
+    async def test_scan_force_rescan(self, db_session: AsyncSession, sample_project):
+        """force=True bypasses content hash cache."""
+        source = "import os\n"
+        await code_graph_service.scan_file_dependencies(
+            db_session, project_id=sample_project.id,
+            file_path="app/force.py", source_code=source,
+        )
+        await db_session.commit()
+
+        deps = await code_graph_service.scan_file_dependencies(
+            db_session, project_id=sample_project.id,
+            file_path="app/force.py", source_code=source, force=True,
+        )
+        await db_session.commit()
+        assert len(deps) >= 1
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-182 Enhancement: Risk Score + Test-file Identification
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestImpactAnalysisEnhanced:
+    @pytest.mark.asyncio
+    async def test_analyze_impact_returns_risk_score(self, db_session: AsyncSession, sample_project):
+        """analyze_impact should include risk_score, risk_level, affected_tests."""
+        await code_graph_service.record_dependency(
+            db_session,
+            project_id=sample_project.id,
+            source_file="app/core.py",
+            target_file="app/utils.py",
+            dependency_type=DependencyType.IMPORT,
+        )
+        await db_session.commit()
+
+        result = await code_graph_service.analyze_impact(
+            db_session, sample_project.id, ["app/utils.py"],
+        )
+        assert "risk_score" in result
+        assert "risk_level" in result
+        assert result["risk_level"] in ("low", "medium", "high")
+        assert "affected_tests" in result
+        assert "affected_sources" in result
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-183 Enhancement: Coverage Gap Detection
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestCoverageGaps:
+    @pytest.mark.asyncio
+    async def test_get_coverage_gaps(self, db_session: AsyncSession, sample_project):
+        """get_coverage_gaps returns source files with no coverage mapping."""
+        # Record deps but no coverage for one file
+        await code_graph_service.record_dependency(
+            db_session, project_id=sample_project.id,
+            source_file="app/main.py", target_file="app/uncovered.py",
+            dependency_type=DependencyType.IMPORT,
+        )
+        await db_session.commit()
+
+        gaps = await code_graph_service.get_coverage_gaps(db_session, sample_project.id)
+        assert isinstance(gaps, dict)
+        assert "uncovered_files" in gaps
+
+    @pytest.mark.asyncio
+    async def test_coverage_gaps_with_covered_file(self, db_session: AsyncSession, sample_project):
+        """Files that have coverage mappings should not appear in gaps."""
+        await code_graph_service.record_dependency(
+            db_session, project_id=sample_project.id,
+            source_file="app/a.py", target_file="app/b.py",
+            dependency_type=DependencyType.IMPORT,
+        )
+        await code_graph_service.record_coverage(
+            db_session, project_id=sample_project.id,
+            source_file="app/a.py", test_file="tests/test_a.py", coverage_pct=80.0,
+        )
+        await code_graph_service.record_coverage(
+            db_session, project_id=sample_project.id,
+            source_file="app/b.py", test_file="tests/test_b.py", coverage_pct=90.0,
+        )
+        await db_session.commit()
+
+        gaps = await code_graph_service.get_coverage_gaps(db_session, sample_project.id)
+        gap_files = [g["file"] for g in gaps.get("gaps", [])]
+        assert "app/a.py" not in gap_files
+        assert "app/b.py" not in gap_files
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-185: Built-in Pattern Rules Seeding
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestBuiltinRules:
+    @pytest.mark.asyncio
+    async def test_seed_builtin_rules(self, db_session: AsyncSession):
+        """seed_builtin_rules creates rule entries on first call."""
+        rules = await pattern_debt_service.seed_builtin_rules(db_session)
+        await db_session.commit()
+        assert len(rules) >= 5  # We have 8 built-in rules
+        names = [r.name for r in rules]
+        assert "bare-except" in names
+        assert "hardcoded-password" in names
+
+    @pytest.mark.asyncio
+    async def test_seed_builtin_rules_idempotent(self, db_session: AsyncSession):
+        """Second call should create 0 new rules."""
+        await pattern_debt_service.seed_builtin_rules(db_session)
+        await db_session.commit()
+
+        rules2 = await pattern_debt_service.seed_builtin_rules(db_session)
+        assert len(rules2) == 0
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-186: Debt Budget Threshold
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestDebtBudget:
+    @pytest.mark.asyncio
+    async def test_check_debt_budget_no_debt(self, db_session: AsyncSession, sample_project):
+        """Empty project → not exceeded."""
+        result = await pattern_debt_service.check_debt_budget(
+            db_session, sample_project.id, score_threshold=50.0,
+        )
+        assert result["exceeded"] is False
+        assert result["severity"] == "ok"
+
+    @pytest.mark.asyncio
+    async def test_check_debt_budget_exceeded(self, db_session: AsyncSession, sample_project):
+        """Create enough debt to exceed threshold."""
+        source = (
+            "# TODO: fix A\n"
+            "# TODO: fix B\n"
+            "# FIXME: urgent\n"
+            "# HACK: terrible\n"
+            "# TODO: fix C\n"
+            "# TODO: fix D\n"
+        ) * 10  # Many markers → high score
+        await pattern_debt_service.scan_file_for_debt(
+            db_session, project_id=sample_project.id,
+            file_path="messy.py", source_code=source,
+        )
+        await db_session.commit()
+
+        result = await pattern_debt_service.check_debt_budget(
+            db_session, sample_project.id, score_threshold=1.0,
+        )
+        assert result["exceeded"] is True
+        assert result["severity"] in ("warning", "critical")
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-188 Enhancement: Complexity Trend Tracking (since_days)
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestComplexityTrend:
+    @pytest.mark.asyncio
+    async def test_get_hotspots_with_since_days(self, db_session: AsyncSession, sample_project):
+        """get_complexity_hotspots accepts since_days parameter."""
+        source = (
+            "def f():\n"
+            "    if True: pass\n"
+            "    if True: pass\n"
+            "    if True: pass\n"
+        )
+        await flakiness_complexity_service.analyze_file_complexity(
+            db_session, project_id=sample_project.id,
+            file_path="trend.py", source_code=source, threshold=1.0,
+        )
+        await db_session.commit()
+
+        hotspots = await flakiness_complexity_service.get_complexity_hotspots(
+            db_session, sample_project.id, since_days=7, exceeds_only=False,
+        )
+        # Recent analysis should appear within 7-day window
+        assert isinstance(hotspots, list)

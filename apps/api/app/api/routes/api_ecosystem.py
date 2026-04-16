@@ -1,6 +1,10 @@
 """API & Ecosystem routes — FM-201 through FM-208.
 
 API key management, rate limiting, webhooks, connector registry.
+FM-201: /api/v1/ versioned prefix.
+FM-202: Per-key rate limiting.
+FM-203: Webhook event firing.
+FM-208: Connector health check.
 """
 
 import uuid
@@ -14,7 +18,7 @@ from app.db.session import get_db
 from app.services import api_key_service
 from app.services import webhook_connector_service
 
-router = APIRouter(prefix="/ecosystem")
+router = APIRouter(prefix="/api/v1/ecosystem")
 
 
 # ── Inline Schemas ───────────────────────────────────────────────
@@ -34,6 +38,11 @@ class WebhookCreateRequest(BaseModel):
     org_id: uuid.UUID | None = None
 
 
+class WebhookFireRequest(BaseModel):
+    event_type: str
+    payload: dict
+
+
 class ConnectorCreateRequest(BaseModel):
     name: str
     connector_type: str = "source"
@@ -50,8 +59,12 @@ async def create_api_key(
     data: APIKeyCreateRequest,
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
+    _rl: None = Depends(api_key_service.require_rate_limit()),
 ):
-    """Create a new API key. The raw key is returned ONLY at creation time."""
+    """Create a new API key. The raw key is returned ONLY at creation time.
+
+    FM-202: Applies per-user rate limiting via require_rate_limit().
+    """
     key, raw_key = await api_key_service.create_api_key(
         db, creator_id=user_id, name=data.name,
         scopes=data.scopes, org_id=data.org_id,
@@ -253,3 +266,37 @@ async def delete_connector(
     """Uninstall a connector."""
     await webhook_connector_service.delete_connector(db, connector_id)
     return {"deleted": True}
+
+
+@router.post("/connectors/{connector_id}/health")
+async def health_check_connector(
+    connector_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-208: Perform a real health probe on a connector."""
+    return await webhook_connector_service.health_check_connector(db, connector_id)
+
+
+# ── FM-203: Webhook Event Firing ─────────────────────────────────
+
+
+@router.post("/webhooks/fire")
+async def fire_webhook_event(
+    data: WebhookFireRequest,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-203: Fire an event to all matching webhook subscriptions."""
+    deliveries = await webhook_connector_service.fire_event(
+        db, event_type=data.event_type, payload=data.payload,
+    )
+    return {
+        "event_type": data.event_type,
+        "deliveries": len(deliveries),
+        "items": [
+            {"id": str(d.id), "status": d.status.value if d.status else None,
+             "status_code": d.status_code}
+            for d in deliveries
+        ],
+    }

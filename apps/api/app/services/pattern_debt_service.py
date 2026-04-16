@@ -504,3 +504,84 @@ async def take_debt_snapshot(
     db.add(snap)
     await db.flush()
     return snap
+
+
+# ── FM-185: Built-in Pattern Rules ───────────────────────────────
+
+BUILTIN_RULES: list[dict[str, str]] = [
+    {"name": "bare-except", "rule_definition": r"except\s*:", "severity": "warning",
+     "description": "Bare except catches all exceptions including SystemExit/KeyboardInterrupt"},
+    {"name": "print-statement", "rule_definition": r"\bprint\s*\(", "severity": "info",
+     "description": "print() in production code; prefer logging"},
+    {"name": "hardcoded-password", "rule_definition": r"(?i)(password|secret|token)\s*=\s*['\"][^'\"]+['\"]",
+     "severity": "critical", "description": "Hardcoded credential in source code"},
+    {"name": "star-import", "rule_definition": r"from\s+\S+\s+import\s+\*", "severity": "warning",
+     "description": "Wildcard import pollutes namespace"},
+    {"name": "todo-without-ticket", "rule_definition": r"#\s*TODO(?!\s*\()", "severity": "info",
+     "description": "TODO comment without a ticket reference"},
+    {"name": "magic-number", "rule_definition": r"(?<!=)\s\b(?:[2-9]\d{2,}|[1-9]\d{3,})\b(?!\s*[=:])",
+     "severity": "info", "description": "Large literal number; consider named constant"},
+    {"name": "mutable-default-arg", "rule_definition": r"def\s+\w+\([^)]*(?:\[\]|\{\})\s*(?:,|\))",
+     "severity": "warning", "description": "Mutable default argument (list/dict)"},
+    {"name": "assert-in-production", "rule_definition": r"^\s*assert\s+", "severity": "warning",
+     "description": "assert statements are stripped with -O; use explicit checks"},
+]
+
+
+async def seed_builtin_rules(
+    db: AsyncSession,
+    *,
+    language: str = "python",
+) -> list[PatternRule]:
+    """Seed built-in pattern detection rules (idempotent).
+
+    Only creates rules whose names don't already exist.
+    """
+    existing_q = await db.execute(select(PatternRule.name))
+    existing_names = set(r[0] for r in existing_q.all())
+
+    created: list[PatternRule] = []
+    for defn in BUILTIN_RULES:
+        if defn["name"] in existing_names:
+            continue
+        rule = PatternRule(
+            name=defn["name"],
+            description=defn.get("description"),
+            pattern_type=PatternType.ANTI_PATTERN,
+            language=language,
+            rule_definition=defn["rule_definition"],
+            severity=PatternSeverity(defn["severity"]),
+        )
+        db.add(rule)
+        created.append(rule)
+
+    if created:
+        await db.flush()
+    return created
+
+
+# ── FM-186: Debt Budget Threshold Warning ────────────────────────
+
+
+async def check_debt_budget(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+    *,
+    score_threshold: float = 50.0,
+) -> dict[str, Any]:
+    """Check if project debt exceeds a configurable budget threshold.
+
+    Returns warning info when total_score >= score_threshold.
+    """
+    summary = await get_debt_summary(db, project_id)
+    total = summary["total_score"]
+    exceeded = total >= score_threshold
+
+    return {
+        "project_id": str(project_id),
+        "total_score": total,
+        "entry_count": summary["entry_count"],
+        "threshold": score_threshold,
+        "exceeded": exceeded,
+        "severity": "critical" if total >= score_threshold * 2 else ("warning" if exceeded else "ok"),
+    }

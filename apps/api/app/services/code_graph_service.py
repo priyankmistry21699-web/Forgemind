@@ -6,6 +6,7 @@ FM-183: Test coverage mapping — link source files to test files.
 """
 
 import ast
+import hashlib
 import logging
 import uuid
 from typing import Any
@@ -18,6 +19,9 @@ from app.models.code_intelligence import (
     DependencyType,
     CoverageMap,
 )
+
+# FM-181: hash cache for incremental scan
+_file_hashes: dict[str, str] = {}
 
 logger = logging.getLogger(__name__)
 
@@ -75,8 +79,20 @@ async def scan_file_dependencies(
     project_id: uuid.UUID,
     file_path: str,
     source_code: str,
+    force: bool = False,
 ) -> list[ModuleDependency]:
-    """Parse imports from a file and record all dependency edges."""
+    """Parse imports from a file and record all dependency edges.
+
+    FM-181 incremental scan: skips re-scanning if source content hash
+    is unchanged since last scan (unless force=True).
+    """
+    content_hash = hashlib.sha256(source_code.encode()).hexdigest()
+    cache_key = f"{project_id}:{file_path}"
+    if not force and _file_hashes.get(cache_key) == content_hash:
+        # Content unchanged — return existing edges
+        return await get_file_dependencies(db, project_id, file_path)
+    _file_hashes[cache_key] = content_hash
+
     # Clear old edges for this source file
     await db.execute(
         delete(ModuleDependency).where(
@@ -205,14 +221,42 @@ async def analyze_impact(
         frontier = [row[0] for row in result.all() if row[0] not in visited]
         depth += 1
 
+    # FM-182: classify affected files as test vs source
+    affected = sorted(visited - set(changed_files))
+    affected_tests = [f for f in affected if _is_test_file(f)]
+    affected_sources = [f for f in affected if not _is_test_file(f)]
+
+    # FM-182: compute risk score based on blast radius
+    total_aff = len(visited) - len(changed_files)
+    depth = len(layers)
+    risk_score = round(min(total_aff * 2.0 + depth * 3.0, 100.0), 2)
+    if risk_score >= 70:
+        risk_level = "high"
+    elif risk_score >= 30:
+        risk_level = "medium"
+    else:
+        risk_level = "low"
+
     return {
         "project_id": str(project_id),
         "changed_files": changed_files,
-        "affected_files": sorted(visited - set(changed_files)),
-        "total_affected": len(visited) - len(changed_files),
-        "depth_reached": len(layers),
+        "affected_files": affected,
+        "affected_tests": affected_tests,
+        "affected_sources": affected_sources,
+        "total_affected": total_aff,
+        "risk_score": risk_score,
+        "risk_level": risk_level,
+        "depth_reached": depth,
         "layers": layers,
     }
+
+
+def _is_test_file(file_path: str) -> bool:
+    """Heuristic: a file is a test file if its basename starts with test_ or ends with _test."""
+    import os
+    base = os.path.basename(file_path)
+    name = os.path.splitext(base)[0]
+    return name.startswith("test_") or name.endswith("_test")
 
 
 # ── FM-183: Test Coverage Mapping ────────────────────────────────
@@ -284,4 +328,59 @@ async def get_coverage_summary(
         "mapping_count": row.mapping_count,
         "covered_files": row.covered_files,
         "avg_coverage": round(float(row.avg_coverage or 0), 2),
+    }
+
+
+async def get_coverage_gaps(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+) -> dict[str, Any]:
+    """FM-183: Detect source files with no test coverage.
+
+    Returns uncovered files ranked by their dependency count (importance).
+    Files that are depended on by many others are listed first.
+    """
+    # All source files in the dependency graph
+    all_sources_q = await db.execute(
+        select(sa_func.distinct(ModuleDependency.source_file)).where(
+            ModuleDependency.project_id == project_id,
+        )
+    )
+    all_targets_q = await db.execute(
+        select(sa_func.distinct(ModuleDependency.target_file)).where(
+            ModuleDependency.project_id == project_id,
+        )
+    )
+    all_files = set(r[0] for r in all_sources_q.all()) | set(r[0] for r in all_targets_q.all())
+
+    # Covered source files
+    covered_q = await db.execute(
+        select(sa_func.distinct(CoverageMap.source_file)).where(
+            CoverageMap.project_id == project_id,
+        )
+    )
+    covered_files = set(r[0] for r in covered_q.all())
+
+    uncovered = all_files - covered_files
+
+    # Rank by incoming dependency count (how many files depend on this one)
+    ranked: list[dict[str, Any]] = []
+    for f in uncovered:
+        dep_count_q = await db.execute(
+            select(sa_func.count(ModuleDependency.id)).where(
+                ModuleDependency.project_id == project_id,
+                ModuleDependency.target_file == f,
+            )
+        )
+        dep_count = dep_count_q.scalar_one()
+        ranked.append({"file": f, "dependent_count": dep_count})
+
+    ranked.sort(key=lambda x: x["dependent_count"], reverse=True)
+
+    return {
+        "project_id": str(project_id),
+        "total_known_files": len(all_files),
+        "covered_files": len(covered_files),
+        "uncovered_files": len(uncovered),
+        "gaps": ranked,
     }

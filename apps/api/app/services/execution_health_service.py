@@ -53,10 +53,14 @@ async def get_execution_metrics(
     *,
     metric_type: ExecutionMetricType | None = None,
     run_id: uuid.UUID | None = None,
+    since_days: int | None = None,
     limit: int = 100,
     offset: int = 0,
 ) -> tuple[list[ExecutionMetric], int]:
-    """List execution metrics with optional filters."""
+    """List execution metrics with optional filters.
+
+    FM-191: since_days provides time-window preset filtering (e.g. 1, 7, 30, 90).
+    """
     query = select(ExecutionMetric).where(
         ExecutionMetric.project_id == project_id
     )
@@ -64,6 +68,9 @@ async def get_execution_metrics(
         query = query.where(ExecutionMetric.metric_type == metric_type)
     if run_id:
         query = query.where(ExecutionMetric.run_id == run_id)
+    if since_days is not None:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=since_days)
+        query = query.where(ExecutionMetric.recorded_at >= cutoff)
 
     total = (
         await db.execute(select(sa_func.count()).select_from(query.subquery()))

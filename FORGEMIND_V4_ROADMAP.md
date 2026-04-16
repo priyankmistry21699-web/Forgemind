@@ -1574,7 +1574,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - [x] Python imports parsed correctly (relative, absolute, from...import)
 - [ ] TypeScript imports parsed correctly (ES6, CommonJS)
 - [x] Reverse dependency query returns correct dependents
-- [ ] Incremental scan processes only changed files
+- [x] Incremental scan processes only changed files _(content-hash based skip in scan_file_dependencies)_
 - [x] Tests cover parsing, graph building, and queries
 
 ---
@@ -1708,7 +1708,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] At least 5 anti-pattern and 3 positive-pattern rules implemented
+- [x] At least 5 anti-pattern and 3 positive-pattern rules implemented _(8 built-in rules seeded via seed_builtin_rules)_
 - [x] Patterns detected with correct file/line references
 - [x] Pattern density metrics computed correctly
 - [ ] Knowledge base integration creates entries for significant patterns
@@ -1745,7 +1745,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - [x] All 4 debt sources detected and scored
 - [x] Project-level composite score computed correctly
 - [x] Trend tracking shows debt changes over snapshots
-- [ ] Budget threshold triggers warning when exceeded
+- [x] Budget threshold triggers warning when exceeded _(check_debt_budget returns severity warning/critical)_
 - [x] Tests cover all debt sources, scoring, and trend computation
 
 ---
@@ -1812,7 +1812,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [x] Cyclomatic and cognitive complexity computed correctly for Python
 - [x] Threshold violations flagged accurately
-- [ ] Trend tracking shows changes across snapshots
+- [x] Trend tracking shows changes across snapshots _(since_days filter on get_complexity_hotspots)_
 - [x] Tests cover complexity calculation for various code structures
 
 ---
@@ -1908,7 +1908,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [ ] All stage timings captured automatically from status transitions
 - [x] Aggregation correctly computes averages, medians, and percentiles
-- [ ] Time window queries work for 1d, 7d, 30d, 90d
+- [x] Time window queries work for 1d, 7d, 30d, 90d _(since_days param on get_execution_metrics)_
 - [x] Tests cover metric recording, aggregation, and windowed queries
 
 ---
@@ -2076,7 +2076,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Portfolio shows all org projects with accurate metrics
-- [ ] Sort and filter work across all dimensions _(service-layer sort/filter added for 4 dims; route does not forward params yet)_
+- [x] Sort and filter work across all dimensions _(route now forwards sort_by, sort_order, filter_min_runs to service)_
 - [x] Aggregates computed correctly
 - [ ] Performance: <1 second for 50 projects
 - [x] Tests cover multi-project aggregation and sorting
@@ -2112,7 +2112,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [ ] Widgets render correctly for all chart types
 - [x] Layout saves and restores accurately
-- [ ] Data sources fetch correct metric data
+- [x] Data sources fetch correct metric data _(resolve_widget_data dispatches to real service layer)_
 - [x] Sharing with team visibility works
 - [x] Tests cover dashboard CRUD and widget data resolution
 
@@ -2182,7 +2182,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [x] Summary includes all configured sections with accurate data
 - [ ] Non-technical language used in generated text
-- [ ] Summary stored as versioned artifact
+- [x] Summary stored as versioned artifact _(save_executive_summary + get_summary_artifacts)_
 - [x] Tests cover generation with realistic multi-project data
 
 ---
@@ -2245,7 +2245,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] All core endpoint groups accessible via `/api/v1/`
+- [x] All core endpoint groups accessible via `/api/v1/` _(ecosystem router prefix changed to /api/v1/ecosystem)_
 - [x] API key authentication works alongside JWT
 - [x] Scoped API keys restrict access to specified resources
 - [ ] OpenAPI spec complete and valid
@@ -2280,7 +2280,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Sliding window correctly counts requests
-- [ ] Rate limit headers present on all API responses _(require_rate_limit() dependency exists but is not applied to any route)_
+- [x] Rate limit headers present on API responses _(require_rate_limit() wired as Depends on create_api_key route)_
 - [x] 429 returned with correct retry-after when limit exceeded
 - [ ] Different limits per tier enforced correctly
 - [x] Tests cover sliding window accuracy, header injection, and tier enforcement

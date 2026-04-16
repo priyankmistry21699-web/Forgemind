@@ -2,15 +2,17 @@
 
 FM-203: Webhook subscription CRUD, HMAC signing, delivery tracking with retry.
         HTTP dispatch with httpx.
-FM-208: Integration connector marketplace registry.
+FM-208: Integration connector marketplace registry with abstract Connector interface.
 """
 
+import abc
 import hashlib
 import hmac
 import json
 import logging
 import uuid
 from datetime import datetime, timezone, timedelta
+from typing import Any
 
 import httpx
 from fastapi import HTTPException, status
@@ -27,6 +29,32 @@ from app.models.api_ecosystem import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+# ── FM-208: Abstract Connector Interface ─────────────────────────
+
+
+class ConnectorABC(abc.ABC):
+    """Abstract base class for integration connectors.
+
+    All concrete connectors (Slack, Jira, PagerDuty, Email, custom)
+    must implement this interface to participate in the connector registry.
+    """
+
+    @abc.abstractmethod
+    async def validate_config(self, config: dict) -> bool:
+        """Validate connector configuration. Returns True if valid."""
+        ...
+
+    @abc.abstractmethod
+    async def health_check(self, config: dict) -> dict:
+        """Perform a health check. Returns status dict."""
+        ...
+
+    @abc.abstractmethod
+    async def send(self, config: dict, event_type: str, payload: dict) -> dict:
+        """Send a payload to the external system. Returns delivery result."""
+        ...
 
 
 # ── FM-203: Webhook Subscriptions ────────────────────────────────
@@ -287,12 +315,14 @@ async def fire_event(
         # Check if subscription is interested in this event
         if event_type not in sub.events and "*" not in sub.events:
             continue
+        # FM-203 fix: pass the stored secret_hash so dispatch can sign payloads.
+        # The raw secret is not stored, but secret_hash is used for HMAC signing.
         delivery = await dispatch_webhook(
             db,
             subscription=sub,
             event_type=event_type,
             payload=payload,
-            secret=None,  # We don't store raw secrets; dispatch uses hash
+            secret=sub.secret_hash,
         )
         deliveries.append(delivery)
     return deliveries
@@ -367,6 +397,56 @@ async def update_connector_status(
     conn.last_health_check = datetime.now(timezone.utc)
     await db.flush()
     return conn
+
+
+async def health_check_connector(
+    db: AsyncSession,
+    connector_id: uuid.UUID,
+    *,
+    timeout: float = 5.0,
+) -> dict[str, Any]:
+    """FM-208: Perform a real health probe against a connector.
+
+    For connectors with a URL in config_json["health_url"], makes an HTTP
+    GET to check availability. Otherwise falls back to timestamp-only check.
+    """
+    conn = await get_connector(db, connector_id)
+    health_url = (conn.config_json or {}).get("health_url")
+
+    probe_result: dict[str, Any] = {
+        "connector_id": str(conn.id),
+        "name": conn.name,
+        "previous_status": conn.status.value if conn.status else None,
+    }
+
+    if health_url:
+        try:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                resp = await client.get(health_url)
+            if 200 <= resp.status_code < 300:
+                new_status = ConnectorStatus.ACTIVE
+                probe_result["probe"] = "http_ok"
+                probe_result["status_code"] = resp.status_code
+            else:
+                new_status = ConnectorStatus.ERROR
+                probe_result["probe"] = "http_error"
+                probe_result["status_code"] = resp.status_code
+        except httpx.RequestError as exc:
+            new_status = ConnectorStatus.ERROR
+            probe_result["probe"] = "http_unreachable"
+            probe_result["error"] = str(exc)
+    else:
+        # No URL configured — consider active if config exists
+        new_status = ConnectorStatus.ACTIVE if conn.config_json else ConnectorStatus.INACTIVE
+        probe_result["probe"] = "config_only"
+
+    conn.status = new_status
+    conn.last_health_check = datetime.now(timezone.utc)
+    await db.flush()
+
+    probe_result["new_status"] = new_status.value
+    probe_result["checked_at"] = conn.last_health_check.isoformat()
+    return probe_result
 
 
 async def delete_connector(

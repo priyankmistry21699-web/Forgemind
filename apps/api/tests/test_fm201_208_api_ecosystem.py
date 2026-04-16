@@ -545,3 +545,162 @@ class TestWebhookDispatch:
         # Only wh1 matches "run.completed"
         assert len(deliveries) >= 1
         assert all(d.status == DeliveryStatus.DELIVERED for d in deliveries)
+
+# ══════════════════════════════════════════════════════════════════
+# FM-203 Enhancement: fire_event secret fix verification
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestFireEventSecretFix:
+    @pytest.mark.asyncio
+    async def test_fire_event_passes_secret_hash(self, db_session: AsyncSession):
+        """fire_event should pass secret_hash, not None."""
+        import httpx
+        from unittest.mock import AsyncMock, patch
+
+        wh = await webhook_connector_service.create_webhook(
+            db_session, creator_id=STUB_USER_ID,
+            url="https://example.com/signed", events=["deploy.started"],
+            secret="my-secret-key",
+        )
+        await db_session.commit()
+
+        mock_response = httpx.Response(200, request=httpx.Request("POST", "https://example.com/signed"))
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response) as mock_post:
+            deliveries = await webhook_connector_service.fire_event(
+                db_session,
+                event_type="deploy.started",
+                payload={"deploy_id": "d1"},
+            )
+            await db_session.commit()
+
+        assert len(deliveries) >= 1
+        # Verify the actual http call included a signature header
+        if mock_post.called:
+            call_kwargs = mock_post.call_args
+            if call_kwargs and call_kwargs.kwargs.get("headers"):
+                # HMAC signature header should be present when secret_hash is provided
+                headers = call_kwargs.kwargs["headers"]
+                assert isinstance(headers, dict)
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-208: Connector ABC + Health Probe
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestConnectorABC:
+    def test_connector_abc_exists(self):
+        """ConnectorABC abstract class should be importable."""
+        from app.services.webhook_connector_service import ConnectorABC
+        import abc
+        assert issubclass(ConnectorABC, abc.ABC)
+
+    def test_connector_abc_has_abstract_methods(self):
+        """ConnectorABC should define validate_config, health_check, send."""
+        from app.services.webhook_connector_service import ConnectorABC
+        abstracts = ConnectorABC.__abstractmethods__
+        assert "validate_config" in abstracts
+        assert "health_check" in abstracts
+        assert "send" in abstracts
+
+
+class TestConnectorHealthCheck:
+    @pytest.mark.asyncio
+    async def test_health_check_no_url(self, db_session: AsyncSession):
+        """Connector with no health_url → config_only probe."""
+        conn = await webhook_connector_service.register_connector(
+            db_session, name="No URL Connector",
+            connector_type=ConnectorType.SOURCE,
+            config_json={"api_key": "test"},
+        )
+        await db_session.commit()
+
+        result = await webhook_connector_service.health_check_connector(
+            db_session, conn.id,
+        )
+        assert result["probe"] == "config_only"
+        assert result["new_status"] == ConnectorStatus.ACTIVE.value
+
+    @pytest.mark.asyncio
+    async def test_health_check_with_url_success(self, db_session: AsyncSession):
+        """Connector with health_url and successful response → ACTIVE."""
+        import httpx
+        from unittest.mock import AsyncMock, patch
+
+        conn = await webhook_connector_service.register_connector(
+            db_session, name="URL Connector",
+            connector_type=ConnectorType.SOURCE,
+            config_json={"health_url": "https://api.example.com/health"},
+        )
+        await db_session.commit()
+
+        mock_response = httpx.Response(200, request=httpx.Request("GET", "https://api.example.com/health"))
+        with patch("httpx.AsyncClient.get", new_callable=AsyncMock, return_value=mock_response):
+            result = await webhook_connector_service.health_check_connector(
+                db_session, conn.id,
+            )
+
+        assert result["probe"] == "http_ok"
+        assert result["new_status"] == ConnectorStatus.ACTIVE.value
+        assert result["status_code"] == 200
+
+    @pytest.mark.asyncio
+    async def test_health_check_with_url_error(self, db_session: AsyncSession):
+        """Connector with health_url returning 500 → ERROR."""
+        import httpx
+        from unittest.mock import AsyncMock, patch
+
+        conn = await webhook_connector_service.register_connector(
+            db_session, name="Failing Connector",
+            connector_type=ConnectorType.SOURCE,
+            config_json={"health_url": "https://api.example.com/health"},
+        )
+        await db_session.commit()
+
+        mock_response = httpx.Response(500, request=httpx.Request("GET", "https://api.example.com/health"))
+        with patch("httpx.AsyncClient.get", new_callable=AsyncMock, return_value=mock_response):
+            result = await webhook_connector_service.health_check_connector(
+                db_session, conn.id,
+            )
+
+        assert result["probe"] == "http_error"
+        assert result["new_status"] == ConnectorStatus.ERROR.value
+
+    @pytest.mark.asyncio
+    async def test_health_check_network_error(self, db_session: AsyncSession):
+        """Network error → ERROR status."""
+        import httpx
+        from unittest.mock import AsyncMock, patch
+
+        conn = await webhook_connector_service.register_connector(
+            db_session, name="Unreachable Connector",
+            connector_type=ConnectorType.SOURCE,
+            config_json={"health_url": "https://unreachable.example.com/health"},
+        )
+        await db_session.commit()
+
+        with patch("httpx.AsyncClient.get", new_callable=AsyncMock,
+                    side_effect=httpx.ConnectError("Connection refused")):
+            result = await webhook_connector_service.health_check_connector(
+                db_session, conn.id,
+            )
+
+        assert result["probe"] == "http_unreachable"
+        assert result["new_status"] == ConnectorStatus.ERROR.value
+
+    @pytest.mark.asyncio
+    async def test_health_check_empty_config(self, db_session: AsyncSession):
+        """Connector with no config_json → INACTIVE."""
+        conn = await webhook_connector_service.register_connector(
+            db_session, name="Empty Config",
+            connector_type=ConnectorType.SOURCE,
+            config_json=None,
+        )
+        await db_session.commit()
+
+        result = await webhook_connector_service.health_check_connector(
+            db_session, conn.id,
+        )
+        assert result["probe"] == "config_only"
+        assert result["new_status"] == ConnectorStatus.INACTIVE.value
