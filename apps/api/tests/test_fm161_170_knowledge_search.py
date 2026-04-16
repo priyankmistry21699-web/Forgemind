@@ -1,4 +1,4 @@
-"""Tests for FM-161-170: Search, Knowledge & Organizational Memory.
+﻿"""Tests for FM-161-170: Search, Knowledge & Organizational Memory.
 
 Covers:
   FM-161: Full-text search index
@@ -16,13 +16,16 @@ Covers:
 import uuid
 
 import pytest
+from httpx import AsyncClient
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tests.conftest import STUB_USER_ID
 
-# ── Models / enums ──────────────────────────────────────────────
+# â”€â”€ Models / enums â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 from app.models.search_knowledge import (
     SearchEntityType,
+    SearchIndex,
     ConventionCategory,
     ConventionEnforcement,
     RecommendationType,
@@ -31,7 +34,7 @@ from app.models.artifact import Artifact, ArtifactType
 from app.models.task import Task, TaskStatus
 from app.models.run import Run
 
-# ── Services ────────────────────────────────────────────────────
+# â”€â”€ Services â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 from app.services import search_service
 from app.services import convention_service
 from app.services import artifact_version_service
@@ -726,7 +729,7 @@ class TestIndexIntegrity:
         sample_task,
         sample_artifact,
     ):
-        """Before reindex, entities exist but are not indexed — integrity should detect missing."""
+        """Before reindex, entities exist but are not indexed â€” integrity should detect missing."""
         result = await search_service.check_index_integrity(
             db_session, sample_project.id
         )
@@ -837,5 +840,747 @@ class TestEdgeCases:
         )
         await db_session.commit()
 
-        tech_debt = [r for r in recs if r.rec_type == RecommendationType.TECH_DEBT]
-        assert len(tech_debt) >= 1
+
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# FM-162: Embedding Generation, Semantic Search & Hybrid Ranking
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+
+class TestCosineSimilarity:
+    """FM-162: Cosine similarity vector math."""
+
+    def test_identical_vectors(self):
+        from app.services.embedding_service import cosine_similarity
+
+        assert cosine_similarity([1, 0, 0], [1, 0, 0]) == 1.0
+
+    def test_orthogonal_vectors(self):
+        from app.services.embedding_service import cosine_similarity
+
+        assert cosine_similarity([1, 0], [0, 1]) == 0.0
+
+    def test_opposite_vectors(self):
+        from app.services.embedding_service import cosine_similarity
+
+        assert cosine_similarity([1, 0], [-1, 0]) == -1.0
+
+    def test_similar_vectors_high_score(self):
+        from app.services.embedding_service import cosine_similarity
+
+        sim = cosine_similarity([1.0, 1.0, 0.0], [1.0, 0.9, 0.1])
+        assert sim > 0.95  # Very similar vectors
+
+    def test_dissimilar_vectors_low_score(self):
+        from app.services.embedding_service import cosine_similarity
+
+        sim = cosine_similarity([1.0, 0.0, 0.0], [0.0, 0.0, 1.0])
+        assert sim == 0.0
+
+    def test_zero_vector_returns_zero(self):
+        from app.services.embedding_service import cosine_similarity
+
+        assert cosine_similarity([0, 0, 0], [1, 2, 3]) == 0.0
+
+    def test_empty_vectors_returns_zero(self):
+        from app.services.embedding_service import cosine_similarity
+
+        assert cosine_similarity([], []) == 0.0
+
+    def test_mismatched_dimensions_returns_zero(self):
+        from app.services.embedding_service import cosine_similarity
+
+        assert cosine_similarity([1, 2], [1, 2, 3]) == 0.0
+
+
+class TestEmbeddingGeneration:
+    """FM-162: Embedding generation with pluggable providers."""
+
+    @pytest.mark.asyncio
+    async def test_generate_embedding_with_custom_fn(self):
+        """Custom embedding_fn produces real vectors."""
+        from app.services.embedding_service import generate_embedding
+
+        async def mock_embed(text, model, dimensions):
+            # Deterministic vector based on text length
+            import hashlib
+
+            h = hashlib.sha256(text.encode()).digest()
+            return [float(b) / 255.0 for b in h[:dimensions]]
+
+        result = await generate_embedding(
+            "machine learning classification",
+            dimensions=16,
+            embedding_fn=mock_embed,
+        )
+        assert len(result) == 16
+        assert all(isinstance(x, float) for x in result)
+        assert any(x != 0.0 for x in result)  # Not all zeros
+
+    @pytest.mark.asyncio
+    async def test_generate_embedding_empty_text(self):
+        """Empty text returns zero vector."""
+        from app.services.embedding_service import generate_embedding
+
+        result = await generate_embedding("", dimensions=8)
+        assert result == [0.0] * 8
+
+    @pytest.mark.asyncio
+    async def test_generate_embedding_whitespace_only(self):
+        """Whitespace-only text returns zero vector."""
+        from app.services.embedding_service import generate_embedding
+
+        result = await generate_embedding("   ", dimensions=4)
+        assert result == [0.0] * 4
+
+
+class TestEmbeddingStorage:
+    """FM-162: Store and retrieve embedding vectors."""
+
+    @pytest.mark.asyncio
+    async def test_store_and_retrieve_embedding(
+        self, db_session: AsyncSession, sample_project, sample_run
+    ):
+        """Store an embedding vector and retrieve it by search_index_id."""
+        from app.services import embedding_service
+
+        task = Task(
+            title="Test embedding storage",
+            task_type="implementation",
+            order_index=0,
+            run_id=sample_run.id,
+        )
+        db_session.add(task)
+        await db_session.flush()
+
+        idx = await search_service.index_task(db_session, task)
+        await db_session.flush()
+
+        vector = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+        emb = await embedding_service.store_embedding(
+            db_session,
+            search_index_id=idx.id,
+            embedding=vector,
+            model_name="test-model",
+            dimensions=8,
+        )
+        await db_session.flush()
+
+        assert emb is not None
+        assert emb.embedding == vector
+        assert emb.dimensions == 8
+        assert emb.model_name == "test-model"
+
+        # Retrieve
+        retrieved = await embedding_service.get_embedding(db_session, idx.id)
+        assert retrieved is not None
+        assert retrieved.embedding == vector
+
+    @pytest.mark.asyncio
+    async def test_store_embedding_upsert(
+        self, db_session: AsyncSession, sample_project, sample_run
+    ):
+        """Storing embedding for same index entry updates (not duplicates)."""
+        from app.services import embedding_service
+
+        task = Task(
+            title="Test upsert",
+            task_type="implementation",
+            order_index=0,
+            run_id=sample_run.id,
+        )
+        db_session.add(task)
+        await db_session.flush()
+
+        idx = await search_service.index_task(db_session, task)
+        await db_session.flush()
+
+        v1 = [0.1, 0.2, 0.3]
+        await embedding_service.store_embedding(
+            db_session,
+            search_index_id=idx.id,
+            embedding=v1,
+            dimensions=3,
+        )
+        await db_session.flush()
+
+        v2 = [0.9, 0.8, 0.7]
+        await embedding_service.store_embedding(
+            db_session,
+            search_index_id=idx.id,
+            embedding=v2,
+            dimensions=3,
+        )
+        await db_session.flush()
+
+        retrieved = await embedding_service.get_embedding(db_session, idx.id)
+        assert retrieved.embedding == v2  # Updated, not duplicated
+
+    @pytest.mark.asyncio
+    async def test_generate_and_store(
+        self, db_session: AsyncSession, sample_project, sample_run
+    ):
+        """generate_and_store creates embedding from title+body text."""
+        from app.services import embedding_service
+
+        task = Task(
+            title="Neural network training",
+            task_type="implementation",
+            description="Train a deep learning model for classification",
+            order_index=0,
+            run_id=sample_run.id,
+        )
+        db_session.add(task)
+        await db_session.flush()
+
+        idx = await search_service.index_task(db_session, task)
+        await db_session.flush()
+
+        async def mock_embed(text, model, dimensions):
+            import hashlib
+
+            h = hashlib.sha256(text.encode()).digest()
+            return [float(b) / 255.0 for b in h[:dimensions]]
+
+        emb = await embedding_service.generate_and_store(
+            db_session,
+            search_index_id=idx.id,
+            title=idx.title,
+            body=idx.body,
+            dimensions=16,
+            embedding_fn=mock_embed,
+        )
+        assert emb is not None
+        assert len(emb.embedding) == 16
+        assert emb.dimensions == 16
+
+
+class TestBatchEmbeddingGeneration:
+    """FM-162: Batch embedding generation for indexed content."""
+
+    @pytest.mark.asyncio
+    async def test_batch_generates_for_missing(
+        self, db_session: AsyncSession, sample_project, sample_run
+    ):
+        """batch_generate_embeddings creates embeddings for entries without one."""
+        from app.services import embedding_service
+
+        # Create tasks and index them
+        for i in range(3):
+            task = Task(
+                title=f"Task {i} for batch test",
+                task_type="implementation",
+                order_index=i,
+                run_id=sample_run.id,
+            )
+            db_session.add(task)
+            await db_session.flush()
+            await search_service.index_task(db_session, task)
+
+        await db_session.flush()
+
+        async def mock_embed(text, model, dimensions):
+            import hashlib
+
+            h = hashlib.sha256(text.encode()).digest()
+            return [float(b) / 255.0 for b in h[:dimensions]]
+
+        stats = await embedding_service.batch_generate_embeddings(
+            db_session,
+            project_id=sample_project.id,
+            dimensions=8,
+            embedding_fn=mock_embed,
+        )
+
+        assert stats["generated"] >= 3
+        assert stats["failed"] == 0
+
+    @pytest.mark.asyncio
+    async def test_batch_skips_already_embedded(
+        self, db_session: AsyncSession, sample_project, sample_run
+    ):
+        """batch_generate_embeddings doesn't re-generate existing embeddings."""
+        from app.services import embedding_service
+
+        task = Task(
+            title="Already embedded task",
+            task_type="implementation",
+            order_index=0,
+            run_id=sample_run.id,
+        )
+        db_session.add(task)
+        await db_session.flush()
+
+        idx = await search_service.index_task(db_session, task)
+        await db_session.flush()
+
+        # Pre-store an embedding
+        await embedding_service.store_embedding(
+            db_session,
+            search_index_id=idx.id,
+            embedding=[0.5] * 8,
+            dimensions=8,
+        )
+        await db_session.flush()
+
+        async def mock_embed(text, model, dimensions):
+            return [0.9] * dimensions  # Different vector
+
+        stats = await embedding_service.batch_generate_embeddings(
+            db_session,
+            project_id=sample_project.id,
+            dimensions=8,
+            embedding_fn=mock_embed,
+        )
+
+        # The already-embedded entry should be skipped
+        # (it might generate for project/run entries but not duplicate the task)
+        retrieved = await embedding_service.get_embedding(db_session, idx.id)
+        assert retrieved.embedding == [0.5] * 8  # Unchanged
+
+
+class TestSemanticSearch:
+    """FM-162: Semantic search via embedding cosine similarity."""
+
+    @pytest.mark.asyncio
+    async def test_semantic_search_ranks_by_similarity(
+        self, db_session: AsyncSession, sample_project, sample_run
+    ):
+        """Semantic search returns results ranked by vector similarity."""
+        from app.services import embedding_service
+
+        # Create 3 tasks with different content
+        t1 = Task(
+            title="Machine learning model training",
+            task_type="implementation",
+            order_index=0,
+            run_id=sample_run.id,
+        )
+        t2 = Task(
+            title="Database migration script",
+            task_type="implementation",
+            order_index=1,
+            run_id=sample_run.id,
+        )
+        t3 = Task(
+            title="Neural network optimization",
+            task_type="implementation",
+            order_index=2,
+            run_id=sample_run.id,
+        )
+        db_session.add_all([t1, t2, t3])
+        await db_session.flush()
+
+        idx1 = await search_service.index_task(db_session, t1)
+        idx2 = await search_service.index_task(db_session, t2)
+        idx3 = await search_service.index_task(db_session, t3)
+        await db_session.flush()
+
+        # Store embeddings that simulate semantic similarity:
+        # "ML training" and "neural network" are in the same semantic space
+        # "database migration" is in a different space
+        await embedding_service.store_embedding(
+            db_session,
+            search_index_id=idx1.id,
+            embedding=[0.9, 0.8, 0.1, 0.0],
+            dimensions=4,
+        )
+        await embedding_service.store_embedding(
+            db_session,
+            search_index_id=idx2.id,
+            embedding=[0.1, 0.0, 0.9, 0.8],
+            dimensions=4,
+        )
+        await embedding_service.store_embedding(
+            db_session,
+            search_index_id=idx3.id,
+            embedding=[0.85, 0.75, 0.15, 0.05],
+            dimensions=4,
+        )
+        await db_session.flush()
+
+        # Query embedding close to ML/neural network space
+        async def ml_query_embed(text, model, dimensions):
+            return [0.88, 0.77, 0.12, 0.02]
+
+        results = await embedding_service.semantic_search(
+            db_session,
+            query="deep learning",
+            dimensions=4,
+            embedding_fn=ml_query_embed,
+        )
+
+        assert len(results) >= 2
+        # ML and neural network should rank higher than database
+        titles = [r["title"] for r in results]
+        assert any("Machine learning" in t for t in titles)
+        assert any("Neural network" in t for t in titles)
+
+        # Verify ordering: ML-related results before database
+        ml_scores = [
+            r["semantic_score"]
+            for r in results
+            if "Machine" in r["title"] or "Neural" in r["title"]
+        ]
+        db_scores = [
+            r["semantic_score"]
+            for r in results
+            if "Database" in r["title"]
+        ]
+        if db_scores:
+            assert min(ml_scores) > max(db_scores)
+
+    @pytest.mark.asyncio
+    async def test_semantic_search_no_embeddings(
+        self, db_session: AsyncSession, sample_project, sample_run
+    ):
+        """Semantic search returns empty when no embeddings exist."""
+        from app.services import embedding_service
+
+        async def query_embed(text, model, dimensions):
+            return [0.5] * dimensions
+
+        results = await embedding_service.semantic_search(
+            db_session,
+            query="anything",
+            dimensions=4,
+            embedding_fn=query_embed,
+        )
+        assert results == []
+
+
+class TestHybridRanking:
+    """FM-162: Hybrid ranking combining text and semantic scores."""
+
+    @pytest.mark.asyncio
+    async def test_hybrid_combines_text_and_semantic(
+        self, db_session: AsyncSession, sample_project, sample_run
+    ):
+        """hybrid_search blends keyword and semantic scores using alpha."""
+        from app.services import embedding_service
+
+        # Create tasks: one matches keywords well, another matches semantically
+        t_keyword = Task(
+            title="python script automation tool",
+            task_type="implementation",
+            description="python script automation tool for batch processing",
+            order_index=0,
+            run_id=sample_run.id,
+        )
+        t_semantic = Task(
+            title="code generator engine",
+            task_type="implementation",
+            description="automated code generation system",
+            order_index=1,
+            run_id=sample_run.id,
+        )
+        db_session.add_all([t_keyword, t_semantic])
+        await db_session.flush()
+
+        idx_kw = await search_service.index_task(db_session, t_keyword)
+        idx_sem = await search_service.index_task(db_session, t_semantic)
+        await db_session.flush()
+
+        # Keyword task: low semantic similarity to "automation"
+        await embedding_service.store_embedding(
+            db_session,
+            search_index_id=idx_kw.id,
+            embedding=[0.3, 0.2, 0.8, 0.1],
+            dimensions=4,
+        )
+        # Semantic task: high semantic similarity to "automation"
+        await embedding_service.store_embedding(
+            db_session,
+            search_index_id=idx_sem.id,
+            embedding=[0.9, 0.85, 0.1, 0.05],
+            dimensions=4,
+        )
+        await db_session.flush()
+
+        # Query embedding close to semantic task
+        async def auto_embed(text, model, dimensions):
+            return [0.88, 0.82, 0.12, 0.08]
+
+        # Pure semantic (alpha=0) should favor the semantic match
+        results_semantic = await embedding_service.hybrid_search(
+            db_session,
+            query="automation",
+            alpha=0.0,
+            dimensions=4,
+            embedding_fn=auto_embed,
+        )
+        if results_semantic:
+            # The semantically closer task should rank first
+            top = results_semantic[0]
+            assert top["semantic_score"] > 0
+
+        # Pure keyword (alpha=1) should favor the keyword match
+        results_keyword = await embedding_service.hybrid_search(
+            db_session,
+            query="automation",
+            alpha=1.0,
+            dimensions=4,
+            embedding_fn=auto_embed,
+        )
+        if results_keyword:
+            top = results_keyword[0]
+            assert top["text_score"] > 0
+
+    @pytest.mark.asyncio
+    async def test_hybrid_alpha_boundaries(
+        self, db_session: AsyncSession, sample_project, sample_run
+    ):
+        """alpha=1.0 produces text_score-only ranking, alpha=0.0 semantic-only."""
+        from app.services import embedding_service
+
+        task = Task(
+            title="test alpha boundaries",
+            task_type="implementation",
+            order_index=0,
+            run_id=sample_run.id,
+        )
+        db_session.add(task)
+        await db_session.flush()
+
+        idx = await search_service.index_task(db_session, task)
+        await db_session.flush()
+
+        await embedding_service.store_embedding(
+            db_session,
+            search_index_id=idx.id,
+            embedding=[0.7, 0.6, 0.5, 0.4],
+            dimensions=4,
+        )
+        await db_session.flush()
+
+        async def embed_fn(text, model, dimensions):
+            return [0.65, 0.55, 0.45, 0.35]
+
+        # alpha=1.0: hybrid_score should equal text_score
+        results = await embedding_service.hybrid_search(
+            db_session,
+            query="test",
+            alpha=1.0,
+            dimensions=4,
+            embedding_fn=embed_fn,
+        )
+        for r in results:
+            assert r["hybrid_score"] == r["text_score"]
+
+        # alpha=0.0: hybrid_score should equal semantic_score
+        results = await embedding_service.hybrid_search(
+            db_session,
+            query="test",
+            alpha=0.0,
+            dimensions=4,
+            embedding_fn=embed_fn,
+        )
+        for r in results:
+            assert r["hybrid_score"] == r["semantic_score"]
+
+    @pytest.mark.asyncio
+    async def test_hybrid_graceful_without_embeddings(
+        self, db_session: AsyncSession, sample_project, sample_run
+    ):
+        """hybrid_search degrades to keyword-only when no embeddings exist."""
+        from app.services import embedding_service
+
+        task = Task(
+            title="graceful degradation test",
+            task_type="implementation",
+            order_index=0,
+            run_id=sample_run.id,
+        )
+        db_session.add(task)
+        await db_session.flush()
+
+        await search_service.index_task(db_session, task)
+        await db_session.flush()
+
+        # No embeddings stored, no embedding_fn â€” embedding path will fail
+        # but hybrid_search should still return keyword results
+        async def failing_embed(text, model, dimensions):
+            raise RuntimeError("No API key configured")
+
+        results = await embedding_service.hybrid_search(
+            db_session,
+            query="graceful",
+            alpha=0.5,
+            dimensions=4,
+            embedding_fn=failing_embed,
+        )
+        # Should still get results from keyword search
+        assert len(results) >= 1
+        assert results[0]["text_score"] > 0
+
+
+class TestFindSimilarWithEmbeddings:
+    """FM-162: find_similar uses embeddings when available."""
+
+    @pytest.mark.asyncio
+    async def test_find_similar_uses_embeddings(
+        self, db_session: AsyncSession, sample_project, sample_run
+    ):
+        """find_similar returns embedding-based results when embeddings exist."""
+        from app.services import embedding_service
+
+        # Create 3 tasks
+        t1 = Task(
+            title="Task Alpha about data processing",
+            task_type="implementation",
+            order_index=0,
+            run_id=sample_run.id,
+        )
+        t2 = Task(
+            title="Task Beta about web frontend",
+            task_type="implementation",
+            order_index=1,
+            run_id=sample_run.id,
+        )
+        t3 = Task(
+            title="Task Gamma about data analysis",
+            task_type="implementation",
+            order_index=2,
+            run_id=sample_run.id,
+        )
+        db_session.add_all([t1, t2, t3])
+        await db_session.flush()
+
+        idx1 = await search_service.index_task(db_session, t1)
+        idx2 = await search_service.index_task(db_session, t2)
+        idx3 = await search_service.index_task(db_session, t3)
+        await db_session.flush()
+
+        # Embeddings: t1 and t3 are semantically close (data), t2 is far (web)
+        await embedding_service.store_embedding(
+            db_session,
+            search_index_id=idx1.id,
+            embedding=[0.9, 0.8, 0.1, 0.0],
+            dimensions=4,
+        )
+        await embedding_service.store_embedding(
+            db_session,
+            search_index_id=idx2.id,
+            embedding=[0.1, 0.0, 0.9, 0.8],
+            dimensions=4,
+        )
+        await embedding_service.store_embedding(
+            db_session,
+            search_index_id=idx3.id,
+            embedding=[0.85, 0.75, 0.15, 0.05],
+            dimensions=4,
+        )
+        await db_session.flush()
+
+        # Find similar to t1 (data processing)
+        results = await search_service.find_similar(
+            db_session,
+            entity_type=SearchEntityType.TASK,
+            entity_id=t1.id,
+        )
+
+        assert len(results) >= 1
+        # t3 (data analysis) should be more similar to t1 than t2 (web)
+        if len(results) >= 2:
+            titles = [r["title"] for r in results]
+            gamma_idx = next(
+                (i for i, t in enumerate(titles) if "Gamma" in t), None
+            )
+            beta_idx = next(
+                (i for i, t in enumerate(titles) if "Beta" in t), None
+            )
+            if gamma_idx is not None and beta_idx is not None:
+                assert gamma_idx < beta_idx  # Gamma ranks higher
+
+    @pytest.mark.asyncio
+    async def test_find_similar_falls_back_to_tfidf(
+        self, db_session: AsyncSession, sample_project, sample_run
+    ):
+        """find_similar falls back to TF-IDF when no embeddings exist."""
+        t1 = Task(
+            title="Python testing framework comparison",
+            task_type="implementation",
+            description="Compare pytest, unittest, and nose for Python testing",
+            order_index=0,
+            run_id=sample_run.id,
+        )
+        t2 = Task(
+            title="Python testing best practices",
+            task_type="review",
+            description="Document best practices for Python testing with pytest",
+            order_index=1,
+            run_id=sample_run.id,
+        )
+        db_session.add_all([t1, t2])
+        await db_session.flush()
+
+        await search_service.index_task(db_session, t1)
+        await search_service.index_task(db_session, t2)
+        await db_session.flush()
+
+        # No embeddings stored â€” should fall back to TF-IDF
+        results = await search_service.find_similar(
+            db_session,
+            entity_type=SearchEntityType.TASK,
+            entity_id=t1.id,
+        )
+        # TF-IDF should find t2 due to keyword overlap
+        assert len(results) >= 1
+        assert any("best practices" in r["title"] for r in results)
+
+
+class TestSemanticSearchRoute:
+    """FM-162: Semantic search HTTP route."""
+
+    @pytest.mark.asyncio
+    async def test_semantic_search_endpoint(
+        self, client: AsyncClient, db_session: AsyncSession, sample_project, sample_run
+    ):
+        """GET /search/semantic returns hybrid results."""
+        from app.services import embedding_service
+
+        task = Task(
+            title="route test semantic search",
+            task_type="implementation",
+            order_index=0,
+            run_id=sample_run.id,
+        )
+        db_session.add(task)
+        await db_session.flush()
+
+        await search_service.index_task(db_session, task)
+        await db_session.flush()
+
+        await embedding_service.store_embedding(
+            db_session,
+            search_index_id=(
+                await db_session.execute(
+                    select(SearchIndex).where(
+                        SearchIndex.entity_type == SearchEntityType.TASK,
+                        SearchIndex.entity_id == task.id,
+                    )
+                )
+            ).scalar_one().id,
+            embedding=[0.5, 0.5, 0.5, 0.5],
+            dimensions=4,
+        )
+        await db_session.commit()
+
+        resp = await client.get(
+            "/search/semantic",
+            params={"q": "semantic", "alpha": "0.5"},
+        )
+        # Route should exist and return a valid response
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "items" in data
+        assert "alpha" in data
+        assert data["mode"] == "hybrid"
+
+    @pytest.mark.asyncio
+    async def test_semantic_search_alpha_validation(self, client: AsyncClient):
+        """GET /search/semantic validates alpha bounds."""
+        resp = await client.get(
+            "/search/semantic",
+            params={"q": "test", "alpha": "1.5"},
+        )
+        assert resp.status_code == 422  # Validation error

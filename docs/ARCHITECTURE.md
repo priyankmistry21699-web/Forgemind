@@ -79,7 +79,7 @@ ForgeMind is an **operator-centered AI execution platform** that dynamically ass
 | Async       | pytest-asyncio               | Async test support                      |
 | HTTP Client | httpx (AsyncClient)          | API integration tests                   |
 | Test DB     | aiosqlite (in-memory SQLite) | Fast isolated test database             |
-| Total Tests | **1132** (all passing)       | Backend + Local (through FM-180) |
+| Total Tests | **1157** (all passing)       | Backend + Local (through FM-180) |
 
 ---
 
@@ -977,16 +977,16 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 
 ---
 
-## Wave 12: FM-161–FM-170 — Search, Knowledge & Organizational Memory (9/10 COMPLETE, 1 PARTIAL)
+## Wave 12: FM-161–FM-170 — Search, Knowledge & Organizational Memory (10/10 COMPLETE)
 
 > Full-text search, knowledge base, conventions engine, artifact versioning,
-> recommendations, run comparison, cross-project discovery. 9/10 complete,
-> 1 partial (FM-162: embeddings/hybrid ranking unimplemented; TF-IDF keyword similarity only).
+> recommendations, run comparison, cross-project discovery. 10/10 complete.
+> FM-162 upgraded with real embedding vectors (litellm), cosine similarity, hybrid ranking.
 
 | ID     | Feature                                     | Status                                        |
 | ------ | ------------------------------------------- | --------------------------------------------- |
 | FM-161 | Full-Text Search Index                      | ✅ Complete (LIKE-based)                      |
-| FM-162 | Semantic Search with Embeddings             | ⚠️ Partial (TF-IDF keyword only, no vectors) |
+| FM-162 | Semantic Search with Embeddings             | ✅ Complete (litellm embeddings, cosine similarity, hybrid ranking) |
 | FM-163 | Knowledge Base — Decision & Pattern Library | ✅ Complete                                   |
 | FM-164 | Project Templates V2                        | ✅ Complete                                   |
 | FM-165 | Cross-Project Search & Discovery            | ✅ Complete                                   |
@@ -1024,4 +1024,4 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 
 ---
 
-_This document reflects the architecture as of the latest commit on `main`. FM-141–FM-180: 38 COMPLETE, 1 PARTIAL (FM-162), 1 DEFERRED (FM-159) out of 40 milestones. 1132 tests passing._
+_This document reflects the architecture as of the latest commit on `main`. FM-141–FM-180: 39 COMPLETE, 0 PARTIAL, 1 DEFERRED (FM-159) out of 40 milestones. 1157 tests passing._

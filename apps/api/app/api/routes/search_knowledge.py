@@ -1,7 +1,10 @@
 """Search, knowledge discovery, conventions & recommendations routes.
 
 FM-161: GET /search — full-text search
-FM-162: GET /search/similar — find similar entities
+FM-162: GET /search/similar — find similar entities (embedding-enhanced)
+FM-162: GET /search/semantic — hybrid semantic search (keyword + embedding)
+FM-162: GET /search/suggestions — related search terms
+FM-162: POST /projects/{id}/generate-embeddings — batch embedding generation
 FM-163: GET /knowledge/search — knowledge-specific search
 FM-164: GET /templates/marketplace — template marketplace
 FM-165: GET /search (scope=global) — cross-project search (RBAC enforced)
@@ -172,6 +175,83 @@ async def search_suggestions(
         db, query=q, project_id=project_id, limit=limit,
     )
     return {"query": q, "suggestions": terms}
+
+
+# ── FM-162: Semantic Search & Embeddings ─────────────────────────
+
+
+@router.get("/search/semantic")
+async def semantic_search(
+    q: str = Query(..., min_length=1, max_length=500),
+    project_id: uuid.UUID | None = Query(None),
+    entity_type: str | None = Query(None, description="Comma-separated entity types"),
+    alpha: float = Query(
+        0.5, ge=0.0, le=1.0,
+        description="Hybrid blend: 1.0=keyword-only, 0.0=semantic-only",
+    ),
+    limit: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Hybrid semantic search combining keyword and embedding similarity (FM-162).
+
+    alpha controls the blend:
+    - alpha=1.0 → pure keyword search
+    - alpha=0.0 → pure semantic/embedding search
+    - alpha=0.5 → equal blend (default)
+    """
+    if project_id:
+        await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+
+    types = None
+    if entity_type:
+        try:
+            types = [SearchEntityType(t.strip()) for t in entity_type.split(",")]
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid entity_type. Valid: {[e.value for e in SearchEntityType]}",
+            )
+
+    from app.services import embedding_service
+
+    results = await embedding_service.hybrid_search(
+        db,
+        query=q,
+        project_id=project_id,
+        entity_types=types,
+        alpha=alpha,
+        limit=limit,
+    )
+    return {
+        "query": q,
+        "alpha": alpha,
+        "mode": "hybrid",
+        "items": results,
+        "total": len(results),
+    }
+
+
+@router.post("/projects/{project_id}/generate-embeddings")
+async def generate_embeddings(
+    project_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """Generate embeddings for all indexed content in a project (FM-162).
+
+    Creates embedding vectors for search index entries that don't have one yet.
+    Requires an embedding provider to be configured (e.g., OPENAI_API_KEY).
+    """
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_EDIT)
+
+    from app.services import embedding_service
+
+    stats = await embedding_service.batch_generate_embeddings(
+        db, project_id=project_id,
+    )
+    await db.commit()
+    return stats
 
 
 # ── FM-163: Knowledge Search ─────────────────────────────────────

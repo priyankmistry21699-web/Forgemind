@@ -458,7 +458,7 @@ def _build_snippet(text: str, terms: list[str], max_len: int = 200) -> str:
     return snippet
 
 
-# ── FM-162: Find Similar (TF-IDF weighted) ───────────────────────
+# ── FM-162: Find Similar (embedding-enhanced with TF-IDF fallback) ──
 
 
 async def find_similar(
@@ -468,14 +468,37 @@ async def find_similar(
     entity_id: uuid.UUID,
     limit: int = 10,
 ) -> list[dict]:
-    """Find entities similar to a given entity using TF-IDF weighted scoring.
+    """Find entities similar to a given entity.
 
-    Improvement over basic keyword overlap:
-    - Computes inverse document frequency (IDF) so rare terms carry more weight
-    - Title matches score 3× body matches
-    - Normalizes by total key term weight for fair comparison
-    Honest scoping: true semantic/vector search requires embedding infrastructure.
+    Tries embedding-based cosine similarity first (FM-162 semantic search).
+    Falls back to TF-IDF weighted keyword scoring when no embeddings exist.
     """
+    # Try embedding-based similarity first
+    from app.services import embedding_service
+
+    emb_results = await embedding_service.find_similar_by_embedding(
+        db,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        limit=limit,
+    )
+    if emb_results:
+        return emb_results
+
+    # Fallback: TF-IDF weighted keyword scoring
+    return await _find_similar_tfidf(
+        db, entity_type=entity_type, entity_id=entity_id, limit=limit,
+    )
+
+
+async def _find_similar_tfidf(
+    db: AsyncSession,
+    *,
+    entity_type: SearchEntityType,
+    entity_id: uuid.UUID,
+    limit: int = 10,
+) -> list[dict]:
+    """TF-IDF weighted keyword similarity (fallback when no embeddings)."""
     # Get source entity
     source_result = await db.execute(
         select(SearchIndex).where(

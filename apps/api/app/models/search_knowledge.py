@@ -99,6 +99,37 @@ class SearchIndex(Base):
     )
 
 
+# ── FM-162: Search Embeddings ────────────────────────────────────
+
+
+class SearchEmbedding(Base):
+    """Stored embedding vector for a search index entry (FM-162).
+
+    Embedding vectors are generated via configurable providers (litellm)
+    and stored as JSON arrays of floats. Used for cosine similarity search
+    and hybrid ranking that combines keyword + semantic scores.
+    """
+
+    __tablename__ = "search_embeddings"
+
+    id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    search_index_id = Column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("search_index.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+    embedding = Column(PG_JSON, nullable=False)  # list[float]
+    model_name = Column(String(100), nullable=False, default="text-embedding-3-small")
+    dimensions = Column(Integer, nullable=False, default=256)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+
 # ── FM-167: Conventions ─────────────────────────────────────────
 
 

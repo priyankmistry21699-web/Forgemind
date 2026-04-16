@@ -733,16 +733,16 @@ See [docs/TECHNICAL_DEBT.md](TECHNICAL_DEBT.md) for full details (18 items). Key
 
 ---
 
-_Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 9/10 complete, 1 partial (FM-162). Wave 13: 10/10 complete. FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project. FM-162 (Semantic Search with Embeddings) remains PARTIAL — TF-IDF keyword similarity implemented but 3/5 ACs unmet (no embeddings, no hybrid ranking). **38 COMPLETE, 1 PARTIAL, 1 DEFERRED** across FM-141→180. Pass 7 closed FM-151, FM-155, FM-175 (42 new tests, 1132 total)._
+_Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 complete. Wave 13: 10/10 complete. FM-159 (VS Code extension) is explicitly deferred — requires a separate TypeScript/VS Code extension project. **39 COMPLETE, 0 PARTIAL, 1 DEFERRED** across FM-141→180. Pass 8 closed FM-162 (Semantic Search with Embeddings) — real embedding vectors via litellm, cosine similarity, hybrid ranking, 25 new tests, 1157 total._
 
 ---
 
-## FM-161 to FM-170 — ⚙️ 9/10 COMPLETE, 1 PARTIAL (Wave 12: Search, Knowledge & Organizational Memory)
+## FM-161 to FM-170 — ✅ 10/10 COMPLETE (Wave 12: Search, Knowledge & Organizational Memory)
 
 | ID     | Feature                                     | Status                                                                                           |
 | ------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | FM-161 | Full-Text Search Index                      | ✅ Complete (LIKE-based keyword search; tsvector deferred)                                       |
-| FM-162 | Semantic Search with Embeddings             | ⚠️ **PARTIAL** — TF-IDF weighted `find_similar()` with IDF scoring, 3× title boost, `search_suggestions()`, `GET /search/suggestions` route. **3/5 ACs unmet:** no embeddings, no hybrid ranking, no vector search. True pgvector/embedding search deferred. |
+| FM-162 | Semantic Search with Embeddings             | ✅ **COMPLETE** — Real embedding vectors via litellm (pluggable provider), `SearchEmbedding` model with JSON-stored vectors, cosine similarity for vector search, `hybrid_search()` with configurable alpha blending (text + semantic), `semantic_search()` for pure vector search, `find_similar()` upgraded to use embeddings with TF-IDF fallback, `GET /search/semantic` and `POST /projects/{id}/generate-embeddings` routes. 25 tests covering cosine math, storage, semantic search, hybrid ranking, fallback. |
 | FM-163 | Knowledge Base — Decision & Pattern Library | ✅ Complete — knowledge-type search filter + `suggest_knowledge_for_task()` multi-strategy engine (tag matching, title overlap, word overlap, LIKE fallback), `GET /projects/{project_id}/knowledge/suggest` route |
 | FM-164 | Project Templates V2 — Knowledge-Enriched   | ✅ Complete — marketplace browse + deep clone (`clone_template`) + versioning (`create_template_version`), `version` and `parent_template_id` columns on ProjectTemplate, `POST /templates/{id}/clone` and `POST /templates/{id}/version` routes |
 | FM-165 | Cross-Project Search & Discovery            | ✅ Complete — RBAC-filtered cross-project search + project directory (`get_project_directory` with health grades A-F, `GET /project-directory`) + related project suggestions (`get_related_projects` via knowledge tag + search index overlap, `GET /projects/{id}/related`) |
@@ -752,7 +752,7 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 9/10 comp
 | FM-169 | Smart Recommendations Engine                | ✅ Complete (7 rules)                                                                            |
 | FM-170 | Knowledge & Search Tests, Docs & Hardening  | ✅ Complete (45 tests, index integrity checker; perf benchmarks deferred)                        |
 
-**Wave 12 summary:** 9/10 milestones complete, 1 partial (FM-162). FM-162 uses TF-IDF weighted scoring + search suggestions but remains PARTIAL — 3/5 ACs unmet (no embeddings, no hybrid ranking, no vector search; true pgvector deferred). FM-163 gained auto-suggestion engine. FM-164 gained deep clone + versioning. FM-165 gained project directory + related suggestions. FM-166 gained replay mode.
+**Wave 12 summary:** 10/10 milestones complete. FM-162 upgraded with real embedding vectors (litellm), cosine similarity, hybrid ranking — all 5/5 ACs met. FM-163 gained auto-suggestion engine. FM-164 gained deep clone + versioning. FM-165 gained project directory + related suggestions. FM-166 gained replay mode.
 
 ---
 

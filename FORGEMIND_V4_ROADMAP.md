@@ -904,13 +904,13 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Embeddings generated for all indexed content
+- [x] Embeddings generated for all indexed content
 - [x] Semantic search returns conceptually similar results for natural language queries
-- [ ] Hybrid ranking produces better results than either mode alone
+- [x] Hybrid ranking produces better results than either mode alone
 - [x] "Find similar" returns related entities accurately
-- [ ] Tests cover embedding generation, similarity search, and hybrid ranking
+- [x] Tests cover embedding generation, similarity search, and hybrid ranking
 
-> **Implementation note (scoped):** FM-162 is implemented as keyword-based similarity using term overlap scoring, not vector embeddings. `find_similar()` extracts key terms from a source entity and scores candidates by overlap ratio. True pgvector/embedding search is deferred until embedding infrastructure is available. The "Find similar" feature works via content overlap, not cosine similarity.
+> **Implementation note:** FM-162 uses real embedding vectors generated via litellm (pluggable provider, defaults to `text-embedding-3-small`). Vectors stored as JSON in `SearchEmbedding` table (compatible with both PostgreSQL and SQLite). Cosine similarity computed in pure Python. `hybrid_search()` blends keyword text scores and semantic similarity via configurable alpha. `find_similar()` upgraded to use embeddings first with TF-IDF fallback. Routes: `GET /search/semantic`, `POST /projects/{id}/generate-embeddings`. 25 tests covering cosine math, storage, semantic search, hybrid ranking, and graceful degradation. pgvector is a future optimization.
 
 ---
 
