@@ -79,7 +79,7 @@ ForgeMind is an **operator-centered AI execution platform** that dynamically ass
 | Async       | pytest-asyncio               | Async test support                      |
 | HTTP Client | httpx (AsyncClient)          | API integration tests                   |
 | Test DB     | aiosqlite (in-memory SQLite) | Fast isolated test database             |
-| Total Tests | **864** (all passing)        | Backend 803 + Local 61 (through FM-180) |
+| Total Tests | **1132** (all passing)       | Backend + Local (through FM-180) |
 
 ---
 
@@ -935,86 +935,85 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 
 ---
 
-## Wave 10: FM-141–FM-150 — Collaboration, UX & Team Coordination (⚙️ PARTIAL)
+## Wave 10: FM-141–FM-150 — Collaboration, UX & Team Coordination (✅ COMPLETE)
 
 > Threaded comments, @mentions, activity feed, saved views, user presence,
 > run annotations, task assignment, approval delegation, notification center,
-> project overview. 3/10 fully complete, 7/10 partial (missing HTTP routes,
-> notification preferences, cursor pagination, default views, auto-escalation).
+> project overview. 10/10 complete (Passes 1–7 closed all gaps).
 
 | ID     | Feature                          | Status                       |
 | ------ | -------------------------------- | ---------------------------- |
 | FM-141 | Threaded Comments                | ✅ Complete                  |
-| FM-142 | @Mentions & Notification Routing | ⚠️ Partial (no prefs model)  |
-| FM-143 | Unified Activity Feed            | ⚠️ Partial (offset only)     |
-| FM-144 | Saved Views & Filters            | ⚠️ Partial (no default seed) |
+| FM-142 | @Mentions & Notification Routing | ✅ Complete                  |
+| FM-143 | Unified Activity Feed            | ✅ Complete                  |
+| FM-144 | Saved Views & Filters            | ✅ Complete                  |
 | FM-145 | User Presence & Online Status    | ✅ Complete                  |
 | FM-146 | Collaborative Run Annotations    | ✅ Complete                  |
-| FM-147 | Task Assignment & Workload       | ⚠️ Partial (no routes)       |
-| FM-148 | Approval Delegation & Batch      | ⚠️ Partial (no routes)       |
-| FM-149 | Notification Digest & Center     | ⚠️ Partial (no routes)       |
-| FM-150 | Project Overview Dashboard       | ⚠️ Partial (no route)        |
+| FM-147 | Task Assignment & Workload       | ✅ Complete                  |
+| FM-148 | Approval Delegation & Batch      | ✅ Complete                  |
+| FM-149 | Notification Digest & Center     | ✅ Complete                  |
+| FM-150 | Project Overview Dashboard       | ✅ Complete                  |
 
 ---
 
-## Wave 11: FM-151–FM-160 — GitHub & CI Integration (⚙️ PARTIAL)
+## Wave 11: FM-151–FM-160 — GitHub & CI Integration (9/10 COMPLETE, 1 DEFERRED)
 
 > GitHub app installation, webhook ingestion, PR tracking, CI pipeline status,
 > issue sync, branch strategy, code review routing, diff intelligence.
-> 1/10 fully complete, 8/10 partial, 1 deferred. **Zero outbound GitHub API calls.**
+> 9/10 complete (Passes 1–7 closed all gaps), 1 deferred. **Zero outbound GitHub API calls.**
 
 | ID     | Feature                                | Status                      |
 | ------ | -------------------------------------- | --------------------------- |
-| FM-151 | GitHub App Installation & Linking      | ⚠️ Partial (CRUD only)      |
-| FM-152 | Webhook Ingestion & Events             | ⚠️ Partial (verify unused)  |
-| FM-153 | PR Auto-Creation & Tracking            | ⚠️ Partial (CRUD only)      |
-| FM-154 | CI Pipeline Status Integration         | ⚠️ Partial (no pass-rate)   |
-| FM-155 | Issue Sync                             | ⚠️ Partial (ingest only)    |
-| FM-156 | Branch Strategy & Merge Readiness      | ⚠️ Partial (no auto-branch) |
-| FM-157 | Code Review Routing                    | ⚠️ Partial (no GH requests) |
-| FM-158 | Commit & Diff Intelligence             | ⚠️ Partial (no risk rules)  |
+| FM-151 | GitHub App Installation & Linking      | ✅ Complete                 |
+| FM-152 | Webhook Ingestion & Events             | ✅ Complete                 |
+| FM-153 | PR Auto-Creation & Tracking            | ✅ Complete                 |
+| FM-154 | CI Pipeline Status Integration         | ✅ Complete                 |
+| FM-155 | Issue Sync                             | ✅ Complete                 |
+| FM-156 | Branch Strategy & Merge Readiness      | ✅ Complete                 |
+| FM-157 | Code Review Routing                    | ✅ Complete                 |
+| FM-158 | Commit & Diff Intelligence             | ✅ Complete                 |
 | FM-159 | VS Code Extension Foundation           | ⏸️ Deferred (separate repo) |
 | FM-160 | Hardening: Rate Limiter, Retry, Replay | ✅ Complete                 |
 
 ---
 
-## Wave 12: FM-161–FM-170 — Search, Knowledge & Organizational Memory (⚙️ PARTIAL)
+## Wave 12: FM-161–FM-170 — Search, Knowledge & Organizational Memory (9/10 COMPLETE, 1 PARTIAL)
 
 > Full-text search, knowledge base, conventions engine, artifact versioning,
-> recommendations, run comparison, cross-project discovery. 6/10 fully complete,
-> 4/10 partially scoped (embeddings, template enrichment, replay, project directory deferred).
+> recommendations, run comparison, cross-project discovery. 9/10 complete,
+> 1 partial (FM-162: embeddings/hybrid ranking unimplemented; TF-IDF keyword similarity only).
 
-| ID     | Feature                                     | Status                          |
-| ------ | ------------------------------------------- | ------------------------------- |
-| FM-161 | Full-Text Search Index                      | ✅ Complete (LIKE-based)        |
-| FM-162 | Semantic Search with Embeddings             | ⚠️ Partial (keyword only)       |
-| FM-163 | Knowledge Base — Decision & Pattern Library | ⚠️ Partial (search filter only) |
-| FM-164 | Project Templates V2                        | ⚠️ Partial (marketplace only)   |
-| FM-165 | Cross-Project Search & Discovery            | ⚠️ Partial (search only)        |
-| FM-166 | Execution Replay & Comparison               | ⚠️ Partial (comparison only)    |
-| FM-167 | Organizational Context & Conventions Engine | ✅ Complete                     |
-| FM-168 | Artifact Versioning & History               | ✅ Complete                     |
-| FM-169 | Smart Recommendations Engine                | ✅ Complete                     |
-| FM-170 | Knowledge & Search Tests & Hardening        | ✅ Complete (45 tests)          |
+| ID     | Feature                                     | Status                                        |
+| ------ | ------------------------------------------- | --------------------------------------------- |
+| FM-161 | Full-Text Search Index                      | ✅ Complete (LIKE-based)                      |
+| FM-162 | Semantic Search with Embeddings             | ⚠️ Partial (TF-IDF keyword only, no vectors) |
+| FM-163 | Knowledge Base — Decision & Pattern Library | ✅ Complete                                   |
+| FM-164 | Project Templates V2                        | ✅ Complete                                   |
+| FM-165 | Cross-Project Search & Discovery            | ✅ Complete                                   |
+| FM-166 | Execution Replay & Comparison               | ✅ Complete                                   |
+| FM-167 | Organizational Context & Conventions Engine | ✅ Complete                                   |
+| FM-168 | Artifact Versioning & History               | ✅ Complete                                   |
+| FM-169 | Smart Recommendations Engine                | ✅ Complete                                   |
+| FM-170 | Knowledge & Search Tests & Hardening        | ✅ Complete (45 tests)                        |
 
-### Wave 13 — Enterprise Governance, Permissions & Compliance (FM-171 → FM-180)
+### Wave 13 — Enterprise Governance, Permissions & Compliance (FM-171 → FM-180) (✅ COMPLETE)
 
 > Immutable audit trail, governance policy evaluation engine, compliance report generation,
 > IP allowlisting, data retention policies, workspace governance settings, role introspection,
 > SSO configuration, secret resolution & rotation lifecycle.
-> 5/10 fully complete; 5/10 partial with real enforcement.
+> 10/10 complete (Passes 1–7 closed all gaps).
 
 | ID     | Feature                                    | Status                                     |
 | ------ | ------------------------------------------ | ------------------------------------------ |
-| FM-171 | Workspace Governance Metadata              | 🟡 Partial (governance_settings JSON)      |
-| FM-172 | RBAC V2 — Role Introspection               | 🟡 Partial (25 actions, no custom roles)   |
+| FM-171 | Workspace Governance Metadata              | ✅ Complete                                |
+| FM-172 | RBAC V2 — Role Introspection               | ✅ Complete                                |
 | FM-173 | Comprehensive Audit Log                    | ✅ Complete                                |
 | FM-174 | Policy Engine — Automated Rule Enforcement | ✅ Complete                                |
-| FM-175 | SSO Configuration Model                    | 🟡 Partial (config CRUD, no live flows)    |
-| FM-176 | Data Retention & Lifecycle Policies        | 🟡 Partial (CRUD + dry-run, no scheduler)  |
+| FM-175 | SSO Configuration Model                    | ✅ Complete                                |
+| FM-176 | Data Retention & Lifecycle Policies        | ✅ Complete                                |
 | FM-177 | Compliance Reporting & Export              | ✅ Complete (5 report types, JSON/CSV)     |
 | FM-178 | IP Allowlisting & Access Controls          | ✅ Complete (middleware wired, IPv4/IPv6)  |
-| FM-179 | Secrets Resolution & Lifecycle             | 🟡 Partial (resolve/rotate, no encryption) |
+| FM-179 | Secrets Resolution & Lifecycle             | ✅ Complete                                |
 | FM-180 | Enterprise Governance Tests & Hardening    | ✅ Complete (70+ tests, docs corrected)    |
 
 **New models:** AuditLog, GovernancePolicyEvaluation, ComplianceReport, IpAllowlistEntry, RetentionPolicy, SSOConfiguration
@@ -1025,4 +1024,4 @@ Execution checkpoint infrastructure with persistent state snapshots, resume sema
 
 ---
 
-_This document reflects the architecture as of the latest commit on `main`. FM-141–FM-180: 21 COMPLETE, 18 PARTIAL, 1 DEFERRED out of 40 milestones. 1004 tests passing._
+_This document reflects the architecture as of the latest commit on `main`. FM-141–FM-180: 38 COMPLETE, 1 PARTIAL (FM-162), 1 DEFERRED (FM-159) out of 40 milestones. 1132 tests passing._
