@@ -100,7 +100,7 @@ class TestHealthScoring:
         await db_session.commit()
         assert snap.id is not None
         assert snap.composite_score == 50.0
-        assert snap.grade == HealthGrade.F
+        assert snap.grade == HealthGrade.D  # 50 ≥ 45 → D per roadmap thresholds
 
     @pytest.mark.asyncio
     async def test_compute_health_high_scores(
@@ -147,12 +147,23 @@ class TestHealthScoring:
 
     @pytest.mark.asyncio
     async def test_grade_boundaries(self, db_session: AsyncSession):
+        """Verify grade thresholds match roadmap: A≥90, B≥75, C≥60, D≥45, F<45."""
         from app.services.execution_health_service import _compute_grade
+        # A grade
         assert _compute_grade(95) == HealthGrade.A
-        assert _compute_grade(85) == HealthGrade.B
-        assert _compute_grade(75) == HealthGrade.C
-        assert _compute_grade(65) == HealthGrade.D
-        assert _compute_grade(50) == HealthGrade.F
+        assert _compute_grade(90) == HealthGrade.A
+        # B grade
+        assert _compute_grade(89) == HealthGrade.B
+        assert _compute_grade(75) == HealthGrade.B
+        # C grade
+        assert _compute_grade(74) == HealthGrade.C
+        assert _compute_grade(60) == HealthGrade.C
+        # D grade
+        assert _compute_grade(59) == HealthGrade.D
+        assert _compute_grade(45) == HealthGrade.D
+        # F grade
+        assert _compute_grade(44) == HealthGrade.F
+        assert _compute_grade(0) == HealthGrade.F
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -204,6 +215,48 @@ class TestVelocity:
         assert velocity["project_id"] == str(sample_project.id)
         assert "completed_runs" in velocity
         assert "runs_per_day" in velocity
+
+    @pytest.mark.asyncio
+    async def test_velocity_tasks_filtered_by_project(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """Regression: completed_tasks must only count tasks in this project's runs."""
+        from app.models.project import Project
+        from app.models.run import Run, RunStatus
+        from app.models.task import Task, TaskStatus
+
+        # Create a second project with a completed run+task
+        other_project = Project(
+            name="Other Project",
+            description="Should not leak into velocity",
+            owner_id=STUB_USER_ID,
+        )
+        db_session.add(other_project)
+        await db_session.flush()
+
+        other_run = Run(
+            run_number=1,
+            project_id=other_project.id,
+            status=RunStatus.COMPLETED,
+            trigger="test",
+        )
+        db_session.add(other_run)
+        await db_session.flush()
+
+        other_task = Task(
+            title="Other Task",
+            status=TaskStatus.COMPLETED,
+            run_id=other_run.id,
+        )
+        db_session.add(other_task)
+        await db_session.flush()
+        await db_session.commit()
+
+        # Velocity for sample_project must NOT include other_task
+        velocity = await velocity_quality_service.compute_velocity(
+            db_session, sample_project.id, days=365,
+        )
+        assert velocity["completed_tasks"] == 0
 
 
 # ══════════════════════════════════════════════════════════════════

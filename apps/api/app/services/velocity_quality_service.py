@@ -46,10 +46,12 @@ async def compute_velocity(
     )
     completed_runs = run_q.scalar_one()
 
-    # Completed tasks in window
+    # Completed tasks in window (join through Run to filter by project)
     task_q = await db.execute(
         select(sa_func.count(Task.id)).where(
             Task.status == TaskStatus.COMPLETED,
+            Task.run_id == Run.id,
+            Run.project_id == project_id,
         )
     )
     completed_tasks = task_q.scalar_one()

@@ -1980,7 +1980,7 @@ make test
 
 **Built with ❤️ by [Priyank Mistry](https://github.com/priyankmistry21699-web)**
 
-_ForgeMind v2.0.0 — 180 milestones attempted (39 complete + 0 partial + 1 deferred in FM-141→180) · 1157 tests passing_
+_ForgeMind v2.0.0 — 210 milestones attempted (0 COMPLETE / 23 PARTIAL / 7 DEFERRED in FM-181→210) · 1243 tests passing_
 
 </div>
 

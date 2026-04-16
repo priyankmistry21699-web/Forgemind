@@ -779,6 +779,74 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 
 ---
 
+## Wave 14 — Code Intelligence, Change Awareness & Test Intelligence (FM-181 → FM-190)
+
+> AST-based dependency parsing, impact analysis, coverage mapping, pattern detection,
+> technical debt tracking, flakiness detection, complexity metrics.
+> 0/10 COMPLETE — all PARTIAL or DEFERRED. 35 tests.
+
+| FM     | Feature                                       | Status                                                                                                     |
+| ------ | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| FM-181 | Codebase Graph — Dependency Mapping           | 🔶 Partial — Python AST parsing works; no TypeScript parser; no incremental scan                           |
+| FM-182 | Change Impact Analysis                        | 🔶 Partial — BFS traversal works; no explicit risk scoring; no test/source file separation                 |
+| FM-183 | Test Coverage Mapping                         | 🔶 Partial — Static mapping + upsert; no coverage report parser (pytest-cov/istanbul/LCOV)                |
+| FM-184 | Intelligent Test Selection                    | ⏳ Deferred — requires FM-182 + FM-183 composition                                                         |
+| FM-185 | Code Pattern Detection                        | 🔶 Partial — Regex scan engine; zero built-in rules shipped; no KB integration                             |
+| FM-186 | Technical Debt Tracking                       | 🔶 Partial — COMMENT debt only (TODO/FIXME/HACK); 3 of 4 debt source types not detected                   |
+| FM-187 | Test Flakiness Detection                      | 🔶 Partial — Flakiness scoring works; quarantine flag exists but no gate enforcement                       |
+| FM-188 | Code Complexity Metrics                       | 🔶 Partial — Cyclomatic complexity implemented; cognitive complexity NOT implemented                        |
+| FM-189 | Code Intelligence Agent Integration           | ⏳ Deferred — requires agent runtime pipeline                                                               |
+| FM-190 | Code Intelligence Tests, Docs & Hardening     | 🔶 Partial — 35 tests (target 40+); no perf benchmarks; no docs                                           |
+
+**Wave 14 summary:** 0 COMPLETE / 8 PARTIAL / 2 DEFERRED. Foundation laid for all services; key gaps are cognitive complexity, multi-debt-source scanning, and coverage report ingestion.
+
+---
+
+## Wave 15 — Analytics, Metrics & Portfolio Operations (FM-191 → FM-200)
+
+> Execution metrics, health scoring, cost budgets, velocity, quality snapshots,
+> portfolio aggregation, dashboards, alerts, executive summaries.
+> 0/10 COMPLETE — all PARTIAL. 32 tests.
+
+| FM     | Feature                                       | Status                                                                                                     |
+| ------ | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| FM-191 | Run Execution Metrics & Time Tracking         | 🔶 Partial — Manual recording + aggregation; no auto-capture from status transitions                       |
+| FM-192 | Project Health Scoring                        | 🔶 Partial — Weighted composite + grades (thresholds fixed to match roadmap); dimensions not auto-computed  |
+| FM-193 | Cost Tracking & Budget Management             | 🔶 Partial — BudgetConfig model exists; no enforcement (block/warn) logic                                  |
+| FM-194 | Team Velocity & Throughput Metrics            | 🔶 Partial — Throughput computed; project_id filter bug fixed; no approval velocity or period comparison    |
+| FM-195 | Quality Metrics Dashboard                     | 🔶 Partial — Snapshot + trend works; metrics user-supplied not auto-computed; no quality gates              |
+| FM-196 | Portfolio Overview — Multi-Project Dashboard  | 🔶 Partial — Aggregates runs + costs; no sort/filter; N+1 query pattern                                   |
+| FM-197 | Custom Dashboards & Widgets                   | 🔶 Partial — Dashboard CRUD complete; no widget rendering or data source resolution                        |
+| FM-198 | Scheduled Reports & Alerts                    | 🔶 Partial — Alert condition evaluation works; no cooldown enforcement; no report execution engine          |
+| FM-199 | Executive Summary Generator                   | 🔶 Partial — Aggregates health/velocity/quality/execution; no NLP generation; no artifact storage          |
+| FM-200 | Analytics Tests, Docs & Hardening             | 🔶 Partial — 32 tests (target 40+); no perf benchmarks; no docs                                           |
+
+**Wave 15 summary:** 0 COMPLETE / 10 PARTIAL / 0 DEFERRED. CRUD and aggregation done across the board; gaps are auto-computation, enforcement, and execution engines.
+
+---
+
+## Wave 16 — API, Webhooks & Ecosystem Integrations (FM-201 → FM-210)
+
+> API key management, rate limiting, webhooks, external integrations, connector registry.
+> 0/10 COMPLETE — 5 PARTIAL / 5 DEFERRED. 26 tests.
+
+| FM     | Feature                                       | Status                                                                                                     |
+| ------ | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| FM-201 | Public API v1 — Core Endpoints                | 🔶 Partial — API key gen/validate/revoke; no /api/v1/ routing; scopes stored but not enforced              |
+| FM-202 | API Rate Limiting & Throttling                | 🔶 Partial — Sliding window works; headers only on 429; no per-tier limits                                 |
+| FM-203 | Webhook Subscription System                   | 🔶 Partial — HMAC signing + delivery tracking; NO actual HTTP dispatcher to POST payloads                  |
+| FM-204 | Slack Integration                             | ⏳ Deferred — external integration                                                                          |
+| FM-205 | Jira Integration                              | ⏳ Deferred — external integration                                                                          |
+| FM-206 | PagerDuty & Incident Integration              | ⏳ Deferred — external integration                                                                          |
+| FM-207 | Email Notification Channel                    | ⏳ Deferred — external integration                                                                          |
+| FM-208 | Integration Marketplace & Custom Connectors   | 🔶 Partial — Registry CRUD works; no abstract Connector interface/ABC                                      |
+| FM-209 | API SDK & Client Libraries                    | ⏳ Deferred — requires stable API surface                                                                   |
+| FM-210 | Ecosystem Integration Tests, Docs & Hardening | 🔶 Partial — 26 tests (target 45+); no e2e scenario; no docs                                              |
+
+**Wave 16 summary:** 0 COMPLETE / 5 PARTIAL / 5 DEFERRED. Key infrastructure (keys, rate limiter, webhook records) built; major gaps are HTTP dispatch, scope enforcement, and connector ABC.
+
+---
+
 ## ForgeMind V5 — FUTURE (FM-211 → FM-250)
 
 > **Status:** Not yet implemented. Architecture direction planned for after FM-210 is complete.

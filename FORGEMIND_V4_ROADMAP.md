@@ -1742,7 +1742,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [x] All 4 debt sources detected and scored
+- [ ] All 4 debt sources detected and scored
 - [x] Project-level composite score computed correctly
 - [x] Trend tracking shows debt changes over snapshots
 - [ ] Budget threshold triggers warning when exceeded
@@ -1810,7 +1810,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [x] Cyclomatic and cognitive complexity computed correctly for Python
+- [ ] Cyclomatic and cognitive complexity computed correctly for Python
 - [x] Threshold violations flagged accurately
 - [ ] Trend tracking shows changes across snapshots
 - [x] Tests cover complexity calculation for various code structures
@@ -1942,7 +1942,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [ ] All 5 health dimensions computed from real project data
 - [x] Weighted composite produces expected scores
-- [x] Grade thresholds: A (90+), B (75+), C (60+), D (45+), F (<45)
+- [x] Grade thresholds: A (90+), B (75+), C (60+), D (45+), F (<45) ✅ fixed in correction pass
 - [x] Trend captures changes over time
 - [x] Tests cover dimension scoring, weighting, and grading
 
@@ -2147,7 +2147,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [ ] Scheduled reports generate on schedule with correct metrics
 - [x] Alerts trigger when conditions are met
-- [x] Cooldown prevents alert spam
+- [ ] Cooldown prevents alert spam
 - [ ] Alert history shows all triggers with context
 - [x] Tests cover scheduling, condition evaluation, and cooldown logic
 
@@ -2247,7 +2247,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [ ] All core endpoint groups accessible via `/api/v1/`
 - [x] API key authentication works alongside JWT
-- [x] Scoped API keys restrict access to specified resources
+- [ ] Scoped API keys restrict access to specified resources
 - [ ] OpenAPI spec complete and valid
 - [x] Tests cover API key lifecycle and scope enforcement
 

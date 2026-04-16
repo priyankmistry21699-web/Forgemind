@@ -123,14 +123,17 @@ HEALTH_WEIGHTS: dict[str, float] = {
 
 
 def _compute_grade(score: float) -> HealthGrade:
-    """Map a 0-100 score to a letter grade."""
+    """Map a 0-100 score to a letter grade.
+
+    Thresholds per roadmap: A ≥ 90, B ≥ 75, C ≥ 60, D ≥ 45, F < 45.
+    """
     if score >= 90:
         return HealthGrade.A
-    if score >= 80:
+    if score >= 75:
         return HealthGrade.B
-    if score >= 70:
-        return HealthGrade.C
     if score >= 60:
+        return HealthGrade.C
+    if score >= 45:
         return HealthGrade.D
     return HealthGrade.F
 
