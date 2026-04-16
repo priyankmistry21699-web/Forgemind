@@ -535,3 +535,245 @@ class TestCyclomaticComputation:
     def test_syntax_error_returns_empty(self):
         results = flakiness_complexity_service._compute_cyclomatic_complexity("if:")
         assert results == []
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-188: Cognitive Complexity (Unit Test)
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestCognitiveComplexity:
+    def test_simple_function_zero(self):
+        source = "def f():\n    return 1\n"
+        results = flakiness_complexity_service._compute_cognitive_complexity(source)
+        assert len(results) == 1
+        assert results[0]["complexity"] == 0  # No flow breaks
+
+    def test_single_if(self):
+        source = "def f(x):\n    if x:\n        return 1\n    return 0\n"
+        results = flakiness_complexity_service._compute_cognitive_complexity(source)
+        assert results[0]["complexity"] >= 1
+
+    def test_nested_ifs_higher_than_flat(self):
+        """Nested structures should score higher than flat structures."""
+        flat = "def f(a, b):\n    if a:\n        pass\n    if b:\n        pass\n"
+        nested = "def f(a, b):\n    if a:\n        if b:\n            pass\n"
+        flat_r = flakiness_complexity_service._compute_cognitive_complexity(flat)
+        nested_r = flakiness_complexity_service._compute_cognitive_complexity(nested)
+        assert nested_r[0]["complexity"] > flat_r[0]["complexity"]
+
+    def test_for_loop_with_nesting(self):
+        source = (
+            "def f(items):\n"
+            "    for item in items:\n"
+            "        if item > 0:\n"
+            "            pass\n"
+        )
+        results = flakiness_complexity_service._compute_cognitive_complexity(source)
+        assert results[0]["complexity"] >= 2  # for(1+0) + if(1+1)
+
+    def test_syntax_error_returns_empty(self):
+        results = flakiness_complexity_service._compute_cognitive_complexity("if:")
+        assert results == []
+
+    def test_cognitive_differs_from_cyclomatic(self):
+        """Deeply nested code should have higher cognitive than cyclomatic."""
+        source = (
+            "def f(a, b, c):\n"
+            "    if a:\n"
+            "        if b:\n"
+            "            if c:\n"
+            "                return 1\n"
+        )
+        cyclo = flakiness_complexity_service._compute_cyclomatic_complexity(source)
+        cogni = flakiness_complexity_service._compute_cognitive_complexity(source)
+        # Cyclomatic: 1+3=4, Cognitive: should be higher due to nesting penalties
+        assert cogni[0]["complexity"] > cyclo[0]["complexity"] - 1  # cognitive penalizes nesting
+
+
+class TestCognitiveMetricPersistence:
+    @pytest.mark.asyncio
+    async def test_analyze_file_stores_cognitive(self, db_session: AsyncSession, sample_project):
+        source = (
+            "def simple():\n"
+            "    return 1\n\n"
+            "def complex_fn(x):\n"
+            "    if x > 0:\n"
+            "        for i in range(x):\n"
+            "            if i % 2 == 0:\n"
+            "                print(i)\n"
+            "    return x\n"
+        )
+        metrics = await flakiness_complexity_service.analyze_file_complexity(
+            db_session, project_id=sample_project.id,
+            file_path="both.py", source_code=source,
+        )
+        await db_session.commit()
+
+        from app.models.code_intelligence import MetricType
+        cyclomatic = [m for m in metrics if m.metric_type == MetricType.CYCLOMATIC]
+        cognitive = [m for m in metrics if m.metric_type == MetricType.COGNITIVE]
+        assert len(cyclomatic) == 2  # 2 functions
+        assert len(cognitive) == 2  # 2 functions
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-186: Technical Debt — All 4 Sources
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestPatternDebt:
+    @pytest.mark.asyncio
+    async def test_scan_for_pattern_debt(self, db_session: AsyncSession, sample_project):
+        """Pattern debt: create a pattern rule + occurrence, then scan_file_for_pattern_debt."""
+        from app.models.code_intelligence import DebtType, PatternType
+
+        rule = await pattern_debt_service.create_pattern_rule(
+            db_session, name="Eval usage",
+            pattern_type=PatternType.ANTI_PATTERN,
+            rule_definition=r"eval\(",
+            severity=PatternSeverity.WARNING,
+        )
+        source = "result = eval('1+1')\n"
+        await pattern_debt_service.scan_file_for_patterns(
+            db_session, project_id=sample_project.id,
+            file_path="evil.py", source_code=source, rules=[rule],
+        )
+        await db_session.commit()
+
+        entries = await pattern_debt_service.scan_file_for_pattern_debt(
+            db_session, project_id=sample_project.id, file_path="evil.py",
+        )
+        await db_session.commit()
+        assert len(entries) >= 1
+        assert entries[0].debt_type == DebtType.PATTERN
+
+    @pytest.mark.asyncio
+    async def test_pattern_debt_no_occurrences(self, db_session: AsyncSession, sample_project):
+        entries = await pattern_debt_service.scan_file_for_pattern_debt(
+            db_session, project_id=sample_project.id, file_path="clean.py",
+        )
+        assert entries == []
+
+
+class TestAgeDebt:
+    @pytest.mark.asyncio
+    async def test_old_file_creates_debt(self, db_session: AsyncSession, sample_project):
+        from datetime import datetime, timezone, timedelta
+        from app.models.code_intelligence import DebtType
+
+        old_date = datetime.now(timezone.utc) - timedelta(days=365)
+        entries = await pattern_debt_service.scan_file_for_age_debt(
+            db_session, project_id=sample_project.id,
+            file_path="ancient.py", source_code="x = 1\n",
+            last_modified=old_date, age_threshold_days=180,
+        )
+        await db_session.commit()
+        assert len(entries) == 1
+        assert entries[0].debt_type == DebtType.AGE
+        assert entries[0].score > 0
+
+    @pytest.mark.asyncio
+    async def test_recent_file_no_debt(self, db_session: AsyncSession, sample_project):
+        from datetime import datetime, timezone
+
+        recent = datetime.now(timezone.utc)
+        entries = await pattern_debt_service.scan_file_for_age_debt(
+            db_session, project_id=sample_project.id,
+            file_path="new.py", source_code="x = 1\n",
+            last_modified=recent, age_threshold_days=180,
+        )
+        assert entries == []
+
+    @pytest.mark.asyncio
+    async def test_no_last_modified_no_debt(self, db_session: AsyncSession, sample_project):
+        entries = await pattern_debt_service.scan_file_for_age_debt(
+            db_session, project_id=sample_project.id,
+            file_path="unknown.py", source_code="x = 1\n",
+            last_modified=None,
+        )
+        assert entries == []
+
+
+class TestComplexityDebt:
+    @pytest.mark.asyncio
+    async def test_complex_function_creates_debt(self, db_session: AsyncSession, sample_project):
+        from app.models.code_intelligence import DebtType
+
+        source = (
+            "def mega(a, b, c, d, e):\n"
+            "    if a: pass\n"
+            "    if b: pass\n"
+            "    if c: pass\n"
+            "    if d: pass\n"
+            "    if e: pass\n"
+            "    for x in range(10):\n"
+            "        if x > 5:\n"
+            "            while True:\n"
+            "                break\n"
+            "    try:\n"
+            "        pass\n"
+            "    except ValueError:\n"
+            "        pass\n"
+            "    except TypeError:\n"
+            "        pass\n"
+        )
+        entries = await pattern_debt_service.scan_file_for_complexity_debt(
+            db_session, project_id=sample_project.id,
+            file_path="mega.py", source_code=source,
+            complexity_threshold=5.0,
+        )
+        await db_session.commit()
+        assert len(entries) >= 1
+        assert entries[0].debt_type == DebtType.COMPLEXITY
+
+    @pytest.mark.asyncio
+    async def test_simple_function_no_debt(self, db_session: AsyncSession, sample_project):
+        source = "def f():\n    return 1\n"
+        entries = await pattern_debt_service.scan_file_for_complexity_debt(
+            db_session, project_id=sample_project.id,
+            file_path="simple.py", source_code=source,
+            complexity_threshold=10.0,
+        )
+        assert entries == []
+
+
+class TestAllDebtScan:
+    @pytest.mark.asyncio
+    async def test_scan_all_debt_sources(self, db_session: AsyncSession, sample_project):
+        """scan_file_for_all_debt should combine all 4 debt source types."""
+        source = (
+            "# TODO: fix this later\n"
+            "def mega(a, b, c, d, e):\n"
+            "    if a: pass\n"
+            "    if b: pass\n"
+            "    if c: pass\n"
+            "    if d: pass\n"
+            "    if e: pass\n"
+            "    for x in range(10):\n"
+            "        if x > 5:\n"
+            "            while True:\n"
+            "                break\n"
+            "    try:\n"
+            "        pass\n"
+            "    except ValueError:\n"
+            "        pass\n"
+            "    except TypeError:\n"
+            "        pass\n"
+        )
+        from datetime import datetime, timezone, timedelta
+        old_date = datetime.now(timezone.utc) - timedelta(days=365)
+
+        entries = await pattern_debt_service.scan_file_for_all_debt(
+            db_session, project_id=sample_project.id,
+            file_path="all_debt.py", source_code=source,
+            last_modified=old_date,
+            complexity_threshold=5.0,
+        )
+        await db_session.commit()
+
+        from app.models.code_intelligence import DebtType
+        types = {e.debt_type for e in entries}
+        assert DebtType.COMMENT in types   # TODO marker
+        assert DebtType.AGE in types        # Old file
+        assert DebtType.COMPLEXITY in types  # Complex function

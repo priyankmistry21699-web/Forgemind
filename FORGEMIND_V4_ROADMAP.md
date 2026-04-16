@@ -1742,7 +1742,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] All 4 debt sources detected and scored
+- [x] All 4 debt sources detected and scored
 - [x] Project-level composite score computed correctly
 - [x] Trend tracking shows debt changes over snapshots
 - [ ] Budget threshold triggers warning when exceeded
@@ -1810,7 +1810,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Cyclomatic and cognitive complexity computed correctly for Python
+- [x] Cyclomatic and cognitive complexity computed correctly for Python
 - [x] Threshold violations flagged accurately
 - [ ] Trend tracking shows changes across snapshots
 - [x] Tests cover complexity calculation for various code structures
@@ -2147,8 +2147,8 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [ ] Scheduled reports generate on schedule with correct metrics
 - [x] Alerts trigger when conditions are met
-- [ ] Cooldown prevents alert spam
-- [ ] Alert history shows all triggers with context
+- [x] Cooldown prevents alert spam
+- [x] Alert history shows all triggers with context
 - [x] Tests cover scheduling, condition evaluation, and cooldown logic
 
 ---
@@ -2247,7 +2247,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [ ] All core endpoint groups accessible via `/api/v1/`
 - [x] API key authentication works alongside JWT
-- [ ] Scoped API keys restrict access to specified resources
+- [x] Scoped API keys restrict access to specified resources
 - [ ] OpenAPI spec complete and valid
 - [x] Tests cover API key lifecycle and scope enforcement
 
@@ -2315,7 +2315,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Webhooks fire for all configured event types
+- [x] Webhooks fire for all configured event types
 - [x] Payload signed with HMAC-SHA256 using subscription secret
 - [x] Failed deliveries retried up to 5 times with exponential backoff
 - [x] Delivery log records all attempts with status codes

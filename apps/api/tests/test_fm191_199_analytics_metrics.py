@@ -494,6 +494,123 @@ class TestMetricAlerts:
 
 
 # ══════════════════════════════════════════════════════════════════
+# FM-198: Cooldown Enforcement & Alert History
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestAlertCooldown:
+    @pytest.mark.asyncio
+    async def test_cooldown_prevents_retrigger(self, db_session: AsyncSession):
+        """Alert in cooldown should not fire even when condition is met."""
+        from datetime import datetime, timezone, timedelta
+
+        alert = await dashboard_alert_service.create_metric_alert(
+            db_session, name="Cooldown Test",
+            metric_type="latency", condition_op=AlertConditionOp.GT,
+            threshold=100.0, cooldown_minutes=60,
+        )
+        await db_session.commit()
+
+        # First evaluation: should trigger
+        triggered = await dashboard_alert_service.evaluate_alert(alert, 200.0)
+        assert triggered is True
+
+        # Simulate trigger to set last_triggered_at
+        await dashboard_alert_service.trigger_alert(
+            db_session, alert.id, current_value=200.0,
+        )
+        await db_session.commit()
+
+        # Re-fetch alert to get updated last_triggered_at
+        from sqlalchemy import select
+        from app.models.analytics_metrics import MetricAlert
+        result = await db_session.execute(
+            select(MetricAlert).where(MetricAlert.id == alert.id)
+        )
+        alert = result.scalar_one()
+
+        # Second evaluation within cooldown: should NOT trigger
+        triggered2 = await dashboard_alert_service.evaluate_alert(alert, 300.0)
+        assert triggered2 is False
+
+    @pytest.mark.asyncio
+    async def test_alert_fires_after_cooldown_expires(self, db_session: AsyncSession):
+        """Alert should fire again after cooldown period expires."""
+        from datetime import datetime, timezone, timedelta
+        from app.models.analytics_metrics import MetricAlert
+        from sqlalchemy import select
+
+        alert = await dashboard_alert_service.create_metric_alert(
+            db_session, name="Cooldown Expire",
+            metric_type="latency", condition_op=AlertConditionOp.GT,
+            threshold=100.0, cooldown_minutes=5,
+        )
+        await db_session.commit()
+
+        # Set last_triggered_at to well in the past
+        alert.last_triggered_at = datetime.now(timezone.utc) - timedelta(minutes=10)
+        await db_session.flush()
+
+        result = await db_session.execute(
+            select(MetricAlert).where(MetricAlert.id == alert.id)
+        )
+        alert = result.scalar_one()
+
+        # Should fire because cooldown has expired
+        triggered = await dashboard_alert_service.evaluate_alert(alert, 200.0)
+        assert triggered is True
+
+
+class TestAlertHistory:
+    @pytest.mark.asyncio
+    async def test_trigger_records_history(self, db_session: AsyncSession):
+        """trigger_alert with current_value logs to AlertTriggerHistory."""
+        alert = await dashboard_alert_service.create_metric_alert(
+            db_session, name="History Test",
+            metric_type="cost", condition_op=AlertConditionOp.GT,
+            threshold=50.0,
+        )
+        await db_session.commit()
+
+        await dashboard_alert_service.trigger_alert(
+            db_session, alert.id, current_value=75.0,
+        )
+        await db_session.commit()
+
+        history, total = await dashboard_alert_service.get_alert_history(
+            db_session, alert.id,
+        )
+        assert total >= 1
+        assert history[0].current_value == 75.0
+        assert history[0].threshold == 50.0
+
+    @pytest.mark.asyncio
+    async def test_multiple_triggers_recorded(self, db_session: AsyncSession):
+        alert = await dashboard_alert_service.create_metric_alert(
+            db_session, name="Multi History",
+            metric_type="errors", condition_op=AlertConditionOp.GTE,
+            threshold=10.0,
+        )
+        await db_session.commit()
+
+        # Trigger multiple times (bypassing cooldown for test purposes)
+        from datetime import datetime, timezone, timedelta
+        for val in [15.0, 20.0, 25.0]:
+            # Reset cooldown to allow re-trigger
+            alert.last_triggered_at = datetime.now(timezone.utc) - timedelta(hours=2)
+            await db_session.flush()
+            await dashboard_alert_service.trigger_alert(
+                db_session, alert.id, current_value=val,
+            )
+        await db_session.commit()
+
+        history, total = await dashboard_alert_service.get_alert_history(
+            db_session, alert.id,
+        )
+        assert total >= 3
+
+
+# ══════════════════════════════════════════════════════════════════
 # FM-199: Executive Summary
 # ══════════════════════════════════════════════════════════════════
 

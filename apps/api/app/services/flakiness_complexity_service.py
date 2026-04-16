@@ -194,6 +194,94 @@ def _compute_cyclomatic_complexity(source_code: str) -> list[dict[str, Any]]:
     return results
 
 
+def _compute_cognitive_complexity(source_code: str) -> list[dict[str, Any]]:
+    """Compute cognitive complexity per function using nesting-aware AST walk.
+
+    Cognitive complexity differs from cyclomatic complexity by:
+    - Penalizing deeply nested structures (nesting increment)
+    - Penalizing breaks in linear flow (structural increment)
+    - Not counting short-circuit operators the same way
+    """
+    results = []
+    try:
+        tree = ast.parse(source_code)
+    except SyntaxError:
+        return results
+
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            score = _cognitive_visit_body(node.body, nesting=0)
+            results.append({
+                "function_name": node.name,
+                "complexity": score,
+                "line": node.lineno,
+            })
+    return results
+
+
+def _cognitive_visit_body(stmts: list[ast.AST], nesting: int) -> int:
+    """Visit a list of statements and accumulate cognitive complexity."""
+    score = 0
+    for stmt in stmts:
+        if isinstance(stmt, (ast.If, ast.For, ast.While, ast.AsyncFor)):
+            # Structural increment + nesting penalty
+            score += 1 + nesting
+            # Recurse into body at deeper nesting
+            score += _cognitive_visit_body(stmt.body, nesting + 1)
+            # Handle else/elif
+            if stmt.orelse:
+                if len(stmt.orelse) == 1 and isinstance(stmt.orelse[0], ast.If):
+                    # elif: +1 structural, no extra nesting penalty
+                    score += 1
+                    elif_node = stmt.orelse[0]
+                    score += _cognitive_visit_body(elif_node.body, nesting + 1)
+                    # Recurse elif's orelse
+                    if elif_node.orelse:
+                        if len(elif_node.orelse) == 1 and isinstance(elif_node.orelse[0], ast.If):
+                            score += _cognitive_visit_body([elif_node.orelse[0]], nesting)
+                        else:
+                            score += 1  # else
+                            score += _cognitive_visit_body(elif_node.orelse, nesting + 1)
+                else:
+                    # else clause
+                    score += 1
+                    score += _cognitive_visit_body(stmt.orelse, nesting + 1)
+
+        elif isinstance(stmt, ast.Try):
+            score += _cognitive_visit_body(stmt.body, nesting)
+            for handler in (stmt.handlers or []):
+                score += 1 + nesting
+                score += _cognitive_visit_body(handler.body, nesting + 1)
+            score += _cognitive_visit_body(stmt.orelse or [], nesting)
+            score += _cognitive_visit_body(stmt.finalbody or [], nesting)
+
+        elif isinstance(stmt, (ast.With, ast.AsyncWith)):
+            score += 1 + nesting
+            score += _cognitive_visit_body(stmt.body, nesting + 1)
+
+        elif isinstance(stmt, (ast.Break, ast.Continue)):
+            score += 1
+
+        elif isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            # Nested function increases nesting for its body
+            score += _cognitive_visit_body(stmt.body, nesting + 1)
+
+        elif isinstance(stmt, ast.Expr):
+            # Check for BoolOp in expressions
+            if isinstance(stmt.value, ast.BoolOp):
+                score += 1
+
+        elif isinstance(stmt, (ast.Assign, ast.Return, ast.AugAssign)):
+            # Check for BoolOp/IfExp in value
+            val = getattr(stmt, "value", None)
+            if isinstance(val, ast.BoolOp):
+                score += 1
+            elif isinstance(val, ast.IfExp):
+                score += 1 + nesting
+
+    return score
+
+
 async def analyze_file_complexity(
     db: AsyncSession,
     *,
@@ -202,7 +290,7 @@ async def analyze_file_complexity(
     source_code: str,
     threshold: float = 10.0,
 ) -> list[ComplexityMetric]:
-    """Compute complexity for all functions in a file and persist."""
+    """Compute cyclomatic + cognitive complexity for all functions and persist."""
     from sqlalchemy import delete as sa_delete
     await db.execute(
         sa_delete(ComplexityMetric).where(
@@ -211,17 +299,33 @@ async def analyze_file_complexity(
         )
     )
 
-    functions = _compute_cyclomatic_complexity(source_code)
-    # Also count total lines
+    cyclomatic_fns = _compute_cyclomatic_complexity(source_code)
+    cognitive_fns = _compute_cognitive_complexity(source_code)
     loc = len(source_code.split("\n"))
 
     metrics: list[ComplexityMetric] = []
-    for fn in functions:
+
+    # Cyclomatic per function
+    for fn in cyclomatic_fns:
         m = ComplexityMetric(
             project_id=project_id,
             file_path=file_path,
             function_name=fn["function_name"],
             metric_type=MetricType.CYCLOMATIC,
+            value=fn["complexity"],
+            threshold=threshold,
+            exceeds_threshold=fn["complexity"] > threshold,
+        )
+        db.add(m)
+        metrics.append(m)
+
+    # Cognitive per function
+    for fn in cognitive_fns:
+        m = ComplexityMetric(
+            project_id=project_id,
+            file_path=file_path,
+            function_name=fn["function_name"],
+            metric_type=MetricType.COGNITIVE,
             value=fn["complexity"],
             threshold=threshold,
             exceeds_threshold=fn["complexity"] > threshold,
@@ -248,7 +352,7 @@ async def analyze_file_complexity(
         file_path=file_path,
         function_name=None,
         metric_type=MetricType.FUNCTION_COUNT,
-        value=float(len(functions)),
+        value=float(len(cyclomatic_fns)),
         threshold=None,
         exceeds_threshold=False,
     )

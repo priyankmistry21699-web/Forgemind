@@ -355,3 +355,193 @@ class TestConnectorRegistry:
         from fastapi import HTTPException
         with pytest.raises(HTTPException):
             await webhook_connector_service.get_connector(db_session, conn.id)
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-201: Scope Enforcement
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestScopeEnforcement:
+    @pytest.mark.asyncio
+    async def test_validate_with_matching_scopes(self, db_session: AsyncSession):
+        key, raw = await api_key_service.create_api_key(
+            db_session, creator_id=STUB_USER_ID,
+            name="scoped-key", scopes=["read", "write"],
+        )
+        await db_session.commit()
+
+        validated = await api_key_service.validate_api_key_with_scopes(
+            db_session, raw, required_scopes=["read"],
+        )
+        assert validated.id == key.id
+
+    @pytest.mark.asyncio
+    async def test_validate_with_missing_scopes(self, db_session: AsyncSession):
+        key, raw = await api_key_service.create_api_key(
+            db_session, creator_id=STUB_USER_ID,
+            name="read-only", scopes=["read"],
+        )
+        await db_session.commit()
+
+        from fastapi import HTTPException
+        with pytest.raises(HTTPException) as exc_info:
+            await api_key_service.validate_api_key_with_scopes(
+                db_session, raw, required_scopes=["write"],
+            )
+        assert exc_info.value.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_validate_wildcard_scope(self, db_session: AsyncSession):
+        key, raw = await api_key_service.create_api_key(
+            db_session, creator_id=STUB_USER_ID,
+            name="admin-key", scopes=["*"],
+        )
+        await db_session.commit()
+
+        validated = await api_key_service.validate_api_key_with_scopes(
+            db_session, raw, required_scopes=["read", "write", "admin"],
+        )
+        assert validated.id == key.id
+
+    @pytest.mark.asyncio
+    async def test_validate_no_required_scopes(self, db_session: AsyncSession):
+        key, raw = await api_key_service.create_api_key(
+            db_session, creator_id=STUB_USER_ID,
+            name="any-key", scopes=["read"],
+        )
+        await db_session.commit()
+
+        validated = await api_key_service.validate_api_key_with_scopes(
+            db_session, raw, required_scopes=None,
+        )
+        assert validated.id == key.id
+
+    def test_require_scope_creates_dependency(self):
+        dep = api_key_service.require_scope("read", "write")
+        assert callable(dep)
+
+    @pytest.mark.asyncio
+    async def test_validate_multiple_required_scopes(self, db_session: AsyncSession):
+        key, raw = await api_key_service.create_api_key(
+            db_session, creator_id=STUB_USER_ID,
+            name="partial-key", scopes=["read"],
+        )
+        await db_session.commit()
+
+        from fastapi import HTTPException
+        with pytest.raises(HTTPException) as exc_info:
+            await api_key_service.validate_api_key_with_scopes(
+                db_session, raw, required_scopes=["read", "write"],
+            )
+        assert exc_info.value.status_code == 403
+        assert "write" in exc_info.value.detail
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-203: Webhook HTTP Dispatch
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestWebhookDispatch:
+    @pytest.mark.asyncio
+    async def test_dispatch_webhook_success(self, db_session: AsyncSession):
+        """Test dispatch_webhook with a mocked HTTP POST that returns 200."""
+        import httpx
+        from unittest.mock import AsyncMock, patch
+
+        wh = await webhook_connector_service.create_webhook(
+            db_session, creator_id=STUB_USER_ID,
+            url="https://example.com/hook", events=["run.completed"],
+            secret="test-secret",
+        )
+        await db_session.commit()
+
+        mock_response = httpx.Response(200, request=httpx.Request("POST", "https://example.com/hook"))
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response):
+            delivery = await webhook_connector_service.dispatch_webhook(
+                db_session,
+                subscription=wh,
+                event_type="run.completed",
+                payload={"run_id": "abc123"},
+                secret="test-secret",
+            )
+            await db_session.commit()
+
+        assert delivery.status == DeliveryStatus.DELIVERED
+
+    @pytest.mark.asyncio
+    async def test_dispatch_webhook_failure(self, db_session: AsyncSession):
+        """Test dispatch_webhook with a 500 response triggers retry."""
+        import httpx
+        from unittest.mock import AsyncMock, patch
+
+        wh = await webhook_connector_service.create_webhook(
+            db_session, creator_id=STUB_USER_ID,
+            url="https://example.com/fail", events=["run.failed"],
+        )
+        await db_session.commit()
+
+        mock_response = httpx.Response(500, request=httpx.Request("POST", "https://example.com/fail"))
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response):
+            delivery = await webhook_connector_service.dispatch_webhook(
+                db_session,
+                subscription=wh,
+                event_type="run.failed",
+                payload={"error": "timeout"},
+            )
+            await db_session.commit()
+
+        assert delivery.status == DeliveryStatus.RETRYING
+
+    @pytest.mark.asyncio
+    async def test_dispatch_webhook_network_error(self, db_session: AsyncSession):
+        """Test dispatch_webhook when network error occurs."""
+        import httpx
+        from unittest.mock import AsyncMock, patch
+
+        wh = await webhook_connector_service.create_webhook(
+            db_session, creator_id=STUB_USER_ID,
+            url="https://example.com/down", events=["task.created"],
+        )
+        await db_session.commit()
+
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock, side_effect=httpx.ConnectError("Connection refused")):
+            delivery = await webhook_connector_service.dispatch_webhook(
+                db_session,
+                subscription=wh,
+                event_type="task.created",
+                payload={"task_id": "t1"},
+            )
+            await db_session.commit()
+
+        assert delivery.status == DeliveryStatus.RETRYING
+
+    @pytest.mark.asyncio
+    async def test_fire_event_dispatches_to_matching_subs(self, db_session: AsyncSession):
+        """Test fire_event finds matching subscriptions and dispatches."""
+        import httpx
+        from unittest.mock import AsyncMock, patch
+
+        wh1 = await webhook_connector_service.create_webhook(
+            db_session, creator_id=STUB_USER_ID,
+            url="https://a.com/hook", events=["run.completed"],
+        )
+        wh2 = await webhook_connector_service.create_webhook(
+            db_session, creator_id=STUB_USER_ID,
+            url="https://b.com/hook", events=["task.created"],
+        )
+        await db_session.commit()
+
+        mock_response = httpx.Response(200, request=httpx.Request("POST", "https://a.com/hook"))
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response):
+            deliveries = await webhook_connector_service.fire_event(
+                db_session,
+                event_type="run.completed",
+                payload={"run_id": "r1"},
+            )
+            await db_session.commit()
+
+        # Only wh1 matches "run.completed"
+        assert len(deliveries) >= 1
+        assert all(d.status == DeliveryStatus.DELIVERED for d in deliveries)

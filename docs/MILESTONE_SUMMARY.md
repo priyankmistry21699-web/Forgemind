@@ -792,9 +792,9 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 | FM-183 | Test Coverage Mapping                         | 🔶 Partial — Static mapping + upsert; no coverage report parser (pytest-cov/istanbul/LCOV)                |
 | FM-184 | Intelligent Test Selection                    | ⏳ Deferred — requires FM-182 + FM-183 composition                                                         |
 | FM-185 | Code Pattern Detection                        | 🔶 Partial — Regex scan engine; zero built-in rules shipped; no KB integration                             |
-| FM-186 | Technical Debt Tracking                       | 🔶 Partial — COMMENT debt only (TODO/FIXME/HACK); 3 of 4 debt source types not detected                   |
+| FM-186 | Technical Debt Tracking                       | 🔶 Partial — All 4 debt sources (comment/pattern/age/complexity) detected and scored; budget warning not implemented |
 | FM-187 | Test Flakiness Detection                      | 🔶 Partial — Flakiness scoring works; quarantine flag exists but no gate enforcement                       |
-| FM-188 | Code Complexity Metrics                       | 🔶 Partial — Cyclomatic complexity implemented; cognitive complexity NOT implemented                        |
+| FM-188 | Code Complexity Metrics                       | 🔶 Partial — Cyclomatic + cognitive complexity computed; no trend tracking across snapshots                 |
 | FM-189 | Code Intelligence Agent Integration           | ⏳ Deferred — requires agent runtime pipeline                                                               |
 | FM-190 | Code Intelligence Tests, Docs & Hardening     | 🔶 Partial — 35 tests (target 40+); no perf benchmarks; no docs                                           |
 
@@ -817,7 +817,7 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 | FM-195 | Quality Metrics Dashboard                     | 🔶 Partial — Snapshot + trend works; metrics user-supplied not auto-computed; no quality gates              |
 | FM-196 | Portfolio Overview — Multi-Project Dashboard  | 🔶 Partial — Aggregates runs + costs; no sort/filter; N+1 query pattern                                   |
 | FM-197 | Custom Dashboards & Widgets                   | 🔶 Partial — Dashboard CRUD complete; no widget rendering or data source resolution                        |
-| FM-198 | Scheduled Reports & Alerts                    | 🔶 Partial — Alert condition evaluation works; no cooldown enforcement; no report execution engine          |
+| FM-198 | Scheduled Reports & Alerts                    | 🔶 Partial — Alerts with cooldown enforcement + trigger history; no scheduled report execution engine       |
 | FM-199 | Executive Summary Generator                   | 🔶 Partial — Aggregates health/velocity/quality/execution; no NLP generation; no artifact storage          |
 | FM-200 | Analytics Tests, Docs & Hardening             | 🔶 Partial — 32 tests (target 40+); no perf benchmarks; no docs                                           |
 
@@ -832,9 +832,9 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 
 | FM     | Feature                                       | Status                                                                                                     |
 | ------ | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| FM-201 | Public API v1 — Core Endpoints                | 🔶 Partial — API key gen/validate/revoke; no /api/v1/ routing; scopes stored but not enforced              |
+| FM-201 | Public API v1 — Core Endpoints                | 🔶 Partial — API key gen/validate/revoke + scope enforcement; no /api/v1/ routing; no OpenAPI spec         |
 | FM-202 | API Rate Limiting & Throttling                | 🔶 Partial — Sliding window works; headers only on 429; no per-tier limits                                 |
-| FM-203 | Webhook Subscription System                   | 🔶 Partial — HMAC signing + delivery tracking; NO actual HTTP dispatcher to POST payloads                  |
+| FM-203 | Webhook Subscription System                   | 🔶 Partial — HTTP dispatch via httpx + HMAC signing + delivery tracking + fire_event; retry works          |
 | FM-204 | Slack Integration                             | ⏳ Deferred — external integration                                                                          |
 | FM-205 | Jira Integration                              | ⏳ Deferred — external integration                                                                          |
 | FM-206 | PagerDuty & Incident Integration              | ⏳ Deferred — external integration                                                                          |

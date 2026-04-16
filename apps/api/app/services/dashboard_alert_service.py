@@ -7,7 +7,7 @@ FM-199: Executive summary generation.
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Any
 
 from fastapi import HTTPException, status
@@ -20,6 +20,7 @@ from app.models.analytics_metrics import (
     ScheduledReport,
     MetricAlert,
     AlertConditionOp,
+    AlertTriggerHistory,
 )
 
 logger = logging.getLogger(__name__)
@@ -237,7 +238,21 @@ async def evaluate_alert(
     alert: MetricAlert,
     current_value: float,
 ) -> bool:
-    """Check if a metric value triggers the alert condition."""
+    """Check if a metric value triggers the alert condition.
+
+    Returns False if the alert is in cooldown (last_triggered_at + cooldown_minutes > now).
+    """
+    # Cooldown check
+    if alert.last_triggered_at is not None:
+        cooldown_end = alert.last_triggered_at + timedelta(minutes=alert.cooldown_minutes)
+        now = datetime.now(timezone.utc)
+        last = alert.last_triggered_at
+        if last.tzinfo is None:
+            last = last.replace(tzinfo=timezone.utc)
+        cooldown_end = last + timedelta(minutes=alert.cooldown_minutes)
+        if now < cooldown_end:
+            return False
+
     ops = {
         AlertConditionOp.GT: lambda v, t: v > t,
         AlertConditionOp.GTE: lambda v, t: v >= t,
@@ -254,8 +269,10 @@ async def evaluate_alert(
 async def trigger_alert(
     db: AsyncSession,
     alert_id: uuid.UUID,
+    *,
+    current_value: float | None = None,
 ) -> MetricAlert:
-    """Mark an alert as triggered (update last_triggered_at)."""
+    """Mark an alert as triggered, update last_triggered_at, and log to history."""
     result = await db.execute(
         select(MetricAlert).where(MetricAlert.id == alert_id)
     )
@@ -265,9 +282,43 @@ async def trigger_alert(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Alert not found",
         )
-    alert.last_triggered_at = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc)
+    alert.last_triggered_at = now
+
+    # Log trigger event to history
+    if current_value is not None:
+        history_entry = AlertTriggerHistory(
+            alert_id=alert_id,
+            triggered_at=now,
+            current_value=current_value,
+            threshold=alert.threshold,
+            condition_op=alert.condition_op.value if hasattr(alert.condition_op, 'value') else str(alert.condition_op),
+        )
+        db.add(history_entry)
+
     await db.flush()
     return alert
+
+
+async def get_alert_history(
+    db: AsyncSession,
+    alert_id: uuid.UUID,
+    *,
+    limit: int = 50,
+    offset: int = 0,
+) -> tuple[list[AlertTriggerHistory], int]:
+    """Get trigger history for a specific alert."""
+    query = select(AlertTriggerHistory).where(
+        AlertTriggerHistory.alert_id == alert_id
+    )
+    total = (
+        await db.execute(select(sa_func.count()).select_from(query.subquery()))
+    ).scalar_one()
+    result = await db.execute(
+        query.order_by(AlertTriggerHistory.triggered_at.desc())
+        .offset(offset).limit(limit)
+    )
+    return list(result.scalars().all()), total
 
 
 # ── FM-199: Executive Summary ────────────────────────────────────

@@ -1,6 +1,7 @@
 """Webhook & Connector services — FM-203/208.
 
 FM-203: Webhook subscription CRUD, HMAC signing, delivery tracking with retry.
+        HTTP dispatch with httpx.
 FM-208: Integration connector marketplace registry.
 """
 
@@ -10,8 +11,8 @@ import json
 import logging
 import uuid
 from datetime import datetime, timezone, timedelta
-from typing import Any
 
+import httpx
 from fastapi import HTTPException, status
 from sqlalchemy import select, func as sa_func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -202,6 +203,99 @@ async def get_delivery_history(
         query.order_by(WebhookDelivery.created_at.desc()).offset(offset).limit(limit)
     )
     return list(result.scalars().all()), total
+
+
+async def dispatch_webhook(
+    db: AsyncSession,
+    *,
+    subscription: WebhookSubscription,
+    event_type: str,
+    payload: dict,
+    secret: str | None = None,
+    timeout: float = 10.0,
+) -> WebhookDelivery:
+    """Dispatch an HTTP POST to the webhook URL with HMAC signing.
+
+    Records a delivery attempt, POSTs the payload, and marks
+    the delivery as success or failed based on the HTTP response.
+    """
+    delivery = await record_delivery(
+        db,
+        subscription_id=subscription.id,
+        event_type=event_type,
+        payload=payload,
+        status_val=DeliveryStatus.PENDING,
+    )
+    await db.flush()
+
+    headers: dict[str, str] = {
+        "Content-Type": "application/json",
+        "X-ForgeMind-Event": event_type,
+        "X-ForgeMind-Delivery": str(delivery.id),
+    }
+    body = json.dumps(payload, sort_keys=True, default=str)
+
+    if secret:
+        sig = sign_payload(payload, secret)
+        headers["X-ForgeMind-Signature"] = f"sha256={sig}"
+
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            resp = await client.post(
+                subscription.url,
+                content=body,
+                headers=headers,
+            )
+        if 200 <= resp.status_code < 300:
+            await mark_delivery_success(db, delivery.id, resp.status_code)
+        else:
+            await mark_delivery_failed(db, delivery.id, resp.status_code)
+    except httpx.RequestError as exc:
+        logger.warning("Webhook dispatch failed for %s: %s", subscription.url, exc)
+        await mark_delivery_failed(db, delivery.id, status_code=None)
+
+    await db.flush()
+    # Re-fetch to get updated state
+    result = await db.execute(
+        select(WebhookDelivery).where(WebhookDelivery.id == delivery.id)
+    )
+    return result.scalar_one()
+
+
+async def fire_event(
+    db: AsyncSession,
+    *,
+    event_type: str,
+    payload: dict,
+    org_id: uuid.UUID | None = None,
+) -> list[WebhookDelivery]:
+    """Fire an event to all matching active webhook subscriptions.
+
+    Finds subscriptions that listen for event_type, dispatches to each.
+    """
+    query = select(WebhookSubscription).where(
+        WebhookSubscription.active.is_(True),
+    )
+    if org_id:
+        query = query.where(WebhookSubscription.org_id == org_id)
+
+    result = await db.execute(query)
+    subscriptions = list(result.scalars().all())
+
+    deliveries: list[WebhookDelivery] = []
+    for sub in subscriptions:
+        # Check if subscription is interested in this event
+        if event_type not in sub.events and "*" not in sub.events:
+            continue
+        delivery = await dispatch_webhook(
+            db,
+            subscription=sub,
+            event_type=event_type,
+            payload=payload,
+            secret=None,  # We don't store raw secrets; dispatch uses hash
+        )
+        deliveries.append(delivery)
+    return deliveries
 
 
 # ── FM-208: Integration Connector Registry ───────────────────────

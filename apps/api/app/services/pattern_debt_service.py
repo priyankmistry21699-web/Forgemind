@@ -1,12 +1,15 @@
 """Pattern Detection & Technical Debt services — FM-185/186.
 
 FM-185: Configurable pattern rules + scanning for occurrences.
-FM-186: Technical debt tracking with trend snapshots.
+FM-186: Technical debt tracking with all 4 debt sources:
+        comment, pattern, age, complexity.
 """
 
+import ast
 import logging
 import re
 import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import select, func as sa_func, delete
@@ -194,6 +197,230 @@ async def scan_file_for_debt(
             entries.append(entry)
 
     await db.flush()
+    return entries
+
+
+async def scan_file_for_pattern_debt(
+    db: AsyncSession,
+    *,
+    project_id: uuid.UUID,
+    file_path: str,
+) -> list[DebtEntry]:
+    """Scan PatternOccurrences for a file and create PATTERN debt entries.
+
+    Maps anti-pattern occurrences detected by FM-185 into the debt ledger.
+    Severity-based scoring: CRITICAL=5, WARNING=3, INFO=1.
+    """
+    SEVERITY_SCORE = {
+        PatternSeverity.CRITICAL: 5.0,
+        PatternSeverity.WARNING: 3.0,
+        PatternSeverity.INFO: 1.0,
+    }
+
+    # Remove existing pattern debt for the file
+    await db.execute(
+        delete(DebtEntry).where(
+            DebtEntry.project_id == project_id,
+            DebtEntry.file_path == file_path,
+            DebtEntry.debt_type == DebtType.PATTERN,
+        )
+    )
+
+    # Join occurrences with their rule to get severity
+    query = (
+        select(PatternOccurrence, PatternRule)
+        .join(PatternRule, PatternOccurrence.rule_id == PatternRule.id)
+        .where(
+            PatternOccurrence.project_id == project_id,
+            PatternOccurrence.file_path == file_path,
+        )
+    )
+    result = await db.execute(query)
+    rows = result.all()
+
+    entries: list[DebtEntry] = []
+    for occ, rule in rows:
+        score = SEVERITY_SCORE.get(rule.severity, 1.0) if rule.severity else 1.0
+        entry = DebtEntry(
+            project_id=project_id,
+            file_path=file_path,
+            debt_type=DebtType.PATTERN,
+            description=f"Pattern [{rule.name}]: {occ.snippet or ''}".strip()[:500],
+            score=score,
+            line_number=occ.line_start,
+        )
+        db.add(entry)
+        entries.append(entry)
+
+    await db.flush()
+    return entries
+
+
+async def scan_file_for_age_debt(
+    db: AsyncSession,
+    *,
+    project_id: uuid.UUID,
+    file_path: str,
+    source_code: str,
+    last_modified: datetime | None = None,
+    age_threshold_days: int = 180,
+) -> list[DebtEntry]:
+    """Create AGE debt entry if a file hasn't been modified recently.
+
+    Files not modified within age_threshold_days get an age-based debt
+    entry with score proportional to how old they are.
+    """
+    # Remove existing age debt for the file
+    await db.execute(
+        delete(DebtEntry).where(
+            DebtEntry.project_id == project_id,
+            DebtEntry.file_path == file_path,
+            DebtEntry.debt_type == DebtType.AGE,
+        )
+    )
+
+    if last_modified is None:
+        return []
+
+    now = datetime.now(timezone.utc)
+    if last_modified.tzinfo is None:
+        last_modified = last_modified.replace(tzinfo=timezone.utc)
+
+    age_days = (now - last_modified).days
+    if age_days < age_threshold_days:
+        return []
+
+    # Score scales with age: base 1.0 + 0.5 per 90 days beyond threshold
+    extra = (age_days - age_threshold_days) / 90
+    score = round(1.0 + extra * 0.5, 2)
+    lines = source_code.count("\n") + 1
+
+    entry = DebtEntry(
+        project_id=project_id,
+        file_path=file_path,
+        debt_type=DebtType.AGE,
+        description=f"File not modified in {age_days} days ({lines} lines)",
+        score=min(score, 10.0),  # cap at 10
+        line_number=None,
+    )
+    db.add(entry)
+    await db.flush()
+    return [entry]
+
+
+async def scan_file_for_complexity_debt(
+    db: AsyncSession,
+    *,
+    project_id: uuid.UUID,
+    file_path: str,
+    source_code: str,
+    complexity_threshold: float = 10.0,
+) -> list[DebtEntry]:
+    """Create COMPLEXITY debt entries for overly complex functions.
+
+    Parses the file's AST to compute cyclomatic complexity per function,
+    then creates debt entries for functions exceeding the threshold.
+    """
+    # Remove existing complexity debt for the file
+    await db.execute(
+        delete(DebtEntry).where(
+            DebtEntry.project_id == project_id,
+            DebtEntry.file_path == file_path,
+            DebtEntry.debt_type == DebtType.COMPLEXITY,
+        )
+    )
+
+    entries: list[DebtEntry] = []
+    try:
+        tree = ast.parse(source_code)
+    except SyntaxError:
+        return entries
+
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            complexity = _compute_cyclomatic(node)
+            if complexity >= complexity_threshold:
+                score = round((complexity - complexity_threshold) * 0.5 + 2.0, 2)
+                entry = DebtEntry(
+                    project_id=project_id,
+                    file_path=file_path,
+                    debt_type=DebtType.COMPLEXITY,
+                    description=f"Function '{node.name}' has cyclomatic complexity {complexity}",
+                    score=min(score, 10.0),
+                    line_number=node.lineno,
+                )
+                db.add(entry)
+                entries.append(entry)
+
+    await db.flush()
+    return entries
+
+
+def _compute_cyclomatic(node: ast.AST) -> int:
+    """Compute cyclomatic complexity for a single AST node."""
+    complexity = 1
+    for child in ast.walk(node):
+        if isinstance(child, (ast.If, ast.While, ast.For, ast.AsyncFor)):
+            complexity += 1
+        elif isinstance(child, ast.ExceptHandler):
+            complexity += 1
+        elif isinstance(child, ast.BoolOp):
+            complexity += len(child.values) - 1
+        elif isinstance(child, ast.Assert):
+            complexity += 1
+    return complexity
+
+
+async def scan_file_for_all_debt(
+    db: AsyncSession,
+    *,
+    project_id: uuid.UUID,
+    file_path: str,
+    source_code: str,
+    last_modified: datetime | None = None,
+    age_threshold_days: int = 180,
+    complexity_threshold: float = 10.0,
+) -> list[DebtEntry]:
+    """Run all 4 debt scanners on a file.
+
+    Returns the combined list of debt entries from comment markers,
+    pattern occurrences, file age, and function complexity.
+    """
+    entries: list[DebtEntry] = []
+
+    # 1. Comment markers (TODO/FIXME/HACK)
+    entries.extend(
+        await scan_file_for_debt(
+            db, project_id=project_id, file_path=file_path,
+            source_code=source_code,
+        )
+    )
+
+    # 2. Pattern-based debt (from FM-185 PatternOccurrence)
+    entries.extend(
+        await scan_file_for_pattern_debt(
+            db, project_id=project_id, file_path=file_path,
+        )
+    )
+
+    # 3. Age-based debt
+    entries.extend(
+        await scan_file_for_age_debt(
+            db, project_id=project_id, file_path=file_path,
+            source_code=source_code, last_modified=last_modified,
+            age_threshold_days=age_threshold_days,
+        )
+    )
+
+    # 4. Complexity-based debt
+    entries.extend(
+        await scan_file_for_complexity_debt(
+            db, project_id=project_id, file_path=file_path,
+            source_code=source_code,
+            complexity_threshold=complexity_threshold,
+        )
+    )
+
     return entries
 
 

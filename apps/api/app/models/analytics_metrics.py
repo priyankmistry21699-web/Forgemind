@@ -299,3 +299,26 @@ class MetricAlert(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+class AlertTriggerHistory(Base):
+    """Log of alert trigger events for auditing and cooldown checks."""
+
+    __tablename__ = "alert_trigger_history"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    alert_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("metric_alerts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    triggered_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    current_value: Mapped[float] = mapped_column(Float, nullable=False)
+    threshold: Mapped[float] = mapped_column(Float, nullable=False)
+    condition_op: Mapped[str] = mapped_column(String(10), nullable=False)
+    notified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

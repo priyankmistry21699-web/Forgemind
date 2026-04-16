@@ -105,6 +105,51 @@ async def validate_api_key(
     return key
 
 
+async def validate_api_key_with_scopes(
+    db: AsyncSession,
+    raw_key: str,
+    *,
+    required_scopes: list[str] | None = None,
+) -> APIKey:
+    """Validate API key and check that it has the required scopes.
+
+    Raises 401 for invalid key, 403 for missing scopes.
+    """
+    key = await validate_api_key(db, raw_key)
+
+    if required_scopes:
+        key_scopes = set(key.scopes or [])
+        # Wildcard scope grants everything
+        if "*" not in key_scopes:
+            missing = set(required_scopes) - key_scopes
+            if missing:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"API key missing required scopes: {', '.join(sorted(missing))}",
+                )
+    return key
+
+
+def require_scope(*scopes: str):
+    """Create a FastAPI dependency that enforces API key scopes.
+
+    Usage:
+        @router.get("/protected", dependencies=[Depends(require_scope("read"))])
+        async def protected_endpoint(): ...
+    """
+    required = list(scopes)
+
+    async def _dependency(
+        db: AsyncSession,
+        api_key: str,
+    ) -> APIKey:
+        return await validate_api_key_with_scopes(
+            db, api_key, required_scopes=required,
+        )
+
+    return _dependency
+
+
 async def revoke_api_key(
     db: AsyncSession,
     key_id: uuid.UUID,
