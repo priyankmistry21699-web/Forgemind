@@ -2076,7 +2076,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Portfolio shows all org projects with accurate metrics
-- [x] Sort and filter work across all dimensions
+- [ ] Sort and filter work across all dimensions _(service-layer sort/filter added for 4 dims; route does not forward params yet)_
 - [x] Aggregates computed correctly
 - [ ] Performance: <1 second for 50 projects
 - [x] Tests cover multi-project aggregation and sorting
@@ -2280,7 +2280,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Sliding window correctly counts requests
-- [x] Rate limit headers present on all API responses
+- [ ] Rate limit headers present on all API responses _(require_rate_limit() dependency exists but is not applied to any route)_
 - [x] 429 returned with correct retry-after when limit exceeded
 - [ ] Different limits per tier enforced correctly
 - [x] Tests cover sliding window accuracy, header injection, and tier enforcement
