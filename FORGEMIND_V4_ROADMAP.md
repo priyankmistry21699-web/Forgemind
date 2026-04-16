@@ -1571,11 +1571,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Python imports parsed correctly (relative, absolute, from...import)
+- [x] Python imports parsed correctly (relative, absolute, from...import)
 - [ ] TypeScript imports parsed correctly (ES6, CommonJS)
-- [ ] Reverse dependency query returns correct dependents
+- [x] Reverse dependency query returns correct dependents
 - [ ] Incremental scan processes only changed files
-- [ ] Tests cover parsing, graph building, and queries
+- [x] Tests cover parsing, graph building, and queries
 
 ---
 
@@ -1606,11 +1606,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Transitive dependencies followed correctly (A imports B imports C → change C affects A)
-- [ ] Test mapping identifies affected test files
-- [ ] Risk scoring correlates with blast radius size
-- [ ] Analysis completes in <5 seconds for typical projects
-- [ ] Tests cover transitive analysis, test mapping, and risk scoring
+- [x] Transitive dependencies followed correctly (A imports B imports C → change C affects A)
+- [x] Test mapping identifies affected test files
+- [x] Risk scoring correlates with blast radius size
+- [x] Analysis completes in <5 seconds for typical projects
+- [x] Tests cover transitive analysis, test mapping, and risk scoring
 
 ---
 
@@ -1641,10 +1641,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Static analysis correctly maps tests to sources
+- [x] Static analysis correctly maps tests to sources
 - [ ] Coverage report ingestion produces accurate file-level metrics
-- [ ] Coverage gaps detected and ranked by importance
-- [ ] Tests cover static mapping, report parsing, and gap detection
+- [x] Coverage gaps detected and ranked by importance
+- [x] Tests cover static mapping, report parsing, and gap detection
 
 ---
 
@@ -1709,10 +1709,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [ ] At least 5 anti-pattern and 3 positive-pattern rules implemented
-- [ ] Patterns detected with correct file/line references
-- [ ] Pattern density metrics computed correctly
+- [x] Patterns detected with correct file/line references
+- [x] Pattern density metrics computed correctly
 - [ ] Knowledge base integration creates entries for significant patterns
-- [ ] Tests cover rule matching, location accuracy, and metrics
+- [x] Tests cover rule matching, location accuracy, and metrics
 
 ---
 
@@ -1742,11 +1742,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] All 4 debt sources detected and scored
-- [ ] Project-level composite score computed correctly
-- [ ] Trend tracking shows debt changes over snapshots
+- [x] All 4 debt sources detected and scored
+- [x] Project-level composite score computed correctly
+- [x] Trend tracking shows debt changes over snapshots
 - [ ] Budget threshold triggers warning when exceeded
-- [ ] Tests cover all debt sources, scoring, and trend computation
+- [x] Tests cover all debt sources, scoring, and trend computation
 
 ---
 
@@ -1777,10 +1777,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Flakiness score computed correctly from result history
-- [ ] Quarantined tests excluded from gate checks
+- [x] Flakiness score computed correctly from result history
+- [x] Quarantined tests excluded from gate checks
 - [ ] Quarantined tests still executed and monitored
-- [ ] Tests cover score calculation, ranking, and quarantine logic
+- [x] Tests cover score calculation, ranking, and quarantine logic
 
 ---
 
@@ -1810,10 +1810,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Cyclomatic and cognitive complexity computed correctly for Python
-- [ ] Threshold violations flagged accurately
+- [x] Cyclomatic and cognitive complexity computed correctly for Python
+- [x] Threshold violations flagged accurately
 - [ ] Trend tracking shows changes across snapshots
-- [ ] Tests cover complexity calculation for various code structures
+- [x] Tests cover complexity calculation for various code structures
 
 ---
 
@@ -1869,9 +1869,9 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] All FM-181–189 services have test coverage (target: 40+ tests)
+- [x] All FM-181–189 services have test coverage (target: 40+ tests)
 - [ ] Graph traversal completes in <2 seconds for 10K-file projects
-- [ ] Parsers handle malformed input without crashing
+- [x] Parsers handle malformed input without crashing
 - [ ] Documentation covers setup, configuration, and interpretation of results
 
 ---
@@ -1907,9 +1907,9 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [ ] All stage timings captured automatically from status transitions
-- [ ] Aggregation correctly computes averages, medians, and percentiles
+- [x] Aggregation correctly computes averages, medians, and percentiles
 - [ ] Time window queries work for 1d, 7d, 30d, 90d
-- [ ] Tests cover metric recording, aggregation, and windowed queries
+- [x] Tests cover metric recording, aggregation, and windowed queries
 
 ---
 
@@ -1941,10 +1941,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [ ] All 5 health dimensions computed from real project data
-- [ ] Weighted composite produces expected scores
-- [ ] Grade thresholds: A (90+), B (75+), C (60+), D (45+), F (<45)
-- [ ] Trend captures changes over time
-- [ ] Tests cover dimension scoring, weighting, and grading
+- [x] Weighted composite produces expected scores
+- [x] Grade thresholds: A (90+), B (75+), C (60+), D (45+), F (<45)
+- [x] Trend captures changes over time
+- [x] Tests cover dimension scoring, weighting, and grading
 
 ---
 
@@ -1976,9 +1976,9 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [ ] Every LLM call recorded with accurate token counts
 - [ ] Cost computation uses configurable model rates
-- [ ] Budget enforcement blocks/warns at threshold
-- [ ] Aggregation by model, agent, run, and project all work
-- [ ] Tests cover recording, aggregation, budget enforcement
+- [x] Budget enforcement blocks/warns at threshold
+- [x] Aggregation by model, agent, run, and project all work
+- [x] Tests cover recording, aggregation, budget enforcement
 
 ---
 
@@ -2009,11 +2009,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Throughput computed correctly for all time windows
-- [ ] Velocity includes runs and tasks per run
+- [x] Throughput computed correctly for all time windows
+- [x] Velocity includes runs and tasks per run
 - [ ] Approval velocity measures request-to-decision duration
 - [ ] Comparison % change calculated correctly
-- [ ] Tests cover all metrics, time windows, and comparisons
+- [x] Tests cover all metrics, time windows, and comparisons
 
 ---
 
@@ -2042,10 +2042,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] All 4 quality metrics computed from real data
-- [ ] Snapshot captures daily state for trend viewing
+- [x] All 4 quality metrics computed from real data
+- [x] Snapshot captures daily state for trend viewing
 - [ ] Quality gates trigger warnings when thresholds breached
-- [ ] Tests cover all metric computations and gate evaluation
+- [x] Tests cover all metric computations and gate evaluation
 
 ---
 
@@ -2075,11 +2075,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Portfolio shows all org projects with accurate metrics
+- [x] Portfolio shows all org projects with accurate metrics
 - [ ] Sort and filter work across all dimensions
-- [ ] Aggregates computed correctly
+- [x] Aggregates computed correctly
 - [ ] Performance: <1 second for 50 projects
-- [ ] Tests cover multi-project aggregation and sorting
+- [x] Tests cover multi-project aggregation and sorting
 
 ---
 
@@ -2111,10 +2111,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [ ] Widgets render correctly for all chart types
-- [ ] Layout saves and restores accurately
+- [x] Layout saves and restores accurately
 - [ ] Data sources fetch correct metric data
-- [ ] Sharing with team visibility works
-- [ ] Tests cover dashboard CRUD and widget data resolution
+- [x] Sharing with team visibility works
+- [x] Tests cover dashboard CRUD and widget data resolution
 
 ---
 
@@ -2146,10 +2146,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [ ] Scheduled reports generate on schedule with correct metrics
-- [ ] Alerts trigger when conditions are met
-- [ ] Cooldown prevents alert spam
+- [x] Alerts trigger when conditions are met
+- [x] Cooldown prevents alert spam
 - [ ] Alert history shows all triggers with context
-- [ ] Tests cover scheduling, condition evaluation, and cooldown logic
+- [x] Tests cover scheduling, condition evaluation, and cooldown logic
 
 ---
 
@@ -2180,10 +2180,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Summary includes all configured sections with accurate data
+- [x] Summary includes all configured sections with accurate data
 - [ ] Non-technical language used in generated text
 - [ ] Summary stored as versioned artifact
-- [ ] Tests cover generation with realistic multi-project data
+- [x] Tests cover generation with realistic multi-project data
 
 ---
 
@@ -2207,7 +2207,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] All FM-191–199 services have test coverage (target: 40+ tests)
+- [x] All FM-191–199 services have test coverage (target: 40+ tests)
 - [ ] Metric queries respond in <500ms for 90-day windows
 - [ ] Dashboard load time <2 seconds with 10 widgets
 - [ ] Documentation covers metric definitions, dashboard setup, and alert configuration
@@ -2246,10 +2246,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [ ] All core endpoint groups accessible via `/api/v1/`
-- [ ] API key authentication works alongside JWT
-- [ ] Scoped API keys restrict access to specified resources
+- [x] API key authentication works alongside JWT
+- [x] Scoped API keys restrict access to specified resources
 - [ ] OpenAPI spec complete and valid
-- [ ] Tests cover API key lifecycle and scope enforcement
+- [x] Tests cover API key lifecycle and scope enforcement
 
 ---
 
@@ -2279,11 +2279,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Sliding window correctly counts requests
+- [x] Sliding window correctly counts requests
 - [ ] Rate limit headers present on all API responses
-- [ ] 429 returned with correct retry-after when limit exceeded
+- [x] 429 returned with correct retry-after when limit exceeded
 - [ ] Different limits per tier enforced correctly
-- [ ] Tests cover sliding window accuracy, header injection, and tier enforcement
+- [x] Tests cover sliding window accuracy, header injection, and tier enforcement
 
 ---
 
@@ -2316,10 +2316,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [ ] Webhooks fire for all configured event types
-- [ ] Payload signed with HMAC-SHA256 using subscription secret
-- [ ] Failed deliveries retried up to 5 times with exponential backoff
-- [ ] Delivery log records all attempts with status codes
-- [ ] Tests cover event serialization, signing, delivery, retry, and logging
+- [x] Payload signed with HMAC-SHA256 using subscription secret
+- [x] Failed deliveries retried up to 5 times with exponential backoff
+- [x] Delivery log records all attempts with status codes
+- [x] Tests cover event serialization, signing, delivery, retry, and logging
 
 ---
 
@@ -2489,9 +2489,9 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [ ] Connector interface implemented by all existing integrations
-- [ ] New connectors can be registered and configured dynamically
-- [ ] Health check reports connector status
-- [ ] Tests cover connector lifecycle (install, configure, health check, uninstall)
+- [x] New connectors can be registered and configured dynamically
+- [x] Health check reports connector status
+- [x] Tests cover connector lifecycle (install, configure, health check, uninstall)
 
 ---
 
@@ -2549,8 +2549,8 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] All FM-201–209 services have test coverage (target: 45+ tests)
-- [ ] No security vulnerabilities in webhook, API key, or secret handling
+- [x] All FM-201–209 services have test coverage (target: 45+ tests)
+- [x] No security vulnerabilities in webhook, API key, or secret handling
 - [ ] End-to-end integration scenario passes
 - [ ] Documentation covers API authentication, webhooks, and each integration setup
 

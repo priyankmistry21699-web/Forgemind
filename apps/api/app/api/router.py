@@ -49,6 +49,9 @@ from app.api.routes.github_integration import router as github_router
 from app.api.routes.search_knowledge import router as search_knowledge_router
 from app.api.routes.enterprise_governance import router as enterprise_governance_router
 from app.api.routes.collaboration import router as collaboration_router
+from app.api.routes.code_intelligence import router as code_intelligence_router
+from app.api.routes.analytics import router as analytics_router
+from app.api.routes.api_ecosystem import router as api_ecosystem_router
 
 api_router = APIRouter()
 
@@ -192,3 +195,12 @@ api_router.include_router(enterprise_governance_router, tags=["enterprise-govern
 
 # Task Assignment, Approval Delegation, Project Overview (FM-147/148/150)
 api_router.include_router(collaboration_router, tags=["collaboration", "assignments", "delegations"])
+
+# Code Intelligence: Dependency Graph, Impact, Coverage, Patterns, Debt, Flakiness, Complexity (FM-181–189)
+api_router.include_router(code_intelligence_router, tags=["code-intelligence", "dependencies", "patterns", "debt", "complexity"])
+
+# Analytics & Metrics: Execution, Health, Budget, Velocity, Quality, Portfolio, Dashboards, Alerts (FM-191–199)
+api_router.include_router(analytics_router, tags=["analytics", "metrics", "health", "dashboards", "alerts"])
+
+# API & Ecosystem: API Keys, Rate Limiting, Webhooks, Connectors (FM-201–208)
+api_router.include_router(api_ecosystem_router, tags=["api-keys", "webhooks", "connectors", "ecosystem"])

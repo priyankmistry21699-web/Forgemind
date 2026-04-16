@@ -103,3 +103,34 @@ from app.models.enterprise_governance import (  # noqa: F401
     RetentionPolicy,
 )
 from app.models.sso_configuration import SSOConfiguration  # noqa: F401
+
+# FM-181–189: Code Intelligence (dependency graph, patterns, debt, flakiness, complexity)
+from app.models.code_intelligence import (  # noqa: F401
+    ModuleDependency,
+    CoverageMap,
+    PatternRule,
+    PatternOccurrence,
+    DebtEntry,
+    DebtSnapshot,
+    TestResult,
+    ComplexityMetric,
+)
+
+# FM-191–199: Analytics & Metrics
+from app.models.analytics_metrics import (  # noqa: F401
+    ExecutionMetric,
+    HealthSnapshot,
+    BudgetConfig,
+    QualitySnapshot,
+    Dashboard,
+    ScheduledReport,
+    MetricAlert,
+)
+
+# FM-201–208: API & Ecosystem
+from app.models.api_ecosystem import (  # noqa: F401
+    APIKey,
+    WebhookSubscription,
+    WebhookDelivery,
+    ConnectorRegistry,
+)
