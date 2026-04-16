@@ -6,9 +6,10 @@ FM-192: Project health scoring with weighted dimension scoring.
 
 import logging
 import uuid
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import select, func as sa_func
+from sqlalchemy import select, func as sa_func, case as sa_case
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.analytics_metrics import (
@@ -138,6 +139,103 @@ def _compute_grade(score: float) -> HealthGrade:
     return HealthGrade.F
 
 
+async def auto_compute_health_dimensions(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+    *,
+    days: int = 30,
+) -> dict[str, float]:
+    """Auto-compute all health dimension scores from real project data.
+
+    Dimensions:
+    - success_rate: % of completed runs out of total finished runs (0-100)
+    - velocity: normalized runs/day score (higher = better, capped at 100)
+    - cost_efficiency: inverse of avg cost per run (lower cost = higher score)
+    - quality: from latest QualitySnapshot test_pass_rate (0-100)
+    - coverage: from latest QualitySnapshot review_coverage (0-100)
+    - complexity: inverse of avg complexity (lower complexity = higher score)
+    """
+    from app.models.run import Run, RunStatus
+    from app.models.analytics_metrics import QualitySnapshot
+    from app.models.code_intelligence import ComplexityMetric, MetricType
+    from app.models.cost_record import CostRecord
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    scores: dict[str, float] = {}
+
+    # ── success_rate: completed / (completed + failed) ──
+    run_q = await db.execute(
+        select(
+            sa_func.count(Run.id).label("total"),
+            sa_func.sum(
+                sa_case((Run.status == RunStatus.COMPLETED, 1), else_=0)
+            ).label("completed"),
+            sa_func.sum(
+                sa_case((Run.status == RunStatus.FAILED, 1), else_=0)
+            ).label("failed"),
+        ).where(
+            Run.project_id == project_id,
+            Run.created_at >= cutoff,
+        )
+    )
+    run_row = run_q.one()
+    finished = (run_row.completed or 0) + (run_row.failed or 0)
+    scores["success_rate"] = round(
+        ((run_row.completed or 0) / finished * 100) if finished > 0 else 50.0, 2
+    )
+
+    # ── velocity: runs per day normalized (1 run/day = 80, 3+/day = 100) ──
+    runs_per_day = (run_row.completed or 0) / max(days, 1)
+    scores["velocity"] = round(min(runs_per_day * 33.33, 100.0), 2)
+
+    # ── cost_efficiency: lower avg cost = higher score ──
+    cost_q = await db.execute(
+        select(
+            sa_func.avg(CostRecord.cost_usd).label("avg_cost"),
+        ).where(
+            CostRecord.project_id == project_id,
+            CostRecord.created_at >= cutoff,
+        )
+    )
+    avg_cost = float(cost_q.scalar_one() or 0)
+    # Scale: $0 = 100, $1 = 50, $5+ = 10
+    if avg_cost <= 0:
+        scores["cost_efficiency"] = 80.0  # No costs recorded = decent
+    else:
+        scores["cost_efficiency"] = round(max(100 - avg_cost * 50, 10.0), 2)
+
+    # ── quality: from latest QualitySnapshot ──
+    quality_q = await db.execute(
+        select(QualitySnapshot)
+        .where(QualitySnapshot.project_id == project_id)
+        .order_by(QualitySnapshot.snapshot_date.desc())
+        .limit(1)
+    )
+    quality_snap = quality_q.scalar_one_or_none()
+    if quality_snap:
+        scores["quality"] = round(quality_snap.test_pass_rate * 100, 2)
+        scores["coverage"] = round(quality_snap.review_coverage * 100, 2)
+    else:
+        scores["quality"] = 50.0
+        scores["coverage"] = 50.0
+
+    # ── complexity: inverse of avg cyclomatic (lower = better) ──
+    cx_q = await db.execute(
+        select(sa_func.avg(ComplexityMetric.value)).where(
+            ComplexityMetric.project_id == project_id,
+            ComplexityMetric.metric_type == MetricType.CYCLOMATIC,
+        )
+    )
+    avg_cx = float(cx_q.scalar_one() or 0)
+    # Scale: complexity 1 = 100, 5 = 70, 15+ = 20
+    if avg_cx <= 0:
+        scores["complexity"] = 70.0
+    else:
+        scores["complexity"] = round(max(100 - avg_cx * 5, 20.0), 2)
+
+    return scores
+
+
 async def compute_health_snapshot(
     db: AsyncSession,
     project_id: uuid.UUID,
@@ -146,10 +244,10 @@ async def compute_health_snapshot(
 ) -> HealthSnapshot:
     """Compute and persist a project health snapshot.
 
-    If dimension_scores not provided, defaults to neutral (50) for each weight.
+    If dimension_scores not provided, auto-computes from real project data.
     """
     if dimension_scores is None:
-        dimension_scores = {k: 50.0 for k in HEALTH_WEIGHTS}
+        dimension_scores = await auto_compute_health_dimensions(db, project_id)
 
     composite = 0.0
     for dim, weight in HEALTH_WEIGHTS.items():
@@ -208,3 +306,74 @@ async def get_health_trend(
         }
         for s in snaps
     ]
+
+
+# ── FM-193: Budget enforcement ────────────────────────────────────────────
+
+
+async def check_budget(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+) -> dict[str, Any]:
+    """Check project spend against BudgetConfig and enforce thresholds.
+
+    Returns dict with: spent_usd, budget_usd, pct_used, action, exceeded.
+    Raises HTTPException(403) when action is BLOCK and threshold exceeded.
+    """
+    from app.models.analytics_metrics import BudgetConfig, BudgetAction
+    from app.models.cost_record import CostRecord
+
+    # Fetch budget config
+    cfg_q = await db.execute(
+        select(BudgetConfig).where(BudgetConfig.project_id == project_id)
+    )
+    config = cfg_q.scalar_one_or_none()
+
+    if config is None:
+        return {
+            "spent_usd": 0.0,
+            "budget_usd": None,
+            "pct_used": 0.0,
+            "action": "none",
+            "exceeded": False,
+        }
+
+    # Sum current month's spend
+    now = datetime.now(timezone.utc)
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    spend_q = await db.execute(
+        select(sa_func.coalesce(sa_func.sum(CostRecord.cost_usd), 0.0)).where(
+            CostRecord.project_id == project_id,
+            CostRecord.created_at >= month_start,
+        )
+    )
+    spent = float(spend_q.scalar_one())
+
+    budget = float(config.monthly_budget_usd)
+    pct_used = round((spent / budget * 100) if budget > 0 else 0, 2)
+    threshold = float(config.warn_threshold_pct)
+    exceeded = pct_used >= threshold
+    action_str = config.action_on_exceed.value if hasattr(config.action_on_exceed, "value") else str(config.action_on_exceed)
+
+    result = {
+        "spent_usd": round(spent, 4),
+        "budget_usd": budget,
+        "pct_used": pct_used,
+        "action": action_str if exceeded else "none",
+        "exceeded": exceeded,
+    }
+
+    if exceeded and config.action_on_exceed == BudgetAction.BLOCK:
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=403,
+            detail=f"Budget exceeded: {pct_used:.1f}% of ${budget:.2f} used. Action: BLOCK",
+        )
+
+    if exceeded:
+        logger.warning(
+            "Budget warning for project %s: %.1f%% used ($%.4f / $%.2f). Action: %s",
+            project_id, pct_used, spent, budget, action_str,
+        )
+
+    return result

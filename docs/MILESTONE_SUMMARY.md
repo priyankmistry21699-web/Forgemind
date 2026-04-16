@@ -811,17 +811,17 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 | FM     | Feature                                       | Status                                                                                                     |
 | ------ | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | FM-191 | Run Execution Metrics & Time Tracking         | 🔶 Partial — Manual recording + aggregation; no auto-capture from status transitions                       |
-| FM-192 | Project Health Scoring                        | 🔶 Partial — Weighted composite + grades (thresholds fixed to match roadmap); dimensions not auto-computed  |
-| FM-193 | Cost Tracking & Budget Management             | 🔶 Partial — BudgetConfig model exists; no enforcement (block/warn) logic                                  |
-| FM-194 | Team Velocity & Throughput Metrics            | 🔶 Partial — Throughput computed; project_id filter bug fixed; no approval velocity or period comparison    |
-| FM-195 | Quality Metrics Dashboard                     | 🔶 Partial — Snapshot + trend works; metrics user-supplied not auto-computed; no quality gates              |
-| FM-196 | Portfolio Overview — Multi-Project Dashboard  | 🔶 Partial — Aggregates runs + costs; no sort/filter; N+1 query pattern                                   |
+| FM-192 | Project Health Scoring                        | 🔶 Partial — auto_compute_health_dimensions() computes all 6 dims from real Run/Cost/Quality/Complexity data; weighted composite + grades work |
+| FM-193 | Cost Tracking & Budget Management             | 🔶 Partial — check_budget() enforces BLOCK (403)/WARN/LOG per BudgetConfig threshold; no LLM call auto-recording |
+| FM-194 | Team Velocity & Throughput Metrics            | 🔶 Partial — compute_approval_velocity() + compute_velocity_comparison() with % change; throughput works   |
+| FM-195 | Quality Metrics Dashboard                     | 🔶 Partial — evaluate_quality_gates() with configurable thresholds + violations/warnings; snapshot + trend work |
+| FM-196 | Portfolio Overview — Multi-Project Dashboard  | 🔶 Partial — Sort (total_runs/cost/success_rate) + filter (min_runs/cost range) added; N+1 not yet optimized |
 | FM-197 | Custom Dashboards & Widgets                   | 🔶 Partial — Dashboard CRUD complete; no widget rendering or data source resolution                        |
 | FM-198 | Scheduled Reports & Alerts                    | 🔶 Partial — Alerts with cooldown enforcement + trigger history; no scheduled report execution engine       |
 | FM-199 | Executive Summary Generator                   | 🔶 Partial — Aggregates health/velocity/quality/execution; no NLP generation; no artifact storage          |
 | FM-200 | Analytics Tests, Docs & Hardening             | 🔶 Partial — 32 tests (target 40+); no perf benchmarks; no docs                                           |
 
-**Wave 15 summary:** 0 COMPLETE / 10 PARTIAL / 0 DEFERRED. CRUD and aggregation done across the board; gaps are auto-computation, enforcement, and execution engines.
+**Wave 15 summary:** 0 COMPLETE / 10 PARTIAL / 0 DEFERRED. Core analytics working: auto-computed health dimensions, budget enforcement, approval velocity, quality gates, portfolio sort/filter. Remaining gaps: auto-capture timings, LLM call recording, widget rendering, report execution engine.
 
 ---
 
@@ -833,7 +833,7 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 | FM     | Feature                                       | Status                                                                                                     |
 | ------ | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | FM-201 | Public API v1 — Core Endpoints                | 🔶 Partial — API key gen/validate/revoke + scope enforcement; no /api/v1/ routing; no OpenAPI spec         |
-| FM-202 | API Rate Limiting & Throttling                | 🔶 Partial — Sliding window works; headers only on 429; no per-tier limits                                 |
+| FM-202 | API Rate Limiting & Throttling                | 🔶 Partial — require_rate_limit() dependency injects headers on all responses; no per-tier limits yet      |
 | FM-203 | Webhook Subscription System                   | 🔶 Partial — HTTP dispatch via httpx + HMAC signing + delivery tracking + fire_event; retry works          |
 | FM-204 | Slack Integration                             | ⏳ Deferred — external integration                                                                          |
 | FM-205 | Jira Integration                              | ⏳ Deferred — external integration                                                                          |
@@ -843,7 +843,7 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 | FM-209 | API SDK & Client Libraries                    | ⏳ Deferred — requires stable API surface                                                                   |
 | FM-210 | Ecosystem Integration Tests, Docs & Hardening | 🔶 Partial — 26 tests (target 45+); no e2e scenario; no docs                                              |
 
-**Wave 16 summary:** 0 COMPLETE / 5 PARTIAL / 5 DEFERRED. Key infrastructure (keys, rate limiter, webhook records) built; major gaps are HTTP dispatch, scope enforcement, and connector ABC.
+**Wave 16 summary:** 0 COMPLETE / 5 PARTIAL / 5 DEFERRED. Key infrastructure (keys, rate limiter, webhook records) built; rate limit headers on all responses via require_rate_limit(); remaining gaps are per-tier limits, /api/v1/ routing, connector ABC.
 
 ---
 

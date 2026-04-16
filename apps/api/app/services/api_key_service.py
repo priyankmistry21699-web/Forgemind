@@ -251,3 +251,39 @@ def check_rate_limit(
 def reset_rate_limit(identifier: str) -> None:
     """Reset rate limit for a given identifier (testing/admin)."""
     _rate_limits.pop(identifier, None)
+
+
+def rate_limit_headers_from_result(result: dict[str, Any]) -> dict[str, str]:
+    """Build standard rate-limit response headers from check_rate_limit result."""
+    return {
+        "X-RateLimit-Limit": str(result["limit"]),
+        "X-RateLimit-Remaining": str(result["remaining"]),
+        "X-RateLimit-Reset": str(result["reset_at"]),
+    }
+
+
+def require_rate_limit(
+    *,
+    max_requests: int = DEFAULT_RATE_LIMIT,
+    window_seconds: int = DEFAULT_WINDOW_SECONDS,
+):
+    """FastAPI dependency that enforces rate limit and sets response headers.
+
+    Usage:
+        @router.get("/things", dependencies=[Depends(require_rate_limit())])
+    """
+    from fastapi import Request, Response
+
+    async def _dependency(request: Request, response: Response):
+        # Use client IP or authenticated user as identifier
+        identifier = request.headers.get("X-API-Key", request.client.host if request.client else "unknown")
+        result = check_rate_limit(
+            identifier,
+            max_requests=max_requests,
+            window_seconds=window_seconds,
+        )
+        # Inject headers into successful responses too
+        for k, v in rate_limit_headers_from_result(result).items():
+            response.headers[k] = v
+
+    return _dependency

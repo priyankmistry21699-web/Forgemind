@@ -99,8 +99,9 @@ class TestHealthScoring:
         )
         await db_session.commit()
         assert snap.id is not None
-        assert snap.composite_score == 50.0
-        assert snap.grade == HealthGrade.D  # 50 ≥ 45 → D per roadmap thresholds
+        # Auto-computed from real data: empty project gets default dimension scores
+        assert snap.composite_score > 0
+        assert snap.grade in (HealthGrade.D, HealthGrade.F)  # Low scores for empty project
 
     @pytest.mark.asyncio
     async def test_compute_health_high_scores(
@@ -628,3 +629,398 @@ class TestExecutiveSummary:
         assert "velocity" in summary
         assert "quality" in summary
         assert "generated_at" in summary
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-192: Auto-Compute Health Dimensions
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestAutoComputeHealth:
+    @pytest.mark.asyncio
+    async def test_auto_compute_returns_all_dimensions(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """auto_compute_health_dimensions returns all 6 dimension keys."""
+        scores = await execution_health_service.auto_compute_health_dimensions(
+            db_session, sample_project.id
+        )
+        for key in ("success_rate", "velocity", "cost_efficiency", "quality", "coverage", "complexity"):
+            assert key in scores, f"Missing dimension: {key}"
+            assert isinstance(scores[key], float)
+
+    @pytest.mark.asyncio
+    async def test_auto_compute_with_runs(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """With completed/failed runs, success_rate is computed correctly."""
+        from app.models.run import Run, RunStatus
+
+        for s in [RunStatus.COMPLETED, RunStatus.COMPLETED, RunStatus.FAILED]:
+            db_session.add(Run(
+                run_number=0, project_id=sample_project.id,
+                status=s, trigger="test",
+            ))
+        await db_session.flush()
+        await db_session.commit()
+
+        scores = await execution_health_service.auto_compute_health_dimensions(
+            db_session, sample_project.id
+        )
+        # 2 completed / 3 finished = 66.67%
+        assert 66 <= scores["success_rate"] <= 67
+
+    @pytest.mark.asyncio
+    async def test_auto_compute_with_quality_snapshot(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """Quality and coverage come from latest QualitySnapshot."""
+        await velocity_quality_service.record_quality_snapshot(
+            db_session, project_id=sample_project.id,
+            test_pass_rate=0.92, review_coverage=0.85,
+        )
+        await db_session.commit()
+
+        scores = await execution_health_service.auto_compute_health_dimensions(
+            db_session, sample_project.id
+        )
+        assert scores["quality"] == 92.0
+        assert scores["coverage"] == 85.0
+
+    @pytest.mark.asyncio
+    async def test_compute_health_snapshot_auto_computes(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """compute_health_snapshot without dimension_scores auto-computes."""
+        snap = await execution_health_service.compute_health_snapshot(
+            db_session, sample_project.id
+        )
+        await db_session.commit()
+        assert snap.id is not None
+        assert snap.dimension_scores is not None
+        # Should have real computed values, not all 50.0
+        assert "success_rate" in snap.dimension_scores
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-193: Budget Enforcement
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestBudgetEnforcement:
+    @pytest.mark.asyncio
+    async def test_check_budget_no_config(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """No BudgetConfig → no enforcement."""
+        result = await execution_health_service.check_budget(
+            db_session, sample_project.id
+        )
+        assert result["exceeded"] is False
+        assert result["action"] == "none"
+        assert result["budget_usd"] is None
+
+    @pytest.mark.asyncio
+    async def test_check_budget_under_threshold(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """Spend under warn_threshold_pct → no warning."""
+        from app.models.analytics_metrics import BudgetConfig, BudgetAction
+        from app.models.cost_record import CostRecord
+
+        config = BudgetConfig(
+            project_id=sample_project.id,
+            monthly_budget_usd=100.0,
+            warn_threshold_pct=80.0,
+            action_on_exceed=BudgetAction.WARN,
+        )
+        db_session.add(config)
+
+        # Add $50 of cost (50% of $100 budget, under 80% threshold)
+        db_session.add(CostRecord(
+            project_id=sample_project.id,
+            model_name="gpt-4",
+            prompt_tokens=1000, completion_tokens=500,
+            total_tokens=1500, cost_usd=50.0,
+            caller="test",
+        ))
+        await db_session.commit()
+
+        result = await execution_health_service.check_budget(
+            db_session, sample_project.id
+        )
+        assert result["exceeded"] is False
+        assert result["action"] == "none"
+        assert result["pct_used"] == 50.0
+
+    @pytest.mark.asyncio
+    async def test_check_budget_warn(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """Spend over threshold with WARN action → warns but doesn't block."""
+        from app.models.analytics_metrics import BudgetConfig, BudgetAction
+        from app.models.cost_record import CostRecord
+
+        config = BudgetConfig(
+            project_id=sample_project.id,
+            monthly_budget_usd=100.0,
+            warn_threshold_pct=80.0,
+            action_on_exceed=BudgetAction.WARN,
+        )
+        db_session.add(config)
+        db_session.add(CostRecord(
+            project_id=sample_project.id,
+            model_name="gpt-4",
+            prompt_tokens=10000, completion_tokens=5000,
+            total_tokens=15000, cost_usd=85.0,
+            caller="test",
+        ))
+        await db_session.commit()
+
+        result = await execution_health_service.check_budget(
+            db_session, sample_project.id
+        )
+        assert result["exceeded"] is True
+        assert result["action"] == "warn"
+        assert result["pct_used"] == 85.0
+
+    @pytest.mark.asyncio
+    async def test_check_budget_block_raises(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """BLOCK action over threshold raises HTTPException(403)."""
+        from app.models.analytics_metrics import BudgetConfig, BudgetAction
+        from app.models.cost_record import CostRecord
+        from fastapi import HTTPException
+
+        config = BudgetConfig(
+            project_id=sample_project.id,
+            monthly_budget_usd=100.0,
+            warn_threshold_pct=80.0,
+            action_on_exceed=BudgetAction.BLOCK,
+        )
+        db_session.add(config)
+        db_session.add(CostRecord(
+            project_id=sample_project.id,
+            model_name="gpt-4",
+            prompt_tokens=10000, completion_tokens=5000,
+            total_tokens=15000, cost_usd=90.0,
+            caller="test",
+        ))
+        await db_session.commit()
+
+        with pytest.raises(HTTPException) as exc_info:
+            await execution_health_service.check_budget(
+                db_session, sample_project.id
+            )
+        assert exc_info.value.status_code == 403
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-194: Approval Velocity & Period Comparison
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestApprovalVelocity:
+    @pytest.mark.asyncio
+    async def test_approval_velocity_no_requests(
+        self, db_session: AsyncSession, sample_project
+    ):
+        result = await velocity_quality_service.compute_approval_velocity(
+            db_session, sample_project.id
+        )
+        assert result["total_decided"] == 0
+        assert result["avg_decision_seconds"] == 0.0
+
+    @pytest.mark.asyncio
+    async def test_approval_velocity_with_decided(
+        self, db_session: AsyncSession, sample_project, sample_run
+    ):
+        """Decided requests produce meaningful avg_decision_seconds."""
+        from app.models.approval_request import ApprovalRequest, ApprovalStatus
+        from datetime import datetime, timedelta, timezone
+
+        now = datetime.now(timezone.utc)
+        for i in range(3):
+            req = ApprovalRequest(
+                project_id=sample_project.id,
+                run_id=sample_run.id,
+                title=f"Approval Request {i}",
+                status=ApprovalStatus.APPROVED,
+                created_at=now - timedelta(hours=2),
+                decided_at=now - timedelta(hours=1),
+                decided_by=str(STUB_USER_ID),
+            )
+            db_session.add(req)
+        await db_session.commit()
+
+        result = await velocity_quality_service.compute_approval_velocity(
+            db_session, sample_project.id
+        )
+        assert result["total_decided"] == 3
+        assert result["avg_decision_seconds"] > 0
+        assert result["approval_rate"] == 100.0
+
+    @pytest.mark.asyncio
+    async def test_velocity_comparison(
+        self, db_session: AsyncSession, sample_project
+    ):
+        result = await velocity_quality_service.compute_velocity_comparison(
+            db_session, sample_project.id, days=30,
+        )
+        assert "current" in result
+        assert "previous" in result
+        assert "change_pct" in result
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-195: Quality Gates
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestQualityGates:
+    @pytest.mark.asyncio
+    async def test_quality_gates_no_snapshot(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """No snapshot → gates skipped, passed=True."""
+        result = await velocity_quality_service.evaluate_quality_gates(
+            db_session, sample_project.id
+        )
+        assert result["passed"] is True
+        assert result["gates_evaluated"] == 0
+
+    @pytest.mark.asyncio
+    async def test_quality_gates_all_passing(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """All metrics within thresholds → passed=True, no violations."""
+        await velocity_quality_service.record_quality_snapshot(
+            db_session, project_id=sample_project.id,
+            test_pass_rate=0.95, defect_density=0.01,
+            rollback_rate=0.02, review_coverage=0.90,
+        )
+        await db_session.commit()
+
+        result = await velocity_quality_service.evaluate_quality_gates(
+            db_session, sample_project.id
+        )
+        assert result["passed"] is True
+        assert len(result["violations"]) == 0
+
+    @pytest.mark.asyncio
+    async def test_quality_gates_violations(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """Low test_pass_rate and high defect_density trigger violations."""
+        await velocity_quality_service.record_quality_snapshot(
+            db_session, project_id=sample_project.id,
+            test_pass_rate=0.50,  # below 0.8 min
+            defect_density=0.10,  # above 0.05 max
+            rollback_rate=0.02,
+            review_coverage=0.90,
+        )
+        await db_session.commit()
+
+        result = await velocity_quality_service.evaluate_quality_gates(
+            db_session, sample_project.id
+        )
+        assert result["passed"] is False
+        assert len(result["violations"]) == 2
+        assert len(result["warnings"]) == 2
+
+    @pytest.mark.asyncio
+    async def test_quality_gates_custom_thresholds(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """Custom gate thresholds override defaults."""
+        await velocity_quality_service.record_quality_snapshot(
+            db_session, project_id=sample_project.id,
+            test_pass_rate=0.85, defect_density=0.03,
+            rollback_rate=0.05, review_coverage=0.75,
+        )
+        await db_session.commit()
+
+        # Stricter custom gate: test_pass_rate >= 0.95
+        result = await velocity_quality_service.evaluate_quality_gates(
+            db_session, sample_project.id,
+            gates={"test_pass_rate": {"min": 0.95, "label": "Test pass rate"}},
+        )
+        assert result["passed"] is False
+        assert len(result["violations"]) == 1
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-196: Portfolio Sort & Filter
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestPortfolioSortFilter:
+    @pytest.mark.asyncio
+    async def test_portfolio_sort_by_total_runs(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """sort_by=total_runs works without error."""
+        result = await velocity_quality_service.get_portfolio_summary(
+            db_session, [sample_project.id],
+            sort_by="total_runs", sort_order="desc",
+        )
+        assert result["project_count"] >= 1
+
+    @pytest.mark.asyncio
+    async def test_portfolio_filter_min_runs(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """filter_min_runs=1000 filters out project with 0 runs."""
+        result = await velocity_quality_service.get_portfolio_summary(
+            db_session, [sample_project.id],
+            filter_min_runs=1000,
+        )
+        assert result["project_count"] == 0
+        assert len(result["projects"]) == 0
+
+    @pytest.mark.asyncio
+    async def test_portfolio_sort_by_success_rate(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """success_rate dimension available in portfolio results."""
+        result = await velocity_quality_service.get_portfolio_summary(
+            db_session, [sample_project.id],
+            sort_by="success_rate", sort_order="asc",
+        )
+        for proj in result["projects"]:
+            assert "success_rate" in proj
+
+    @pytest.mark.asyncio
+    async def test_portfolio_cost_filter(
+        self, db_session: AsyncSession, sample_project
+    ):
+        """filter_max_cost filters projects by cost."""
+        result = await velocity_quality_service.get_portfolio_summary(
+            db_session, [sample_project.id],
+            filter_max_cost=0.001,  # Very low, should exclude if any cost
+        )
+        # With no cost records, cost=0 passes the filter
+        assert result["project_count"] >= 0
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-202: Rate Limit Headers
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestRateLimitHeaders:
+    def test_rate_limit_headers_from_result(self):
+        """rate_limit_headers_from_result builds proper header dict."""
+        from app.services.api_key_service import rate_limit_headers_from_result
+        result = {"limit": 100, "remaining": 95, "reset_at": 1700000000}
+        headers = rate_limit_headers_from_result(result)
+        assert headers["X-RateLimit-Limit"] == "100"
+        assert headers["X-RateLimit-Remaining"] == "95"
+        assert headers["X-RateLimit-Reset"] == "1700000000"
+
+    def test_require_rate_limit_returns_callable(self):
+        """require_rate_limit() returns a dependency function."""
+        from app.services.api_key_service import require_rate_limit
+        dep = require_rate_limit(max_requests=50)
+        assert callable(dep)

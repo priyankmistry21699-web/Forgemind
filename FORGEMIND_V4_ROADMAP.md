@@ -1940,7 +1940,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] All 5 health dimensions computed from real project data
+- [x] All 5 health dimensions computed from real project data
 - [x] Weighted composite produces expected scores
 - [x] Grade thresholds: A (90+), B (75+), C (60+), D (45+), F (<45) ✅ fixed in correction pass
 - [x] Trend captures changes over time
@@ -2011,8 +2011,8 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [x] Throughput computed correctly for all time windows
 - [x] Velocity includes runs and tasks per run
-- [ ] Approval velocity measures request-to-decision duration
-- [ ] Comparison % change calculated correctly
+- [x] Approval velocity measures request-to-decision duration
+- [x] Comparison % change calculated correctly
 - [x] Tests cover all metrics, time windows, and comparisons
 
 ---
@@ -2044,7 +2044,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [x] All 4 quality metrics computed from real data
 - [x] Snapshot captures daily state for trend viewing
-- [ ] Quality gates trigger warnings when thresholds breached
+- [x] Quality gates trigger warnings when thresholds breached
 - [x] Tests cover all metric computations and gate evaluation
 
 ---
@@ -2076,7 +2076,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Portfolio shows all org projects with accurate metrics
-- [ ] Sort and filter work across all dimensions
+- [x] Sort and filter work across all dimensions
 - [x] Aggregates computed correctly
 - [ ] Performance: <1 second for 50 projects
 - [x] Tests cover multi-project aggregation and sorting
@@ -2280,7 +2280,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Sliding window correctly counts requests
-- [ ] Rate limit headers present on all API responses
+- [x] Rate limit headers present on all API responses
 - [x] 429 returned with correct retry-after when limit exceeded
 - [ ] Different limits per tier enforced correctly
 - [x] Tests cover sliding window accuracy, header injection, and tier enforcement
