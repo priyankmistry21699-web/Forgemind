@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from app.api.routes.health import router as health_router
 from app.api.routes.projects import router as projects_router
@@ -52,6 +52,7 @@ from app.api.routes.collaboration import router as collaboration_router
 from app.api.routes.code_intelligence import router as code_intelligence_router
 from app.api.routes.analytics import router as analytics_router
 from app.api.routes.api_ecosystem import router as api_ecosystem_router
+from app.services import api_key_service
 
 api_router = APIRouter()
 
@@ -202,9 +203,43 @@ api_router.include_router(code_intelligence_router, tags=["code-intelligence", "
 # Analytics & Metrics: Execution, Health, Budget, Velocity, Quality, Portfolio, Dashboards, Alerts (FM-191–199)
 api_router.include_router(analytics_router, tags=["analytics", "metrics", "health", "dashboards", "alerts"])
 
-# FM-201: Versioned API — mount code-intelligence and analytics under /api/v1/ prefix too
-api_router.include_router(code_intelligence_router, prefix="/api/v1", tags=["api-v1", "code-intelligence"])
-api_router.include_router(analytics_router, prefix="/api/v1", tags=["api-v1", "analytics"])
+# ── FM-201 / FM-202: Versioned Public API with rate limiting ─────
+# Mount ALL core endpoint groups under /api/v1/ with rate-limit headers.
+_v1_rate_limit = Depends(api_key_service.require_rate_limit())
+
+api_router.include_router(
+    projects_router, prefix="/api/v1",
+    tags=["api-v1", "projects"], dependencies=[_v1_rate_limit],
+)
+api_router.include_router(
+    runs_router, prefix="/api/v1",
+    tags=["api-v1", "runs"], dependencies=[_v1_rate_limit],
+)
+api_router.include_router(
+    tasks_router, prefix="/api/v1",
+    tags=["api-v1", "tasks"], dependencies=[_v1_rate_limit],
+)
+api_router.include_router(
+    costs_router, prefix="/api/v1",
+    tags=["api-v1", "costs"], dependencies=[_v1_rate_limit],
+)
+api_router.include_router(
+    code_intelligence_router, prefix="/api/v1",
+    tags=["api-v1", "code-intelligence"], dependencies=[_v1_rate_limit],
+)
+api_router.include_router(
+    analytics_router, prefix="/api/v1",
+    tags=["api-v1", "analytics"], dependencies=[_v1_rate_limit],
+)
+api_router.include_router(
+    approvals_router, prefix="/api/v1",
+    tags=["api-v1", "approvals"], dependencies=[_v1_rate_limit],
+)
+api_router.include_router(
+    governance_router, prefix="/api/v1",
+    tags=["api-v1", "governance"], dependencies=[_v1_rate_limit],
+)
 
 # API & Ecosystem: API Keys, Rate Limiting, Webhooks, Connectors (FM-201–208)
+# (already has /api/v1/ecosystem prefix + rate limiting in its own router)
 api_router.include_router(api_ecosystem_router, tags=["api-keys", "webhooks", "connectors", "ecosystem"])

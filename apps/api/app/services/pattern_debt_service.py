@@ -114,7 +114,81 @@ async def scan_file_for_patterns(
                 occurrences.append(occ)
 
     await db.flush()
+
+    # FM-185: Auto-create knowledge base entries for significant patterns
+    await _create_kb_entries_for_significant_patterns(
+        db, project_id=project_id, file_path=file_path,
+        occurrences=occurrences, rules=rules,
+    )
+
     return occurrences
+
+
+# ── FM-185: Knowledge Base Integration ───────────────────────────
+
+# Severity levels that trigger KB entry creation.
+_KB_SIGNIFICANT_SEVERITIES = {PatternSeverity.CRITICAL, PatternSeverity.WARNING}
+
+
+async def _create_kb_entries_for_significant_patterns(
+    db: AsyncSession,
+    *,
+    project_id: uuid.UUID,
+    file_path: str,
+    occurrences: list[PatternOccurrence],
+    rules: list[PatternRule],
+) -> list[Any]:
+    """Create knowledge-base entries for high-severity pattern detections.
+
+    Only CRITICAL and WARNING occurrences produce entries — INFO patterns
+    are too noisy and best-practice / positive patterns are not issues.
+    """
+    from app.services import knowledge_service
+    from app.models.project_knowledge import KnowledgeType
+
+    rule_map = {r.id: r for r in rules}
+    created: list[Any] = []
+
+    # Group occurrences by rule to avoid duplicate KB entries per scan
+    rule_occurrences: dict[uuid.UUID, list[PatternOccurrence]] = {}
+    for occ in occurrences:
+        rule_occurrences.setdefault(occ.rule_id, []).append(occ)
+
+    for rule_id, occs in rule_occurrences.items():
+        rule = rule_map.get(rule_id)
+        if rule is None:
+            continue
+        if rule.severity not in _KB_SIGNIFICANT_SEVERITIES:
+            continue
+        if rule.pattern_type == PatternType.POSITIVE_PATTERN:
+            continue  # positive patterns are not issues
+
+        lines = ", ".join(str(o.line_start) for o in occs[:10])
+        snippet_sample = occs[0].snippet if occs else ""
+
+        entry = await knowledge_service.create_knowledge(
+            db,
+            project_id=project_id,
+            knowledge_type=KnowledgeType.PATTERN,
+            title=f"Pattern detected: {rule.name} in {file_path}",
+            content=(
+                f"Rule '{rule.name}' ({rule.severity.value}) matched "
+                f"{len(occs)} time(s) in {file_path} at line(s) {lines}.\n"
+                f"Description: {rule.description or 'N/A'}\n"
+                f"Sample: {snippet_sample}"
+            ),
+            tags=["pattern-detection", rule.severity.value, rule.name],
+            metadata={
+                "rule_id": str(rule_id),
+                "rule_name": rule.name,
+                "severity": rule.severity.value,
+                "file_path": file_path,
+                "occurrence_count": len(occs),
+            },
+        )
+        created.append(entry)
+
+    return created
 
 
 async def get_pattern_occurrences(

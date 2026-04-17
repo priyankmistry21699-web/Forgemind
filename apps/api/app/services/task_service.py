@@ -1,5 +1,6 @@
 """Task service — DAG-aware task state management and ready-task selection."""
 
+import logging
 import uuid
 
 from fastapi import HTTPException, status
@@ -7,6 +8,9 @@ from sqlalchemy import select, func as sa_func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.task import Task, TaskStatus
+from app.models.run import Run
+
+logger = logging.getLogger(__name__)
 
 
 async def get_task(db: AsyncSession, task_id: uuid.UUID) -> Task:
@@ -57,8 +61,14 @@ async def update_task_status(
             detail=f"Cannot transition from {task.status.value} to {new_status.value}",
         )
 
+    old_status = task.status
     task.status = new_status
     await db.flush()
+
+    # FM-191: Auto-capture execution metric from status transition
+    await _emit_execution_metric(
+        db, task=task, old_status=old_status, new_status=new_status,
+    )
 
     # If task just completed, promote any blocked dependents that are now ready
     if new_status == TaskStatus.COMPLETED:
@@ -105,3 +115,64 @@ async def _promote_ready_tasks(db: AsyncSession, run_id: uuid.UUID) -> None:
             task.status = TaskStatus.READY
 
     await db.flush()
+
+
+# ── FM-191: Auto-capture execution metrics from task transitions ─
+
+# Map TaskStatus values to the string keys used by _STATUS_METRIC_MAP
+_TASK_STATUS_TO_LIFECYCLE: dict[TaskStatus, str] = {
+    TaskStatus.PENDING: "queued",
+    TaskStatus.BLOCKED: "queued",
+    TaskStatus.READY: "queued",
+    TaskStatus.RUNNING: "in_progress",
+    TaskStatus.COMPLETED: "completed",
+    TaskStatus.FAILED: "completed",
+    TaskStatus.SKIPPED: "completed",
+}
+
+
+async def _emit_execution_metric(
+    db: AsyncSession,
+    *,
+    task: Task,
+    old_status: TaskStatus,
+    new_status: TaskStatus,
+) -> None:
+    """Best-effort hook: record an execution metric when a task transitions.
+
+    Uses the same _STATUS_METRIC_MAP in execution_health_service so the
+    mapping is consistent. Fails silently to avoid breaking the task
+    lifecycle.
+    """
+    try:
+        from app.services import execution_health_service
+
+        # Resolve project_id from the run
+        run_result = await db.execute(
+            select(Run.project_id).where(Run.id == task.run_id)
+        )
+        project_id = run_result.scalar_one_or_none()
+        if project_id is None:
+            return
+
+        old_lc = _TASK_STATUS_TO_LIFECYCLE.get(old_status, old_status.value)
+        new_lc = _TASK_STATUS_TO_LIFECYCLE.get(new_status, new_status.value)
+
+        # Duration is not available from the task model alone, so we pass 0
+        # and let the caller (route) provide a real duration if available.
+        # The metric is still useful for counting transitions.
+        await execution_health_service.auto_record_from_status_transition(
+            db,
+            project_id=project_id,
+            run_id=task.run_id,
+            task_id=task.id,
+            old_status=old_lc,
+            new_status=new_lc,
+            duration_ms=0,
+        )
+    except Exception:
+        logger.debug(
+            "FM-191: failed to emit execution metric for task %s (%s→%s)",
+            task.id, old_status.value, new_status.value,
+            exc_info=True,
+        )

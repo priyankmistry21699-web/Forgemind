@@ -7,6 +7,7 @@ quality metrics, portfolio, dashboards, alerts, executive summaries.
 import uuid
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.analytics_metrics import (
@@ -1346,3 +1347,283 @@ class TestDBPersistedArtifacts:
         )
         await db_session.commit()
         assert a2["version"] == a1["version"] + 1
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-191: Lifecycle Integration — auto-capture hook verification
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestLifecycleAutoCapture:
+    """Verify that _emit_execution_metric in task_service fires correctly."""
+
+    @pytest.mark.asyncio
+    async def test_task_transition_emits_metric(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        """Transitioning READY→RUNNING should invoke auto_record_from_status_transition."""
+        from app.models.task import Task, TaskStatus
+        from app.models.run import Run, RunStatus
+
+        run = Run(project_id=sample_project.id, run_number=999, status=RunStatus.RUNNING)
+        db_session.add(run)
+        await db_session.flush()
+
+        task = Task(
+            title="test-task",
+            run_id=run.id,
+            status=TaskStatus.READY,
+            order_index=0,
+        )
+        db_session.add(task)
+        await db_session.flush()
+
+        from app.services import task_service
+
+        updated = await task_service.update_task_status(
+            db_session, task.id, TaskStatus.RUNNING,
+        )
+        await db_session.commit()
+        assert updated.status == TaskStatus.RUNNING
+
+        # The metric hook should have fired (READY→RUNNING maps to
+        # queued→in_progress which maps to QUEUE_TIME).
+        from app.models.analytics_metrics import ExecutionMetric
+        from sqlalchemy import select
+
+        result = await db_session.execute(
+            select(ExecutionMetric).where(
+                ExecutionMetric.project_id == sample_project.id,
+                ExecutionMetric.task_id == task.id,
+            )
+        )
+        metrics = list(result.scalars().all())
+        assert len(metrics) >= 1
+
+    @pytest.mark.asyncio
+    async def test_unmapped_transition_no_metric(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        """PENDING→READY has no metric mapping — should silently succeed."""
+        from app.models.task import Task, TaskStatus
+        from app.models.run import Run, RunStatus
+
+        run = Run(project_id=sample_project.id, run_number=998, status=RunStatus.RUNNING)
+        db_session.add(run)
+        await db_session.flush()
+
+        task = Task(title="noop-task", run_id=run.id, status=TaskStatus.PENDING, order_index=0)
+        db_session.add(task)
+        await db_session.flush()
+
+        from app.services import task_service
+
+        updated = await task_service.update_task_status(
+            db_session, task.id, TaskStatus.READY,
+        )
+        await db_session.commit()
+        assert updated.status == TaskStatus.READY
+        # No assertion on metrics — just verifying it didn't raise
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-198: Cron Matching for Scheduled Reports
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestCronMatching:
+    """Unit tests for the lightweight cron expression matcher."""
+
+    def test_wildcard_always_matches(self):
+        from app.services.background_scheduler import _cron_matches_now
+        from datetime import datetime, timezone
+
+        now = datetime(2026, 4, 17, 10, 30, tzinfo=timezone.utc)
+        assert _cron_matches_now("* * * * *", now) is True
+
+    def test_exact_minute_match(self):
+        from app.services.background_scheduler import _cron_matches_now
+        from datetime import datetime, timezone
+
+        now = datetime(2026, 4, 17, 10, 30, tzinfo=timezone.utc)
+        assert _cron_matches_now("30 10 * * *", now) is True
+        assert _cron_matches_now("31 10 * * *", now) is False
+
+    def test_step_expression(self):
+        from app.services.background_scheduler import _cron_matches_now
+        from datetime import datetime, timezone
+
+        now = datetime(2026, 4, 17, 10, 0, tzinfo=timezone.utc)
+        assert _cron_matches_now("*/10 * * * *", now) is True
+        now2 = datetime(2026, 4, 17, 10, 7, tzinfo=timezone.utc)
+        assert _cron_matches_now("*/10 * * * *", now2) is False
+
+    def test_range_expression(self):
+        from app.services.background_scheduler import _cron_matches_now
+        from datetime import datetime, timezone
+
+        now = datetime(2026, 4, 17, 10, 30, tzinfo=timezone.utc)
+        assert _cron_matches_now("25-35 * * * *", now) is True
+        assert _cron_matches_now("0-10 * * * *", now) is False
+
+    def test_comma_list(self):
+        from app.services.background_scheduler import _cron_matches_now
+        from datetime import datetime, timezone
+
+        now = datetime(2026, 4, 17, 10, 30, tzinfo=timezone.utc)
+        assert _cron_matches_now("0,15,30,45 * * * *", now) is True
+        assert _cron_matches_now("0,15,45 * * * *", now) is False
+
+    def test_invalid_cron_returns_false(self):
+        from app.services.background_scheduler import _cron_matches_now
+        from datetime import datetime, timezone
+
+        now = datetime(2026, 4, 17, 10, 30, tzinfo=timezone.utc)
+        assert _cron_matches_now("bad", now) is False
+        assert _cron_matches_now("", now) is False
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-199: Non-Technical Narrative Generation
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestNarrativeGeneration:
+    """Verify that executive summary includes a human-readable narrative."""
+
+    def test_narrative_from_health_data(self):
+        from app.services.dashboard_alert_service import _generate_narrative
+
+        narrative = _generate_narrative(
+            health={"grade": "A", "composite_score": 92.5, "dimension_scores": {
+                "velocity": 95, "quality": 88, "cost_efficiency": 50,
+            }},
+            velocity={"completed_runs": 42, "runs_per_day": 1.4},
+            quality={"test_pass_rate": 0.97, "defect_density": 0.01},
+        )
+        assert isinstance(narrative, str)
+        assert len(narrative) > 50
+        assert "92.5" in narrative
+        assert "excellent" in narrative.lower() or "97" in narrative
+
+    def test_narrative_with_no_data(self):
+        from app.services.dashboard_alert_service import _generate_narrative
+
+        narrative = _generate_narrative(health=None, velocity=None, quality=None)
+        assert "Insufficient data" in narrative or "No health data" in narrative
+
+    def test_narrative_highlights_weak_areas(self):
+        from app.services.dashboard_alert_service import _generate_narrative
+
+        narrative = _generate_narrative(
+            health={"grade": "C", "composite_score": 62.0, "dimension_scores": {
+                "velocity": 80, "cost_efficiency": 40,
+            }},
+            velocity=None,
+            quality=None,
+        )
+        assert "cost_efficiency" in narrative
+
+    @pytest.mark.asyncio
+    async def test_full_summary_includes_narrative(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        """generate_executive_summary should include a 'narrative' key."""
+        summary = await dashboard_alert_service.generate_executive_summary(
+            db_session, sample_project.id,
+        )
+        assert "narrative" in summary
+        assert isinstance(summary["narrative"], str)
+        assert len(summary["narrative"]) > 0
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-196: Portfolio Performance Benchmark
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestPortfolioPerformance:
+    """Portfolio queries must respond in <1s for 50 projects."""
+
+    @pytest.mark.asyncio
+    async def test_portfolio_50_projects_under_1_second(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        """Benchmark portfolio summary with multiple project IDs."""
+        import time
+        from app.models.project import Project
+
+        project_ids = [sample_project.id]
+        for i in range(49):
+            p = Project(name=f"bench-proj-{i}", description="benchmark", owner_id=STUB_USER_ID)
+            db_session.add(p)
+        await db_session.flush()
+
+        result = await db_session.execute(
+            select(Project.id).limit(50)
+        )
+        project_ids = [row[0] for row in result.fetchall()]
+
+        start = time.perf_counter()
+        summary = await velocity_quality_service.get_portfolio_summary(
+            db_session, project_ids,
+        )
+        elapsed = time.perf_counter() - start
+
+        assert elapsed < 1.0, f"Portfolio query took {elapsed:.2f}s (limit 1s)"
+        assert "projects" in summary
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-200: Analytics Performance Benchmarks
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestAnalyticsPerformance:
+    """Metric queries must respond in <500ms for 90-day windows."""
+
+    @pytest.mark.asyncio
+    async def test_metric_query_performance(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        """Record 500 metrics and query them within SLA."""
+        import time
+
+        for i in range(500):
+            await execution_health_service.record_execution_metric(
+                db_session,
+                project_id=sample_project.id,
+                metric_type=ExecutionMetricType.EXECUTION_TIME,
+                value_ms=i % 100,
+                run_id=None,
+                task_id=None,
+            )
+        await db_session.flush()
+
+        start = time.perf_counter()
+        result, total = await execution_health_service.get_execution_metrics(
+            db_session,
+            sample_project.id,
+            metric_type=ExecutionMetricType.EXECUTION_TIME,
+            since_days=90,
+        )
+        elapsed = time.perf_counter() - start
+
+        assert elapsed < 0.5, f"Metric query took {elapsed:.2f}s (limit 0.5s)"
+        assert total > 0
+
+    @pytest.mark.asyncio
+    async def test_health_computation_performance(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        """Health computation should complete in <500ms."""
+        import time
+
+        start = time.perf_counter()
+        health = await execution_health_service.compute_health_snapshot(
+            db_session, sample_project.id,
+        )
+        elapsed = time.perf_counter() - start
+
+        assert elapsed < 0.5, f"Health computation took {elapsed:.2f}s"
+        assert hasattr(health, "grade") or hasattr(health, "composite_score")

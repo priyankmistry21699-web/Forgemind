@@ -207,6 +207,11 @@ async def transition_run(
         db, run, old_status.value, target_status.value
     )
 
+    # FM-191: Auto-capture execution metric from run lifecycle transition
+    await _try_emit_run_execution_metric(
+        db, run, old_status.value, target_status.value
+    )
+
     return {
         "transitioned": True,
         "from_status": old_status.value,
@@ -237,6 +242,32 @@ async def _try_auto_checkpoint_on_transition(
             run.id,
             old_status,
             new_status,
+            exc_info=True,
+        )
+
+
+async def _try_emit_run_execution_metric(
+    db: AsyncSession,
+    run: Run,
+    old_status: str,
+    new_status: str,
+) -> None:
+    """FM-191: Best-effort auto-capture of execution metrics on run transitions."""
+    try:
+        from app.services import execution_health_service
+
+        await execution_health_service.auto_record_from_status_transition(
+            db,
+            project_id=run.project_id,
+            run_id=run.id,
+            old_status=old_status,
+            new_status=new_status,
+            duration_ms=0,
+        )
+    except Exception:
+        logger.debug(
+            "FM-191: metric emission failed for run %s on %s → %s",
+            run.id, old_status, new_status,
             exc_info=True,
         )
 

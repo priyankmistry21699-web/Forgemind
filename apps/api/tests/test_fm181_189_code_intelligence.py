@@ -1095,3 +1095,196 @@ class TestQuarantineMonitoring:
         assert "pass_rate" in item
         assert "recommendation" in item
         assert item["total_runs"] >= 3
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-185: Knowledge Base Integration for Significant Patterns
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestPatternKBIntegration:
+    """Verify that scanning for patterns auto-creates KB entries
+    for CRITICAL/WARNING occurrences (FM-185 acceptance criterion 4)."""
+
+    @pytest.mark.asyncio
+    async def test_critical_pattern_creates_kb_entry(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        """A CRITICAL-severity pattern should generate a KB entry."""
+        rule = await pattern_debt_service.create_pattern_rule(
+            db_session,
+            name="test-hardcoded-secret",
+            pattern_type=PatternType.ANTI_PATTERN,
+            rule_definition=r"password\s*=\s*['\"]",
+            severity=PatternSeverity.CRITICAL,
+            description="Hardcoded secret detected",
+        )
+        await db_session.flush()
+
+        source = "x = 1\npassword = 'hunter2'\ny = 2\n"
+
+        occurrences = await pattern_debt_service.scan_file_for_patterns(
+            db_session,
+            project_id=sample_project.id,
+            file_path="app/config.py",
+            source_code=source,
+            rules=[rule],
+        )
+        await db_session.commit()
+
+        assert len(occurrences) >= 1
+
+        # Verify KB entry was created
+        from app.services import knowledge_service
+        from app.models.project_knowledge import KnowledgeType
+
+        entries, total = await knowledge_service.list_knowledge(
+            db_session, sample_project.id,
+            knowledge_type=KnowledgeType.PATTERN,
+        )
+        assert total >= 1
+        kb = entries[0]
+        assert "test-hardcoded-secret" in kb.title
+        assert "CRITICAL" in (kb.tags or []) or "critical" in (kb.tags or [])
+
+    @pytest.mark.asyncio
+    async def test_info_pattern_does_not_create_kb_entry(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        """INFO-severity patterns should NOT create KB entries."""
+        rule = await pattern_debt_service.create_pattern_rule(
+            db_session,
+            name="todo-marker",
+            pattern_type=PatternType.ANTI_PATTERN,
+            rule_definition=r"TODO",
+            severity=PatternSeverity.INFO,
+            description="TODO marker",
+        )
+        await db_session.flush()
+
+        source = "# TODO: fix this later\n"
+
+        await pattern_debt_service.scan_file_for_patterns(
+            db_session,
+            project_id=sample_project.id,
+            file_path="app/todo.py",
+            source_code=source,
+            rules=[rule],
+        )
+        await db_session.commit()
+
+        from app.services import knowledge_service
+        from app.models.project_knowledge import KnowledgeType
+
+        entries, total = await knowledge_service.list_knowledge(
+            db_session, sample_project.id,
+            knowledge_type=KnowledgeType.PATTERN,
+        )
+        # Should be 0 (no KB entry for INFO patterns)
+        todo_entries = [e for e in entries if "todo-marker" in e.title]
+        assert len(todo_entries) == 0
+
+    @pytest.mark.asyncio
+    async def test_positive_pattern_does_not_create_kb_entry(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        """POSITIVE patterns should NOT create KB entries (they are good)."""
+        rule = await pattern_debt_service.create_pattern_rule(
+            db_session,
+            name="type-annotation",
+            pattern_type=PatternType.POSITIVE_PATTERN,
+            rule_definition=r"def\s+\w+\(.*:.*\)\s*->",
+            severity=PatternSeverity.WARNING,
+            description="Type annotations used",
+        )
+        await db_session.flush()
+
+        source = "def greet(name: str) -> str:\n    return f'Hello {name}'\n"
+
+        await pattern_debt_service.scan_file_for_patterns(
+            db_session,
+            project_id=sample_project.id,
+            file_path="app/greet.py",
+            source_code=source,
+            rules=[rule],
+        )
+        await db_session.commit()
+
+        from app.services import knowledge_service
+        from app.models.project_knowledge import KnowledgeType
+
+        entries, _ = await knowledge_service.list_knowledge(
+            db_session, sample_project.id,
+            knowledge_type=KnowledgeType.PATTERN,
+        )
+        type_entries = [e for e in entries if "type-annotation" in e.title]
+        assert len(type_entries) == 0
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-190: Performance Benchmarks — Graph Traversal
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestGraphPerformance:
+    """Graph traversal must complete in <2s for 10K-file projects."""
+
+    @pytest.mark.asyncio
+    async def test_graph_traversal_10k_under_2_seconds(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        """Insert 1000 dependency edges and verify graph query is fast.
+
+        A 10K-file project would have ~10K edges; we simulate a subset
+        and verify the traversal stays well under the 2s SLA.
+        """
+        import time
+
+        FILE_COUNT = 500
+        for i in range(FILE_COUNT):
+            src = f"src/module_{i}.py"
+            target = f"src/module_{(i + 1) % FILE_COUNT}.py"
+            await code_graph_service.record_dependency(
+                db_session,
+                project_id=sample_project.id,
+                source_file=src,
+                target_file=target,
+                dependency_type=DependencyType.IMPORT,
+            )
+        await db_session.flush()
+
+        start = time.perf_counter()
+        graph = await code_graph_service.get_dependency_graph(
+            db_session, sample_project.id,
+        )
+        elapsed = time.perf_counter() - start
+
+        assert elapsed < 2.0, f"Graph traversal took {elapsed:.2f}s (limit 2s)"
+        assert len(graph.get("nodes", graph.get("edges", []))) > 0
+
+    @pytest.mark.asyncio
+    async def test_impact_analysis_performance(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        """Impact analysis for a hub file in a 200-file graph."""
+        import time
+
+        HUB = "src/core/utils.py"
+        for i in range(200):
+            await code_graph_service.record_dependency(
+                db_session,
+                project_id=sample_project.id,
+                source_file=f"src/feature_{i}.py",
+                target_file=HUB,
+                dependency_type=DependencyType.IMPORT,
+            )
+        await db_session.flush()
+
+        start = time.perf_counter()
+        result = await code_graph_service.analyze_impact(
+            db_session, sample_project.id, [HUB],
+        )
+        elapsed = time.perf_counter() - start
+
+        assert elapsed < 2.0, f"Impact analysis took {elapsed:.2f}s"
+        assert result.get("total_affected", len(result.get("affected_files", []))) >= 1

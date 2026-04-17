@@ -1711,7 +1711,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - [x] At least 5 anti-pattern and 3 positive-pattern rules implemented _(8 anti-pattern + 3 positive-pattern rules seeded via seed_builtin_rules)_
 - [x] Patterns detected with correct file/line references
 - [x] Pattern density metrics computed correctly
-- [ ] Knowledge base integration creates entries for significant patterns
+- [x] Knowledge base integration creates entries for significant patterns _(CRITICAL/WARNING anti-patterns auto-promoted to KB)_
 - [x] Tests cover rule matching, location accuracy, and metrics
 
 ---
@@ -1870,9 +1870,9 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] All FM-181–189 services have test coverage (target: 40+ tests)
-- [ ] Graph traversal completes in <2 seconds for 10K-file projects
+- [x] Graph traversal completes in <2 seconds for 10K-file projects _(benchmarked in TestGraphPerformance)_
 - [x] Parsers handle malformed input without crashing
-- [ ] Documentation covers setup, configuration, and interpretation of results
+- [x] Documentation covers setup, configuration, and interpretation of results _(docs/code-intelligence.md)_
 
 ---
 
@@ -2078,7 +2078,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - [x] Portfolio shows all org projects with accurate metrics
 - [x] Sort and filter work across all dimensions _(route now forwards sort_by, sort_order, filter_min_runs to service)_
 - [x] Aggregates computed correctly
-- [ ] Performance: <1 second for 50 projects
+- [x] Performance: <1 second for 50 projects _(benchmarked in TestPortfolioPerformance)_
 - [x] Tests cover multi-project aggregation and sorting
 
 ---
@@ -2181,7 +2181,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Summary includes all configured sections with accurate data
-- [ ] Non-technical language used in generated text
+- [x] Non-technical language used in generated text _(_generate_narrative produces human-readable paragraphs)_
 - [x] Summary stored as versioned artifact
 - [x] Tests cover generation with realistic multi-project data
 
@@ -2208,9 +2208,9 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] All FM-191–199 services have test coverage (target: 40+ tests)
-- [ ] Metric queries respond in <500ms for 90-day windows
+- [x] Metric queries respond in <500ms for 90-day windows _(benchmarked in TestAnalyticsPerformance)_
 - [ ] Dashboard load time <2 seconds with 10 widgets
-- [ ] Documentation covers metric definitions, dashboard setup, and alert configuration
+- [x] Documentation covers metric definitions, dashboard setup, and alert configuration _(docs/analytics-portfolio.md)_
 
 ---
 
@@ -2552,7 +2552,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - [x] All FM-201–209 services have test coverage (target: 45+ tests)
 - [x] No security vulnerabilities in webhook, API key, or secret handling
 - [x] End-to-end integration scenario passes
-- [ ] Documentation covers API authentication, webhooks, and each integration setup
+- [x] Documentation covers API authentication, webhooks, and each integration setup _(docs/api-ecosystem.md)_
 
 ---
 

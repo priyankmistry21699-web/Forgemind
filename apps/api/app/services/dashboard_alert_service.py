@@ -430,8 +430,85 @@ async def generate_executive_summary(
         "velocity": velocity,
         "quality": quality_data,
         "execution_metrics": exec_summary.get("metrics", []),
+        "narrative": _generate_narrative(health_data, velocity, quality_data),
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
+
+
+def _generate_narrative(
+    health: dict | None,
+    velocity: dict | None,
+    quality: dict | None,
+) -> str:
+    """FM-199: Produce a non-technical, human-readable summary paragraph.
+
+    Uses simple template sentences so stakeholders without engineering
+    context can understand the project status at a glance.
+    """
+    parts: list[str] = []
+
+    # Health narrative
+    if health:
+        grade = health.get("grade", "N/A")
+        score = health.get("composite_score")
+        if score is not None:
+            parts.append(
+                f"Overall project health is rated {grade} "
+                f"with a composite score of {score:.1f} out of 100."
+            )
+        else:
+            parts.append(f"Overall project health is rated {grade}.")
+
+        # Dimension color commentary
+        dims = health.get("dimension_scores") or {}
+        weak = [k for k, v in dims.items() if isinstance(v, (int, float)) and v < 60]
+        strong = [k for k, v in dims.items() if isinstance(v, (int, float)) and v >= 85]
+        if strong:
+            parts.append(
+                f"Strong areas include {', '.join(strong)}."
+            )
+        if weak:
+            parts.append(
+                f"Areas needing attention: {', '.join(weak)}."
+            )
+    else:
+        parts.append("No health data is available yet for this project.")
+
+    # Velocity narrative
+    if velocity:
+        runs = velocity.get("completed_runs", 0)
+        rpd = velocity.get("runs_per_day")
+        if rpd is not None:
+            parts.append(
+                f"The team has completed {runs} runs "
+                f"at a pace of {rpd:.1f} runs per day."
+            )
+        elif runs:
+            parts.append(f"The team has completed {runs} runs so far.")
+
+    # Quality narrative
+    if quality:
+        pass_rate = quality.get("test_pass_rate")
+        if pass_rate is not None:
+            pct = pass_rate * 100 if pass_rate <= 1.0 else pass_rate
+            if pct >= 95:
+                parts.append(f"Test quality is excellent with a {pct:.1f}% pass rate.")
+            elif pct >= 80:
+                parts.append(f"Test quality is good at {pct:.1f}% pass rate, with room for improvement.")
+            else:
+                parts.append(f"Test pass rate is {pct:.1f}% — this needs immediate attention.")
+
+        defect = quality.get("defect_density")
+        if defect is not None and defect > 0.05:
+            parts.append(
+                f"Defect density is elevated at {defect:.2f}; "
+                "consider prioritizing bug-fix sprints."
+            )
+
+    if not parts:
+        return "Insufficient data to generate an executive summary at this time."
+
+    return " ".join(parts)
 
 
 # ── FM-199: Executive Summary Artifact Storage ───────────────────

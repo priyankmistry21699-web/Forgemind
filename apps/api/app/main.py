@@ -21,18 +21,23 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     from app.db.session import async_session_factory
     from app.services.agent_service import seed_default_agents
     from app.services.project_template_service import seed_builtin_templates
-    from app.services.background_scheduler import escalation_loop, retention_loop
+    from app.services.background_scheduler import (
+        escalation_loop,
+        retention_loop,
+        scheduled_report_loop,
+    )
 
     async with async_session_factory() as session:
         await seed_default_agents(session)
         await seed_builtin_templates(session)
         await session.commit()
 
-    # Launch background scheduler tasks (FM-148 / FM-176)
+    # Launch background scheduler tasks (FM-148 / FM-176 / FM-198)
     bg_tasks: list[asyncio.Task] = []
     if not settings.debug:
         bg_tasks.append(asyncio.create_task(escalation_loop(), name="escalation-loop"))
         bg_tasks.append(asyncio.create_task(retention_loop(), name="retention-loop"))
+        bg_tasks.append(asyncio.create_task(scheduled_report_loop(), name="report-loop"))
 
     yield
 
