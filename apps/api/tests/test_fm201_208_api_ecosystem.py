@@ -1,6 +1,7 @@
-"""Tests for FM-201–208: API & Ecosystem.
+"""Tests for FM-201–210: API & Ecosystem.
 
-Covers: API key management, rate limiting, webhooks, connector registry.
+Covers: API key management, rate limiting, webhooks, connector registry,
+Slack integration, Jira integration, PagerDuty integration, email channel.
 """
 
 import uuid
@@ -994,3 +995,401 @@ class TestOpenAPISpecCompleteness:
         spec = self._get_openapi_spec()
         serialized = json.dumps(spec)
         assert len(serialized) > 100
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-207: Email Channel
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestEmailService:
+    """Tests for email_service — FM-207."""
+
+    def test_render_notification_template(self):
+        from app.services import email_service
+        rendered = email_service.render_template(
+            "notification",
+            {"title": "Test Title", "body": "Hello world"},
+        )
+        assert "[ForgeMind] Test Title" in rendered["subject"]
+        assert "Test Title" in rendered["html"]
+        assert "Hello world" in rendered["text"]
+
+    def test_render_alert_template(self):
+        from app.services import email_service
+        rendered = email_service.render_template(
+            "alert",
+            {
+                "title": "High CPU", "body": "CPU exceeded threshold",
+                "metric_type": "cpu", "current_value": "95",
+                "threshold": "80",
+            },
+        )
+        assert "Alert" in rendered["subject"]
+        assert "95" in rendered["html"]
+        assert "cpu" in rendered["text"]
+
+    def test_render_unknown_template_raises(self):
+        from app.services import email_service
+        with pytest.raises(ValueError, match="Unknown email template"):
+            email_service.render_template("nonexistent", {})
+
+    def test_send_notification_email_dev_mode(self):
+        from app.services import email_service
+        # No SMTP configured → dev-mode logging
+        result = email_service.send_notification_email(
+            "user@test.com", "Title", "Body",
+        )
+        assert result["status"] == "logged"
+
+    def test_send_alert_email_dev_mode(self):
+        from app.services import email_service
+        result = email_service.send_alert_email(
+            "user@test.com", "Alert Title", "Alert body",
+            metric_type="latency", current_value="500ms", threshold="200ms",
+        )
+        assert result["status"] == "logged"
+
+    def test_digest_aggregation(self):
+        from app.services import email_service
+        email_service._pending_digest.clear()
+
+        email_service.add_to_digest("dev@test.com", {"title": "A", "body": "a"})
+        email_service.add_to_digest("dev@test.com", {"title": "B", "body": "b"})
+        assert email_service.get_pending_digest_count("dev@test.com") == 2
+
+        digest = email_service.flush_digest("dev@test.com")
+        assert digest is not None
+        assert "Daily Digest" in digest["subject"]
+        assert "A" in digest["html"]
+        assert "B" in digest["html"]
+
+        # After flush, nothing pending
+        assert email_service.get_pending_digest_count("dev@test.com") == 0
+
+    def test_flush_empty_digest_returns_none(self):
+        from app.services import email_service
+        email_service._pending_digest.clear()
+        assert email_service.flush_digest("nobody@test.com") is None
+
+    def test_email_preferences_default_all_enabled(self):
+        from app.services import email_service
+        prefs = email_service.get_email_preferences("new@user.com")
+        for cat in email_service.NOTIFICATION_CATEGORIES:
+            assert prefs[cat] is True
+
+    def test_unsubscribe(self):
+        from app.services import email_service
+        email_service._email_preferences.clear()
+        email_service.unsubscribe("user@test.com", "alerts")
+        assert not email_service.is_category_enabled("user@test.com", "alerts")
+        assert email_service.is_category_enabled("user@test.com", "reports")
+
+    def test_set_email_preference(self):
+        from app.services import email_service
+        email_service._email_preferences.clear()
+        email_service.set_email_preference("user@test.com", "digest", False)
+        prefs = email_service.get_email_preferences("user@test.com")
+        assert prefs["digest"] is False
+        assert prefs["alerts"] is True
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-204: Slack Integration
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestSlackIntegration:
+    """Tests for Slack integration — FM-204."""
+
+    @pytest.mark.asyncio
+    async def test_slash_command_status(self):
+        from app.services import integration_service
+        result = await integration_service.slack_handle_slash_command(
+            "/forgemind", "status",
+        )
+        assert result["command"] == "status"
+        assert result["response_type"] == "in_channel"
+
+    @pytest.mark.asyncio
+    async def test_slash_command_run(self):
+        from app.services import integration_service
+        result = await integration_service.slack_handle_slash_command(
+            "/forgemind", "run",
+        )
+        assert result["command"] == "run"
+
+    @pytest.mark.asyncio
+    async def test_slash_command_help(self):
+        from app.services import integration_service
+        result = await integration_service.slack_handle_slash_command(
+            "/forgemind", "help",
+        )
+        assert result["command"] == "help"
+        assert result["response_type"] == "ephemeral"
+
+    @pytest.mark.asyncio
+    async def test_slash_command_empty_defaults_help(self):
+        from app.services import integration_service
+        result = await integration_service.slack_handle_slash_command(
+            "/forgemind", "",
+        )
+        assert result["command"] == "help"
+
+    @pytest.mark.asyncio
+    async def test_interactive_action_approve(self):
+        from app.services import integration_service
+        result = await integration_service.slack_handle_interactive_action(
+            "button", "approve", user_id="U123",
+        )
+        assert result["action"] == "approve"
+        assert result["status"] == "processed"
+
+    @pytest.mark.asyncio
+    async def test_interactive_action_reject(self):
+        from app.services import integration_service
+        result = await integration_service.slack_handle_interactive_action(
+            "button", "reject",
+        )
+        assert result["action"] == "reject"
+        assert result["status"] == "processed"
+
+    @pytest.mark.asyncio
+    async def test_interactive_action_unknown(self):
+        from app.services import integration_service
+        result = await integration_service.slack_handle_interactive_action(
+            "button", "unknown_action_xyz",
+        )
+        assert result["status"] == "unknown_action"
+
+    @pytest.mark.asyncio
+    async def test_post_message_not_configured(self):
+        from app.services import integration_service
+        integration_service._slack_config["bot_token"] = ""
+        result = await integration_service.slack_post_message("#general", "hello")
+        assert result.get("ok") is False or result.get("error") == "not_configured"
+
+    def test_is_slack_configured(self):
+        from app.services import integration_service
+        integration_service._slack_config["bot_token"] = ""
+        assert not integration_service.is_slack_configured()
+        integration_service._slack_config["bot_token"] = "xoxb-test"
+        assert integration_service.is_slack_configured()
+        integration_service._slack_config["bot_token"] = ""  # cleanup
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-205: Jira Integration
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestJiraIntegration:
+    """Tests for Jira integration — FM-205."""
+
+    def test_status_mapping_to_jira(self):
+        from app.services.integration_service import map_status_to_jira
+        assert map_status_to_jira("completed") == "Done"
+        assert map_status_to_jira("in_progress") == "In Progress"
+        assert map_status_to_jira("queued") == "To Do"
+        assert map_status_to_jira("unknown") == "To Do"
+
+    def test_status_mapping_from_jira(self):
+        from app.services.integration_service import map_status_from_jira
+        assert map_status_from_jira("Done") == "completed"
+        assert map_status_from_jira("In Progress") == "in_progress"
+        assert map_status_from_jira("Unknown") == "queued"
+
+    def test_field_mapping_to_jira(self):
+        from app.services.integration_service import map_fields_to_jira
+        task = {"title": "Test Task", "description": "A task", "status": "open"}
+        fields = map_fields_to_jira(task)
+        assert fields["summary"] == "Test Task"
+        assert fields["description"] == "A task"
+
+    def test_field_mapping_from_jira(self):
+        from app.services.integration_service import map_fields_from_jira
+        issue = {"fields": {
+            "summary": "Jira Issue",
+            "status": {"name": "In Progress"},
+            "priority": {"name": "High"},
+        }}
+        task = map_fields_from_jira(issue)
+        assert task["title"] == "Jira Issue"
+        assert task["status"] == "In Progress"
+        assert task["priority"] == "High"
+
+    @pytest.mark.asyncio
+    async def test_create_issue_not_configured(self):
+        from app.services import integration_service
+        integration_service._jira_config["base_url"] = ""
+        result = await integration_service.jira_create_issue("Test")
+        assert result.get("error") == "not_configured"
+
+    @pytest.mark.asyncio
+    async def test_get_issue_not_configured(self):
+        from app.services import integration_service
+        integration_service._jira_config["base_url"] = ""
+        result = await integration_service.jira_get_issue("PROJ-1")
+        assert result.get("error") == "not_configured"
+
+    @pytest.mark.asyncio
+    async def test_transition_issue_not_configured(self):
+        from app.services import integration_service
+        integration_service._jira_config["base_url"] = ""
+        result = await integration_service.jira_transition_issue("PROJ-1", "31")
+        assert result.get("error") == "not_configured"
+
+    def test_is_jira_configured(self):
+        from app.services import integration_service
+        integration_service._jira_config["base_url"] = ""
+        assert not integration_service.is_jira_configured()
+        integration_service.configure_jira(
+            "https://test.atlassian.net", "u@e.com", "tok",
+        )
+        assert integration_service.is_jira_configured()
+        integration_service._jira_config.update(base_url="", api_token="")
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-206: PagerDuty Integration
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestPagerDutyIntegration:
+    """Tests for PagerDuty integration — FM-206."""
+
+    def test_severity_mapping(self):
+        from app.services.integration_service import map_severity
+        assert map_severity("critical") == "critical"
+        assert map_severity("high") == "error"
+        assert map_severity("warning") == "warning"
+        assert map_severity("low") == "info"
+        assert map_severity("info") == "info"
+        assert map_severity("UNKNOWN") == "info"
+
+    @pytest.mark.asyncio
+    async def test_create_incident_not_configured(self):
+        from app.services import integration_service
+        integration_service._pagerduty_config["routing_key"] = ""
+        result = await integration_service.pagerduty_create_incident("Outage")
+        assert result["status"] == "not_configured"
+
+    @pytest.mark.asyncio
+    async def test_resolve_incident_not_configured(self):
+        from app.services import integration_service
+        integration_service._pagerduty_config["routing_key"] = ""
+        result = await integration_service.pagerduty_resolve_incident("dk123")
+        assert result["status"] == "not_configured"
+
+    def test_is_pagerduty_configured(self):
+        from app.services import integration_service
+        integration_service._pagerduty_config["routing_key"] = ""
+        assert not integration_service.is_pagerduty_configured()
+        integration_service.configure_pagerduty("test-key")
+        assert integration_service.is_pagerduty_configured()
+        integration_service._pagerduty_config["routing_key"] = ""
+
+    def test_configure_pagerduty(self):
+        from app.services import integration_service
+        integration_service.configure_pagerduty("rk-123", service_id="SVC")
+        assert integration_service._pagerduty_config["routing_key"] == "rk-123"
+        assert integration_service._pagerduty_config["service_id"] == "SVC"
+        integration_service._pagerduty_config["routing_key"] = ""
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-210: Updated Integration Test Coverage
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestFM210IntegrationCoverage:
+    """Additional integration coverage for FM-210 completeness."""
+
+    def test_email_template_render_all_templates(self):
+        from app.services import email_service
+        for name in ("notification", "alert", "digest"):
+            ctx = {
+                "title": "T", "body": "B", "metric_type": "m",
+                "current_value": "1", "threshold": "2",
+                "date": "2025-01-01", "items_html": "<p>x</p>",
+                "items_text": "x",
+            }
+            rendered = email_service.render_template(name, ctx)
+            assert "subject" in rendered
+            assert "html" in rendered
+
+    def test_jira_bidirectional_status_round_trip(self):
+        from app.services.integration_service import (
+            map_status_to_jira, map_status_from_jira,
+        )
+        for fm_status, jira_status in [
+            ("completed", "Done"),
+            ("in_progress", "In Progress"),
+            ("queued", "To Do"),
+        ]:
+            assert map_status_to_jira(fm_status) == jira_status
+            assert map_status_from_jira(jira_status) == fm_status
+
+    def test_pagerduty_all_severity_levels(self):
+        from app.services.integration_service import map_severity
+        for sev in ("critical", "high", "warning", "low", "info"):
+            result = map_severity(sev)
+            assert result in ("critical", "error", "warning", "info")
+
+    @pytest.mark.asyncio
+    async def test_slack_all_commands(self):
+        from app.services import integration_service
+        for cmd in ("status", "run", "help", "unknown"):
+            result = await integration_service.slack_handle_slash_command(
+                "/forgemind", cmd,
+            )
+            assert "command" in result
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-209: Python SDK Client
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestPythonSDKClient:
+    """Tests for the ForgeMind Python SDK client — FM-209."""
+
+    def test_client_init_defaults(self):
+        from app.sdk.python_client import ForgeMindClient
+        client = ForgeMindClient()
+        assert client.base_url == "http://localhost:8000"
+        assert client.api_key == ""
+
+    def test_client_init_custom(self):
+        from app.sdk.python_client import ForgeMindClient
+        client = ForgeMindClient(
+            base_url="https://api.forgemind.dev",
+            api_key="fm_test123",
+        )
+        assert client.base_url == "https://api.forgemind.dev"
+        assert client.api_key == "fm_test123"
+
+    def test_auth_headers_with_key(self):
+        from app.sdk.python_client import ForgeMindClient
+        client = ForgeMindClient(api_key="fm_abc")
+        headers = client._auth_headers()
+        assert headers["X-API-Key"] == "fm_abc"
+        assert "Content-Type" in headers
+
+    def test_auth_headers_without_key(self):
+        from app.sdk.python_client import ForgeMindClient
+        client = ForgeMindClient()
+        headers = client._auth_headers()
+        assert "X-API-Key" not in headers
+
+    def test_error_class(self):
+        from app.sdk.python_client import ForgeMindError
+        err = ForgeMindError(404, "Not found")
+        assert err.status_code == 404
+        assert "Not found" in str(err)
+
+    @pytest.mark.asyncio
+    async def test_context_manager(self):
+        from app.sdk.python_client import ForgeMindClient
+        async with ForgeMindClient() as client:
+            assert client.base_url == "http://localhost:8000"

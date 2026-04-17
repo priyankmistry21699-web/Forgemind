@@ -1,0 +1,21 @@
+# FM-209: SDK Generation Configuration
+#
+# This config drives OpenAPI-based SDK generation for Python and TypeScript.
+# Run: openapi-generator-cli generate -c sdk/openapi-generator-config.yaml
+
+generatorName: python
+inputSpec: http://localhost:8000/openapi.json
+outputDir: ./sdk/python
+additionalProperties:
+  packageName: forgemind_sdk
+  projectName: forgemind-sdk
+  packageVersion: "0.1.0"
+  library: asyncio
+
+# TypeScript config (use --generator-name typescript-fetch for TS):
+# generatorName: typescript-fetch
+# outputDir: ./sdk/typescript
+# additionalProperties:
+#   npmName: "@forgemind/sdk"
+#   npmVersion: "0.1.0"
+#   supportsES6: true

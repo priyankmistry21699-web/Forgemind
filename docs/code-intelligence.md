@@ -118,3 +118,40 @@ All under `/api/v1/code-intelligence/`:
 | GET    | `/debt/{project_id}`       | Debt scores per file                    |
 | GET    | `/flakiness/{project_id}`  | Flaky test report                       |
 | GET    | `/complexity/{project_id}` | Complexity metrics                      |
+| POST   | `/select-tests`            | FM-184: Intelligent test selection      |
+| POST   | `/code-intelligence-context` | FM-189: Agent context bundle          |
+
+---
+
+## Intelligent Test Selection (FM-184)
+
+Composes impact analysis (FM-182) and coverage mapping (FM-183) to select the minimal set of tests needed for a set of changed files.
+
+```python
+result = await code_graph_service.select_tests_for_changes(
+    db, project_id, changed_files=["src/auth.py"], mode="standard",
+)
+# {"selected_tests": [...], "test_count": 5, "confidence": 0.85, ...}
+```
+
+**Modes:**
+- `minimal` (depth 1) — only directly affected tests
+- `standard` (depth 2) — includes 1-hop transitive dependencies
+- `comprehensive` (depth 5) — full blast radius
+
+**Confidence score:** `covered_sources / total_relevant_sources` — indicates how well the selected tests cover the blast radius.
+
+---
+
+## Agent Code Intelligence Context (FM-189)
+
+Packages all code intelligence data into a single context for agent consumption:
+
+```python
+ctx = await code_graph_service.build_code_intelligence_context(
+    db, project_id, changed_files=["src/main.py"],
+)
+prompt_text = code_graph_service.format_context_for_prompt(ctx)
+```
+
+Context includes: dependency graph summary, coverage metrics, coverage gaps, top 10 complexity hotspots, debt summary, flakiness data, and optional impact analysis for changed files.

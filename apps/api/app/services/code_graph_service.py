@@ -1,8 +1,9 @@
-"""Code Intelligence services — FM-181/182/183.
+"""Code Intelligence services — FM-181/182/183/184.
 
 FM-181: Dependency graph building from Python AST + TypeScript regex imports.
 FM-182: Impact analysis — find downstream dependents of a changed file.
 FM-183: Test coverage mapping — link source files to test files.
+FM-184: Intelligent test selection — compose FM-182 + FM-183.
 """
 
 import ast
@@ -585,3 +586,217 @@ def _parse_lcov(text: str) -> dict[str, float]:
             metrics[current_file] = round(pct, 2)
             current_file = None
     return metrics
+
+
+# ── FM-184: Intelligent Test Selection ───────────────────────────
+
+# Selection modes control how far into the dependency graph we look.
+_MODE_DEPTH = {
+    "minimal": 1,       # Direct dependents only
+    "standard": 2,      # 1-hop transitive
+    "comprehensive": 5,  # Full blast radius
+}
+
+
+async def select_tests_for_changes(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+    changed_files: list[str],
+    *,
+    mode: str = "standard",
+) -> dict[str, Any]:
+    """FM-184: Given changed files, select the minimal set of tests to run.
+
+    Composes FM-182 (impact analysis) with FM-183 (coverage mapping) to
+    produce a prioritised test list with confidence scoring.
+
+    Modes:
+      - minimal: only tests directly covering changed source files
+      - standard: tests covering changed files + 1-hop transitive dependents
+      - comprehensive: tests covering the full blast radius (max_depth=5)
+    """
+    max_depth = _MODE_DEPTH.get(mode, 2)
+
+    # Step 1: Run impact analysis to find affected files
+    impact = await analyze_impact(
+        db, project_id, changed_files, max_depth=max_depth,
+    )
+
+    affected_sources = impact["affected_sources"]
+    all_relevant = list(changed_files) + affected_sources
+
+    # Step 2: Query coverage map for tests covering relevant source files
+    test_set: dict[str, dict[str, Any]] = {}  # test_file → info
+
+    for source_file in all_relevant:
+        mappings = await get_tests_for_source(db, project_id, source_file)
+        for m in mappings:
+            if m.test_file == "__coverage_report__":
+                continue
+            if m.test_file not in test_set:
+                test_set[m.test_file] = {
+                    "test_file": m.test_file,
+                    "covers": [],
+                    "avg_coverage": 0.0,
+                }
+            test_set[m.test_file]["covers"].append(source_file)
+            if m.coverage_pct is not None:
+                # Running average
+                info = test_set[m.test_file]
+                n = len(info["covers"])
+                prev_avg = info["avg_coverage"]
+                info["avg_coverage"] = round(
+                    prev_avg + (m.coverage_pct - prev_avg) / n, 2,
+                )
+
+    # Step 3: Also include tests found via impact analysis (naming-convention match)
+    for test_file in impact["affected_tests"]:
+        if test_file not in test_set:
+            test_set[test_file] = {
+                "test_file": test_file,
+                "covers": [],
+                "avg_coverage": 0.0,
+            }
+
+    selected = sorted(test_set.values(), key=lambda t: len(t["covers"]), reverse=True)
+
+    # Step 4: Confidence scoring
+    total_relevant = len(all_relevant)
+    if total_relevant == 0:
+        confidence = 1.0
+    else:
+        covered_sources = set()
+        for info in selected:
+            covered_sources.update(info["covers"])
+        confidence = round(len(covered_sources) / total_relevant, 2)
+
+    return {
+        "project_id": str(project_id),
+        "mode": mode,
+        "changed_files": changed_files,
+        "total_affected": impact["total_affected"],
+        "risk_score": impact["risk_score"],
+        "risk_level": impact["risk_level"],
+        "selected_tests": selected,
+        "test_count": len(selected),
+        "confidence": confidence,
+    }
+
+
+# ── FM-189: Code Intelligence Agent Integration ──────────────────
+
+
+async def build_code_intelligence_context(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+    *,
+    changed_files: list[str] | None = None,
+) -> dict[str, Any]:
+    """FM-189: Build an aggregate code intelligence context for agent consumption.
+
+    Packages dependency graph summary, coverage summary, complexity hotspots,
+    debt summary, and optionally impact analysis into a single dict that can
+    be injected into agent execution contexts.
+    """
+    from app.services import pattern_debt_service
+    from app.services import flakiness_complexity_service
+
+    # Core summaries that are always useful
+    graph = await get_dependency_graph(db, project_id)
+    coverage = await get_coverage_summary(db, project_id)
+    coverage_gaps = await get_coverage_gaps(db, project_id)
+
+    # Complexity hotspots — top 10 most complex functions
+    hotspots = await flakiness_complexity_service.get_complexity_hotspots(
+        db, project_id, exceeds_only=True, limit=10,
+    )
+
+    # Debt summary
+    debt = await pattern_debt_service.get_debt_summary(db, project_id)
+
+    # Flakiness snapshot
+    flakiness = await flakiness_complexity_service.get_test_flakiness_summary(
+        db, project_id,
+    )
+
+    context: dict[str, Any] = {
+        "project_id": str(project_id),
+        "dependency_graph": {
+            "node_count": graph["node_count"],
+            "edge_count": graph["edge_count"],
+        },
+        "coverage": {
+            "mapping_count": coverage["mapping_count"],
+            "covered_files": coverage["covered_files"],
+            "avg_coverage": coverage["avg_coverage"],
+            "gap_count": coverage_gaps["uncovered_files"],
+        },
+        "complexity_hotspots": [
+            {
+                "file": h.file_path,
+                "function": h.function_name,
+                "metric_type": h.metric_type.value if hasattr(h.metric_type, "value") else str(h.metric_type),
+                "value": float(h.value),
+            }
+            for h in hotspots
+        ],
+        "debt": debt,
+        "flakiness": flakiness,
+    }
+
+    # Optional: impact analysis when specific files are changing
+    if changed_files:
+        impact = await analyze_impact(db, project_id, changed_files)
+        context["impact_analysis"] = {
+            "changed_files": impact["changed_files"],
+            "total_affected": impact["total_affected"],
+            "risk_score": impact["risk_score"],
+            "risk_level": impact["risk_level"],
+            "affected_tests": impact["affected_tests"],
+        }
+
+    return context
+
+
+def format_context_for_prompt(context: dict[str, Any]) -> str:
+    """FM-189: Format code intelligence context into a text block for agent prompts.
+
+    Returns a concise summary suitable for injection into LLM prompts.
+    """
+    lines: list[str] = []
+    lines.append("## Code Intelligence Context")
+    lines.append("")
+
+    # Dependency graph
+    dg = context.get("dependency_graph", {})
+    lines.append(f"**Dependency Graph:** {dg.get('node_count', 0)} files, "
+                 f"{dg.get('edge_count', 0)} dependencies")
+
+    # Coverage
+    cov = context.get("coverage", {})
+    lines.append(f"**Coverage:** {cov.get('covered_files', 0)} files covered, "
+                 f"avg {cov.get('avg_coverage', 0)}%, "
+                 f"{cov.get('gap_count', 0)} gaps")
+
+    # Complexity hotspots
+    hotspots = context.get("complexity_hotspots", [])
+    if hotspots:
+        lines.append(f"**Complexity Hotspots:** {len(hotspots)} functions above threshold")
+        for h in hotspots[:5]:
+            lines.append(f"  - {h['file']}:{h['function']} ({h['metric_type']}={h['value']})")
+
+    # Debt
+    debt = context.get("debt", {})
+    if isinstance(debt, dict):
+        lines.append(f"**Technical Debt:** score={debt.get('total_score', 0)}, "
+                     f"{debt.get('entry_count', 0)} entries")
+
+    # Impact analysis (if present)
+    impact = context.get("impact_analysis")
+    if impact:
+        lines.append(f"**Change Impact:** {impact['total_affected']} files affected, "
+                     f"risk={impact['risk_level']} ({impact['risk_score']})")
+        if impact.get("affected_tests"):
+            lines.append(f"  Affected tests: {', '.join(impact['affected_tests'][:5])}")
+
+    return "\n".join(lines)

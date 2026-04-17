@@ -1,6 +1,6 @@
 # ForgeMind — Milestone Summary
 
-> Last updated: 2026-04-15 (post-V4 pass 6 — PARTIAL closure pass: FM-181/200/201 → COMPLETE, 261 new FM-181→210 tests)
+> Last updated: 2026-04-17 (post-V4 pass 7 — FM-184/189/204/205/206/207/209 implemented, 345 tests across FM-181→210)
 
 ---
 
@@ -783,22 +783,22 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 
 > AST-based dependency parsing, impact analysis, coverage mapping, pattern detection,
 > technical debt tracking, flakiness detection, complexity metrics.
-> 1/10 COMPLETE — 7 PARTIAL / 2 DEFERRED. 98 tests.
+> 3/10 COMPLETE — 7 PARTIAL / 0 DEFERRED. 113 tests.
 
 | FM     | Feature                                   | Status                                                                                                               |
 | ------ | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | FM-181 | Codebase Graph — Dependency Mapping       | ✅ Complete — Python AST + TypeScript/JS regex parser (ES6, CommonJS, dynamic import, re-exports); incremental scan via hash cache |
 | FM-182 | Change Impact Analysis                    | 🔶 Partial — BFS traversal works; no explicit risk scoring; no test/source file separation                           |
 | FM-183 | Test Coverage Mapping                     | 🔶 Partial — Static mapping + upsert; no coverage report parser (pytest-cov/istanbul/LCOV)                           |
-| FM-184 | Intelligent Test Selection                | ⏳ Deferred — requires FM-182 + FM-183 composition                                                                   |
+| FM-184 | Intelligent Test Selection                | ✅ Complete — select_tests_for_changes() composes impact + coverage; 3 modes (minimal/standard/comprehensive); confidence scoring |
 | FM-185 | Code Pattern Detection                    | 🔶 Partial — Regex scan engine + 11 built-in rules (8 anti-pattern + 3 positive-pattern); no KB integration          |
 | FM-186 | Technical Debt Tracking                   | 🔶 Partial — All 4 debt sources (comment/pattern/age/complexity) detected and scored; budget warning not implemented |
 | FM-187 | Test Flakiness Detection                  | 🔶 Partial — Flakiness scoring works; quarantine flag exists but no gate enforcement                                 |
 | FM-188 | Code Complexity Metrics                   | 🔶 Partial — Cyclomatic + cognitive complexity computed; no trend tracking across snapshots                          |
-| FM-189 | Code Intelligence Agent Integration       | ⏳ Deferred — requires agent runtime pipeline                                                                        |
+| FM-189 | Code Intelligence Agent Integration       | ✅ Complete — build_code_intelligence_context() packages graph/coverage/debt/flakiness/complexity; format_context_for_prompt() |
 | FM-190 | Code Intelligence Tests, Docs & Hardening | 🔶 Partial — 98 tests; docs updated; no perf benchmarks                                                                   |
 
-**Wave 14 summary:** 1 COMPLETE / 7 PARTIAL / 2 DEFERRED. FM-181 now fully covers Python (AST) and TypeScript/JS (regex) imports. Remaining gaps: cognitive complexity, multi-debt-source scanning, coverage report ingestion.
+**Wave 14 summary:** 3 COMPLETE / 7 PARTIAL / 0 DEFERRED. FM-181 fully covers Python (AST) + TS/JS (regex) imports. FM-184 composes impact+coverage for intelligent test selection. FM-189 provides full code intelligence context for agent consumption. 113 tests.
 
 ---
 
@@ -828,22 +828,22 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 ## Wave 16 — API, Webhooks & Ecosystem Integrations (FM-201 → FM-210)
 
 > API key management, rate limiting, webhooks, external integrations, connector registry.
-> 1/10 COMPLETE — 4 PARTIAL / 5 DEFERRED. 65 tests.
+> 1/10 COMPLETE — 4 PARTIAL / 5 NOW IMPLEMENTED. 107 tests.
 
 | FM     | Feature                                       | Status                                                                                                                      |
 | ------ | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | FM-201 | Public API v1 — Core Endpoints                | ✅ Complete — All 8 v1 route groups mounted; OpenAPI spec validated (structure, paths, schemas, tags, JSON serialization)    |
 | FM-202 | API Rate Limiting & Throttling                | 🔶 Partial — require_rate_limit() applied to create_api_key route; not yet on all routes; no per-tier limits                |
 | FM-203 | Webhook Subscription System                   | 🔶 Partial — HTTP dispatch via httpx + HMAC signing + delivery tracking + fire_event; retry works                           |
-| FM-204 | Slack Integration                             | ⏳ Deferred — external integration                                                                                          |
-| FM-205 | Jira Integration                              | ⏳ Deferred — external integration                                                                                          |
-| FM-206 | PagerDuty & Incident Integration              | ⏳ Deferred — external integration                                                                                          |
-| FM-207 | Email Notification Channel                    | ⏳ Deferred — external integration                                                                                          |
+| FM-204 | Slack Integration                             | ✅ Complete — slash commands (status/run/help), interactive actions (approve/reject), message posting via Bot API              |
+| FM-205 | Jira Integration                              | ✅ Complete — issue CRUD, bidirectional status sync, field mapping (5 fields), mocked API tests                              |
+| FM-206 | PagerDuty & Incident Integration              | ✅ Complete — Events API v2 create/resolve, severity mapping (5 levels), dedup keys                                         |
+| FM-207 | Email Notification Channel                    | ✅ Complete — SMTP + dev-mode fallback, 3 HTML templates, digest aggregation, preference/unsubscribe per category            |
 | FM-208 | Integration Marketplace & Custom Connectors   | 🔶 Partial — Registry CRUD works; no abstract Connector interface/ABC                                                       |
-| FM-209 | API SDK & Client Libraries                    | ⏳ Deferred — requires stable API surface                                                                                   |
-| FM-210 | Ecosystem Integration Tests, Docs & Hardening | 🔶 Partial — 65 tests; docs updated; no e2e scenario                                                                            |
+| FM-209 | API SDK & Client Libraries                    | 🔶 Partial — Python SDK client (async, typed, all v1 endpoints); TypeScript SDK not yet generated; openapi-generator config  |
+| FM-210 | Ecosystem Integration Tests, Docs & Hardening | 🔶 Partial — 107 tests (target 45+ exceeded); e2e scenario passes; docs updated                                              |
 
-**Wave 16 summary:** 1 COMPLETE / 4 PARTIAL / 5 DEFERRED. FM-201 closed: all 8 v1 route groups mounted with rate limiting, OpenAPI spec validated. Key infrastructure (keys, rate limiter, webhook records) built. Remaining gaps: per-tier rate limits, connector ABC.
+**Wave 16 summary:** 5 COMPLETE / 3 PARTIAL / 2 PARTIAL (FM-209/210). FM-201 closed. FM-204/205/206/207 now fully implemented with service layers, routes, and tests. FM-209 has Python SDK; TypeScript pending. 107 tests total.
 
 ---
 

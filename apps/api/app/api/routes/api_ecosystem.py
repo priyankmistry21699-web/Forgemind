@@ -302,3 +302,123 @@ async def fire_webhook_event(
             for d in deliveries
         ],
     }
+
+
+# ── FM-204: Slack Integration ────────────────────────────────────
+
+
+class SlackCommandRequest(BaseModel):
+    command: str = "/forgemind"
+    text: str = ""
+
+
+class SlackActionRequest(BaseModel):
+    action_type: str = "button"
+    action_id: str
+
+
+@router.post("/integrations/slack/commands")
+async def handle_slack_command(
+    data: SlackCommandRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-204: Handle incoming Slack slash command."""
+    from app.services import integration_service
+    return await integration_service.slack_handle_slash_command(
+        data.command, data.text,
+    )
+
+
+@router.post("/integrations/slack/actions")
+async def handle_slack_action(
+    data: SlackActionRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-204: Handle interactive Slack action (approve/reject buttons)."""
+    from app.services import integration_service
+    return await integration_service.slack_handle_interactive_action(
+        data.action_type, data.action_id,
+    )
+
+
+class SlackMessageRequest(BaseModel):
+    channel: str
+    text: str
+
+
+@router.post("/integrations/slack/post")
+async def post_slack_message(
+    data: SlackMessageRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-204: Post a message to a Slack channel."""
+    from app.services import integration_service
+    return await integration_service.slack_post_message(data.channel, data.text)
+
+
+# ── FM-205: Jira Integration ────────────────────────────────────
+
+
+class JiraCreateIssueRequest(BaseModel):
+    summary: str
+    description: str = ""
+    issue_type: str = "Task"
+    project_key: str = ""
+
+
+@router.post("/integrations/jira/issues")
+async def create_jira_issue(
+    data: JiraCreateIssueRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-205: Create a Jira issue from ForgeMind."""
+    from app.services import integration_service
+    return await integration_service.jira_create_issue(
+        data.summary, data.description, data.issue_type, data.project_key,
+    )
+
+
+@router.get("/integrations/jira/issues/{issue_key}")
+async def get_jira_issue(
+    issue_key: str,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-205: Fetch a Jira issue."""
+    from app.services import integration_service
+    return await integration_service.jira_get_issue(issue_key)
+
+
+# ── FM-206: PagerDuty Integration ────────────────────────────────
+
+
+class PagerDutyIncidentRequest(BaseModel):
+    title: str
+    description: str = ""
+    severity: str = "high"
+    dedup_key: str | None = None
+
+
+@router.post("/integrations/pagerduty/incidents")
+async def create_pagerduty_incident(
+    data: PagerDutyIncidentRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-206: Create a PagerDuty incident."""
+    from app.services import integration_service
+    return await integration_service.pagerduty_create_incident(
+        data.title, data.description, data.severity, data.dedup_key,
+    )
+
+
+class PagerDutyResolveRequest(BaseModel):
+    dedup_key: str
+
+
+@router.post("/integrations/pagerduty/resolve")
+async def resolve_pagerduty_incident(
+    data: PagerDutyResolveRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-206: Resolve a PagerDuty incident."""
+    from app.services import integration_service
+    return await integration_service.pagerduty_resolve_incident(data.dedup_key)

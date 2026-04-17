@@ -1,7 +1,8 @@
-"""Code Intelligence routes — FM-181 through FM-188.
+"""Code Intelligence routes — FM-181 through FM-189.
 
-Dependency graph, impact analysis, coverage mapping, pattern detection,
-technical debt, test flakiness, and complexity metrics.
+Dependency graph, impact analysis, coverage mapping, intelligent test selection,
+pattern detection, technical debt, test flakiness, complexity metrics,
+and code intelligence context for agents.
 """
 
 import uuid
@@ -529,3 +530,52 @@ async def get_quarantined_test_report(
         db, project_id, limit=limit,
     )
     return {"items": report}
+
+
+# ── FM-184: Intelligent Test Selection ───────────────────────────
+
+
+class SelectTestsRequest(BaseModel):
+    changed_files: list[str]
+    mode: str = "standard"
+
+
+@router.post("/projects/{project_id}/select-tests")
+async def select_tests(
+    project_id: uuid.UUID,
+    data: SelectTestsRequest,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-184: Select the minimal set of tests to run for changed files."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    if data.mode not in ("minimal", "standard", "comprehensive"):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=422, detail=f"Invalid mode: {data.mode}")
+    result = await code_graph_service.select_tests_for_changes(
+        db, project_id, data.changed_files, mode=data.mode,
+    )
+    return result
+
+
+# ── FM-189: Code Intelligence Agent Context ──────────────────────
+
+
+class AgentContextRequest(BaseModel):
+    changed_files: list[str] | None = None
+
+
+@router.post("/projects/{project_id}/code-intelligence-context")
+async def get_code_intelligence_context(
+    project_id: uuid.UUID,
+    data: AgentContextRequest | None = None,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-189: Build aggregate code intelligence context for agent consumption."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    changed = data.changed_files if data else None
+    context = await code_graph_service.build_code_intelligence_context(
+        db, project_id, changed_files=changed,
+    )
+    return context

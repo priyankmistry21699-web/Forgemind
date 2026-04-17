@@ -1674,11 +1674,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Minimal mode selects only directly affected tests
-- [ ] Standard mode includes 1-hop transitive tests
-- [ ] Comprehensive mode covers full blast radius
-- [ ] Confidence score reflects coverage quality
-- [ ] Tests cover all three modes with known dependency graphs
+- [x] Minimal mode selects only directly affected tests
+- [x] Standard mode includes 1-hop transitive tests
+- [x] Comprehensive mode covers full blast radius
+- [x] Confidence score reflects coverage quality
+- [x] Tests cover all three modes with known dependency graphs
 
 ---
 
@@ -1842,10 +1842,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Agents receive relevant code intelligence in their execution context
-- [ ] Planning agent considers impact analysis when scoping tasks
-- [ ] Decision audit correctly logs intelligence influence
-- [ ] Tests cover context injection and decision logging
+- [x] Agents receive relevant code intelligence in their execution context
+- [x] Planning agent considers impact analysis when scoping tasks
+- [x] Decision audit correctly logs intelligence influence
+- [x] Tests cover context injection and decision logging
 
 ---
 
@@ -2350,11 +2350,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Slack app installs via OAuth2 flow
-- [ ] Messages posted to correct channels with rich formatting
-- [ ] Slash commands execute correct actions
-- [ ] Interactive buttons (approve/reject) work
-- [ ] Tests cover message posting, command handling, and action processing (mocked Slack API)
+- [x] Slack app installs via OAuth2 flow
+- [x] Messages posted to correct channels with rich formatting
+- [x] Slash commands execute correct actions
+- [x] Interactive buttons (approve/reject) work
+- [x] Tests cover message posting, command handling, and action processing (mocked Slack API)
 
 ---
 
@@ -2385,11 +2385,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Jira issues import correctly with field mapping
-- [ ] ForgeMind tasks export as Jira issues
-- [ ] Bidirectional status sync works
-- [ ] Custom field mapping configurable and respected
-- [ ] Tests cover import, export, bidirectional sync, and field mapping (mocked Jira API)
+- [x] Jira issues import correctly with field mapping
+- [x] ForgeMind tasks export as Jira issues
+- [x] Bidirectional status sync works
+- [x] Custom field mapping configurable and respected
+- [x] Tests cover import, export, bidirectional sync, and field mapping (mocked Jira API)
 
 ---
 
@@ -2420,10 +2420,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Incidents created for all configured triggers
-- [ ] Severity mapping applied correctly
-- [ ] Auto-resolution works when condition clears
-- [ ] Tests cover incident creation, severity mapping, and resolution (mocked PagerDuty API)
+- [x] Incidents created for all configured triggers
+- [x] Severity mapping applied correctly
+- [x] Auto-resolution works when condition clears
+- [x] Tests cover incident creation, severity mapping, and resolution (mocked PagerDuty API)
 
 ---
 
@@ -2454,11 +2454,11 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Transactional emails sent for all notification categories
-- [ ] HTML templates render correctly across major email clients
-- [ ] Digest aggregates notifications at configured frequency
-- [ ] Unsubscribe respected per category
-- [ ] Tests cover template rendering, digest aggregation, and preference enforcement
+- [x] Transactional emails sent for all notification categories
+- [x] HTML templates render correctly across major email clients
+- [x] Digest aggregates notifications at configured frequency
+- [x] Unsubscribe respected per category
+- [x] Tests cover template rendering, digest aggregation, and preference enforcement
 
 ---
 
@@ -2521,10 +2521,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Python SDK covers all v1 endpoints with correct types
+- [x] Python SDK covers all v1 endpoints with correct types
 - [ ] TypeScript SDK covers all v1 endpoints with correct types
-- [ ] SDKs handle authentication, pagination, and error responses
-- [ ] Tests: SDK integration tests against a test server
+- [x] SDKs handle authentication, pagination, and error responses
+- [x] Tests: SDK integration tests against a test server
 - [ ] Package installable via pip/npm
 
 ---

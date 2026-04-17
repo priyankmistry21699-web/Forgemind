@@ -149,3 +149,64 @@ Connectors transition to `ERROR` status on failed health checks and `ACTIVE` on 
 - Webhook signatures prevent spoofed events.
 - Scoped keys enforce least-privilege access.
 - All endpoints require authentication (JWT or API key).
+
+---
+
+## External Integrations (FM-204 → FM-207)
+
+### Slack Integration (FM-204)
+
+Full Slack Bot integration via `integration_service.py`:
+
+- **Slash commands:** `/forgemind status`, `/forgemind run`, `/forgemind help`
+- **Interactive actions:** Approve/reject buttons processed via action handler
+- **Message posting:** `slack_post_message(channel, text, blocks=None)` via Bot API
+- **Signature verification:** `verify_slack_signature()` validates Slack request signatures
+
+Routes: `POST /integrations/slack/commands`, `/actions`, `/post`
+
+### Jira Integration (FM-205)
+
+Bidirectional Jira Cloud sync via `integration_service.py`:
+
+- **Issue CRUD:** `jira_create_issue()`, `jira_get_issue()`, `jira_transition_issue()`
+- **Field mapping:** 5 fields (title↔summary, description, status, assignee, priority)
+- **Status sync:** Bidirectional mapping (ForgeMind ↔ Jira status names)
+- **Auth:** Basic auth via email + API token
+
+Routes: `POST /integrations/jira/issues`, `GET /integrations/jira/issues/{key}`
+
+### PagerDuty Integration (FM-206)
+
+PagerDuty Events API v2 via `integration_service.py`:
+
+- **Incident creation:** `pagerduty_create_incident()` with severity mapping
+- **Auto-resolution:** `pagerduty_resolve_incident()` by dedup key
+- **Severity mapping:** critical→critical, high→error, warning→warning, low/info→info
+
+Routes: `POST /integrations/pagerduty/incidents`, `/resolve`
+
+### Email Notification Channel (FM-207)
+
+SMTP-based email delivery via `email_service.py`:
+
+- **Templates:** 3 HTML templates (notification, alert, digest)
+- **Digest aggregation:** `add_to_digest()` / `flush_digest()` for batching
+- **Preferences:** Per-category enable/disable, `unsubscribe()` support
+- **Dev mode:** Falls back to logging when no SMTP host configured
+- **SMTP:** TLS, configurable host/port/credentials via `configure_smtp()`
+
+---
+
+## Python SDK (FM-209)
+
+Async Python client in `app/sdk/python_client.py`:
+
+```python
+async with ForgeMindClient(base_url="http://localhost:8000", api_key="fm_...") as client:
+    projects = await client.list_projects()
+    impact = await client.analyze_impact(project_id, ["src/main.py"])
+    tests = await client.select_tests(project_id, ["src/main.py"], mode="standard")
+```
+
+Covers: projects, tasks, code intelligence, analytics, webhooks, API keys.

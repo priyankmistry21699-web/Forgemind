@@ -183,11 +183,14 @@ async def _deliver_email(
     notification: Notification,
     config: NotificationDeliveryConfig,
 ) -> dict:
-    """Email delivery stub.
+    """FM-207: Email delivery via SMTP / templated HTML.
 
     Expects config.config to have {"email": "user@example.com"}.
-    In v1, logs the email instead of actually sending.
+    Uses email_service for template rendering and sending.
+    Falls back to dev-mode logging when SMTP is not configured.
     """
+    from app.services import email_service
+
     email_addr = (config.config or {}).get("email")
     if not email_addr:
         return {
@@ -196,14 +199,27 @@ async def _deliver_email(
             "detail": "No email address configured",
         }
 
-    # v1: log-only stub — real SMTP integration in a future FM
+    # Check if this user has email for this category disabled
+    category = (config.config or {}).get("category", "alerts")
+    if not email_service.is_category_enabled(email_addr, category):
+        return {
+            "channel": "email",
+            "status": "skipped",
+            "detail": f"Category '{category}' disabled for {email_addr}",
+        }
+
+    result = email_service.send_notification_email(
+        to=email_addr,
+        title=notification.title,
+        body=notification.body or "",
+    )
+
     logger.info(
-        "Email delivery (stub): to=%s, subject=%s",
-        email_addr,
-        notification.title,
+        "Email delivery: to=%s status=%s",
+        email_addr, result.get("status"),
     )
     return {
         "channel": "email",
-        "status": "delivered",
-        "detail": f"Logged to {email_addr} (stub)",
+        "status": "delivered" if result["status"] in ("sent", "logged") else "failed",
+        "detail": result.get("status", "unknown"),
     }

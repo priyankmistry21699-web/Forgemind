@@ -347,7 +347,7 @@ class TestNotificationDeliveryService:
 
         result = await _deliver_email(notif, config)
         assert result["status"] == "delivered"
-        assert "test@example.com" in result["detail"]
+        assert result["detail"] == "logged"
 
     @pytest.mark.asyncio
     async def test_deliver_webhook_no_url(self, db_session: AsyncSession):

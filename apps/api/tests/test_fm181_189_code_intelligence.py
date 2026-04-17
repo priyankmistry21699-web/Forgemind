@@ -1506,3 +1506,222 @@ class TestGraphPerformance:
 
         assert elapsed < 2.0, f"Impact analysis took {elapsed:.2f}s"
         assert result.get("total_affected", len(result.get("affected_files", []))) >= 1
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-184: Intelligent Test Selection
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestIntelligentTestSelection:
+    """Tests for select_tests_for_changes()."""
+
+    async def _seed_graph_and_coverage(
+        self, db_session, project_id,
+    ):
+        """Seed a small dependency graph + coverage data for test selection."""
+        await code_graph_service.record_dependency(
+            db_session, project_id=project_id,
+            source_file="src/auth.py", target_file="src/utils.py",
+            dependency_type=DependencyType.IMPORT,
+        )
+        await code_graph_service.record_dependency(
+            db_session, project_id=project_id,
+            source_file="src/api.py", target_file="src/auth.py",
+            dependency_type=DependencyType.IMPORT,
+        )
+        await code_graph_service.record_coverage(
+            db_session, project_id=project_id,
+            test_file="tests/test_auth.py",
+            source_file="src/auth.py",
+        )
+        await code_graph_service.record_coverage(
+            db_session, project_id=project_id,
+            test_file="tests/test_utils.py",
+            source_file="src/utils.py",
+        )
+        await db_session.flush()
+
+    @pytest.mark.asyncio
+    async def test_select_minimal_mode(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        await self._seed_graph_and_coverage(db_session, sample_project.id)
+        result = await code_graph_service.select_tests_for_changes(
+            db_session, sample_project.id,
+            changed_files=["src/auth.py"],
+            mode="minimal",
+        )
+        assert "selected_tests" in result
+        assert result["test_count"] >= 1
+        assert "confidence" in result
+
+    @pytest.mark.asyncio
+    async def test_select_standard_mode(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        await self._seed_graph_and_coverage(db_session, sample_project.id)
+        result = await code_graph_service.select_tests_for_changes(
+            db_session, sample_project.id,
+            changed_files=["src/auth.py"],
+            mode="standard",
+        )
+        assert result["test_count"] >= 1
+
+    @pytest.mark.asyncio
+    async def test_select_comprehensive_mode(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        await self._seed_graph_and_coverage(db_session, sample_project.id)
+        result = await code_graph_service.select_tests_for_changes(
+            db_session, sample_project.id,
+            changed_files=["src/utils.py"],
+            mode="comprehensive",
+        )
+        assert result["test_count"] >= 1
+
+    @pytest.mark.asyncio
+    async def test_select_empty_changed_files(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        result = await code_graph_service.select_tests_for_changes(
+            db_session, sample_project.id,
+            changed_files=[],
+            mode="standard",
+        )
+        assert result["test_count"] == 0
+        assert result["selected_tests"] == []
+
+    @pytest.mark.asyncio
+    async def test_select_confidence_between_0_and_1(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        await self._seed_graph_and_coverage(db_session, sample_project.id)
+        result = await code_graph_service.select_tests_for_changes(
+            db_session, sample_project.id,
+            changed_files=["src/auth.py"],
+            mode="standard",
+        )
+        assert 0.0 <= result["confidence"] <= 1.0
+
+    @pytest.mark.asyncio
+    async def test_select_returns_risk_info(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        await self._seed_graph_and_coverage(db_session, sample_project.id)
+        result = await code_graph_service.select_tests_for_changes(
+            db_session, sample_project.id,
+            changed_files=["src/auth.py"],
+            mode="standard",
+        )
+        assert "risk" in result or "total_affected" in result
+
+    @pytest.mark.asyncio
+    async def test_select_mode_depth_ordering(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        """Comprehensive mode should select >= as many tests as minimal."""
+        await self._seed_graph_and_coverage(db_session, sample_project.id)
+        minimal = await code_graph_service.select_tests_for_changes(
+            db_session, sample_project.id,
+            changed_files=["src/utils.py"],
+            mode="minimal",
+        )
+        comprehensive = await code_graph_service.select_tests_for_changes(
+            db_session, sample_project.id,
+            changed_files=["src/utils.py"],
+            mode="comprehensive",
+        )
+        assert comprehensive["test_count"] >= minimal["test_count"]
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-189: Agent Code Intelligence Context
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestCodeIntelligenceContext:
+    """Tests for build_code_intelligence_context() and format_context_for_prompt()."""
+
+    @pytest.mark.asyncio
+    async def test_build_context_basic(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        ctx = await code_graph_service.build_code_intelligence_context(
+            db_session, sample_project.id,
+        )
+        assert isinstance(ctx, dict)
+        assert "dependency_graph" in ctx
+        assert "coverage" in ctx
+
+    @pytest.mark.asyncio
+    async def test_build_context_with_changed_files(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        # seed some graph data
+        await code_graph_service.record_dependency(
+            db_session, project_id=sample_project.id,
+            source_file="src/a.py", target_file="src/b.py",
+            dependency_type=DependencyType.IMPORT,
+        )
+        await db_session.flush()
+
+        ctx = await code_graph_service.build_code_intelligence_context(
+            db_session, sample_project.id,
+            changed_files=["src/b.py"],
+        )
+        assert "impact_analysis" in ctx
+
+    @pytest.mark.asyncio
+    async def test_build_context_no_changed_files(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        ctx = await code_graph_service.build_code_intelligence_context(
+            db_session, sample_project.id,
+        )
+        assert "impact_analysis" not in ctx or ctx.get("impact_analysis") is None
+
+    @pytest.mark.asyncio
+    async def test_context_includes_coverage_gap_count(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        ctx = await code_graph_service.build_code_intelligence_context(
+            db_session, sample_project.id,
+        )
+        assert "gap_count" in ctx["coverage"]
+
+    @pytest.mark.asyncio
+    async def test_context_includes_complexity_hotspots(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        ctx = await code_graph_service.build_code_intelligence_context(
+            db_session, sample_project.id,
+        )
+        assert "complexity_hotspots" in ctx
+
+    @pytest.mark.asyncio
+    async def test_format_context_for_prompt(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        ctx = await code_graph_service.build_code_intelligence_context(
+            db_session, sample_project.id,
+        )
+        text = code_graph_service.format_context_for_prompt(ctx)
+        assert isinstance(text, str)
+        assert len(text) > 0
+
+    @pytest.mark.asyncio
+    async def test_format_context_contains_sections(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        ctx = await code_graph_service.build_code_intelligence_context(
+            db_session, sample_project.id,
+        )
+        text = code_graph_service.format_context_for_prompt(ctx)
+        # Should contain section headers
+        assert "##" in text or "**" in text
+
+    @pytest.mark.asyncio
+    async def test_format_empty_context(self):
+        text = code_graph_service.format_context_for_prompt({})
+        assert isinstance(text, str)
