@@ -388,6 +388,60 @@ async def get_jira_issue(
     return await integration_service.jira_get_issue(issue_key)
 
 
+# ── FM-205: Jira Bidirectional Sync ──────────────────────────────
+
+
+class JiraImportRequest(BaseModel):
+    issue_key: str
+
+
+@router.post("/integrations/jira/import")
+async def import_jira_issue(
+    data: JiraImportRequest,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-205: Import a Jira issue into ForgeMind as a task."""
+    from app.services import integration_service
+    return await integration_service.import_jira_issue(data.issue_key, db=db)
+
+
+class JiraExportRequest(BaseModel):
+    title: str
+    description: str = ""
+    status: str = "queued"
+    project_key: str = ""
+
+
+@router.post("/integrations/jira/export")
+async def export_task_to_jira(
+    data: JiraExportRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-205: Export a ForgeMind task to Jira as an issue."""
+    from app.services import integration_service
+    task_data = {"title": data.title, "description": data.description, "status": data.status}
+    return await integration_service.export_task_to_jira(task_data, data.project_key)
+
+
+class JiraSyncStatusRequest(BaseModel):
+    issue_key: str
+    forgemind_status: str = ""
+    direction: str = "to_jira"
+
+
+@router.post("/integrations/jira/sync-status")
+async def sync_jira_status(
+    data: JiraSyncStatusRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-205: Bidirectional status sync between ForgeMind and Jira."""
+    from app.services import integration_service
+    return await integration_service.sync_jira_status(
+        data.issue_key, data.forgemind_status, direction=data.direction,
+    )
+
+
 # ── FM-206: PagerDuty Integration ────────────────────────────────
 
 
@@ -422,3 +476,64 @@ async def resolve_pagerduty_incident(
     """FM-206: Resolve a PagerDuty incident."""
     from app.services import integration_service
     return await integration_service.pagerduty_resolve_incident(data.dedup_key)
+
+
+# ── FM-206: Alert-Triggered PagerDuty Incidents ──────────────────
+
+
+class AlertTriggerConfigRequest(BaseModel):
+    triggers: dict[str, dict]
+
+
+@router.post("/integrations/pagerduty/alert-triggers")
+async def configure_alert_triggers(
+    data: AlertTriggerConfigRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-206: Configure which alerts auto-create PagerDuty incidents."""
+    from app.services import integration_service
+    integration_service.configure_alert_triggers(data.triggers)
+    return {"configured": True, "trigger_count": len(data.triggers)}
+
+
+@router.get("/integrations/pagerduty/alert-triggers")
+async def get_alert_triggers(
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-206: Get current alert trigger configuration."""
+    from app.services import integration_service
+    return {"triggers": integration_service.get_alert_trigger_config()}
+
+
+class AlertIncidentRequest(BaseModel):
+    alert_name: str
+    alert_detail: str = ""
+    current_value: float | None = None
+    threshold: float | None = None
+
+
+@router.post("/integrations/pagerduty/auto-incident")
+async def auto_create_incident(
+    data: AlertIncidentRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-206: Auto-create a PagerDuty incident from an alert."""
+    from app.services import integration_service
+    return await integration_service.auto_create_incident_from_alert(
+        data.alert_name, data.alert_detail,
+        current_value=data.current_value, threshold=data.threshold,
+    )
+
+
+class AlertResolveRequest(BaseModel):
+    alert_name: str
+
+
+@router.post("/integrations/pagerduty/auto-resolve")
+async def auto_resolve_incident(
+    data: AlertResolveRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-206: Auto-resolve a PagerDuty incident when alert clears."""
+    from app.services import integration_service
+    return await integration_service.auto_resolve_incident_from_alert(data.alert_name)

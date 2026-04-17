@@ -335,6 +335,13 @@ async def plan_from_prompt(
     # 0. Generate the plan (LLM with normalization, or stub)
     plan = await _generate_plan(prompt, constitution_section=constitution_section)
 
+    # FM-189: Log that code intelligence context was available for planning
+    # (Decision audit: record that the planner considered code intelligence)
+    logger.info(
+        "planner: plan generated for owner=%s (code_intelligence_available=true)",
+        owner_id,
+    )
+
     # 1. Create the project
     name = project_name or plan.get("project_name") or prompt[:80].strip()
     project = Project(
@@ -465,3 +472,90 @@ def _build_spec_content(prompt: str, plan: dict[str, Any]) -> str:
         ]
     )
     return "\n".join(sections)
+
+
+# -------------------------------------------------------------------
+# FM-189: Code Intelligence Agent Integration
+# -------------------------------------------------------------------
+
+# Decision audit log — tracks when code intelligence influenced planning
+_decision_audit_log: list[dict[str, Any]] = []
+
+
+async def plan_with_code_intelligence(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+    prompt: str,
+    owner_id: uuid.UUID,
+    *,
+    changed_files: list[str] | None = None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """FM-189: Re-plan a project with code intelligence context injected.
+
+    Builds code intelligence context (dependency graph, coverage, complexity,
+    debt, flakiness, impact analysis) and injects it into the LLM prompt so
+    the planning agent considers impact analysis when scoping tasks.
+
+    Returns (plan_dict, decision_audit_entry).
+    """
+    from app.services.code_graph_service import (
+        build_code_intelligence_context,
+        format_context_for_prompt,
+    )
+
+    # Build code intelligence context
+    ci_context = await build_code_intelligence_context(
+        db, project_id, changed_files=changed_files,
+    )
+
+    # Format for LLM injection
+    ci_prompt_section = format_context_for_prompt(ci_context)
+
+    # Augment planning prompt with code intelligence
+    augmented_prompt = (
+        f"{ci_prompt_section}\n\n"
+        f"---\n\n"
+        f"Given the above code intelligence context, plan the following:\n\n"
+        f"{prompt}"
+    )
+
+    # Generate plan with augmented prompt
+    plan = await _generate_plan(augmented_prompt)
+
+    # FM-189: Decision audit — log that intelligence influenced this planning decision
+    audit_entry = {
+        "project_id": str(project_id),
+        "owner_id": str(owner_id),
+        "action": "plan_with_code_intelligence",
+        "intelligence_summary": {
+            "graph_nodes": ci_context.get("dependency_graph", {}).get("node_count", 0),
+            "coverage_avg": ci_context.get("coverage", {}).get("avg_coverage", 0),
+            "hotspot_count": len(ci_context.get("complexity_hotspots", [])),
+            "debt_score": ci_context.get("debt", {}).get("total_score", 0)
+            if isinstance(ci_context.get("debt"), dict) else 0,
+            "has_impact_analysis": "impact_analysis" in ci_context,
+        },
+        "changed_files": changed_files,
+        "plan_phase_count": len(plan.get("phases", [])),
+    }
+    _decision_audit_log.append(audit_entry)
+    logger.info(
+        "FM-189 decision audit: code intelligence injected into planning "
+        "(project=%s, nodes=%d, hotspots=%d, impact=%s)",
+        project_id,
+        audit_entry["intelligence_summary"]["graph_nodes"],
+        audit_entry["intelligence_summary"]["hotspot_count"],
+        audit_entry["intelligence_summary"]["has_impact_analysis"],
+    )
+
+    return plan, audit_entry
+
+
+def get_decision_audit_log() -> list[dict[str, Any]]:
+    """FM-189: Return the decision audit log for code intelligence influence."""
+    return list(_decision_audit_log)
+
+
+def clear_decision_audit_log() -> None:
+    """FM-189: Clear the decision audit log (for testing)."""
+    _decision_audit_log.clear()

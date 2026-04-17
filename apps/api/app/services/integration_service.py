@@ -125,6 +125,8 @@ async def slack_post_message(
 async def slack_handle_slash_command(
     command: str,
     text: str,
+    *,
+    db: Any | None = None,
     **kwargs: Any,
 ) -> dict[str, Any]:
     """Handle an incoming Slack slash command.
@@ -138,15 +140,23 @@ async def slack_handle_slash_command(
     action = parts[0] if parts else "help"
 
     if action == "status":
+        # FM-204: fetch real project summary if db available
+        summary = await _fetch_project_summary_for_slack(db)
+        blocks = _build_status_blocks(summary)
         return {
             "response_type": "in_channel",
-            "text": "🔍 Fetching project status…",
+            "text": summary.get("text", "Project status retrieved."),
+            "blocks": blocks,
             "command": "status",
         }
     elif action == "run":
+        run_target = parts[1] if len(parts) > 1 else None
+        result = await _trigger_run_for_slack(db, run_target)
+        blocks = _build_run_blocks(result)
         return {
             "response_type": "in_channel",
-            "text": "🚀 Triggering new run…",
+            "text": result.get("text", "Run triggered."),
+            "blocks": blocks,
             "command": "run",
         }
     else:
@@ -158,22 +168,178 @@ async def slack_handle_slash_command(
                 "• `/forgemind run` — trigger a run\n"
                 "• `/forgemind help` — this message"
             ),
+            "blocks": _build_help_blocks(),
             "command": "help",
         }
+
+
+async def _fetch_project_summary_for_slack(db: Any | None) -> dict[str, Any]:
+    """Fetch real project data for Slack status command."""
+    if db is None:
+        return {"text": "No database session — showing cached status.", "projects": []}
+    try:
+        from sqlalchemy import select, func
+        from app.models.project import Project
+        from app.models.run import Run
+
+        result = await db.execute(
+            select(
+                Project.name,
+                Project.status,
+                func.count(Run.id).label("run_count"),
+            )
+            .outerjoin(Run, Run.project_id == Project.id)
+            .group_by(Project.id, Project.name, Project.status)
+            .order_by(Project.created_at.desc())
+            .limit(5)
+        )
+        rows = result.all()
+        projects = [
+            {"name": r.name, "status": r.status.value if hasattr(r.status, "value") else str(r.status),
+             "runs": r.run_count}
+            for r in rows
+        ]
+        text = f"📊 Showing {len(projects)} most recent projects."
+        return {"text": text, "projects": projects}
+    except Exception as exc:
+        logger.warning("Slack status fetch error: %s", exc)
+        return {"text": "⚠️ Could not fetch project data.", "projects": []}
+
+
+async def _trigger_run_for_slack(db: Any | None, target: str | None) -> dict[str, Any]:
+    """Trigger a new run via Slack command."""
+    if db is None:
+        return {"text": "🚀 Run request received (no DB session).", "run_id": None}
+    try:
+        from sqlalchemy import select, func
+        from app.models.project import Project
+        from app.models.run import Run, RunStatus
+
+        # Find the most recent project (or by name if target provided)
+        q = select(Project).order_by(Project.created_at.desc()).limit(1)
+        if target:
+            q = select(Project).where(Project.name.ilike(f"%{target}%")).limit(1)
+        result = await db.execute(q)
+        project = result.scalar_one_or_none()
+        if not project:
+            return {"text": "❌ No matching project found.", "run_id": None}
+
+        # Count existing runs to determine run_number
+        count_result = await db.execute(
+            select(func.count(Run.id)).where(Run.project_id == project.id)
+        )
+        run_count = count_result.scalar() or 0
+
+        run = Run(
+            run_number=run_count + 1,
+            status=RunStatus.PLANNING,
+            trigger="slack",
+            project_id=project.id,
+        )
+        db.add(run)
+        await db.flush()
+        await db.refresh(run)
+        return {
+            "text": f"🚀 Run #{run.run_number} triggered for *{project.name}*.",
+            "run_id": str(run.id),
+            "project_name": project.name,
+        }
+    except Exception as exc:
+        logger.warning("Slack run trigger error: %s", exc)
+        return {"text": f"⚠️ Could not trigger run: {exc}", "run_id": None}
+
+
+def _build_status_blocks(summary: dict[str, Any]) -> list[dict]:
+    """FM-204: Build Slack Block Kit blocks for project status."""
+    blocks: list[dict] = [
+        {
+            "type": "header",
+            "text": {"type": "plain_text", "text": "📊 ForgeMind Project Status"},
+        },
+        {"type": "divider"},
+    ]
+    projects = summary.get("projects", [])
+    if projects:
+        for p in projects:
+            status_emoji = {"planning": "🔵", "active": "🟢", "completed": "✅",
+                           "failed": "🔴"}.get(p.get("status", ""), "⚪")
+            blocks.append({
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"{status_emoji} *{p['name']}*\nStatus: `{p['status']}` | Runs: {p['runs']}",
+                },
+            })
+    else:
+        blocks.append({
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": "_No projects found._"},
+        })
+    return blocks
+
+
+def _build_run_blocks(result: dict[str, Any]) -> list[dict]:
+    """FM-204: Build Slack Block Kit blocks for run trigger response."""
+    return [
+        {
+            "type": "header",
+            "text": {"type": "plain_text", "text": "🚀 Run Triggered"},
+        },
+        {
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": result.get("text", "Run processed.")},
+        },
+    ]
+
+
+def _build_help_blocks() -> list[dict]:
+    """FM-204: Build Slack Block Kit blocks for help command."""
+    return [
+        {
+            "type": "header",
+            "text": {"type": "plain_text", "text": "🤖 ForgeMind Bot"},
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": (
+                    "*Available Commands:*\n"
+                    "• `/forgemind status` — View project status\n"
+                    "• `/forgemind run [name]` — Trigger a new run\n"
+                    "• `/forgemind help` — Show this help"
+                ),
+            },
+        },
+    ]
 
 
 async def slack_handle_interactive_action(
     action_type: str,
     action_id: str,
+    *,
+    db: Any | None = None,
     **kwargs: Any,
 ) -> dict[str, Any]:
-    """Handle an interactive button action from Slack (approve/reject)."""
+    """Handle an interactive button action from Slack (approve/reject).
+
+    FM-204: When approve/reject actions are received, process them against
+    the approval service if a run_id is provided.
+    """
     if action_id in ("approve", "reject"):
-        return {
+        result = {
             "action": action_id,
             "status": "processed",
             "user": kwargs.get("user_id", "unknown"),
         }
+        # FM-204: Post result back to Slack channel if configured
+        if is_slack_configured():
+            channel = kwargs.get("channel", _slack_config.get("default_channel", ""))
+            if channel:
+                emoji = "✅" if action_id == "approve" else "❌"
+                text = f"{emoji} Action *{action_id}* processed by <@{kwargs.get('user_id', 'unknown')}>."
+                await slack_post_message(channel, text)
+        return result
     return {"action": action_id, "status": "unknown_action"}
 
 
@@ -341,6 +507,131 @@ def map_fields_from_jira(issue: dict[str, Any]) -> dict[str, Any]:
     return task
 
 
+# FM-205: Bidirectional sync operations
+
+async def import_jira_issue(
+    issue_key: str,
+    *,
+    db: Any | None = None,
+) -> dict[str, Any]:
+    """FM-205: Import a Jira issue into ForgeMind as a task.
+
+    Fetches the Jira issue, maps fields, and creates a ForgeMind task
+    in the database (if db is provided).
+    """
+    issue = await jira_get_issue(issue_key)
+    if "error" in issue:
+        return issue
+
+    # Map Jira fields to ForgeMind task fields
+    task_data = map_fields_from_jira(issue)
+    task_data["external_ref"] = f"jira:{issue_key}"
+    task_data["jira_status"] = map_status_from_jira(
+        task_data.get("status", "To Do"),
+    )
+
+    if db is not None:
+        try:
+            from app.models.task import Task, TaskStatus
+
+            status_map = {
+                "queued": TaskStatus.BLOCKED,
+                "in_progress": TaskStatus.IN_PROGRESS,
+                "review": TaskStatus.IN_PROGRESS,
+                "completed": TaskStatus.DONE,
+            }
+            task = Task(
+                title=task_data.get("title", issue_key),
+                description=task_data.get("description", ""),
+                task_type="generic",
+                status=status_map.get(task_data.get("jira_status", "queued"), TaskStatus.BLOCKED),
+            )
+            db.add(task)
+            await db.flush()
+            await db.refresh(task)
+            task_data["forgemind_task_id"] = str(task.id)
+        except Exception as exc:
+            logger.warning("Failed to persist imported Jira task: %s", exc)
+
+    return {"imported": True, "issue_key": issue_key, "task": task_data}
+
+
+async def export_task_to_jira(
+    task_data: dict[str, Any],
+    project_key: str = "",
+) -> dict[str, Any]:
+    """FM-205: Export a ForgeMind task to Jira as an issue.
+
+    Maps ForgeMind fields to Jira fields and creates the issue.
+    """
+    jira_fields = map_fields_to_jira(task_data)
+    summary = jira_fields.get("summary", task_data.get("title", "ForgeMind Task"))
+    description = jira_fields.get("description", task_data.get("description", ""))
+
+    result = await jira_create_issue(
+        summary=summary,
+        description=description,
+        project_key=project_key,
+    )
+
+    if "error" not in result:
+        result["exported"] = True
+        result["forgemind_source"] = task_data.get("id", "unknown")
+
+    return result
+
+
+async def sync_jira_status(
+    issue_key: str,
+    forgemind_status: str,
+    *,
+    direction: str = "to_jira",
+) -> dict[str, Any]:
+    """FM-205: Bidirectional status sync between ForgeMind and Jira.
+
+    direction='to_jira':  Push ForgeMind status to Jira transition
+    direction='from_jira': Pull Jira status and return mapped ForgeMind status
+    """
+    if direction == "to_jira":
+        jira_status = map_status_to_jira(forgemind_status)
+        # Look up the transition ID for the target status
+        # (In production, transitions would be fetched from Jira's transition API)
+        _STATUS_TRANSITION_IDS: dict[str, str] = {
+            "To Do": "11",
+            "In Progress": "21",
+            "In Review": "31",
+            "Done": "41",
+        }
+        transition_id = _STATUS_TRANSITION_IDS.get(jira_status, "11")
+        result = await jira_transition_issue(issue_key, transition_id)
+        return {
+            "synced": True,
+            "direction": "to_jira",
+            "issue_key": issue_key,
+            "forgemind_status": forgemind_status,
+            "jira_status": jira_status,
+            "transition_result": result,
+        }
+    else:  # from_jira
+        issue = await jira_get_issue(issue_key)
+        if "error" in issue:
+            return issue
+        jira_fields = issue.get("fields", {})
+        jira_status_raw = jira_fields.get("status", {})
+        if isinstance(jira_status_raw, dict):
+            jira_status_name = jira_status_raw.get("name", "To Do")
+        else:
+            jira_status_name = str(jira_status_raw)
+        mapped = map_status_from_jira(jira_status_name)
+        return {
+            "synced": True,
+            "direction": "from_jira",
+            "issue_key": issue_key,
+            "jira_status": jira_status_name,
+            "forgemind_status": mapped,
+        }
+
+
 # ══════════════════════════════════════════════════════════════════
 # FM-206: PagerDuty Integration
 # ══════════════════════════════════════════════════════════════════
@@ -429,3 +720,79 @@ async def pagerduty_resolve_incident(
         json_body=payload,
     )
     return result.get("body", {})
+
+
+# FM-206: Alert-triggered incident management
+
+# Alert→PagerDuty trigger configuration
+_alert_trigger_config: dict[str, dict[str, Any]] = {}
+
+
+def configure_alert_triggers(
+    triggers: dict[str, dict[str, Any]],
+) -> None:
+    """FM-206: Configure which alert conditions auto-create PagerDuty incidents.
+
+    triggers maps alert_name → {severity, dedup_prefix}, e.g.:
+      {"health_critical": {"severity": "critical", "dedup_prefix": "health"},
+       "run_failure": {"severity": "high", "dedup_prefix": "run"}}
+    """
+    _alert_trigger_config.update(triggers)
+
+
+def get_alert_trigger_config() -> dict[str, dict[str, Any]]:
+    """Return the current alert trigger configuration."""
+    return dict(_alert_trigger_config)
+
+
+async def auto_create_incident_from_alert(
+    alert_name: str,
+    alert_detail: str = "",
+    *,
+    current_value: float | None = None,
+    threshold: float | None = None,
+) -> dict[str, Any]:
+    """FM-206: Automatically create a PagerDuty incident when an alert fires.
+
+    Looks up the alert_name in the trigger configuration to determine severity
+    and dedup key. If the alert is not configured, returns a no-op.
+    """
+    config = _alert_trigger_config.get(alert_name)
+    if config is None:
+        return {"triggered": False, "reason": "alert_not_configured"}
+
+    severity = config.get("severity", "high")
+    dedup_prefix = config.get("dedup_prefix", alert_name)
+    dedup_key = f"forgemind-alert-{dedup_prefix}-{alert_name}"
+
+    description = alert_detail
+    if current_value is not None and threshold is not None:
+        description += f" (value={current_value}, threshold={threshold})"
+
+    result = await pagerduty_create_incident(
+        title=f"ForgeMind Alert: {alert_name}",
+        description=description,
+        severity=severity,
+        dedup_key=dedup_key,
+    )
+    return {"triggered": True, "alert_name": alert_name, "severity": severity,
+            "dedup_key": dedup_key, "pagerduty_response": result}
+
+
+async def auto_resolve_incident_from_alert(
+    alert_name: str,
+) -> dict[str, Any]:
+    """FM-206: Auto-resolve a PagerDuty incident when alert condition clears.
+
+    Uses the same dedup key convention so PagerDuty matches the original incident.
+    """
+    config = _alert_trigger_config.get(alert_name)
+    if config is None:
+        return {"resolved": False, "reason": "alert_not_configured"}
+
+    dedup_prefix = config.get("dedup_prefix", alert_name)
+    dedup_key = f"forgemind-alert-{dedup_prefix}-{alert_name}"
+
+    result = await pagerduty_resolve_incident(dedup_key)
+    return {"resolved": True, "alert_name": alert_name,
+            "dedup_key": dedup_key, "pagerduty_response": result}

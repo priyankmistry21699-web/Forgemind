@@ -1725,3 +1725,112 @@ class TestCodeIntelligenceContext:
     async def test_format_empty_context(self):
         text = code_graph_service.format_context_for_prompt({})
         assert isinstance(text, str)
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-189: Agent Integration — Planner with Code Intelligence
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestPlannerWithCodeIntelligence:
+    """FM-189: Verify that planning agent receives and uses code intelligence."""
+
+    @pytest.mark.asyncio
+    async def test_plan_with_code_intelligence_returns_plan_and_audit(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        from app.services.planner_service import (
+            plan_with_code_intelligence,
+            clear_decision_audit_log,
+        )
+        clear_decision_audit_log()
+
+        plan, audit = await plan_with_code_intelligence(
+            db_session,
+            sample_project.id,
+            "Build a REST API service",
+            STUB_USER_ID,
+        )
+        assert isinstance(plan, dict)
+        assert "phases" in plan
+        assert isinstance(audit, dict)
+        assert audit["action"] == "plan_with_code_intelligence"
+
+    @pytest.mark.asyncio
+    async def test_plan_with_intelligence_records_decision_audit(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        from app.services.planner_service import (
+            plan_with_code_intelligence,
+            get_decision_audit_log,
+            clear_decision_audit_log,
+        )
+        clear_decision_audit_log()
+
+        await plan_with_code_intelligence(
+            db_session,
+            sample_project.id,
+            "Refactor authentication module",
+            STUB_USER_ID,
+        )
+        log = get_decision_audit_log()
+        assert len(log) >= 1
+        entry = log[-1]
+        assert entry["project_id"] == str(sample_project.id)
+        assert "intelligence_summary" in entry
+        assert "graph_nodes" in entry["intelligence_summary"]
+
+    @pytest.mark.asyncio
+    async def test_plan_with_intelligence_includes_impact_when_files_provided(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        from app.services.planner_service import (
+            plan_with_code_intelligence,
+            clear_decision_audit_log,
+        )
+        clear_decision_audit_log()
+
+        # Seed dependency data
+        await code_graph_service.record_dependency(
+            db_session, project_id=sample_project.id,
+            source_file="src/auth.py", target_file="src/models.py",
+            dependency_type=DependencyType.IMPORT,
+        )
+        await db_session.flush()
+
+        _, audit = await plan_with_code_intelligence(
+            db_session,
+            sample_project.id,
+            "Refactor auth module",
+            STUB_USER_ID,
+            changed_files=["src/models.py"],
+        )
+        assert audit["intelligence_summary"]["has_impact_analysis"] is True
+        assert audit["changed_files"] == ["src/models.py"]
+
+    @pytest.mark.asyncio
+    async def test_plan_without_changed_files_no_impact(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        from app.services.planner_service import (
+            plan_with_code_intelligence,
+            clear_decision_audit_log,
+        )
+        clear_decision_audit_log()
+
+        _, audit = await plan_with_code_intelligence(
+            db_session,
+            sample_project.id,
+            "General improvement pass",
+            STUB_USER_ID,
+        )
+        assert audit["intelligence_summary"]["has_impact_analysis"] is False
+
+    @pytest.mark.asyncio
+    async def test_decision_audit_log_clear(self):
+        from app.services.planner_service import (
+            get_decision_audit_log,
+            clear_decision_audit_log,
+        )
+        clear_decision_audit_log()
+        assert get_decision_audit_log() == []

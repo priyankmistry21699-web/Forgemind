@@ -579,3 +579,41 @@ async def get_code_intelligence_context(
         db, project_id, changed_files=changed,
     )
     return context
+
+
+# ── FM-189: Planning with Code Intelligence ──────────────────────
+
+
+class PlanWithIntelligenceRequest(BaseModel):
+    prompt: str
+    changed_files: list[str] | None = None
+
+
+@router.post("/projects/{project_id}/plan-with-intelligence")
+async def plan_with_code_intelligence(
+    project_id: uuid.UUID,
+    data: PlanWithIntelligenceRequest,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-189: Re-plan a project with code intelligence injected into the LLM prompt.
+
+    The planning agent receives dependency graph, coverage, complexity, debt,
+    and impact analysis context when scoping tasks.
+    """
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_EDIT)
+    from app.services.planner_service import plan_with_code_intelligence as _plan_ci
+    plan, audit_entry = await _plan_ci(
+        db, project_id, data.prompt, user_id,
+        changed_files=data.changed_files,
+    )
+    return {"plan": plan, "decision_audit": audit_entry}
+
+
+@router.get("/code-intelligence/decision-audit")
+async def get_decision_audit_log(
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-189: Retrieve the decision audit log for code intelligence influence."""
+    from app.services.planner_service import get_decision_audit_log
+    return {"entries": get_decision_audit_log()}

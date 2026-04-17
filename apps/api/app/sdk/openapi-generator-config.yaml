@@ -12,7 +12,19 @@ additionalProperties:
   packageVersion: "0.1.0"
   library: asyncio
 
-# TypeScript config (use --generator-name typescript-fetch for TS):
+# TypeScript SDK (use --generator-name typescript-fetch for TS):
+# generatorName: typescript-fetch
+# inputSpec: http://localhost:8000/openapi.json
+# outputDir: ./sdk/typescript
+# additionalProperties:
+#   npmName: "@forgemind/sdk"
+#   npmVersion: "0.1.0"
+#   supportsES6: true
+#
+# Note: Hand-written TypeScript SDK provided in typescript_client.ts
+# for ergonomic usage. Auto-generation available via the config above.
+# Python SDK: pip install -e apps/api/app/sdk/ (see pyproject.toml)
+# TypeScript SDK: npm install ./apps/api/app/sdk/ (see package.json)
 # generatorName: typescript-fetch
 # outputDir: ./sdk/typescript
 # additionalProperties:

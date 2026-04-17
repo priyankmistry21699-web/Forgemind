@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "forgemind-sdk"
+version = "0.1.0"
+description = "ForgeMind Python SDK — async client for the ForgeMind API"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+keywords = ["forgemind", "sdk", "api", "client"]
+dependencies = [
+    "httpx>=0.24.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/priyankmistry21699-web/Forgemind"

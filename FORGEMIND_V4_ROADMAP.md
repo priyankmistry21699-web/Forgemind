@@ -2522,10 +2522,10 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Python SDK covers all v1 endpoints with correct types
-- [ ] TypeScript SDK covers all v1 endpoints with correct types
+- [x] TypeScript SDK covers all v1 endpoints with correct types _(sdk/typescript_client.ts — ForgeMindClient class with all v1 methods)_
 - [x] SDKs handle authentication, pagination, and error responses
 - [x] Tests: SDK integration tests against a test server
-- [ ] Package installable via pip/npm
+- [x] Package installable via pip/npm _(sdk/pyproject.toml for pip, sdk/package.json for npm)_
 
 ---
 

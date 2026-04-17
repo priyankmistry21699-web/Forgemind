@@ -1393,3 +1393,374 @@ class TestPythonSDKClient:
         from app.sdk.python_client import ForgeMindClient
         async with ForgeMindClient() as client:
             assert client.base_url == "http://localhost:8000"
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-204: Upgraded Slack Integration Tests
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestSlackUpgraded:
+    """FM-204: Tests for upgraded Slack slash commands with real behavior."""
+
+    @pytest.mark.asyncio
+    async def test_slash_command_status_returns_blocks(self):
+        from app.services import integration_service
+        result = await integration_service.slack_handle_slash_command(
+            "/forgemind", "status",
+        )
+        assert result["command"] == "status"
+        assert "blocks" in result
+        assert isinstance(result["blocks"], list)
+        assert len(result["blocks"]) > 0
+
+    @pytest.mark.asyncio
+    async def test_slash_command_run_returns_blocks(self):
+        from app.services import integration_service
+        result = await integration_service.slack_handle_slash_command(
+            "/forgemind", "run",
+        )
+        assert result["command"] == "run"
+        assert "blocks" in result
+
+    @pytest.mark.asyncio
+    async def test_slash_command_help_returns_blocks(self):
+        from app.services import integration_service
+        result = await integration_service.slack_handle_slash_command(
+            "/forgemind", "help",
+        )
+        assert result["command"] == "help"
+        assert "blocks" in result
+        # Verify Block Kit structure
+        assert any(b.get("type") == "header" for b in result["blocks"])
+
+    @pytest.mark.asyncio
+    async def test_status_blocks_have_header(self):
+        from app.services import integration_service
+        result = await integration_service.slack_handle_slash_command(
+            "/forgemind", "status",
+        )
+        blocks = result["blocks"]
+        assert blocks[0]["type"] == "header"
+        assert "ForgeMind" in blocks[0]["text"]["text"]
+
+    @pytest.mark.asyncio
+    async def test_interactive_action_with_user_id(self):
+        from app.services import integration_service
+        result = await integration_service.slack_handle_interactive_action(
+            "button", "approve", user_id="U456",
+        )
+        assert result["user"] == "U456"
+        assert result["status"] == "processed"
+
+    def test_build_status_blocks_structure(self):
+        from app.services.integration_service import _build_status_blocks
+        summary = {"projects": [
+            {"name": "TestProj", "status": "active", "runs": 3},
+        ]}
+        blocks = _build_status_blocks(summary)
+        assert any(b.get("type") == "section" for b in blocks)
+
+    def test_build_status_blocks_empty_projects(self):
+        from app.services.integration_service import _build_status_blocks
+        blocks = _build_status_blocks({"projects": []})
+        texts = [b.get("text", {}).get("text", "") for b in blocks if b.get("type") == "section"]
+        assert any("No projects" in t for t in texts)
+
+    def test_build_help_blocks_structure(self):
+        from app.services.integration_service import _build_help_blocks
+        blocks = _build_help_blocks()
+        assert len(blocks) >= 2
+        assert blocks[0]["type"] == "header"
+
+    def test_build_run_blocks_structure(self):
+        from app.services.integration_service import _build_run_blocks
+        blocks = _build_run_blocks({"text": "Run done"})
+        assert len(blocks) >= 1
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-205: Upgraded Jira Integration Tests
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestJiraUpgraded:
+    """FM-205: Tests for bidirectional Jira sync operations."""
+
+    @pytest.mark.asyncio
+    async def test_import_jira_issue_not_configured(self):
+        from app.services import integration_service
+        integration_service._jira_config["base_url"] = ""
+        result = await integration_service.import_jira_issue("PROJ-1")
+        assert result.get("error") == "not_configured"
+
+    @pytest.mark.asyncio
+    async def test_export_task_to_jira_not_configured(self):
+        from app.services import integration_service
+        integration_service._jira_config["base_url"] = ""
+        result = await integration_service.export_task_to_jira(
+            {"title": "Test Task", "description": "desc"},
+        )
+        assert result.get("error") == "not_configured"
+
+    @pytest.mark.asyncio
+    async def test_sync_jira_status_to_jira_not_configured(self):
+        from app.services import integration_service
+        integration_service._jira_config["base_url"] = ""
+        result = await integration_service.sync_jira_status(
+            "PROJ-1", "completed", direction="to_jira",
+        )
+        # When not configured, jira_transition_issue returns error dict
+        # but sync wraps it in synced=True with transition_result containing the error
+        assert result.get("synced") is True or result.get("error") == "not_configured"
+        if result.get("synced"):
+            assert result["transition_result"].get("error") == "not_configured"
+
+    @pytest.mark.asyncio
+    async def test_sync_jira_status_from_jira_not_configured(self):
+        from app.services import integration_service
+        integration_service._jira_config["base_url"] = ""
+        result = await integration_service.sync_jira_status(
+            "PROJ-1", "", direction="from_jira",
+        )
+        assert result.get("error") == "not_configured"
+
+    def test_map_fields_round_trip(self):
+        from app.services.integration_service import map_fields_to_jira, map_fields_from_jira
+        task = {"title": "My Task", "description": "desc", "priority": "High"}
+        jira_fields = map_fields_to_jira(task)
+        assert jira_fields["summary"] == "My Task"
+        # Reconstruct from Jira-like issue
+        issue = {"fields": jira_fields}
+        back = map_fields_from_jira(issue)
+        assert back["title"] == "My Task"
+
+    def test_bidirectional_status_round_trip_all(self):
+        from app.services.integration_service import (
+            map_status_to_jira, map_status_from_jira,
+        )
+        for fm, jira in [("queued", "To Do"), ("in_progress", "In Progress"),
+                         ("review", "In Review"), ("completed", "Done")]:
+            assert map_status_to_jira(fm) == jira
+            assert map_status_from_jira(jira) == fm
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-206: Upgraded PagerDuty Integration Tests
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestPagerDutyUpgraded:
+    """FM-206: Tests for alert-triggered PagerDuty incidents."""
+
+    def test_configure_alert_triggers(self):
+        from app.services import integration_service
+        integration_service._alert_trigger_config.clear()
+        integration_service.configure_alert_triggers({
+            "health_critical": {"severity": "critical", "dedup_prefix": "health"},
+        })
+        config = integration_service.get_alert_trigger_config()
+        assert "health_critical" in config
+        assert config["health_critical"]["severity"] == "critical"
+        integration_service._alert_trigger_config.clear()
+
+    @pytest.mark.asyncio
+    async def test_auto_create_incident_unconfigured_alert(self):
+        from app.services import integration_service
+        integration_service._alert_trigger_config.clear()
+        result = await integration_service.auto_create_incident_from_alert(
+            "unknown_alert",
+        )
+        assert result["triggered"] is False
+        assert result["reason"] == "alert_not_configured"
+
+    @pytest.mark.asyncio
+    async def test_auto_create_incident_configured_no_pagerduty(self):
+        from app.services import integration_service
+        integration_service._alert_trigger_config.clear()
+        integration_service._pagerduty_config["routing_key"] = ""
+        integration_service.configure_alert_triggers({
+            "test_alert": {"severity": "high", "dedup_prefix": "test"},
+        })
+        result = await integration_service.auto_create_incident_from_alert(
+            "test_alert", "Something broke", current_value=95.0, threshold=90.0,
+        )
+        assert result["triggered"] is True
+        assert result["severity"] == "high"
+        assert "dedup_key" in result
+        # PagerDuty not configured, so response will be not_configured
+        assert result["pagerduty_response"]["status"] == "not_configured"
+        integration_service._alert_trigger_config.clear()
+
+    @pytest.mark.asyncio
+    async def test_auto_resolve_incident_configured(self):
+        from app.services import integration_service
+        integration_service._alert_trigger_config.clear()
+        integration_service._pagerduty_config["routing_key"] = ""
+        integration_service.configure_alert_triggers({
+            "test_alert": {"severity": "high", "dedup_prefix": "test"},
+        })
+        result = await integration_service.auto_resolve_incident_from_alert(
+            "test_alert",
+        )
+        assert result["resolved"] is True
+        assert "dedup_key" in result
+        integration_service._alert_trigger_config.clear()
+
+    @pytest.mark.asyncio
+    async def test_auto_resolve_incident_unconfigured_alert(self):
+        from app.services import integration_service
+        integration_service._alert_trigger_config.clear()
+        result = await integration_service.auto_resolve_incident_from_alert(
+            "nonexistent",
+        )
+        assert result["resolved"] is False
+
+    def test_get_alert_trigger_config_empty(self):
+        from app.services import integration_service
+        integration_service._alert_trigger_config.clear()
+        assert integration_service.get_alert_trigger_config() == {}
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-209: TypeScript SDK Tests
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestTypeScriptSDK:
+    """FM-209: Verify TypeScript SDK file exists and has correct structure."""
+
+    def test_typescript_sdk_file_exists(self):
+        import os
+        sdk_path = os.path.join(
+            os.path.dirname(__file__), "..", "app", "sdk", "typescript_client.ts",
+        )
+        assert os.path.exists(sdk_path), "TypeScript SDK file not found"
+
+    def test_typescript_sdk_exports_client_class(self):
+        import os
+        sdk_path = os.path.join(
+            os.path.dirname(__file__), "..", "app", "sdk", "typescript_client.ts",
+        )
+        content = open(sdk_path).read()
+        assert "export class ForgeMindClient" in content
+        assert "export class ForgeMindError" in content
+
+    def test_typescript_sdk_covers_endpoints(self):
+        import os
+        sdk_path = os.path.join(
+            os.path.dirname(__file__), "..", "app", "sdk", "typescript_client.ts",
+        )
+        content = open(sdk_path).read()
+        # Must cover all major v1 endpoint groups
+        for method in [
+            "listProjects", "getProject", "createProject",
+            "listTasks", "createTask",
+            "getDependencyGraph", "analyzeImpact", "selectTests",
+            "getCodeIntelligenceContext",
+            "getCycleTime", "getQualityScore",
+            "fireWebhook", "listWebhooks",
+            "listApiKeys", "createApiKey", "revokeApiKey",
+        ]:
+            assert method in content, f"Missing method: {method}"
+
+    def test_typescript_sdk_has_types(self):
+        import os
+        sdk_path = os.path.join(
+            os.path.dirname(__file__), "..", "app", "sdk", "typescript_client.ts",
+        )
+        content = open(sdk_path).read()
+        for type_name in [
+            "Project", "Task", "Run", "DependencyGraph",
+            "ImpactAnalysis", "TestSelection", "APIKey", "Webhook",
+        ]:
+            assert f"export interface {type_name}" in content, f"Missing type: {type_name}"
+
+    def test_typescript_package_json_exists(self):
+        import json
+        import os
+        pkg_path = os.path.join(
+            os.path.dirname(__file__), "..", "app", "sdk", "package.json",
+        )
+        assert os.path.exists(pkg_path)
+        pkg = json.load(open(pkg_path))
+        assert pkg["name"] == "@forgemind/sdk"
+
+    def test_python_sdk_pyproject_exists(self):
+        import os
+        toml_path = os.path.join(
+            os.path.dirname(__file__), "..", "app", "sdk", "pyproject.toml",
+        )
+        assert os.path.exists(toml_path)
+        content = open(toml_path).read()
+        assert "forgemind-sdk" in content
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-210: Updated E2E Integration Tests
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestFM210UpgradedE2E:
+    """FM-210: E2E integration tests for upgraded ecosystem features."""
+
+    @pytest.mark.asyncio
+    async def test_slack_status_to_block_post_flow(self):
+        """E2E: Slack status command produces Block Kit response."""
+        from app.services import integration_service
+        result = await integration_service.slack_handle_slash_command(
+            "/forgemind", "status",
+        )
+        assert "blocks" in result
+        assert result["blocks"][0]["type"] == "header"
+
+    @pytest.mark.asyncio
+    async def test_jira_field_mapping_then_export_flow(self):
+        """E2E: Map ForgeMind task fields to Jira then export."""
+        from app.services.integration_service import (
+            map_fields_to_jira, export_task_to_jira,
+        )
+        task = {"title": "Fix auth bug", "description": "Auth fails on SSO"}
+        jira_fields = map_fields_to_jira(task)
+        assert jira_fields["summary"] == "Fix auth bug"
+        # Export will fail (not configured) but the mapping is correct
+        result = await export_task_to_jira(task)
+        assert result.get("error") == "not_configured"
+
+    @pytest.mark.asyncio
+    async def test_pagerduty_alert_trigger_to_resolve_flow(self):
+        """E2E: Configure alert trigger, auto-create, then auto-resolve."""
+        from app.services import integration_service
+        integration_service._alert_trigger_config.clear()
+        integration_service._pagerduty_config["routing_key"] = ""
+
+        # Configure
+        integration_service.configure_alert_triggers({
+            "cpu_high": {"severity": "warning", "dedup_prefix": "cpu"},
+        })
+
+        # Auto-create
+        create_result = await integration_service.auto_create_incident_from_alert(
+            "cpu_high", "CPU at 95%", current_value=95.0, threshold=80.0,
+        )
+        assert create_result["triggered"] is True
+        dedup_key = create_result["dedup_key"]
+
+        # Auto-resolve
+        resolve_result = await integration_service.auto_resolve_incident_from_alert(
+            "cpu_high",
+        )
+        assert resolve_result["resolved"] is True
+        assert resolve_result["dedup_key"] == dedup_key
+
+        integration_service._alert_trigger_config.clear()
+
+    @pytest.mark.asyncio
+    async def test_sdk_typescript_python_both_exist(self):
+        """E2E: Both Python and TypeScript SDK artifacts exist."""
+        import os
+        base = os.path.join(os.path.dirname(__file__), "..", "app", "sdk")
+        assert os.path.exists(os.path.join(base, "python_client.py"))
+        assert os.path.exists(os.path.join(base, "typescript_client.ts"))
+        assert os.path.exists(os.path.join(base, "pyproject.toml"))
+        assert os.path.exists(os.path.join(base, "package.json"))

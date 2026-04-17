@@ -1,0 +1,17 @@
+{
+  "name": "@forgemind/sdk",
+  "version": "0.1.0",
+  "description": "ForgeMind TypeScript SDK — async client for the ForgeMind API",
+  "main": "dist/typescript_client.js",
+  "types": "dist/typescript_client.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["forgemind", "sdk", "api", "client"],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "files": ["dist/", "typescript_client.ts"]
+}

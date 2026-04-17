@@ -840,10 +840,10 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 | FM-206 | PagerDuty & Incident Integration              | ✅ Complete — Events API v2 create/resolve, severity mapping (5 levels), dedup keys                                         |
 | FM-207 | Email Notification Channel                    | ✅ Complete — SMTP + dev-mode fallback, 3 HTML templates, digest aggregation, preference/unsubscribe per category            |
 | FM-208 | Integration Marketplace & Custom Connectors   | 🔶 Partial — Registry CRUD works; no abstract Connector interface/ABC                                                       |
-| FM-209 | API SDK & Client Libraries                    | 🔶 Partial — Python SDK client (async, typed, all v1 endpoints); TypeScript SDK not yet generated; openapi-generator config  |
-| FM-210 | Ecosystem Integration Tests, Docs & Hardening | 🔶 Partial — 107 tests (target 45+ exceeded); e2e scenario passes; docs updated                                              |
+| FM-209 | API SDK & Client Libraries                    | ✅ Complete — Python SDK client (async, typed, all v1 endpoints); TypeScript SDK (ForgeMindClient class, all v1 methods); pip/npm packaging  |
+| FM-210 | Ecosystem Integration Tests, Docs & Hardening | ✅ Complete — 138 tests (target 45+ exceeded); e2e scenarios pass; docs updated; all integrations upgraded                                    |
 
-**Wave 16 summary:** 5 COMPLETE / 3 PARTIAL / 2 PARTIAL (FM-209/210). FM-201 closed. FM-204/205/206/207 now fully implemented with service layers, routes, and tests. FM-209 has Python SDK; TypeScript pending. 107 tests total.
+**Wave 16 summary:** 7 COMPLETE / 1 PARTIAL (FM-208). FM-201 closed. FM-204/205/206/207 fully implemented with upgraded service layers, routes, and tests. FM-209 has Python + TypeScript SDKs with pip/npm packaging. 138 tests total.
 
 ---
 
