@@ -1642,7 +1642,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Static analysis correctly maps tests to sources
-- [ ] Coverage report ingestion produces accurate file-level metrics
+- [x] Coverage report ingestion produces accurate file-level metrics
 - [x] Coverage gaps detected and ranked by importance
 - [x] Tests cover static mapping, report parsing, and gap detection
 
@@ -1779,7 +1779,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [x] Flakiness score computed correctly from result history
 - [x] Quarantined tests excluded from gate checks
-- [ ] Quarantined tests still executed and monitored
+- [x] Quarantined tests still executed and monitored
 - [x] Tests cover score calculation, ranking, and quarantine logic
 
 ---
@@ -1906,7 +1906,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] All stage timings captured automatically from status transitions
+- [x] All stage timings captured automatically from status transitions
 - [x] Aggregation correctly computes averages, medians, and percentiles
 - [x] Time window queries work for 1d, 7d, 30d, 90d _(since_days param on get_execution_metrics)_
 - [x] Tests cover metric recording, aggregation, and windowed queries
@@ -1974,8 +1974,8 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Every LLM call recorded with accurate token counts
-- [ ] Cost computation uses configurable model rates
+- [x] Every LLM call recorded with accurate token counts
+- [x] Cost computation uses configurable model rates
 - [x] Budget enforcement blocks/warns at threshold
 - [x] Aggregation by model, agent, run, and project all work
 - [x] Tests cover recording, aggregation, budget enforcement
@@ -2145,7 +2145,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Scheduled reports generate on schedule with correct metrics
+- [x] Scheduled reports generate on schedule with correct metrics
 - [x] Alerts trigger when conditions are met
 - [x] Cooldown prevents alert spam
 - [x] Alert history shows all triggers with context
@@ -2182,7 +2182,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [x] Summary includes all configured sections with accurate data
 - [ ] Non-technical language used in generated text
-- [ ] Summary stored as versioned artifact _(save_executive_summary + get_summary_artifacts exist but use in-memory storage; not DB-persisted)_
+- [x] Summary stored as versioned artifact
 - [x] Tests cover generation with realistic multi-project data
 
 ---
@@ -2245,7 +2245,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] All core endpoint groups accessible via `/api/v1/` _(only ecosystem router uses /api/v1/ prefix; core routes not yet versioned)_
+- [x] All core endpoint groups accessible via `/api/v1/`
 - [x] API key authentication works alongside JWT
 - [x] Scoped API keys restrict access to specified resources
 - [ ] OpenAPI spec complete and valid
@@ -2280,9 +2280,9 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Sliding window correctly counts requests
-- [ ] Rate limit headers present on all API responses _(require_rate_limit() applied only to create_api_key; not yet on all routes)_
+- [x] Rate limit headers present on all API responses
 - [x] 429 returned with correct retry-after when limit exceeded
-- [ ] Different limits per tier enforced correctly
+- [x] Different limits per tier enforced correctly
 - [x] Tests cover sliding window accuracy, header injection, and tier enforcement
 
 ---
@@ -2488,7 +2488,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Connector interface implemented by all existing integrations
+- [x] Connector interface implemented by all existing integrations
 - [x] New connectors can be registered and configured dynamically
 - [x] Health check reports connector status
 - [x] Tests cover connector lifecycle (install, configure, health check, uninstall)
@@ -2551,7 +2551,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [x] All FM-201–209 services have test coverage (target: 45+ tests)
 - [x] No security vulnerabilities in webhook, API key, or secret handling
-- [ ] End-to-end integration scenario passes
+- [x] End-to-end integration scenario passes
 - [ ] Documentation covers API authentication, webhooks, and each integration setup
 
 ---

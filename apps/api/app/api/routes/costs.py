@@ -1,11 +1,13 @@
 """Cost tracking routes — query token usage and costs.
 
 FM-047: Endpoints for cost dashboards and budget monitoring.
+FM-193: Configurable model rates management.
 """
 
 import uuid
 
 from fastapi import APIRouter, Depends, Query
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user_id
@@ -81,3 +83,28 @@ async def list_cost_records(
         items=[CostRecordRead.model_validate(r) for r in records],
         total=total,
     )
+
+
+# ── FM-193: Configurable Model Rates ────────────────────────────
+
+
+class ModelRatesUpdateRequest(BaseModel):
+    rates: dict[str, dict[str, float]]
+
+
+@router.get("/model-rates")
+async def get_model_rates(
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-193: Get current model cost rates."""
+    return {"rates": cost_tracking_service.get_model_rates()}
+
+
+@router.put("/model-rates")
+async def update_model_rates(
+    data: ModelRatesUpdateRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-193: Update configurable model cost rates at runtime."""
+    updated = cost_tracking_service.update_model_rates(data.rates)
+    return {"rates": updated}

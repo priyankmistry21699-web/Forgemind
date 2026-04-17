@@ -21,6 +21,7 @@ from app.models.analytics_metrics import (
     MetricAlert,
     AlertConditionOp,
     AlertTriggerHistory,
+    ExecutiveSummaryArtifact,
 )
 
 logger = logging.getLogger(__name__)
@@ -182,6 +183,68 @@ async def update_scheduled_report(
             setattr(report, key, value)
     await db.flush()
     return report
+
+
+async def execute_scheduled_report(
+    db: AsyncSession,
+    report_id: uuid.UUID,
+    *,
+    project_id: uuid.UUID,
+) -> dict[str, Any]:
+    """FM-198: Execute a scheduled report — generate current metric values.
+
+    Collects the metric values specified in the report's ``metrics`` list
+    for the given project and returns a snapshot result.
+    """
+    result = await db.execute(
+        select(ScheduledReport).where(ScheduledReport.id == report_id)
+    )
+    report = result.scalar_one_or_none()
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Scheduled report not found",
+        )
+
+    from app.services import execution_health_service as ehs
+    from app.services import velocity_quality_service as vqs
+
+    resolvers: dict[str, Any] = {
+        "health": lambda: ehs.get_latest_health(db, project_id),
+        "velocity": lambda: vqs.compute_velocity(db, project_id),
+        "quality": lambda: vqs.get_latest_quality(db, project_id),
+        "execution_metrics": lambda: ehs.get_execution_metrics_summary(db, project_id),
+    }
+
+    collected: dict[str, Any] = {}
+    for metric_name in report.metrics:
+        resolver = resolvers.get(metric_name)
+        if resolver:
+            raw = await resolver()
+            if raw is None:
+                collected[metric_name] = None
+            elif hasattr(raw, "__dict__"):
+                collected[metric_name] = {
+                    k: (v.value if hasattr(v, "value") else str(v) if isinstance(v, uuid.UUID) else v)
+                    for k, v in raw.__dict__.items()
+                    if not k.startswith("_")
+                }
+            else:
+                collected[metric_name] = raw
+        else:
+            collected[metric_name] = None
+
+    # Update last_generated_at
+    report.last_generated_at = datetime.now(timezone.utc)
+    await db.flush()
+
+    return {
+        "report_id": str(report_id),
+        "report_name": report.name,
+        "project_id": str(project_id),
+        "metrics_collected": collected,
+        "generated_at": report.last_generated_at.isoformat(),
+    }
 
 
 # ── FM-198: Metric Alerts ────────────────────────────────────────
@@ -373,32 +436,55 @@ async def generate_executive_summary(
 
 # ── FM-199: Executive Summary Artifact Storage ───────────────────
 
-# In-memory store for versioned summaries (production: persist to DB table)
-_summary_artifacts: dict[str, list[dict[str, Any]]] = {}
-
 
 async def save_executive_summary(
     db: AsyncSession,
     project_id: uuid.UUID,
 ) -> dict[str, Any]:
-    """Generate and store a versioned executive summary artifact."""
+    """Generate and store a versioned executive summary artifact (DB-persisted)."""
     summary = await generate_executive_summary(db, project_id)
-    key = str(project_id)
-    if key not in _summary_artifacts:
-        _summary_artifacts[key] = []
-    version = len(_summary_artifacts[key]) + 1
-    artifact = {
+
+    # Determine next version number
+    result = await db.execute(
+        select(sa_func.coalesce(sa_func.max(ExecutiveSummaryArtifact.version), 0))
+        .where(ExecutiveSummaryArtifact.project_id == project_id)
+    )
+    version = result.scalar_one() + 1
+
+    artifact = ExecutiveSummaryArtifact(
+        project_id=project_id,
+        version=version,
+        summary_json=summary,
+    )
+    db.add(artifact)
+    await db.flush()
+
+    return {
         "version": version,
         "summary": summary,
-        "stored_at": datetime.now(timezone.utc).isoformat(),
+        "stored_at": artifact.stored_at.isoformat() if artifact.stored_at else datetime.now(timezone.utc).isoformat(),
     }
-    _summary_artifacts[key].append(artifact)
-    return artifact
 
 
-def get_summary_artifacts(project_id: uuid.UUID) -> list[dict[str, Any]]:
-    """Retrieve stored executive summary artifacts for a project."""
-    return _summary_artifacts.get(str(project_id), [])
+async def get_summary_artifacts(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+) -> list[dict[str, Any]]:
+    """Retrieve stored executive summary artifacts for a project (DB-persisted)."""
+    result = await db.execute(
+        select(ExecutiveSummaryArtifact)
+        .where(ExecutiveSummaryArtifact.project_id == project_id)
+        .order_by(ExecutiveSummaryArtifact.version.asc())
+    )
+    artifacts = result.scalars().all()
+    return [
+        {
+            "version": a.version,
+            "summary": a.summary_json,
+            "stored_at": a.stored_at.isoformat() if a.stored_at else None,
+        }
+        for a in artifacts
+    ]
 
 
 # ── FM-197: Widget Data Resolution ───────────────────────────────

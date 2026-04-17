@@ -486,3 +486,46 @@ async def get_complexity_summary(
     """Get complexity summary stats for a project."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     return await flakiness_complexity_service.get_complexity_summary(db, project_id)
+
+
+# ── FM-183: Coverage Report Ingestion ────────────────────────────
+
+
+class CoverageIngestRequest(BaseModel):
+    report: dict | str
+    report_format: str = "pytest-cov"
+
+
+@router.post("/projects/{project_id}/coverage/ingest")
+async def ingest_coverage_report(
+    project_id: uuid.UUID,
+    data: CoverageIngestRequest,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-183: Ingest a coverage report (pytest-cov JSON, istanbul JSON, or LCOV text)."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_EDIT)
+    count = await code_graph_service.ingest_coverage_report(
+        db, project_id=project_id,
+        report_json=data.report,
+        report_format=data.report_format,
+    )
+    return {"project_id": str(project_id), "files_ingested": count.get("files_ingested", 0), "format": data.report_format}
+
+
+# ── FM-187: Quarantine Monitoring Report ─────────────────────────
+
+
+@router.get("/projects/{project_id}/quarantine/report")
+async def get_quarantined_test_report(
+    project_id: uuid.UUID,
+    limit: int = Query(50, ge=1, le=200),
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-187: Get quarantined tests with pass rates and un-quarantine recommendations."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    report = await flakiness_complexity_service.get_quarantined_test_report(
+        db, project_id, limit=limit,
+    )
+    return {"items": report}

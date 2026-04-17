@@ -7,6 +7,7 @@ FM-183: Test coverage mapping — link source files to test files.
 
 import ast
 import hashlib
+import json
 import logging
 import uuid
 from typing import Any
@@ -384,3 +385,124 @@ async def get_coverage_gaps(
         "uncovered_files": len(uncovered),
         "gaps": ranked,
     }
+
+
+# ── FM-183: Coverage Report Ingestion ────────────────────────────
+
+
+async def ingest_coverage_report(
+    db: AsyncSession,
+    *,
+    project_id: uuid.UUID,
+    report_json: str | dict,
+    report_format: str = "pytest-cov",
+) -> dict[str, Any]:
+    """Ingest a coverage report (pytest-cov JSON, istanbul JSON, or LCOV text).
+
+    Supports:
+      - pytest-cov (coverage.py JSON)  — ``report_format="pytest-cov"``
+      - istanbul (NYC JSON summary)    — ``report_format="istanbul"``
+      - LCOV text                      — ``report_format="lcov"``
+
+    Returns summary with count of files ingested.
+    """
+    if isinstance(report_json, str):
+        if report_format == "lcov":
+            file_metrics = _parse_lcov(report_json)
+        else:
+            report_json = json.loads(report_json)
+            file_metrics = {}  # will be filled below
+    else:
+        file_metrics = {}
+
+    if report_format == "pytest-cov" and isinstance(report_json, dict):
+        file_metrics = _parse_pytest_cov(report_json)
+    elif report_format == "istanbul" and isinstance(report_json, dict):
+        file_metrics = _parse_istanbul(report_json)
+    elif report_format == "lcov" and not file_metrics:
+        file_metrics = {}
+
+    created = 0
+    for source_file, pct in file_metrics.items():
+        # Upsert coverage — use a synthetic test_file placeholder when
+        # the report only provides file-level metrics (no per-test info).
+        result = await db.execute(
+            select(CoverageMap).where(
+                CoverageMap.project_id == project_id,
+                CoverageMap.source_file == source_file,
+                CoverageMap.test_file == "__coverage_report__",
+            )
+        )
+        existing = result.scalar_one_or_none()
+        if existing:
+            existing.coverage_pct = pct
+        else:
+            db.add(CoverageMap(
+                project_id=project_id,
+                source_file=source_file,
+                test_file="__coverage_report__",
+                coverage_pct=pct,
+            ))
+        created += 1
+
+    await db.flush()
+    return {
+        "project_id": str(project_id),
+        "format": report_format,
+        "files_ingested": created,
+        "file_metrics": file_metrics,
+    }
+
+
+def _parse_pytest_cov(data: dict) -> dict[str, float]:
+    """Parse coverage.py / pytest-cov JSON report → {file: pct}."""
+    metrics: dict[str, float] = {}
+    files = data.get("files", {})
+    for file_path, info in files.items():
+        summary = info.get("summary", {})
+        pct = summary.get("percent_covered", 0.0)
+        metrics[file_path] = round(float(pct), 2)
+    # Also handle the flat format: {"<file>": {"executed_lines":[], ...}}
+    if not files and "meta" not in data:
+        for file_path, info in data.items():
+            if isinstance(info, dict) and "summary" in info:
+                metrics[file_path] = round(
+                    float(info["summary"].get("percent_covered", 0.0)), 2
+                )
+    return metrics
+
+
+def _parse_istanbul(data: dict) -> dict[str, float]:
+    """Parse istanbul / NYC JSON summary → {file: pct}."""
+    metrics: dict[str, float] = {}
+    for file_path, info in data.items():
+        if file_path == "total":
+            continue
+        if isinstance(info, dict):
+            lines = info.get("lines", {})
+            pct = lines.get("pct", 0.0)
+            metrics[file_path] = round(float(pct), 2)
+    return metrics
+
+
+def _parse_lcov(text: str) -> dict[str, float]:
+    """Parse LCOV tracefile text → {file: pct}."""
+    metrics: dict[str, float] = {}
+    current_file: str | None = None
+    lines_hit = 0
+    lines_found = 0
+    for line in text.splitlines():
+        line = line.strip()
+        if line.startswith("SF:"):
+            current_file = line[3:]
+            lines_hit = 0
+            lines_found = 0
+        elif line.startswith("LH:"):
+            lines_hit = int(line[3:])
+        elif line.startswith("LF:"):
+            lines_found = int(line[3:])
+        elif line == "end_of_record" and current_file:
+            pct = (lines_hit / lines_found * 100) if lines_found else 0.0
+            metrics[current_file] = round(pct, 2)
+            current_file = None
+    return metrics

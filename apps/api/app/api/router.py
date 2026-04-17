@@ -202,5 +202,9 @@ api_router.include_router(code_intelligence_router, tags=["code-intelligence", "
 # Analytics & Metrics: Execution, Health, Budget, Velocity, Quality, Portfolio, Dashboards, Alerts (FM-191–199)
 api_router.include_router(analytics_router, tags=["analytics", "metrics", "health", "dashboards", "alerts"])
 
+# FM-201: Versioned API — mount code-intelligence and analytics under /api/v1/ prefix too
+api_router.include_router(code_intelligence_router, prefix="/api/v1", tags=["api-v1", "code-intelligence"])
+api_router.include_router(analytics_router, prefix="/api/v1", tags=["api-v1", "analytics"])
+
 # API & Ecosystem: API Keys, Rate Limiting, Webhooks, Connectors (FM-201–208)
 api_router.include_router(api_ecosystem_router, tags=["api-keys", "webhooks", "connectors", "ecosystem"])

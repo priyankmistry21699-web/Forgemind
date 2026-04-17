@@ -1188,8 +1188,161 @@ class TestSummaryArtifacts:
         )
         assert a2["version"] > a1["version"]
 
-    def test_get_summary_artifacts_empty(self):
+    @pytest.mark.asyncio
+    async def test_get_summary_artifacts_empty(self, db_session: AsyncSession):
         """No stored artifacts → empty list."""
         import uuid as _uuid
-        result = dashboard_alert_service.get_summary_artifacts(_uuid.uuid4())
+        result = await dashboard_alert_service.get_summary_artifacts(db_session, _uuid.uuid4())
         assert result == []
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-191 Enhancement: Auto-Capture from Status Transitions
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestStatusTransitionAutoCapture:
+    @pytest.mark.asyncio
+    async def test_auto_record_known_transition(self, db_session: AsyncSession, sample_project):
+        """Known status transition records an execution metric."""
+        metric = await execution_health_service.auto_record_from_status_transition(
+            db_session, project_id=sample_project.id,
+            run_id=None, task_id=None,
+            old_status="queued", new_status="in_progress",
+            duration_ms=1500,
+        )
+        await db_session.commit()
+        assert metric is not None
+        assert metric.value_ms == 1500
+
+    @pytest.mark.asyncio
+    async def test_auto_record_unknown_transition_returns_none(self, db_session: AsyncSession, sample_project):
+        """Unknown status transition returns None without recording."""
+        result = await execution_health_service.auto_record_from_status_transition(
+            db_session, project_id=sample_project.id,
+            run_id=None, task_id=None,
+            old_status="unknown", new_status="whatever",
+            duration_ms=100,
+        )
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_auto_record_execution_time_transition(self, db_session: AsyncSession, sample_project):
+        """in_progress → review records EXECUTION_TIME."""
+        from app.models.analytics_metrics import ExecutionMetricType
+        metric = await execution_health_service.auto_record_from_status_transition(
+            db_session, project_id=sample_project.id,
+            run_id=None, task_id=None,
+            old_status="in_progress", new_status="review",
+            duration_ms=5000,
+        )
+        await db_session.commit()
+        assert metric is not None
+        assert metric.metric_type == ExecutionMetricType.EXECUTION_TIME
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-193 Enhancement: Configurable Model Rates
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestConfigurableModelRates:
+    def test_get_model_rates(self):
+        """get_model_rates returns the current rate table."""
+        from app.services import cost_tracking_service
+        rates = cost_tracking_service.get_model_rates()
+        assert isinstance(rates, dict)
+        assert "gpt-4o" in rates
+        assert "prompt" in rates["gpt-4o"]
+        assert "completion" in rates["gpt-4o"]
+
+    def test_update_model_rates(self):
+        """update_model_rates modifies the rate table."""
+        from app.services import cost_tracking_service
+        original = cost_tracking_service.get_model_rates()
+        cost_tracking_service.update_model_rates({
+            "test-model-xyz": {"prompt": 0.001, "completion": 0.002}
+        })
+        updated = cost_tracking_service.get_model_rates()
+        assert "test-model-xyz" in updated
+        assert updated["test-model-xyz"]["prompt"] == 0.001
+        # Cleanup
+        cost_tracking_service.MODEL_COSTS.pop("test-model-xyz", None)
+
+    def test_estimate_cost_uses_configurable_rates(self):
+        """estimate_cost uses the MODEL_COSTS table which is configurable."""
+        from app.services import cost_tracking_service
+        cost_tracking_service.update_model_rates({
+            "test-custom": {"prompt": 1.0, "completion": 2.0}
+        })
+        cost = cost_tracking_service.estimate_cost("test-custom", 10, 5)
+        assert cost == 10 * 1.0 + 5 * 2.0
+        cost_tracking_service.MODEL_COSTS.pop("test-custom", None)
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-198 Enhancement: Report Execution Engine
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestReportExecution:
+    @pytest.mark.asyncio
+    async def test_execute_scheduled_report(self, db_session: AsyncSession, sample_project):
+        """execute_scheduled_report collects metrics."""
+        # Create a scheduled report first
+        report = await dashboard_alert_service.create_scheduled_report(
+            db_session,
+            name="Weekly Health", metrics=["health", "quality"],
+            schedule_cron="0 9 * * 1",
+        )
+        await db_session.commit()
+
+        result = await dashboard_alert_service.execute_scheduled_report(
+            db_session, report.id, project_id=sample_project.id,
+        )
+        assert result["report_name"] == "Weekly Health"
+        assert "metrics_collected" in result
+        assert "generated_at" in result
+
+    @pytest.mark.asyncio
+    async def test_execute_report_not_found(self, db_session: AsyncSession, sample_project):
+        """execute_scheduled_report raises 404 for missing report."""
+        import uuid as _uuid
+        from fastapi import HTTPException
+        with pytest.raises(HTTPException) as exc_info:
+            await dashboard_alert_service.execute_scheduled_report(
+                db_session, _uuid.uuid4(), project_id=sample_project.id,
+            )
+        assert exc_info.value.status_code == 404
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-199 Enhancement: DB-Persisted Summary Artifacts
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestDBPersistedArtifacts:
+    @pytest.mark.asyncio
+    async def test_save_and_retrieve_artifacts(self, db_session: AsyncSession, sample_project):
+        """Saved summaries are retrievable from DB."""
+        a1 = await dashboard_alert_service.save_executive_summary(
+            db_session, sample_project.id,
+        )
+        await db_session.commit()
+        artifacts = await dashboard_alert_service.get_summary_artifacts(
+            db_session, sample_project.id,
+        )
+        assert len(artifacts) >= 1
+        assert artifacts[0]["version"] == a1["version"]
+
+    @pytest.mark.asyncio
+    async def test_artifacts_versioned_incrementally(self, db_session: AsyncSession, sample_project):
+        """Each save increments the version number."""
+        a1 = await dashboard_alert_service.save_executive_summary(
+            db_session, sample_project.id,
+        )
+        a2 = await dashboard_alert_service.save_executive_summary(
+            db_session, sample_project.id,
+        )
+        await db_session.commit()
+        assert a2["version"] == a1["version"] + 1

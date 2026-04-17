@@ -704,3 +704,109 @@ class TestConnectorHealthCheck:
         )
         assert result["probe"] == "config_only"
         assert result["new_status"] == ConnectorStatus.INACTIVE.value
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-202 Enhancement: Tier-Based Rate Limits
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestTierRateLimits:
+    def test_get_tier_limits_default(self):
+        """get_tier_limits returns basic tier by default."""
+        limits = api_key_service.get_tier_limits()
+        assert limits["max_requests"] == 100
+        assert limits["window_seconds"] == 60
+
+    def test_get_tier_limits_free(self):
+        """Free tier has lower limits."""
+        limits = api_key_service.get_tier_limits("free")
+        assert limits["max_requests"] == 30
+
+    def test_get_tier_limits_enterprise(self):
+        """Enterprise tier has higher limits."""
+        limits = api_key_service.get_tier_limits("enterprise")
+        assert limits["max_requests"] == 2000
+
+    def test_get_tier_limits_unknown_falls_back(self):
+        """Unknown tier falls back to basic."""
+        limits = api_key_service.get_tier_limits("unknown-tier")
+        assert limits["max_requests"] == 100
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-208 Enhancement: Concrete WebhookConnector
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestWebhookConnectorConcrete:
+    @pytest.mark.asyncio
+    async def test_validate_config_valid(self):
+        """WebhookConnector validates URL config."""
+        conn = webhook_connector_service.WebhookConnector()
+        assert await conn.validate_config({"url": "https://example.com/hook"}) is True
+
+    @pytest.mark.asyncio
+    async def test_validate_config_invalid(self):
+        """Invalid URL rejected."""
+        conn = webhook_connector_service.WebhookConnector()
+        assert await conn.validate_config({"url": ""}) is False
+        assert await conn.validate_config({}) is False
+
+    @pytest.mark.asyncio
+    async def test_health_check_unhealthy(self):
+        """Health check on unreachable URL returns unhealthy."""
+        conn = webhook_connector_service.WebhookConnector()
+        result = await conn.health_check({"url": "http://unreachable.invalid:1", "timeout": 1})
+        assert result["status"] == "unhealthy"
+
+    @pytest.mark.asyncio
+    async def test_send_unreachable(self):
+        """Send to unreachable URL returns failure."""
+        conn = webhook_connector_service.WebhookConnector()
+        result = await conn.send(
+            {"url": "http://unreachable.invalid:1", "timeout": 1},
+            "test.event", {"key": "value"},
+        )
+        assert result["success"] is False
+
+    def test_builtin_connectors_registry(self):
+        """BUILTIN_CONNECTORS includes webhook connector."""
+        assert "webhook" in webhook_connector_service.BUILTIN_CONNECTORS
+        assert isinstance(
+            webhook_connector_service.BUILTIN_CONNECTORS["webhook"],
+            webhook_connector_service.WebhookConnector,
+        )
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-210: E2E Integration Scenario
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestE2EIntegrationScenario:
+    @pytest.mark.asyncio
+    async def test_api_key_webhook_connector_flow(self, db_session: AsyncSession):
+        """E2E: Create API key → register connector → health check."""
+        # Step 1: Create API key
+        key, raw = await api_key_service.create_api_key(
+            db_session, creator_id=uuid.uuid4(),
+            name="e2e-key", scopes=["read", "write"],
+        )
+        await db_session.commit()
+        assert key.id is not None
+
+        # Step 2: Register a connector
+        conn = await webhook_connector_service.register_connector(
+            db_session, name="E2E Webhook",
+            connector_type=ConnectorType.SOURCE,
+            config_json={"health_url": "https://httpbin.org/status/200"},
+        )
+        await db_session.commit()
+        assert conn.id is not None
+
+        # Step 3: Health check
+        result = await webhook_connector_service.health_check_connector(
+            db_session, conn.id,
+        )
+        assert "new_status" in result

@@ -118,6 +118,45 @@ async def get_execution_metrics_summary(
     }
 
 
+# Status-transition mapping for auto-capture (FM-191).
+_STATUS_METRIC_MAP: dict[tuple[str, str], ExecutionMetricType] = {
+    ("queued", "in_progress"): ExecutionMetricType.QUEUE_TIME,
+    ("in_progress", "review"): ExecutionMetricType.EXECUTION_TIME,
+    ("review", "approved"): ExecutionMetricType.REVIEW_TIME,
+    ("review", "completed"): ExecutionMetricType.REVIEW_TIME,
+    ("planning", "in_progress"): ExecutionMetricType.PLANNING_TIME,
+    ("queued", "completed"): ExecutionMetricType.TOTAL_CYCLE_TIME,
+}
+
+
+async def auto_record_from_status_transition(
+    db: AsyncSession,
+    *,
+    project_id: uuid.UUID,
+    run_id: uuid.UUID | None = None,
+    task_id: uuid.UUID | None = None,
+    old_status: str,
+    new_status: str,
+    duration_ms: int,
+) -> ExecutionMetric | None:
+    """FM-191: Auto-capture timing metric from a status transition.
+
+    Called by the run/task lifecycle when status changes. Returns the
+    recorded metric or None if the transition has no mapping.
+    """
+    metric_type = _STATUS_METRIC_MAP.get((old_status, new_status))
+    if metric_type is None:
+        return None
+    return await record_execution_metric(
+        db,
+        project_id=project_id,
+        metric_type=metric_type,
+        value_ms=duration_ms,
+        run_id=run_id,
+        task_id=task_id,
+    )
+
+
 # ── FM-192: Health Scoring ───────────────────────────────────────
 
 HEALTH_WEIGHTS: dict[str, float] = {

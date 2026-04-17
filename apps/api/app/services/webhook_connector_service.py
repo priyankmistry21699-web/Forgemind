@@ -57,6 +57,50 @@ class ConnectorABC(abc.ABC):
         ...
 
 
+class WebhookConnector(ConnectorABC):
+    """Concrete connector for generic webhook integrations (FM-208).
+
+    Sends JSON payloads to a configurable URL with optional HMAC signing.
+    Config keys: ``url`` (required), ``secret`` (optional), ``timeout`` (optional).
+    """
+
+    async def validate_config(self, config: dict) -> bool:
+        url = config.get("url", "")
+        return isinstance(url, str) and url.startswith(("http://", "https://"))
+
+    async def health_check(self, config: dict) -> dict:
+        url = config.get("url", "")
+        timeout = config.get("timeout", 5)
+        try:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                resp = await client.head(url)
+            return {"status": "healthy", "status_code": resp.status_code}
+        except Exception as exc:
+            return {"status": "unhealthy", "error": str(exc)}
+
+    async def send(self, config: dict, event_type: str, payload: dict) -> dict:
+        url = config.get("url", "")
+        secret = config.get("secret")
+        timeout = config.get("timeout", 10)
+        body = json.dumps({"event": event_type, "data": payload})
+        headers: dict[str, str] = {"Content-Type": "application/json"}
+        if secret:
+            sig = hmac.new(secret.encode(), body.encode(), hashlib.sha256).hexdigest()
+            headers["X-Signature-256"] = f"sha256={sig}"
+        try:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                resp = await client.post(url, content=body, headers=headers)
+            return {"status_code": resp.status_code, "success": resp.is_success}
+        except Exception as exc:
+            return {"status_code": 0, "success": False, "error": str(exc)}
+
+
+# FM-208: built-in connector registry (in-process)
+BUILTIN_CONNECTORS: dict[str, ConnectorABC] = {
+    "webhook": WebhookConnector(),
+}
+
+
 # ── FM-203: Webhook Subscriptions ────────────────────────────────
 
 

@@ -202,6 +202,19 @@ _rate_limits: dict[str, list[float]] = defaultdict(list)
 DEFAULT_RATE_LIMIT = 100  # requests per window
 DEFAULT_WINDOW_SECONDS = 60
 
+# FM-202: Tier-based rate limits — keyed by tier name
+TIER_RATE_LIMITS: dict[str, dict[str, int]] = {
+    "free": {"max_requests": 30, "window_seconds": 60},
+    "basic": {"max_requests": 100, "window_seconds": 60},
+    "pro": {"max_requests": 500, "window_seconds": 60},
+    "enterprise": {"max_requests": 2000, "window_seconds": 60},
+}
+
+
+def get_tier_limits(tier: str = "basic") -> dict[str, int]:
+    """Return rate limit config for a tier (default: basic)."""
+    return TIER_RATE_LIMITS.get(tier, TIER_RATE_LIMITS["basic"])
+
 
 def check_rate_limit(
     identifier: str,

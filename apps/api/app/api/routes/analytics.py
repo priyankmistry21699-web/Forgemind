@@ -151,6 +151,38 @@ async def get_execution_metrics_summary(
     return await execution_health_service.get_execution_metrics_summary(db, project_id)
 
 
+class StatusTransitionRequest(BaseModel):
+    run_id: uuid.UUID | None = None
+    task_id: uuid.UUID | None = None
+    old_status: str
+    new_status: str
+    duration_ms: int | None = None
+
+
+@router.post("/projects/{project_id}/execution-metrics/status-transition")
+async def auto_record_status_transition(
+    project_id: uuid.UUID,
+    data: StatusTransitionRequest,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-191: Auto-record an execution metric from a run/task status transition."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_EDIT)
+    metric = await execution_health_service.auto_record_from_status_transition(
+        db, project_id=project_id,
+        run_id=data.run_id, task_id=data.task_id,
+        old_status=data.old_status, new_status=data.new_status,
+        duration_ms=data.duration_ms,
+    )
+    if metric is None:
+        return {"recorded": False, "reason": "no metric mapped for this transition"}
+    return {
+        "recorded": True,
+        "metric_type": metric.metric_type.value if hasattr(metric.metric_type, "value") else str(metric.metric_type),
+        "value_ms": metric.value_ms,
+    }
+
+
 # ── FM-192: Health Scoring ───────────────────────────────────────
 
 
@@ -621,6 +653,20 @@ async def update_scheduled_report(
     )
 
 
+@router.post("/projects/{project_id}/scheduled-reports/{report_id}/execute")
+async def execute_scheduled_report(
+    project_id: uuid.UUID,
+    report_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+):
+    """FM-198: Execute a scheduled report — collect current metrics."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    return await dashboard_alert_service.execute_scheduled_report(
+        db, report_id, project_id=project_id,
+    )
+
+
 # ── FM-199: Executive Summary ────────────────────────────────────
 
 
@@ -649,7 +695,8 @@ async def store_executive_summary(
 @router.get("/projects/{project_id}/executive-summary/artifacts")
 async def get_summary_artifacts(
     project_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """FM-199: List stored executive summary artifacts."""
-    return {"items": dashboard_alert_service.get_summary_artifacts(project_id)}
+    return {"items": await dashboard_alert_service.get_summary_artifacts(db, project_id)}

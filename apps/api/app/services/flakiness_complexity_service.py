@@ -162,6 +162,66 @@ async def get_test_flakiness_summary(
     }
 
 
+async def get_quarantined_test_report(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+    *,
+    limit: int = 50,
+) -> dict[str, Any]:
+    """FM-187: Report on quarantined tests that are still being executed.
+
+    Returns per-test stats for quarantined tests, showing recent outcomes
+    so teams can decide when to un-quarantine.
+    """
+    from sqlalchemy import case
+
+    subq = (
+        select(
+            TestResult.test_name,
+            TestResult.test_file,
+            sa_func.count(TestResult.id).label("total_runs"),
+            sa_func.sum(
+                case((TestResult.outcome == TestOutcome.PASSED, 1), else_=0)
+            ).label("pass_count"),
+            sa_func.sum(
+                case((TestResult.outcome == TestOutcome.FAILED, 1), else_=0)
+            ).label("fail_count"),
+            sa_func.max(TestResult.recorded_at).label("last_run_at"),
+        )
+        .where(
+            TestResult.project_id == project_id,
+            TestResult.quarantined.is_(True),
+        )
+        .group_by(TestResult.test_name, TestResult.test_file)
+    ).subquery()
+
+    result = await db.execute(
+        select(subq).order_by(subq.c.last_run_at.desc()).limit(limit)
+    )
+    rows = result.all()
+
+    tests = []
+    for row in rows:
+        total = row.total_runs
+        pass_rate = round(row.pass_count / total, 3) if total else 0.0
+        tests.append({
+            "test_name": row.test_name,
+            "test_file": row.test_file,
+            "total_runs": total,
+            "pass_count": row.pass_count,
+            "fail_count": row.fail_count,
+            "pass_rate": pass_rate,
+            "last_run_at": row.last_run_at.isoformat() if row.last_run_at else None,
+            "recommendation": "un-quarantine" if pass_rate >= 0.9 and total >= 5 else "keep quarantined",
+        })
+
+    return {
+        "project_id": str(project_id),
+        "quarantined_tests": len(tests),
+        "tests": tests,
+    }
+
+
 # ── FM-188: Code Complexity Metrics ──────────────────────────────
 
 

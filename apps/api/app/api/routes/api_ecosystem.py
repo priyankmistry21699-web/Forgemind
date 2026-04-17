@@ -18,7 +18,10 @@ from app.db.session import get_db
 from app.services import api_key_service
 from app.services import webhook_connector_service
 
-router = APIRouter(prefix="/api/v1/ecosystem")
+router = APIRouter(
+    prefix="/api/v1/ecosystem",
+    dependencies=[Depends(api_key_service.require_rate_limit())],
+)
 
 
 # ── Inline Schemas ───────────────────────────────────────────────
@@ -59,11 +62,10 @@ async def create_api_key(
     data: APIKeyCreateRequest,
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
-    _rl: None = Depends(api_key_service.require_rate_limit()),
 ):
     """Create a new API key. The raw key is returned ONLY at creation time.
 
-    FM-202: Applies per-user rate limiting via require_rate_limit().
+    FM-202: Rate limiting applied at router level to ALL ecosystem routes.
     """
     key, raw_key = await api_key_service.create_api_key(
         db, creator_id=user_id, name=data.name,

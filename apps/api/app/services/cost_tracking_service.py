@@ -28,6 +28,24 @@ MODEL_COSTS: dict[str, dict[str, float]] = {
 DEFAULT_COST = {"prompt": 1.00 / 1_000_000, "completion": 3.00 / 1_000_000}
 
 
+def get_model_rates() -> dict[str, dict[str, float]]:
+    """FM-193: Return the current configurable model rate table."""
+    return {k: dict(v) for k, v in MODEL_COSTS.items()}
+
+
+def update_model_rates(updates: dict[str, dict[str, float]]) -> dict[str, dict[str, float]]:
+    """FM-193: Update model rates at runtime. Merges into existing table.
+
+    ``updates`` format: ``{"model-name": {"prompt": <rate>, "completion": <rate>}}``
+    """
+    for model, rates in updates.items():
+        MODEL_COSTS[model] = {
+            "prompt": rates.get("prompt", DEFAULT_COST["prompt"]),
+            "completion": rates.get("completion", DEFAULT_COST["completion"]),
+        }
+    return get_model_rates()
+
+
 def estimate_cost(model_name: str, prompt_tokens: int, completion_tokens: int) -> float:
     """Estimate USD cost from model name and token counts."""
     rates = MODEL_COSTS.get(model_name, DEFAULT_COST)

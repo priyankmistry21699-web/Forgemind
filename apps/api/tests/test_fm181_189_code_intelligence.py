@@ -985,3 +985,113 @@ class TestComplexityTrend:
         )
         # Recent analysis should appear within 7-day window
         assert isinstance(hotspots, list)
+
+# ══════════════════════════════════════════════════════════════════
+# FM-183 Enhancement: Coverage Report Ingestion
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestCoverageReportIngestion:
+    @pytest.mark.asyncio
+    async def test_ingest_pytest_cov_report(self, db_session: AsyncSession, sample_project):
+        """ingest_coverage_report handles pytest-cov JSON format."""
+        report = {
+            "files": {
+                "app/main.py": {"summary": {"percent_covered": 82.5}},
+                "app/utils.py": {"summary": {"percent_covered": 100.0}},
+            }
+        }
+        result = await code_graph_service.ingest_coverage_report(
+            db_session, project_id=sample_project.id,
+            report_json=report, report_format="pytest-cov",
+        )
+        await db_session.commit()
+        assert result["files_ingested"] == 2
+        assert result["format"] == "pytest-cov"
+
+    @pytest.mark.asyncio
+    async def test_ingest_istanbul_report(self, db_session: AsyncSession, sample_project):
+        """ingest_coverage_report handles istanbul JSON format."""
+        report = {
+            "src/index.js": {
+                "lines": {"total": 100, "covered": 80, "skipped": 0, "pct": 80.0},
+            },
+        }
+        result = await code_graph_service.ingest_coverage_report(
+            db_session, project_id=sample_project.id,
+            report_json=report, report_format="istanbul",
+        )
+        await db_session.commit()
+        assert result["files_ingested"] >= 1
+        assert result["format"] == "istanbul"
+
+    @pytest.mark.asyncio
+    async def test_ingest_lcov_report(self, db_session: AsyncSession, sample_project):
+        """ingest_coverage_report handles LCOV text format."""
+        lcov_text = "SF:app/main.py\nLF:10\nLH:8\nend_of_record\nSF:app/other.py\nLF:5\nLH:5\nend_of_record\n"
+        result = await code_graph_service.ingest_coverage_report(
+            db_session, project_id=sample_project.id,
+            report_json=lcov_text, report_format="lcov",
+        )
+        await db_session.commit()
+        assert result["files_ingested"] == 2
+        assert result["format"] == "lcov"
+
+    @pytest.mark.asyncio
+    async def test_ingest_coverage_upserts(self, db_session: AsyncSession, sample_project):
+        """Second ingest for same project updates existing coverage entries."""
+        report = {"files": {"app/main.py": {"summary": {"percent_covered": 50.0}}}}
+        await code_graph_service.ingest_coverage_report(
+            db_session, project_id=sample_project.id,
+            report_json=report, report_format="pytest-cov",
+        )
+        await db_session.commit()
+
+        report2 = {"files": {"app/main.py": {"summary": {"percent_covered": 75.0}}}}
+        result = await code_graph_service.ingest_coverage_report(
+            db_session, project_id=sample_project.id,
+            report_json=report2, report_format="pytest-cov",
+        )
+        await db_session.commit()
+        assert result["files_ingested"] == 1
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-187 Enhancement: Quarantine Monitoring Report
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestQuarantineMonitoring:
+    @pytest.mark.asyncio
+    async def test_get_quarantined_test_report_empty(self, db_session: AsyncSession, sample_project):
+        """No quarantined tests → empty report."""
+        report = await flakiness_complexity_service.get_quarantined_test_report(
+            db_session, sample_project.id,
+        )
+        assert report["quarantined_tests"] == 0
+        assert report["tests"] == []
+
+    @pytest.mark.asyncio
+    async def test_get_quarantined_test_report_with_data(self, db_session: AsyncSession, sample_project):
+        """Quarantined test with results shows pass rate and recommendation."""
+        from app.models.code_intelligence import TestOutcome
+        # Record results + quarantine
+        for outcome in [TestOutcome.PASSED, TestOutcome.PASSED, TestOutcome.FAILED]:
+            await flakiness_complexity_service.record_test_result(
+                db_session, project_id=sample_project.id,
+                test_file="tests/test_flaky.py", test_name="test_flaky",
+                outcome=outcome, duration_ms=100,
+            )
+        await flakiness_complexity_service.quarantine_test(
+            db_session, sample_project.id, "test_flaky", quarantined=True,
+        )
+        await db_session.commit()
+
+        report = await flakiness_complexity_service.get_quarantined_test_report(
+            db_session, sample_project.id,
+        )
+        assert report["quarantined_tests"] >= 1
+        item = report["tests"][0]
+        assert "pass_rate" in item
+        assert "recommendation" in item
+        assert item["total_runs"] >= 3

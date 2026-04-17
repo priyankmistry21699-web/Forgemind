@@ -322,3 +322,27 @@ class AlertTriggerHistory(Base):
     threshold: Mapped[float] = mapped_column(Float, nullable=False)
     condition_op: Mapped[str] = mapped_column(String(10), nullable=False)
     notified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+
+# ── FM-199: Executive Summary Artifacts ──────────────────────────
+
+
+class ExecutiveSummaryArtifact(Base):
+    """Versioned executive summary artifact (FM-199)."""
+
+    __tablename__ = "executive_summary_artifacts"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    summary_json: Mapped[dict] = mapped_column(PG_JSON, nullable=False)
+    stored_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
