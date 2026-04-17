@@ -1572,7 +1572,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Python imports parsed correctly (relative, absolute, from...import)
-- [ ] TypeScript imports parsed correctly (ES6, CommonJS)
+- [x] TypeScript imports parsed correctly (ES6, CommonJS) _(regex-based parser: ES6 default/named/namespace/side-effect, CommonJS require, dynamic import, re-exports)_
 - [x] Reverse dependency query returns correct dependents
 - [x] Incremental scan processes only changed files _(content-hash based skip in scan_file_dependencies)_
 - [x] Tests cover parsing, graph building, and queries
@@ -2181,7 +2181,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 **Acceptance criteria:**
 
 - [x] Summary includes all configured sections with accurate data
-- [x] Non-technical language used in generated text _(_generate_narrative produces human-readable paragraphs)_
+- [x] Non-technical language used in generated text _(\_generate_narrative produces human-readable paragraphs)_
 - [x] Summary stored as versioned artifact
 - [x] Tests cover generation with realistic multi-project data
 
@@ -2209,7 +2209,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 - [x] All FM-191–199 services have test coverage (target: 40+ tests)
 - [x] Metric queries respond in <500ms for 90-day windows _(benchmarked in TestAnalyticsPerformance)_
-- [ ] Dashboard load time <2 seconds with 10 widgets
+- [x] Dashboard load time <2 seconds with 10 widgets _(benchmarked in TestDashboardLoadPerformance — resolves all 7 widget types padded to 10)_
 - [x] Documentation covers metric definitions, dashboard setup, and alert configuration _(docs/analytics-portfolio.md)_
 
 ---
@@ -2248,7 +2248,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 - [x] All core endpoint groups accessible via `/api/v1/`
 - [x] API key authentication works alongside JWT
 - [x] Scoped API keys restrict access to specified resources
-- [ ] OpenAPI spec complete and valid
+- [x] OpenAPI spec complete and valid _(TestOpenAPISpecCompleteness validates structure, all 8 v1 route groups, schemas, tags, and JSON serialization)_
 - [x] Tests cover API key lifecycle and scope enforcement
 
 ---

@@ -1,6 +1,6 @@
 """Code Intelligence services — FM-181/182/183.
 
-FM-181: Dependency graph building from Python AST imports.
+FM-181: Dependency graph building from Python AST + TypeScript regex imports.
 FM-182: Impact analysis — find downstream dependents of a changed file.
 FM-183: Test coverage mapping — link source files to test files.
 """
@@ -9,6 +9,7 @@ import ast
 import hashlib
 import json
 import logging
+import re
 import uuid
 from typing import Any
 
@@ -50,6 +51,76 @@ def _extract_imports_from_source(source_code: str) -> list[dict[str, str]]:
                      "type": "import"}
                 )
     return imports
+
+
+# ── FM-181: TypeScript / ES6 / CommonJS import parser ────────────
+
+# ES6:  import X from 'module'  |  import { X } from 'module'
+#       import * as X from 'module'  |  import 'module'
+_RE_ES6_IMPORT = re.compile(
+    r"""import\s+(?:(?:[\w*{}\s,]+)\s+from\s+)?['"]([^'"]+)['"]""",
+)
+
+# ES6 re-export:  export { X } from 'module'  |  export * from 'module'
+_RE_ES6_REEXPORT = re.compile(
+    r"""export\s+(?:(?:[\w*{}\s,]+)\s+from\s+)['"]([^'"]+)['"]""",
+)
+
+# CommonJS:  require('module')
+_RE_REQUIRE = re.compile(
+    r"""(?:=\s*)?require\s*\(\s*['"]([^'"]+)['"]\s*\)""",
+)
+
+# Dynamic import():  import('module')
+_RE_DYNAMIC_IMPORT = re.compile(
+    r"""import\s*\(\s*['"]([^'"]+)['"]\s*\)""",
+)
+
+_TS_EXTENSIONS = frozenset({".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"})
+
+
+def _extract_imports_from_typescript(source_code: str) -> list[dict[str, str]]:
+    """Parse TypeScript / ES6 / CommonJS source and return import references.
+
+    Uses regex-based parsing — reliable enough for static import extraction
+    without requiring a full TS parser or tree-sitter dependency.
+    """
+    imports: list[dict[str, str]] = []
+    seen: set[str] = set()
+
+    for pattern in (_RE_ES6_IMPORT, _RE_ES6_REEXPORT, _RE_REQUIRE, _RE_DYNAMIC_IMPORT):
+        for match in pattern.finditer(source_code):
+            module = match.group(1)
+            if module not in seen:
+                seen.add(module)
+                imports.append({"module": module, "type": "import"})
+
+    return imports
+
+
+def _is_typescript_file(file_path: str) -> bool:
+    """Check if a file path looks like TypeScript / JavaScript."""
+    import os
+    _, ext = os.path.splitext(file_path)
+    return ext.lower() in _TS_EXTENSIONS
+
+
+def _ts_module_to_file(module_path: str) -> str:
+    """Convert TypeScript module specifier to a file path heuristic.
+
+    - Relative paths (./foo, ../bar) keep their structure + .ts extension
+    - Bare specifiers (react, lodash) become package refs under node_modules/
+    - @scoped packages preserved as-is
+    """
+    if module_path.startswith("."):
+        # Relative import — add .ts if no extension present
+        import os
+        _, ext = os.path.splitext(module_path)
+        if ext and ext.lower() in _TS_EXTENSIONS:
+            return module_path
+        return module_path + ".ts"
+    # Bare / scoped package specifier
+    return f"node_modules/{module_path}/index.ts"
 
 
 async def record_dependency(
@@ -102,11 +173,19 @@ async def scan_file_dependencies(
         )
     )
 
-    imports = _extract_imports_from_source(source_code)
+    # FM-181: choose parser based on file extension
+    if _is_typescript_file(file_path):
+        imports = _extract_imports_from_typescript(source_code)
+    else:
+        imports = _extract_imports_from_source(source_code)
+
     deps = []
     for imp in imports:
         # Convert module path to file path heuristic
-        target = imp["module"].replace(".", "/") + ".py"
+        if _is_typescript_file(file_path):
+            target = _ts_module_to_file(imp["module"])
+        else:
+            target = imp["module"].replace(".", "/") + ".py"
         dep = ModuleDependency(
             project_id=project_id,
             source_file=file_path,

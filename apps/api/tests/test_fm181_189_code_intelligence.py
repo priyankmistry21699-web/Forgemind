@@ -516,6 +516,224 @@ class TestASTExtraction:
 
 
 # ══════════════════════════════════════════════════════════════════
+# FM-181: TypeScript / ES6 / CommonJS Import Parsing
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestTypeScriptImportParsing:
+    """Verify regex-based TypeScript/ES6/CommonJS import extraction."""
+
+    def test_es6_default_import(self):
+        source = "import React from 'react';\n"
+        imports = code_graph_service._extract_imports_from_typescript(source)
+        assert len(imports) == 1
+        assert imports[0]["module"] == "react"
+
+    def test_es6_named_import(self):
+        source = "import { useState, useEffect } from 'react';\n"
+        imports = code_graph_service._extract_imports_from_typescript(source)
+        assert len(imports) == 1
+        assert imports[0]["module"] == "react"
+
+    def test_es6_namespace_import(self):
+        source = "import * as path from 'path';\n"
+        imports = code_graph_service._extract_imports_from_typescript(source)
+        assert len(imports) == 1
+        assert imports[0]["module"] == "path"
+
+    def test_es6_side_effect_import(self):
+        source = "import './polyfills';\n"
+        imports = code_graph_service._extract_imports_from_typescript(source)
+        assert len(imports) == 1
+        assert imports[0]["module"] == "./polyfills"
+
+    def test_commonjs_require(self):
+        source = "const express = require('express');\n"
+        imports = code_graph_service._extract_imports_from_typescript(source)
+        assert len(imports) == 1
+        assert imports[0]["module"] == "express"
+
+    def test_require_destructured(self):
+        source = "const { Router } = require('express');\n"
+        imports = code_graph_service._extract_imports_from_typescript(source)
+        assert len(imports) == 1
+        assert imports[0]["module"] == "express"
+
+    def test_dynamic_import(self):
+        source = "const mod = await import('./lazy-module');\n"
+        imports = code_graph_service._extract_imports_from_typescript(source)
+        assert len(imports) == 1
+        assert imports[0]["module"] == "./lazy-module"
+
+    def test_reexport(self):
+        source = "export { foo } from './utils';\nexport * from './helpers';\n"
+        imports = code_graph_service._extract_imports_from_typescript(source)
+        modules = {i["module"] for i in imports}
+        assert "./utils" in modules
+        assert "./helpers" in modules
+
+    def test_mixed_import_styles(self):
+        source = (
+            "import React from 'react';\n"
+            "import { useState } from 'react';\n"
+            "const fs = require('fs');\n"
+            "import type { AppProps } from 'next/app';\n"
+            "export * from './components';\n"
+        )
+        imports = code_graph_service._extract_imports_from_typescript(source)
+        modules = {i["module"] for i in imports}
+        assert "react" in modules
+        assert "fs" in modules
+        assert "next/app" in modules
+        assert "./components" in modules
+
+    def test_scoped_package(self):
+        source = "import { something } from '@forgemind/sdk';\n"
+        imports = code_graph_service._extract_imports_from_typescript(source)
+        assert imports[0]["module"] == "@forgemind/sdk"
+
+    def test_double_quotes(self):
+        source = 'import lodash from "lodash";\n'
+        imports = code_graph_service._extract_imports_from_typescript(source)
+        assert imports[0]["module"] == "lodash"
+
+    def test_deduplication(self):
+        source = (
+            "import React from 'react';\n"
+            "import React from 'react';\n"
+        )
+        imports = code_graph_service._extract_imports_from_typescript(source)
+        assert len(imports) == 1
+
+    def test_empty_source(self):
+        imports = code_graph_service._extract_imports_from_typescript("")
+        assert imports == []
+
+    def test_no_imports(self):
+        source = "const x = 42;\nconsole.log(x);\n"
+        imports = code_graph_service._extract_imports_from_typescript(source)
+        assert imports == []
+
+
+class TestTypeScriptFileDetection:
+    """Verify _is_typescript_file correctly identifies TS/JS files."""
+
+    def test_ts_extension(self):
+        assert code_graph_service._is_typescript_file("src/app.ts") is True
+
+    def test_tsx_extension(self):
+        assert code_graph_service._is_typescript_file("components/Button.tsx") is True
+
+    def test_js_extension(self):
+        assert code_graph_service._is_typescript_file("lib/utils.js") is True
+
+    def test_jsx_extension(self):
+        assert code_graph_service._is_typescript_file("App.jsx") is True
+
+    def test_mjs_extension(self):
+        assert code_graph_service._is_typescript_file("config.mjs") is True
+
+    def test_cjs_extension(self):
+        assert code_graph_service._is_typescript_file("config.cjs") is True
+
+    def test_python_file(self):
+        assert code_graph_service._is_typescript_file("main.py") is False
+
+    def test_no_extension(self):
+        assert code_graph_service._is_typescript_file("Makefile") is False
+
+
+class TestTypeScriptModuleResolution:
+    """Verify _ts_module_to_file heuristic."""
+
+    def test_relative_import_no_ext(self):
+        result = code_graph_service._ts_module_to_file("./utils")
+        assert result == "./utils.ts"
+
+    def test_relative_import_with_ext(self):
+        result = code_graph_service._ts_module_to_file("./utils.ts")
+        assert result == "./utils.ts"
+
+    def test_bare_specifier(self):
+        result = code_graph_service._ts_module_to_file("react")
+        assert result == "node_modules/react/index.ts"
+
+    def test_scoped_package(self):
+        result = code_graph_service._ts_module_to_file("@forgemind/sdk")
+        assert result == "node_modules/@forgemind/sdk/index.ts"
+
+    def test_parent_relative(self):
+        result = code_graph_service._ts_module_to_file("../shared/types")
+        assert result == "../shared/types.ts"
+
+
+class TestTypeScriptScanIntegration:
+    """End-to-end: scan_file_dependencies with TypeScript source."""
+
+    @pytest.mark.asyncio
+    async def test_scan_ts_file_creates_dependencies(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        ts_source = (
+            "import React from 'react';\n"
+            "import { Button } from './components/Button';\n"
+            "const lodash = require('lodash');\n"
+        )
+        deps = await code_graph_service.scan_file_dependencies(
+            db_session,
+            project_id=sample_project.id,
+            file_path="src/App.tsx",
+            source_code=ts_source,
+            force=True,
+        )
+        assert len(deps) == 3
+        targets = {d.target_file for d in deps}
+        assert "node_modules/react/index.ts" in targets
+        assert "./components/Button.ts" in targets
+        assert "node_modules/lodash/index.ts" in targets
+
+    @pytest.mark.asyncio
+    async def test_scan_ts_file_incremental_skip(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        ts_source = "import axios from 'axios';\n"
+        deps1 = await code_graph_service.scan_file_dependencies(
+            db_session,
+            project_id=sample_project.id,
+            file_path="src/api.ts",
+            source_code=ts_source,
+            force=True,
+        )
+        assert len(deps1) == 1
+        # Second scan with same content — should use cache
+        deps2 = await code_graph_service.scan_file_dependencies(
+            db_session,
+            project_id=sample_project.id,
+            file_path="src/api.ts",
+            source_code=ts_source,
+        )
+        assert len(deps2) == 1
+
+    @pytest.mark.asyncio
+    async def test_scan_python_file_still_works(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        """Ensure Python parsing is not broken by TS additions."""
+        py_source = "import os\nfrom sys import argv\n"
+        deps = await code_graph_service.scan_file_dependencies(
+            db_session,
+            project_id=sample_project.id,
+            file_path="src/main.py",
+            source_code=py_source,
+            force=True,
+        )
+        assert len(deps) == 2
+        targets = {d.target_file for d in deps}
+        assert "os.py" in targets
+        assert "sys/argv.py" in targets
+
+
+# ══════════════════════════════════════════════════════════════════
 # FM-188: Cyclomatic Complexity (Unit Test)
 # ══════════════════════════════════════════════════════════════════
 

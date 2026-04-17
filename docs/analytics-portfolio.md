@@ -41,7 +41,12 @@ Multi-project dashboard aggregating health, velocity, cost, and quality across a
 
 ### FM-197 — Custom Dashboards & Widgets
 
-Widget data resolution for 7+ chart types (velocity, quality, cost, health, etc.). Layout and rendering are frontend concerns.
+Widget data resolution for 7+ chart types (velocity, quality, cost, health, etc.).
+
+- **Widget config validation:** `validate_widget_config()` / `validate_dashboard_layout()` validates widget_type, chart_type (line, bar, pie, table, number, gauge), position, and size before persistence.
+- **Data source resolution:** `resolve_widget_data()` dispatches to the correct service and returns chart-ready JSON.
+- **Layout persistence:** `layout_json` stored on Dashboard model.
+- **Note:** Visual widget rendering is a frontend concern (React components). Backend provides all data/validation infrastructure.
 
 ### FM-198 — Scheduled Reports
 
@@ -62,6 +67,7 @@ Background cron-based scheduler generates reports on user-defined schedules.
 ### FM-200 — Hardening
 
 Performance benchmarks verify:
+
 - Metric queries respond in <500ms for 90-day windows with 500+ records.
 - Health computation completes in <500ms.
 - Portfolio summary for 50 projects returns in <1 second.
@@ -70,14 +76,14 @@ Performance benchmarks verify:
 
 ## Metric Definitions
 
-| Metric | Unit | Source |
-|--------|------|--------|
-| LLM Call Duration | ms | Auto-captured per LLM invocation |
-| Queue Time | ms | Time from task creation to execution start |
-| Total Run Time | ms | End-to-end run duration |
-| Token Usage | tokens | Cumulative tokens per run |
-| Test Pass Rate | ratio (0–1) | Passed tests / total tests |
-| Defect Density | defects/KLOC | Defects found / thousands of lines |
+| Metric            | Unit         | Source                                     |
+| ----------------- | ------------ | ------------------------------------------ |
+| LLM Call Duration | ms           | Auto-captured per LLM invocation           |
+| Queue Time        | ms           | Time from task creation to execution start |
+| Total Run Time    | ms           | End-to-end run duration                    |
+| Token Usage       | tokens       | Cumulative tokens per run                  |
+| Test Pass Rate    | ratio (0–1)  | Passed tests / total tests                 |
+| Defect Density    | defects/KLOC | Defects found / thousands of lines         |
 
 ---
 

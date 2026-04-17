@@ -576,6 +576,70 @@ WIDGET_DATA_SOURCES = {
     "flakiness_summary": "flakiness_complexity_service.get_test_flakiness_summary",
 }
 
+# Chart types that the frontend should support for each widget
+WIDGET_CHART_TYPES = frozenset({
+    "line", "bar", "pie", "table", "number", "gauge",
+})
+
+
+def validate_widget_config(widget: dict[str, Any]) -> list[str]:
+    """FM-197: Validate a widget configuration dict before persistence.
+
+    Returns a list of validation error strings (empty = valid).
+    Validates: widget_type, chart_type, position, size, data_source.
+    """
+    errors: list[str] = []
+
+    wtype = widget.get("widget_type")
+    if not wtype:
+        errors.append("widget_type is required")
+    elif wtype not in WIDGET_DATA_SOURCES:
+        errors.append(
+            f"Unknown widget_type '{wtype}'. "
+            f"Valid: {', '.join(sorted(WIDGET_DATA_SOURCES))}"
+        )
+
+    chart = widget.get("chart_type")
+    if chart and chart not in WIDGET_CHART_TYPES:
+        errors.append(
+            f"Unknown chart_type '{chart}'. "
+            f"Valid: {', '.join(sorted(WIDGET_CHART_TYPES))}"
+        )
+
+    position = widget.get("position")
+    if position is not None:
+        if not isinstance(position, dict):
+            errors.append("position must be a dict with 'x' and 'y' keys")
+        else:
+            if "x" not in position or "y" not in position:
+                errors.append("position must contain 'x' and 'y' keys")
+
+    size = widget.get("size")
+    if size is not None:
+        if not isinstance(size, dict):
+            errors.append("size must be a dict with 'w' and 'h' keys")
+        else:
+            if "w" not in size or "h" not in size:
+                errors.append("size must contain 'w' and 'h' keys")
+
+    return errors
+
+
+def validate_dashboard_layout(layout_json: list[dict[str, Any]]) -> list[str]:
+    """FM-197: Validate an entire dashboard layout (list of widget configs).
+
+    Returns aggregated validation errors across all widgets.
+    """
+    if not isinstance(layout_json, list):
+        return ["layout_json must be a list of widget configurations"]
+
+    all_errors: list[str] = []
+    for idx, widget in enumerate(layout_json):
+        widget_errors = validate_widget_config(widget)
+        for e in widget_errors:
+            all_errors.append(f"Widget [{idx}]: {e}")
+    return all_errors
+
 
 async def resolve_widget_data(
     db: AsyncSession,

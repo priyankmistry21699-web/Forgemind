@@ -12,10 +12,12 @@ All features are project-scoped and accessible via the `/api/v1/code-intelligenc
 
 ### FM-181 — Dependency Graph
 
-Parses Python source files to extract `import` and `from … import` statements, storing edges in the `module_dependencies` table.
+Parses **Python** and **TypeScript/JavaScript** source files to extract import statements, storing edges in the `module_dependencies` table.
 
 **Key service:** `code_graph_service.scan_file_dependencies(db, project_id, file_path, source_code)`
 
+- **Python parser:** AST-based — resolves `import`, `from … import`, relative imports.
+- **TypeScript parser:** Regex-based — resolves ES6 `import` (default, named, namespace, side-effect), `export … from`, CommonJS `require()`, and dynamic `import()`. Supports `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs` extensions.
 - Incremental: files are hashed; unchanged files are skipped on re-scan.
 - Graph query: `get_dependency_graph(db, project_id)` returns `{nodes, edges}`.
 
@@ -94,12 +96,12 @@ await pattern_debt_service.create_pattern_rule(
 
 ## Interpreting Results
 
-| Metric | Good | Needs Attention |
-|--------|------|-----------------|
-| Debt score | <20 | >50 |
-| Cyclomatic complexity | <10 per function | >20 |
-| Test flakiness rate | <5% | >15% |
-| Coverage gaps | 0 files | >10% of source files |
+| Metric                | Good             | Needs Attention      |
+| --------------------- | ---------------- | -------------------- |
+| Debt score            | <20              | >50                  |
+| Cyclomatic complexity | <10 per function | >20                  |
+| Test flakiness rate   | <5%              | >15%                 |
+| Coverage gaps         | 0 files          | >10% of source files |
 
 ---
 
@@ -107,12 +109,12 @@ await pattern_debt_service.create_pattern_rule(
 
 All under `/api/v1/code-intelligence/`:
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/scan` | Scan a file for dependencies + patterns |
-| GET | `/graph/{project_id}` | Full dependency graph |
-| POST | `/impact` | Impact analysis for changed files |
-| GET | `/coverage/{project_id}` | Coverage summary |
-| GET | `/debt/{project_id}` | Debt scores per file |
-| GET | `/flakiness/{project_id}` | Flaky test report |
-| GET | `/complexity/{project_id}` | Complexity metrics |
+| Method | Path                       | Description                             |
+| ------ | -------------------------- | --------------------------------------- |
+| POST   | `/scan`                    | Scan a file for dependencies + patterns |
+| GET    | `/graph/{project_id}`      | Full dependency graph                   |
+| POST   | `/impact`                  | Impact analysis for changed files       |
+| GET    | `/coverage/{project_id}`   | Coverage summary                        |
+| GET    | `/debt/{project_id}`       | Debt scores per file                    |
+| GET    | `/flakiness/{project_id}`  | Flaky test report                       |
+| GET    | `/complexity/{project_id}` | Complexity metrics                      |

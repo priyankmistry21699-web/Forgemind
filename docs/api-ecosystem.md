@@ -29,17 +29,29 @@ Keys are scoped: `["read", "write", "admin"]`. The raw key is shown only on crea
 
 All core endpoint groups are mounted under `/api/v1/`:
 
-| Prefix | Router | Description |
-|--------|--------|-------------|
-| `/api/v1/projects` | projects_router | Project CRUD and settings |
-| `/api/v1/runs` | runs_router | Run lifecycle and history |
-| `/api/v1/tasks` | tasks_router | Task management |
-| `/api/v1/costs` | costs_router | Cost tracking and budgets |
+| Prefix                      | Router                   | Description                          |
+| --------------------------- | ------------------------ | ------------------------------------ |
+| `/api/v1/projects`          | projects_router          | Project CRUD and settings            |
+| `/api/v1/runs`              | runs_router              | Run lifecycle and history            |
+| `/api/v1/tasks`             | tasks_router             | Task management                      |
+| `/api/v1/costs`             | costs_router             | Cost tracking and budgets            |
 | `/api/v1/code-intelligence` | code_intelligence_router | Dependency graph, patterns, coverage |
-| `/api/v1/analytics` | analytics_router | Metrics, health, velocity |
-| `/api/v1/approvals` | approvals_router | Spec and plan approvals |
-| `/api/v1/governance` | governance_router | Compliance and audit |
-| `/api/v1/ecosystem` | ecosystem_router | Webhooks and connectors |
+| `/api/v1/analytics`         | analytics_router         | Metrics, health, velocity            |
+| `/api/v1/approvals`         | approvals_router         | Spec and plan approvals              |
+| `/api/v1/governance`        | governance_router        | Compliance and audit                 |
+| `/api/v1/ecosystem`         | ecosystem_router         | Webhooks and connectors              |
+
+### OpenAPI Specification
+
+FastAPI auto-generates an OpenAPI 3.x specification. Completeness is validated in `TestOpenAPISpecCompleteness`:
+
+- All 8 core `/api/v1/` route groups are present in the spec paths.
+- Schemas section is populated with Pydantic model definitions.
+- Every path has at least one HTTP operation.
+- `api-v1` tag is present on versioned routes.
+- Spec is fully JSON-serializable.
+
+Access the interactive docs at `/docs` (Swagger UI) or `/redoc` (ReDoc).
 
 ---
 
@@ -85,11 +97,11 @@ await webhook_connector_service.register_connector(
 
 ### Connector Types
 
-| Type | Direction | Example |
-|------|-----------|---------|
-| SOURCE | Inbound | GitHub webhook → ForgeMind |
-| SINK | Outbound | ForgeMind → Slack notification |
-| BIDIRECTIONAL | Both | CI/CD integration |
+| Type          | Direction | Example                        |
+| ------------- | --------- | ------------------------------ |
+| SOURCE        | Inbound   | GitHub webhook → ForgeMind     |
+| SINK          | Outbound  | ForgeMind → Slack notification |
+| BIDIRECTIONAL | Both      | CI/CD integration              |
 
 ### Webhook Security
 

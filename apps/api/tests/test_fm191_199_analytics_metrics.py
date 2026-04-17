@@ -1158,6 +1158,88 @@ class TestWidgetDataResolution:
         assert exc_info.value.status_code == 400
 
 
+class TestWidgetConfigValidation:
+    """FM-197: Validate widget configuration before persistence."""
+
+    def test_valid_widget_config(self):
+        widget = {
+            "widget_type": "health_score",
+            "chart_type": "gauge",
+            "position": {"x": 0, "y": 0},
+            "size": {"w": 4, "h": 3},
+        }
+        errors = dashboard_alert_service.validate_widget_config(widget)
+        assert errors == []
+
+    def test_missing_widget_type(self):
+        errors = dashboard_alert_service.validate_widget_config({})
+        assert any("widget_type is required" in e for e in errors)
+
+    def test_unknown_widget_type(self):
+        errors = dashboard_alert_service.validate_widget_config(
+            {"widget_type": "nonexistent"}
+        )
+        assert any("Unknown widget_type" in e for e in errors)
+
+    def test_unknown_chart_type(self):
+        errors = dashboard_alert_service.validate_widget_config(
+            {"widget_type": "velocity", "chart_type": "hologram"}
+        )
+        assert any("Unknown chart_type" in e for e in errors)
+
+    def test_all_chart_types_accepted(self):
+        for ct in dashboard_alert_service.WIDGET_CHART_TYPES:
+            errors = dashboard_alert_service.validate_widget_config(
+                {"widget_type": "velocity", "chart_type": ct}
+            )
+            assert not any("chart_type" in e for e in errors)
+
+    def test_invalid_position(self):
+        errors = dashboard_alert_service.validate_widget_config(
+            {"widget_type": "velocity", "position": "invalid"}
+        )
+        assert any("position must be a dict" in e for e in errors)
+
+    def test_position_missing_keys(self):
+        errors = dashboard_alert_service.validate_widget_config(
+            {"widget_type": "velocity", "position": {"x": 0}}
+        )
+        assert any("'x' and 'y'" in e for e in errors)
+
+    def test_invalid_size(self):
+        errors = dashboard_alert_service.validate_widget_config(
+            {"widget_type": "velocity", "size": [4, 3]}
+        )
+        assert any("size must be a dict" in e for e in errors)
+
+    def test_size_missing_keys(self):
+        errors = dashboard_alert_service.validate_widget_config(
+            {"widget_type": "velocity", "size": {"w": 4}}
+        )
+        assert any("'w' and 'h'" in e for e in errors)
+
+    def test_validate_dashboard_layout_valid(self):
+        layout = [
+            {"widget_type": "velocity", "chart_type": "line"},
+            {"widget_type": "quality", "chart_type": "bar"},
+        ]
+        errors = dashboard_alert_service.validate_dashboard_layout(layout)
+        assert errors == []
+
+    def test_validate_dashboard_layout_not_a_list(self):
+        errors = dashboard_alert_service.validate_dashboard_layout("not a list")
+        assert any("must be a list" in e for e in errors)
+
+    def test_validate_dashboard_layout_mixed_errors(self):
+        layout = [
+            {"widget_type": "velocity"},
+            {"widget_type": "unknown_type"},
+        ]
+        errors = dashboard_alert_service.validate_dashboard_layout(layout)
+        assert len(errors) >= 1
+        assert any("Widget [1]" in e for e in errors)
+
+
 # ══════════════════════════════════════════════════════════════════
 # FM-199: Executive Summary Artifact Storage
 # ══════════════════════════════════════════════════════════════════
@@ -1627,3 +1709,47 @@ class TestAnalyticsPerformance:
 
         assert elapsed < 0.5, f"Health computation took {elapsed:.2f}s"
         assert hasattr(health, "grade") or hasattr(health, "composite_score")
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-200: Dashboard Load Performance — 10 Widgets
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestDashboardLoadPerformance:
+    """Dashboard with 10 widgets must resolve all data in <2 seconds."""
+
+    @pytest.mark.asyncio
+    async def test_dashboard_10_widgets_under_2_seconds(
+        self, db_session: AsyncSession, sample_project,
+    ):
+        """Simulate a dashboard with 10 widgets and verify total resolution
+        time stays under the 2-second SLA.
+
+        Uses all 7 known widget types plus 3 duplicates to hit 10 total.
+        """
+        import time
+
+        widget_types = list(dashboard_alert_service.WIDGET_DATA_SOURCES.keys())
+        # Pad to 10 widgets by repeating the first types
+        while len(widget_types) < 10:
+            widget_types.append(widget_types[len(widget_types) % 7])
+        widget_types = widget_types[:10]
+        assert len(widget_types) == 10
+
+        start = time.perf_counter()
+        results = []
+        for wt in widget_types:
+            data = await dashboard_alert_service.resolve_widget_data(
+                db_session, sample_project.id, wt,
+            )
+            results.append(data)
+        elapsed = time.perf_counter() - start
+
+        assert elapsed < 2.0, (
+            f"Dashboard load with 10 widgets took {elapsed:.2f}s (limit 2s)"
+        )
+        assert len(results) == 10
+        for r in results:
+            assert "widget_type" in r
+            assert "data" in r or r.get("widget_type") is not None

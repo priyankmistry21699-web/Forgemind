@@ -909,3 +909,88 @@ class TestRateLimitBreadth:
         assert "remaining" in result
         assert "limit" in result
         reset_rate_limit(identifier)
+
+
+# ══════════════════════════════════════════════════════════════════
+# FM-201: OpenAPI Spec Completeness & Validity
+# ══════════════════════════════════════════════════════════════════
+
+
+class TestOpenAPISpecCompleteness:
+    """Verify the auto-generated OpenAPI spec is complete and valid."""
+
+    def _get_openapi_spec(self) -> dict:
+        from app.main import create_app
+        app = create_app()
+        return app.openapi()
+
+    def test_openapi_spec_has_info(self):
+        spec = self._get_openapi_spec()
+        assert "info" in spec
+        assert "title" in spec["info"]
+        assert "version" in spec["info"]
+
+    def test_openapi_version_is_3(self):
+        spec = self._get_openapi_spec()
+        assert spec.get("openapi", "").startswith("3.")
+
+    def test_openapi_has_paths(self):
+        spec = self._get_openapi_spec()
+        assert "paths" in spec
+        assert len(spec["paths"]) > 0
+
+    def test_v1_core_endpoint_groups_present(self):
+        """All 8 core /api/v1/ route groups must appear in the spec."""
+        spec = self._get_openapi_spec()
+        paths = list(spec.get("paths", {}).keys())
+
+        # Expected v1 route group path prefixes
+        expected_groups = [
+            "/api/v1/projects",
+            "/api/v1/runs",
+            "/api/v1/tasks",
+            "/api/v1/costs",
+            "/api/v1/code-intelligence",
+            "/api/v1/analytics",
+            "/api/v1/approvals",
+            "/api/v1/governance",
+        ]
+
+        for group_prefix in expected_groups:
+            matching = [p for p in paths if p.startswith(group_prefix)]
+            assert len(matching) > 0, (
+                f"No routes found for {group_prefix} in OpenAPI spec. "
+                f"Spec has {len(paths)} total paths."
+            )
+
+    def test_openapi_schemas_section_exists(self):
+        spec = self._get_openapi_spec()
+        components = spec.get("components", {})
+        schemas = components.get("schemas", {})
+        assert len(schemas) > 0, "OpenAPI spec has no schemas defined"
+
+    def test_all_paths_have_operations(self):
+        """Every path should have at least one HTTP operation."""
+        spec = self._get_openapi_spec()
+        http_methods = {"get", "post", "put", "patch", "delete", "head", "options"}
+        for path, operations in spec.get("paths", {}).items():
+            ops = [m for m in operations if m.lower() in http_methods]
+            assert len(ops) > 0, f"Path {path} has no HTTP operations"
+
+    def test_api_v1_tags_present(self):
+        """At least one api-v1 tag should be present in the spec."""
+        spec = self._get_openapi_spec()
+        all_tags = set()
+        for path_ops in spec.get("paths", {}).values():
+            for method, details in path_ops.items():
+                if isinstance(details, dict):
+                    for t in details.get("tags", []):
+                        all_tags.add(t)
+        assert "api-v1" in all_tags, f"'api-v1' tag not found. Tags: {sorted(all_tags)}"
+
+    def test_openapi_spec_is_valid_json_serializable(self):
+        """Spec should be fully JSON-serializable (no unserializable objects)."""
+        import json
+        spec = self._get_openapi_spec()
+        serialized = json.dumps(spec)
+        assert len(serialized) > 100
