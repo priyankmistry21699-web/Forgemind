@@ -106,7 +106,11 @@ describe("ArtifactListSection (FM-035 polish)", () => {
           makeArtifact({
             id: "art-x",
             title: "Unknown kind",
-            artifact_type: "mystery_type",
+            // Cast at the test boundary: we deliberately feed an
+            // unknown artifact_type value to exercise the fallback
+            // branch for raw API payloads that may contain strings
+            // outside the current ArtifactType union.
+            artifact_type: "mystery_type" as Artifact["artifact_type"],
           }),
         ]}
       />,
