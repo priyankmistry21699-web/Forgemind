@@ -98,6 +98,58 @@ describe("ArtifactListSection (FM-035 polish)", () => {
     expect(screen.getByText("plan summary")).toBeInTheDocument();
     expect(screen.getByText("architecture")).toBeInTheDocument();
   });
+
+  it("falls back to the 'other' badge style for unknown artifact types", () => {
+    render(
+      <ArtifactListSection
+        artifacts={[
+          makeArtifact({
+            id: "art-x",
+            title: "Unknown kind",
+            artifact_type: "mystery_type",
+          }),
+        ]}
+      />,
+    );
+    // type.replace("_", " ") → "mystery type" rendered as the badge label
+    expect(screen.getByText("mystery type")).toBeInTheDocument();
+  });
+
+  it("renders a content preview for artifacts with inline content", () => {
+    render(
+      <ArtifactListSection
+        artifacts={[
+          makeArtifact({
+            id: "art-c",
+            title: "With preview",
+            content: "hello preview content",
+          }),
+        ]}
+      />,
+    );
+    expect(screen.getByText("hello preview content")).toBeInTheDocument();
+  });
+
+  it("appends the '... (truncated)' suffix for oversized content (>2000 chars)", () => {
+    const oversized = "a".repeat(2500);
+    const { container } = render(
+      <ArtifactListSection
+        artifacts={[
+          makeArtifact({
+            id: "art-big",
+            title: "Big artifact",
+            content: oversized,
+          }),
+        ]}
+      />,
+    );
+    const pre = container.querySelector("pre");
+    expect(pre).not.toBeNull();
+    // Slice is 2000 chars + newline + truncation marker.
+    expect(pre?.textContent).toContain("... (truncated)");
+    // The rendered preview is bounded in length.
+    expect((pre?.textContent ?? "").length).toBeLessThan(oversized.length);
+  });
 });
 
 describe("ApprovalListSection (FM-035 polish)", () => {
@@ -129,5 +181,29 @@ describe("ApprovalListSection (FM-035 polish)", () => {
     expect(screen.getByText("approved")).toBeInTheDocument();
     // decision comment surfaced for the approved row
     expect(screen.getByText("LGTM")).toBeInTheDocument();
+  });
+
+  it("renders the rejected badge + surfaces the description line", () => {
+    render(
+      <ApprovalListSection
+        approvals={[
+          makeApproval({
+            id: "a3",
+            status: "rejected",
+            title: "Rollback request",
+            description: "Production push gone sideways",
+            decided_by: "carol",
+            decided_at: new Date().toISOString(),
+          }),
+        ]}
+      />,
+    );
+    expect(screen.getByText("Rollback request")).toBeInTheDocument();
+    expect(screen.getByText("rejected")).toBeInTheDocument();
+    expect(
+      screen.getByText("Production push gone sideways"),
+    ).toBeInTheDocument();
+    // "Decided … by carol" metadata line appears
+    expect(screen.getByText(/by carol/)).toBeInTheDocument();
   });
 });

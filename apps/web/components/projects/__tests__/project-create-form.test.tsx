@@ -172,4 +172,71 @@ describe("ProjectCreateForm (FM-012)", () => {
     fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
+
+  it("coerces a blank description to null and sends the chosen template_id", async () => {
+    mocks.fetchTemplates.mockResolvedValue({
+      items: [
+        {
+          id: "tpl-7",
+          slug: "rest-api",
+          name: "REST API",
+          description: null,
+          category: "backend",
+          constitution_template: null,
+          default_governance_config: null,
+          default_phase_profiles: null,
+          suggested_task_types: null,
+          spec_defaults: null,
+          plan_defaults: null,
+          is_builtin: true,
+          is_active: true,
+          created_at: "",
+          updated_at: "",
+        },
+      ],
+      total: 1,
+    });
+    mocks.createProject.mockResolvedValue({ id: "p42" });
+    await renderForm();
+
+    fireEvent.change(screen.getByLabelText(/project name/i), {
+      target: { value: "Atlas" },
+    });
+    // leave description completely blank
+    fireEvent.change(screen.getByLabelText(/template/i), {
+      target: { value: "tpl-7" },
+    });
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: /create project/i }),
+      );
+    });
+
+    expect(mocks.createProject).toHaveBeenCalledWith({
+      name: "Atlas",
+      description: null,
+      template_id: "tpl-7",
+    });
+    expect(onCreated).toHaveBeenCalledTimes(1);
+  });
+
+  it("tolerates fetchTemplates failure and still allows project creation without the dropdown", async () => {
+    mocks.fetchTemplates.mockRejectedValue(new Error("templates api down"));
+    mocks.createProject.mockResolvedValue({ id: "p-ok" });
+    await renderForm();
+
+    // no template dropdown is rendered when fetchTemplates rejects
+    expect(screen.queryByLabelText(/template/i)).toBeNull();
+
+    fireEvent.change(screen.getByLabelText(/project name/i), {
+      target: { value: "Atlas" },
+    });
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: /create project/i }),
+      );
+    });
+    expect(onCreated).toHaveBeenCalledTimes(1);
+  });
 });

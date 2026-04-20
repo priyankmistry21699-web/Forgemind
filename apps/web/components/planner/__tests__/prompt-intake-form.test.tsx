@@ -128,4 +128,32 @@ describe("PromptIntakeForm (FM-013)", () => {
     fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
+
+  it("keeps submit disabled when the prompt is only whitespace padded to 10+ chars", () => {
+    renderForm();
+    // 12 whitespace chars — button's disabled attr uses prompt.trim().length < 10.
+    fireEvent.change(screen.getByLabelText(/what do you want to build/i), {
+      target: { value: "            " },
+    });
+    expect(
+      screen.getByRole("button", { name: /plan project/i }),
+    ).toBeDisabled();
+  });
+
+  it("short-circuits submission when trimmed prompt is shorter than 10 chars (handleSubmit guard)", async () => {
+    renderForm();
+
+    const ta = screen.getByLabelText(
+      /what do you want to build/i,
+    ) as HTMLTextAreaElement;
+    // "  hi there  " → trims to 8 chars, below the gate.
+    fireEvent.change(ta, { target: { value: "  hi there  " } });
+
+    // Force a submit event directly so we bypass the disabled-button UI.
+    await act(async () => {
+      fireEvent.submit(ta.closest("form")!);
+    });
+    expect(mocks.submitPromptIntake).not.toHaveBeenCalled();
+    expect(onPlanned).not.toHaveBeenCalled();
+  });
 });

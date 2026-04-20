@@ -249,4 +249,155 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
     expect(screen.getByTestId("planning-result-card")).toBeInTheDocument();
     expect(screen.getByTestId("run-task-list")).toHaveTextContent("r-99");
   });
+
+  it("renders the static 'Running Agents' and 'Health' stat cards with their copy", async () => {
+    mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
+    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 0 });
+
+    await act(async () => {
+      render(<DashboardPage />);
+    });
+
+    // Running Agents → 0 / Idle
+    const agentsLabel = screen.getByText("Running Agents");
+    const agentsCard = agentsLabel.closest("div.group");
+    expect(agentsCard).not.toBeNull();
+    expect(agentsCard?.textContent).toContain("0");
+    expect(agentsCard?.textContent).toContain("Idle");
+
+    // Health → OK / All systems operational
+    const healthLabel = screen.getByText("Health");
+    const healthCard = healthLabel.closest("div.group");
+    expect(healthCard).not.toBeNull();
+    expect(healthCard?.textContent).toContain("OK");
+    expect(healthCard?.textContent).toContain("All systems operational");
+  });
+
+  it("refetches projects + approvals after the create form fires onCreated", async () => {
+    mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
+    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 0 });
+
+    await act(async () => {
+      render(<DashboardPage />);
+    });
+
+    expect(mocks.fetchProjects).toHaveBeenCalledTimes(1);
+    expect(mocks.fetchApprovals).toHaveBeenCalledTimes(1);
+
+    // Open create form via header button
+    const newProjectButtons = screen.getAllByRole("button", {
+      name: /new project/i,
+    });
+    await act(async () => {
+      fireEvent.click(newProjectButtons[0]);
+    });
+    expect(screen.getByTestId("project-create-form")).toBeInTheDocument();
+
+    // Fire the stub's created-trigger → page should close the form and refetch.
+    await act(async () => {
+      fireEvent.click(screen.getByText("created-trigger"));
+    });
+    expect(screen.queryByTestId("project-create-form")).toBeNull();
+    expect(mocks.fetchProjects).toHaveBeenCalledTimes(2);
+    expect(mocks.fetchApprovals).toHaveBeenCalledTimes(2);
+  });
+
+  it("shows the Quick Actions 'Review Approvals' pill badge when pendingApprovals > 0", async () => {
+    mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
+    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 3 });
+
+    await act(async () => {
+      render(<DashboardPage />);
+    });
+
+    const reviewLinks = screen
+      .getAllByRole("link")
+      .filter((a) => a.getAttribute("href") === "/dashboard/approvals");
+    // Two links point to /dashboard/approvals: the stat card + quick actions.
+    expect(reviewLinks.length).toBeGreaterThanOrEqual(2);
+
+    const quickActionsLink = reviewLinks.find((a) =>
+      a.textContent?.includes("Review Approvals"),
+    );
+    expect(quickActionsLink).toBeDefined();
+    // Pill badge on the quick-actions link shows the count.
+    expect(quickActionsLink?.textContent).toContain("3");
+  });
+
+  it("hides the quick-actions approval pill badge when pendingApprovals is 0", async () => {
+    mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
+    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 0 });
+
+    await act(async () => {
+      render(<DashboardPage />);
+    });
+
+    const quickActionsLink = screen
+      .getAllByRole("link")
+      .find(
+        (a) =>
+          a.getAttribute("href") === "/dashboard/approvals" &&
+          a.textContent?.includes("Review Approvals"),
+      );
+    expect(quickActionsLink).toBeDefined();
+    // No numeric pill when the count is zero.
+    const span = quickActionsLink?.querySelector("span.rounded-full");
+    expect(span).toBeNull();
+  });
+
+  it("clears stale planning-result when the prompt form is re-opened", async () => {
+    mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
+    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 0 });
+
+    await act(async () => {
+      render(<DashboardPage />);
+    });
+
+    // Plan once so a planning-result-card surfaces.
+    const planButtons = screen.getAllByRole("button", {
+      name: /plan from prompt/i,
+    });
+    await act(async () => {
+      fireEvent.click(planButtons[0]);
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByText("planned-trigger"));
+    });
+    expect(screen.getByTestId("planning-result-card")).toBeInTheDocument();
+
+    // Re-open prompt form — page's openForm("prompt") must clear the result.
+    await act(async () => {
+      fireEvent.click(planButtons[0]);
+    });
+    expect(screen.queryByTestId("planning-result-card")).toBeNull();
+    expect(screen.queryByTestId("run-task-list")).toBeNull();
+    expect(screen.getByTestId("prompt-intake-form")).toBeInTheDocument();
+  });
+
+  it("dismisses the planning-result-card via its onDismiss callback", async () => {
+    mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
+    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 0 });
+
+    await act(async () => {
+      render(<DashboardPage />);
+    });
+
+    const planButtons = screen.getAllByRole("button", {
+      name: /plan from prompt/i,
+    });
+    await act(async () => {
+      fireEvent.click(planButtons[0]);
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByText("planned-trigger"));
+    });
+    expect(screen.getByTestId("planning-result-card")).toBeInTheDocument();
+    expect(screen.getByTestId("run-task-list")).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByText("dismiss"));
+    });
+    expect(screen.queryByTestId("planning-result-card")).toBeNull();
+    expect(screen.queryByTestId("run-task-list")).toBeNull();
+  });
 });
