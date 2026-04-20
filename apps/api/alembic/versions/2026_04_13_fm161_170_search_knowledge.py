@@ -19,7 +19,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSON
 
 
 revision = "fm161_170_search_knowledge"
-down_revision = None  # adjust to actual latest
+down_revision = "0026"
 branch_labels = None
 depends_on = None
 
