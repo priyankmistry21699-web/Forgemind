@@ -28,5 +28,32 @@ export default defineConfig({
       "dist/**",
     ],
     css: false,
+    coverage: {
+      // v8 is the default provider in Vitest 3+ and doesn't require an
+      // additional dev dep — keeps the install footprint small.
+      provider: "v8",
+      reporter: ["text", "text-summary", "json-summary", "html"],
+      reportsDirectory: "./coverage",
+      // Scope coverage collection to the actual source we ship. The UI
+      // app, lib clients, and components form the meaningful surface.
+      include: ["app/**", "components/**", "lib/**"],
+      exclude: [
+        "**/__tests__/**",
+        "**/*.d.ts",
+        "app/**/layout.tsx",
+        "app/**/loading.tsx",
+        "app/**/not-found.tsx",
+        "app/**/error.tsx",
+        "app/**/page.tsx",
+      ],
+      // Soft thresholds — set intentionally low so the pipeline doesn't
+      // flake on incidental coverage dips; tighten over time.
+      thresholds: {
+        lines: 20,
+        statements: 20,
+        functions: 25,
+        branches: 40,
+      },
+    },
   },
 });

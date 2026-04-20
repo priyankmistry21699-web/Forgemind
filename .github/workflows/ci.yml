@@ -76,6 +76,22 @@ jobs:
       - name: Test (Vitest)
         run: npm test
 
+      - name: Coverage (Vitest + v8)
+        # Non-fatal: coverage thresholds are soft and intended to surface
+        # regressions without blocking PRs until they stabilise.
+        run: npm run test:coverage
+        continue-on-error: true
+
+      - name: Upload coverage summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-coverage-summary
+          path: |
+            apps/web/coverage/coverage-summary.json
+            apps/web/coverage/index.html
+          if-no-files-found: ignore
+
       - name: Build
         run: npm run build
 
