@@ -1,6 +1,6 @@
 # ForgeMind — System Architecture
 
-> Last updated: 2026-04-03 (after FM-090 — architecture intelligence complete)
+> Last updated: 2026-04-20 (V4 closure at commit `95712bb` — FM-181→210: 29 COMPLETE / 1 PARTIAL / 0 NOT STARTED)
 
 ---
 

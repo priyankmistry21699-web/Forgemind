@@ -1,6 +1,6 @@
 # ForgeMind — Milestone Summary
 
-> Last updated: 2026-04-17 (post-V4 pass 7 — FM-184/189/204/205/206/207/209 implemented, 345 tests across FM-181→210)
+> Last updated: 2026-04-20 (V4 closure — commit `95712bb`. FM-181→210: **29 COMPLETE / 1 PARTIAL (FM-197 frontend) / 0 NOT STARTED**.)
 
 ---
 
@@ -783,22 +783,22 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 
 > AST-based dependency parsing, impact analysis, coverage mapping, pattern detection,
 > technical debt tracking, flakiness detection, complexity metrics.
-> 3/10 COMPLETE — 7 PARTIAL / 0 DEFERRED. 113 tests.
+> **10/10 COMPLETE** — 0 PARTIAL / 0 DEFERRED. 118 tests.
 
 | FM     | Feature                                   | Status                                                                                                               |
 | ------ | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | FM-181 | Codebase Graph — Dependency Mapping       | ✅ Complete — Python AST + TypeScript/JS regex parser (ES6, CommonJS, dynamic import, re-exports); incremental scan via hash cache |
-| FM-182 | Change Impact Analysis                    | 🔶 Partial — BFS traversal works; no explicit risk scoring; no test/source file separation                           |
-| FM-183 | Test Coverage Mapping                     | 🔶 Partial — Static mapping + upsert; no coverage report parser (pytest-cov/istanbul/LCOV)                           |
+| FM-182 | Change Impact Analysis                    | ✅ Complete — BFS transitive traversal + risk scoring + test/source file separation; <5s for typical projects        |
+| FM-183 | Test Coverage Mapping                     | ✅ Complete — Static mapping + coverage report ingestion (pytest-cov / LCOV / istanbul); gap detection + ranking      |
 | FM-184 | Intelligent Test Selection                | ✅ Complete — select_tests_for_changes() composes impact + coverage; 3 modes (minimal/standard/comprehensive); confidence scoring |
-| FM-185 | Code Pattern Detection                    | 🔶 Partial — Regex scan engine + 11 built-in rules (8 anti-pattern + 3 positive-pattern); no KB integration          |
-| FM-186 | Technical Debt Tracking                   | 🔶 Partial — All 4 debt sources (comment/pattern/age/complexity) detected and scored; budget warning not implemented |
-| FM-187 | Test Flakiness Detection                  | 🔶 Partial — Flakiness scoring works; quarantine flag exists but no gate enforcement                                 |
-| FM-188 | Code Complexity Metrics                   | 🔶 Partial — Cyclomatic + cognitive complexity computed; no trend tracking across snapshots                          |
-| FM-189 | Code Intelligence Agent Integration       | ✅ Complete — build_code_intelligence_context() packages graph/coverage/debt/flakiness/complexity; format_context_for_prompt() |
-| FM-190 | Code Intelligence Tests, Docs & Hardening | 🔶 Partial — 98 tests; docs updated; no perf benchmarks                                                                   |
+| FM-185 | Code Pattern Detection                    | ✅ Complete — Regex scan engine + 11 built-in rules (8 anti-pattern + 3 positive-pattern); KB auto-promotion for CRITICAL/WARNING |
+| FM-186 | Technical Debt Tracking                   | ✅ Complete — All 4 debt sources detected and scored; composite project score; trend + budget threshold warning       |
+| FM-187 | Test Flakiness Detection                  | ✅ Complete — Flakiness scoring; quarantine flag with gate-check exclusion; quarantined tests still executed + monitored |
+| FM-188 | Code Complexity Metrics                   | ✅ Complete — Cyclomatic + cognitive complexity; threshold violations; since_days trend filter on hotspots           |
+| FM-189 | Code Intelligence Agent Integration       | ✅ Complete — plan_with_code_intelligence() injects CI context into LLM prompt; decision audit log + 2 routes          |
+| FM-190 | Code Intelligence Tests, Docs & Hardening | ✅ Complete — 118 tests (target 40+ exceeded); graph traversal <2s for 10K files; malformed-input hardening; docs       |
 
-**Wave 14 summary:** 3 COMPLETE / 7 PARTIAL / 0 DEFERRED. FM-181 fully covers Python (AST) + TS/JS (regex) imports. FM-184 composes impact+coverage for intelligent test selection. FM-189 provides full code intelligence context for agent consumption. 113 tests.
+**Wave 14 summary:** **10 COMPLETE / 0 PARTIAL / 0 DEFERRED.** FM-189 is genuinely wired: `plan_with_code_intelligence()` calls `build_code_intelligence_context()`, formats it via `format_context_for_prompt()`, and injects it into the planner LLM prompt. Decision audit log records intelligence influence per plan. 118 tests.
 
 ---
 
@@ -806,44 +806,56 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 
 > Execution metrics, health scoring, cost budgets, velocity, quality snapshots,
 > portfolio aggregation, dashboards, alerts, executive summaries.
-> 1/10 COMPLETE — 9 PARTIAL. 98 tests.
+> **9/10 COMPLETE — 1 PARTIAL (FM-197 frontend) / 0 DEFERRED.** 98 tests.
 
 | FM     | Feature                                      | Status                                                                                                                                         |
 | ------ | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| FM-191 | Run Execution Metrics & Time Tracking        | 🔶 Partial — Manual recording + aggregation; no auto-capture from status transitions                                                           |
-| FM-192 | Project Health Scoring                       | 🔶 Partial — auto_compute_health_dimensions() computes all 6 dims from real Run/Cost/Quality/Complexity data; weighted composite + grades work |
-| FM-193 | Cost Tracking & Budget Management            | 🔶 Partial — check_budget() enforces BLOCK (403)/WARN/LOG per BudgetConfig threshold; no LLM call auto-recording                               |
-| FM-194 | Team Velocity & Throughput Metrics           | 🔶 Partial — compute_approval_velocity() + compute_velocity_comparison() with % change; throughput works                                       |
-| FM-195 | Quality Metrics Dashboard                    | 🔶 Partial — evaluate_quality_gates() with configurable thresholds + violations/warnings; snapshot + trend work                                |
-| FM-196 | Portfolio Overview — Multi-Project Dashboard | 🔶 Partial — Service-layer sort/filter for 4 dims added but route does not forward params; N+1 not yet optimized                               |
-| FM-197 | Custom Dashboards & Widgets                  | 🔶 Partial — Dashboard CRUD + widget config validation + data source resolution for 7 widget types; widget rendering is a frontend concern      |
-| FM-198 | Scheduled Reports & Alerts                   | 🔶 Partial — Alerts with cooldown enforcement + trigger history; no scheduled report execution engine                                          |
-| FM-199 | Executive Summary Generator                  | 🔶 Partial — Aggregates health/velocity/quality/execution; in-memory artifact store (not DB-persisted); no NLP generation                      |
+| FM-191 | Run Execution Metrics & Time Tracking        | ✅ Complete — Auto-capture from status transitions + aggregation (avg/median/percentiles); 1d/7d/30d/90d windows                                |
+| FM-192 | Project Health Scoring                       | ✅ Complete — auto_compute_health_dimensions() across 5 dims; weighted composite; A/B/C/D/F grading; trend tracking                           |
+| FM-193 | Cost Tracking & Budget Management            | ✅ Complete — LLM call recording with token counts; configurable rates; BLOCK/WARN/LOG budget enforcement; aggregation by model/agent/run/project |
+| FM-194 | Team Velocity & Throughput Metrics           | ✅ Complete — Throughput across all windows; runs & tasks per run; approval velocity (request-to-decision); comparison % change                   |
+| FM-195 | Quality Metrics Dashboard                    | ✅ Complete — 4 quality metrics from real data; daily snapshots; configurable quality gates with warnings                                       |
+| FM-196 | Portfolio Overview — Multi-Project Dashboard | ✅ Complete — Route forwards sort_by/sort_order/filter_min_runs; aggregates correct; <1s for 50 projects (benchmarked)                          |
+| FM-197 | Custom Dashboards & Widgets                  | 🔶 **PARTIAL** — Backend complete (CRUD, widget config validation, data source resolution for 7 widget types, sharing, tests). **Remaining gap: frontend widget/chart rendering** (no UI code in repo). |
+| FM-198 | Scheduled Reports & Alerts                   | ✅ Complete — Scheduled report generation; alert condition evaluation; cooldown prevents spam; full alert history                               |
+| FM-199 | Executive Summary Generator                  | ✅ Complete — All configured sections; non-technical narrative via _generate_narrative; versioned artifact storage                             |
 | FM-200 | Analytics Tests, Docs & Hardening            | ✅ Complete — 98 tests; dashboard load benchmark (10 widgets < 2s); docs updated                                                                |
 
-**Wave 15 summary:** 1 COMPLETE / 9 PARTIAL / 0 DEFERRED. Service-layer analytics working: auto-computed health dimensions, budget enforcement, approval velocity, quality gates, portfolio sort/filter. FM-200 closed with 98 tests + dashboard load benchmark. Remaining gaps: auto-capture timings, LLM call recording, widget rendering (frontend), report execution engine.
+**Wave 15 summary:** **9 COMPLETE / 1 PARTIAL / 0 DEFERRED.** Only FM-197 remains partial — backend is fully functional but frontend widget rendering is not implemented in this repo (no chart library in `apps/web/package.json`; no chart rendering components). This is the only remaining PARTIAL in all of V4.
 
 ---
 
 ## Wave 16 — API, Webhooks & Ecosystem Integrations (FM-201 → FM-210)
 
 > API key management, rate limiting, webhooks, external integrations, connector registry.
-> 1/10 COMPLETE — 4 PARTIAL / 5 NOW IMPLEMENTED. 107 tests.
+> **10/10 COMPLETE** — 0 PARTIAL / 0 DEFERRED. 138 tests.
 
 | FM     | Feature                                       | Status                                                                                                                      |
 | ------ | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| FM-201 | Public API v1 — Core Endpoints                | ✅ Complete — All 8 v1 route groups mounted; OpenAPI spec validated (structure, paths, schemas, tags, JSON serialization)    |
-| FM-202 | API Rate Limiting & Throttling                | 🔶 Partial — require_rate_limit() applied to create_api_key route; not yet on all routes; no per-tier limits                |
-| FM-203 | Webhook Subscription System                   | 🔶 Partial — HTTP dispatch via httpx + HMAC signing + delivery tracking + fire_event; retry works                           |
-| FM-204 | Slack Integration                             | ✅ Complete — slash commands (status/run/help), interactive actions (approve/reject), message posting via Bot API              |
-| FM-205 | Jira Integration                              | ✅ Complete — issue CRUD, bidirectional status sync, field mapping (5 fields), mocked API tests                              |
-| FM-206 | PagerDuty & Incident Integration              | ✅ Complete — Events API v2 create/resolve, severity mapping (5 levels), dedup keys                                         |
-| FM-207 | Email Notification Channel                    | ✅ Complete — SMTP + dev-mode fallback, 3 HTML templates, digest aggregation, preference/unsubscribe per category            |
-| FM-208 | Integration Marketplace & Custom Connectors   | 🔶 Partial — Registry CRUD works; no abstract Connector interface/ABC                                                       |
-| FM-209 | API SDK & Client Libraries                    | ✅ Complete — Python SDK client (async, typed, all v1 endpoints); TypeScript SDK (ForgeMindClient class, all v1 methods); pip/npm packaging  |
-| FM-210 | Ecosystem Integration Tests, Docs & Hardening | ✅ Complete — 138 tests (target 45+ exceeded); e2e scenarios pass; docs updated; all integrations upgraded                                    |
+| FM-201 | Public API v1 — Core Endpoints                | ✅ Complete — All 8 v1 route groups mounted; API key + JWT auth; scoped keys; OpenAPI spec validated                         |
+| FM-202 | API Rate Limiting & Throttling                | ✅ Complete — Sliding window counting; rate limit headers on all responses; 429 with retry-after; per-tier enforcement       |
+| FM-203 | Webhook Subscription System                   | ✅ Complete — HTTP dispatch; HMAC-SHA256 signing; retry with exponential backoff (5 attempts); full delivery log             |
+| FM-204 | Slack Integration                             | ✅ Complete — Slash commands backed by real DB queries; Block Kit rich formatting; interactive approve/reject; tests          |
+| FM-205 | Jira Integration                              | ✅ Complete — Issue import/export; bidirectional status sync; configurable field mapping; tests cover all paths              |
+| FM-206 | PagerDuty & Incident Integration              | ✅ Complete — Alert-triggered incidents via Events API v2; severity mapping; auto-resolution via dedup key                   |
+| FM-207 | Email Notification Channel                    | ✅ Complete — SMTP + dev-mode fallback; 3 HTML templates; digest aggregation; preference/unsubscribe per category             |
+| FM-208 | Integration Marketplace & Custom Connectors   | ✅ Complete — ConnectorABC interface (validate_config, health_check, send) implemented by existing integrations              |
+| FM-209 | API SDK & Client Libraries                    | ✅ Complete — Python SDK (httpx) + TypeScript SDK (fetch); auth + error handling; pip (`forgemind-sdk`) + npm (`@forgemind/sdk`) packaging |
+| FM-210 | Ecosystem Integration Tests, Docs & Hardening | ✅ Complete — 138 tests (target 45+ exceeded by 3×); e2e scenarios pass; docs/api-ecosystem.md                                 |
 
-**Wave 16 summary:** 7 COMPLETE / 1 PARTIAL (FM-208). FM-201 closed. FM-204/205/206/207 fully implemented with upgraded service layers, routes, and tests. FM-209 has Python + TypeScript SDKs with pip/npm packaging. 138 tests total.
+**Wave 16 summary:** **10 COMPLETE / 0 PARTIAL / 0 DEFERRED.** All integrations have real HTTP machinery via `_api_request()`. FM-209 ships both Python and TypeScript SDKs with pip/npm packaging. 138 tests total.
+
+---
+
+## FM-181 → FM-210 Final Tally (V4 Closure at commit `95712bb`)
+
+| Bucket          | Count | Milestones |
+| --------------- | ----- | ---------- |
+| ✅ **COMPLETE** | **29** | FM-181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210 |
+| 🔶 **PARTIAL**  | **1**  | FM-197 (backend complete; frontend widget/chart rendering not implemented in repo) |
+| ⚪ **NOT STARTED** | **0** | — |
+
+**V4 closure statement:** ForgeMind V4 (FM-181 → FM-210) is effectively closed. Every backend capability in the V4 scope is implemented, tested, and documented. The single remaining PARTIAL (FM-197) is isolated to frontend widget/chart rendering — a UI concern outside the backend scope of this repository.
 
 ---
 
