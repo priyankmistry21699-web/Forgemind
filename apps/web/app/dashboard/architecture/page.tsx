@@ -52,13 +52,20 @@ function severityBadge(level: string) {
 /*  Main page                                                          */
 /* ------------------------------------------------------------------ */
 
-// Placeholder project ID — replaced when integrated with project context.
-const PROJECT_ID =
-  typeof window !== "undefined"
-    ? (new URLSearchParams(window.location.search).get("project") ?? "")
-    : "";
+/**
+ * Read the active project id from the current URL.
+ *
+ * Evaluated on every render (instead of at module-load time) so the test
+ * harness can set `window.location.search` between renders and so the page
+ * naturally reacts to client-side navigation.
+ */
+function readProjectId(): string {
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get("project") ?? "";
+}
 
 export default function ArchitectureDashboard() {
+  const PROJECT_ID = readProjectId();
   const [graph, setGraph] = useState<ArchitectureGraph | null>(null);
   const [drifts, setDrifts] = useState<ArchitectureDrift[]>([]);
   const [rules, setRules] = useState<ArchitectureRule[]>([]);
@@ -101,7 +108,7 @@ export default function ArchitectureDashboard() {
       }
     }
     load();
-  }, []);
+  }, [PROJECT_ID]);
 
   /* ─ No project selected ─ */
   if (!PROJECT_ID) {

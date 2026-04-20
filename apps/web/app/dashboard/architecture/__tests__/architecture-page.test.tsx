@@ -1,10 +1,8 @@
 /**
  * FM-085 smoke tests for the architecture review dashboard.
  *
- * The page reads ?project=<id> from window.location at module-evaluation
- * time, so each test must:
- *   1. set window.location.search BEFORE importing the page module, then
- *   2. `vi.resetModules()` so the constant is recomputed on re-import.
+ * The page reads ?project=<id> from window.location on each render, so each
+ * test only needs to update the URL before calling render().
  */
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
@@ -39,14 +37,14 @@ vi.mock("next/link", () => ({
   }) => <a href={href}>{children}</a>,
 }));
 
+import Page from "../page";
+
 function setUrl(search: string) {
   window.history.replaceState({}, "", `/dashboard/architecture${search}`);
 }
 
 async function loadPage() {
-  vi.resetModules();
-  const mod = await import("../page");
-  return mod.default;
+  return Page;
 }
 
 beforeEach(() => {
