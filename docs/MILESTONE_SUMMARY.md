@@ -1,6 +1,6 @@
 # ForgeMind — Milestone Summary
 
-> Last updated: 2026-04-20 (V4 closure — commit `95712bb`. FM-181→210: **29 COMPLETE / 1 PARTIAL (FM-197 frontend) / 0 NOT STARTED**.)
+> Last updated: 2026-04-20 (V4 closure. FM-181→210: **30 COMPLETE / 0 PARTIAL / 0 NOT STARTED**. FM-197 closed with frontend widget/chart renderer.)
 
 ---
 
@@ -806,7 +806,7 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 
 > Execution metrics, health scoring, cost budgets, velocity, quality snapshots,
 > portfolio aggregation, dashboards, alerts, executive summaries.
-> **9/10 COMPLETE — 1 PARTIAL (FM-197 frontend) / 0 DEFERRED.** 98 tests.
+> **10/10 COMPLETE** — 0 PARTIAL / 0 DEFERRED. 98 tests.
 
 | FM     | Feature                                      | Status                                                                                                                                         |
 | ------ | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -816,12 +816,12 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 | FM-194 | Team Velocity & Throughput Metrics           | ✅ Complete — Throughput across all windows; runs & tasks per run; approval velocity (request-to-decision); comparison % change                   |
 | FM-195 | Quality Metrics Dashboard                    | ✅ Complete — 4 quality metrics from real data; daily snapshots; configurable quality gates with warnings                                       |
 | FM-196 | Portfolio Overview — Multi-Project Dashboard | ✅ Complete — Route forwards sort_by/sort_order/filter_min_runs; aggregates correct; <1s for 50 projects (benchmarked)                          |
-| FM-197 | Custom Dashboards & Widgets                  | 🔶 **PARTIAL** — Backend complete (CRUD, widget config validation, data source resolution for 7 widget types, sharing, tests). **Remaining gap: frontend widget/chart rendering** (no UI code in repo). |
+| FM-197 | Custom Dashboards & Widgets                  | ✅ Complete — Backend (CRUD, widget config validation, data resolution across 7 widget types, sharing) + **frontend** (pure-SVG renderer for all 6 chart types, dashboard grid, CRUD UI at `/dashboard/analytics`). |
 | FM-198 | Scheduled Reports & Alerts                   | ✅ Complete — Scheduled report generation; alert condition evaluation; cooldown prevents spam; full alert history                               |
 | FM-199 | Executive Summary Generator                  | ✅ Complete — All configured sections; non-technical narrative via _generate_narrative; versioned artifact storage                             |
 | FM-200 | Analytics Tests, Docs & Hardening            | ✅ Complete — 98 tests; dashboard load benchmark (10 widgets < 2s); docs updated                                                                |
 
-**Wave 15 summary:** **9 COMPLETE / 1 PARTIAL / 0 DEFERRED.** Only FM-197 remains partial — backend is fully functional but frontend widget rendering is not implemented in this repo (no chart library in `apps/web/package.json`; no chart rendering components). This is the only remaining PARTIAL in all of V4.
+**Wave 15 summary:** **10 COMPLETE / 0 PARTIAL / 0 DEFERRED.** FM-197 now ships a full frontend widget renderer: pure-SVG charts (no new dependencies), 6 chart types (line, bar, pie, table, number, gauge) dispatched from a defensive per-widget-type data adapter. Wired to the live `/analytics/dashboards/...` backend at `/dashboard/analytics`.
 
 ---
 
@@ -847,15 +847,15 @@ _Wave 10: 10/10 complete. Wave 11: 9/10 complete, 1 deferred. Wave 12: 10/10 com
 
 ---
 
-## FM-181 → FM-210 Final Tally (V4 Closure at commit `95712bb`)
+## FM-181 → FM-210 Final Tally (V4 Closure)
 
 | Bucket          | Count | Milestones |
 | --------------- | ----- | ---------- |
-| ✅ **COMPLETE** | **29** | FM-181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210 |
-| 🔶 **PARTIAL**  | **1**  | FM-197 (backend complete; frontend widget/chart rendering not implemented in repo) |
+| ✅ **COMPLETE** | **30** | FM-181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210 |
+| 🔶 **PARTIAL**  | **0**  | — |
 | ⚪ **NOT STARTED** | **0** | — |
 
-**V4 closure statement:** ForgeMind V4 (FM-181 → FM-210) is effectively closed. Every backend capability in the V4 scope is implemented, tested, and documented. The single remaining PARTIAL (FM-197) is isolated to frontend widget/chart rendering — a UI concern outside the backend scope of this repository.
+**V4 closure statement:** ForgeMind V4 (FM-181 → FM-210) is fully closed. Every capability in the V4 scope is implemented, tested, and documented — backend and frontend.
 
 ---
 

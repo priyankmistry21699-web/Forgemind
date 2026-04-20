@@ -41,12 +41,12 @@ Multi-project dashboard aggregating health, velocity, cost, and quality across a
 
 ### FM-197 — Custom Dashboards & Widgets
 
-Widget data resolution for 7+ chart types (velocity, quality, cost, health, etc.).
+Widget data resolution for 7 widget types across 6 chart types.
 
 - **Widget config validation:** `validate_widget_config()` / `validate_dashboard_layout()` validates widget_type, chart_type (line, bar, pie, table, number, gauge), position, and size before persistence.
 - **Data source resolution:** `resolve_widget_data()` dispatches to the correct service and returns chart-ready JSON.
 - **Layout persistence:** `layout_json` stored on Dashboard model.
-- **Note:** Visual widget rendering is a frontend concern (React components). Backend provides all data/validation infrastructure.
+- **Frontend renderer** (`apps/web/components/dashboard/`): pure-SVG chart components (zero new dependencies) dispatched by a per-widget-type data adapter. All six chart types render with graceful loading/empty/error states. CRUD UI at `/dashboard/analytics` supports creating dashboards, adding/removing widgets, and persisting layouts via `PUT /analytics/dashboards/{id}`.
 
 ### FM-198 — Scheduled Reports
 

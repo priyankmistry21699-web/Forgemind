@@ -2110,7 +2110,7 @@ After V4, ForgeMind occupies a unique market position: an **AI-native engineerin
 
 **Acceptance criteria:**
 
-- [ ] Widgets render correctly for all chart types
+- [x] Widgets render correctly for all chart types _(apps/web/components/dashboard — pure-SVG renderer dispatches across line/bar/pie/table/number/gauge; wired to live backend at /dashboard/analytics)_
 - [x] Layout saves and restores accurately
 - [x] Data sources fetch correct metric data _(resolve_widget_data dispatches to real service layer)_
 - [x] Sharing with team visibility works
