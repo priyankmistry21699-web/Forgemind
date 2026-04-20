@@ -52,11 +52,15 @@ async def _seed_workspace(db: AsyncSession):
     from app.models.workspace import Workspace
     from app.models.membership import WorkspaceMember, WorkspaceRole
 
-    ws = Workspace(name="Test WS", slug=f"test-ws-{uuid.uuid4().hex[:8]}", owner_id=STUB_USER_ID)
+    ws = Workspace(
+        name="Test WS", slug=f"test-ws-{uuid.uuid4().hex[:8]}", owner_id=STUB_USER_ID
+    )
     db.add(ws)
     await db.flush()
     await db.refresh(ws)
-    mem = WorkspaceMember(workspace_id=ws.id, user_id=STUB_USER_ID, role=WorkspaceRole.ADMIN)
+    mem = WorkspaceMember(
+        workspace_id=ws.id, user_id=STUB_USER_ID, role=WorkspaceRole.ADMIN
+    )
     db.add(mem)
     await db.flush()
     return ws
@@ -191,7 +195,10 @@ class TestReviewerSuggestion:
         user_a, user_b, user_c = await _seed_code_ownership(db, repo.id)
 
         results = await suggest_reviewers(
-            db, repo.id, ["src/api/main.py"], exclude_user_ids=[user_a],
+            db,
+            repo.id,
+            ["src/api/main.py"],
+            exclude_user_ids=[user_a],
         )
         # user_a excluded → only user_b visible
         assert all(r["owner_user_id"] != str(user_a) for r in results)
@@ -205,7 +212,8 @@ class TestReviewerSuggestion:
         await _seed_code_ownership(db, repo.id)
 
         results = await suggest_reviewers(
-            db, repo.id,
+            db,
+            repo.id,
             ["src/api/main.py", "docs/README.md"],
             max_reviewers=1,
         )
@@ -237,8 +245,12 @@ class TestReviewerSuggestion:
 
 class TestCIReadinessGating:
     async def _seed_ci_runs(
-        self, db: AsyncSession, repo_link_id: uuid.UUID,
-        *, success: int = 0, failure: int = 0,
+        self,
+        db: AsyncSession,
+        repo_link_id: uuid.UUID,
+        *,
+        success: int = 0,
+        failure: int = 0,
     ):
         from app.models.github_integration import CIPipelineRun, CIPipelineStatus
 
@@ -392,13 +404,17 @@ class TestEscalationNotification:
         from sqlalchemy import select as sa_select
 
         notifs = (
-            await db.execute(
-                sa_select(Notification).where(
-                    Notification.resource_type == "approval_request",
-                    Notification.resource_id == approval.id,
+            (
+                await db.execute(
+                    sa_select(Notification).where(
+                        Notification.resource_type == "approval_request",
+                        Notification.resource_id == approval.id,
+                    )
                 )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         assert len(notifs) >= 1
         assert notifs[0].notification_type.value == "escalation"
         assert notifs[0].priority.value == "high"
@@ -492,7 +508,11 @@ class TestNotificationRetention:
             create_retention_policy,
             evaluate_retention,
         )
-        from app.models.notification import Notification, NotificationType, NotificationPriority
+        from app.models.notification import (
+            Notification,
+            NotificationType,
+            NotificationPriority,
+        )
 
         ws = await _seed_workspace(db)
         await create_retention_policy(
@@ -538,7 +558,11 @@ class TestNotificationRetention:
             evaluate_retention,
         )
         from app.models.enterprise_governance import RetentionAction
-        from app.models.notification import Notification, NotificationType, NotificationPriority
+        from app.models.notification import (
+            Notification,
+            NotificationType,
+            NotificationPriority,
+        )
         from sqlalchemy import select as sa_select, func as sa_func
 
         ws = await _seed_workspace(db)
@@ -582,7 +606,9 @@ class TestNotificationRetention:
         assert remaining == 0
 
     @pytest.mark.asyncio
-    async def test_notification_retention_unsupported_entity_rejected(self, db: AsyncSession):
+    async def test_notification_retention_unsupported_entity_rejected(
+        self, db: AsyncSession
+    ):
         from app.services.retention_policy_service import create_retention_policy
 
         ws = await _seed_workspace(db)

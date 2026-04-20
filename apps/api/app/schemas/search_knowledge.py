@@ -176,9 +176,7 @@ class RecommendationList(BaseModel):
 
 
 class RecommendationDismiss(BaseModel):
-    feedback: str | None = Field(
-        None, pattern="^(helpful|not_helpful|later)$"
-    )
+    feedback: str | None = Field(None, pattern="^(helpful|not_helpful|later)$")
 
 
 # ── FM-166: Run Comparison ───────────────────────────────────────

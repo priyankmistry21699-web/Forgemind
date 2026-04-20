@@ -25,7 +25,9 @@ class TestFM147AssignmentEvents:
         from app.models.execution_event import EventType
 
         task = await task_assignment_service.assign_task(
-            db_session, sample_task.id, STUB_USER_ID,
+            db_session,
+            sample_task.id,
+            STUB_USER_ID,
         )
         assert task.assignee_id == STUB_USER_ID
 
@@ -44,7 +46,9 @@ class TestFM147AssignmentEvents:
         assert ev.metadata_["assignee_id"] == str(STUB_USER_ID)
 
     async def test_reassign_task_emits_reassigned_event(
-        self, db_session, sample_task,
+        self,
+        db_session,
+        sample_task,
     ):
         from app.services import task_assignment_service
         from app.models.execution_event import EventType, ExecutionEvent
@@ -52,10 +56,14 @@ class TestFM147AssignmentEvents:
 
         user2 = uuid.uuid4()
         await task_assignment_service.assign_task(
-            db_session, sample_task.id, STUB_USER_ID,
+            db_session,
+            sample_task.id,
+            STUB_USER_ID,
         )
         await task_assignment_service.assign_task(
-            db_session, sample_task.id, user2,
+            db_session,
+            sample_task.id,
+            user2,
         )
 
         result = await db_session.execute(
@@ -75,7 +83,9 @@ class TestFM147AssignmentEvents:
         from sqlalchemy import select
 
         await task_assignment_service.assign_task(
-            db_session, sample_task.id, STUB_USER_ID,
+            db_session,
+            sample_task.id,
+            STUB_USER_ID,
         )
         await task_assignment_service.unassign_task(db_session, sample_task.id)
 
@@ -142,9 +152,14 @@ class TestFM142NotificationPreferences:
 
         # Disabled
         await upsert_preference(
-            db_session, user_id=STUB_USER_ID, notification_type="system", enabled=False,
+            db_session,
+            user_id=STUB_USER_ID,
+            notification_type="system",
+            enabled=False,
         )
-        assert await is_notification_allowed(db_session, STUB_USER_ID, "system") is False
+        assert (
+            await is_notification_allowed(db_session, STUB_USER_ID, "system") is False
+        )
 
     async def test_muted_until(self, db_session):
         from app.services.notification_service import (
@@ -160,7 +175,10 @@ class TestFM142NotificationPreferences:
             enabled=True,
             muted_until=future,
         )
-        assert await is_notification_allowed(db_session, STUB_USER_ID, "escalation") is False
+        assert (
+            await is_notification_allowed(db_session, STUB_USER_ID, "escalation")
+            is False
+        )
 
     async def test_preferences_route_get(self, client):
         resp = await client.get("/notifications/preferences")
@@ -187,7 +205,9 @@ class TestFM148CrossProjectDashboard:
     """Test cross-project aggregated dashboard."""
 
     async def test_cross_project_dashboard_service(
-        self, db_session, sample_project,
+        self,
+        db_session,
+        sample_project,
     ):
         from app.services.project_overview_service import get_cross_project_dashboard
 
@@ -235,12 +255,16 @@ class TestFM152WebhookEvents:
     async def test_process_push_event(self, db_session):
         from app.services.webhook_service import process_push_event
 
-        event = await self._create_event(db_session, "push", {
-            "ref": "refs/heads/main",
-            "pusher": {"name": "octocat"},
-            "commits": [1, 2, 3],
-            "head_commit": {"id": "abc123"},
-        })
+        event = await self._create_event(
+            db_session,
+            "push",
+            {
+                "ref": "refs/heads/main",
+                "pusher": {"name": "octocat"},
+                "commits": [1, 2, 3],
+                "head_commit": {"id": "abc123"},
+            },
+        )
         result = await process_push_event(db_session, event)
         assert result["branch"] == "main"
         assert result["pusher"] == "octocat"
@@ -249,16 +273,20 @@ class TestFM152WebhookEvents:
     async def test_process_release_event(self, db_session):
         from app.services.webhook_service import process_release_event
 
-        event = await self._create_event(db_session, "release", {
-            "release": {
-                "tag_name": "v1.0.0",
-                "name": "First Release",
-                "prerelease": False,
-                "draft": False,
-                "author": {"login": "octocat"},
+        event = await self._create_event(
+            db_session,
+            "release",
+            {
+                "release": {
+                    "tag_name": "v1.0.0",
+                    "name": "First Release",
+                    "prerelease": False,
+                    "draft": False,
+                    "author": {"login": "octocat"},
+                },
+                "action": "published",
             },
-            "action": "published",
-        })
+        )
         result = await process_release_event(db_session, event)
         assert result["tag_name"] == "v1.0.0"
         assert result["action"] == "published"
@@ -289,14 +317,18 @@ class TestFM152WebhookEvents:
         db_session.add(repo_link)
         await db_session.flush()
 
-        event = await self._create_event(db_session, "check_run", {
-            "check_run": {
-                "name": "test-suite",
-                "head_sha": "abc123",
-                "status": "completed",
-                "conclusion": "success",
+        event = await self._create_event(
+            db_session,
+            "check_run",
+            {
+                "check_run": {
+                    "name": "test-suite",
+                    "head_sha": "abc123",
+                    "status": "completed",
+                    "conclusion": "success",
+                },
             },
-        })
+        )
         event.repository_link_id = repo_link.id
         await db_session.flush()
 
@@ -359,7 +391,9 @@ class TestFM155IssueExport:
         await self._make_repo_link(db_session, sample_project.id)
 
         await export_issue_to_github(
-            db_session, project_id=sample_project.id, title="Export test",
+            db_session,
+            project_id=sample_project.id,
+            title="Export test",
         )
         issues = await list_exportable_issues(db_session, sample_project.id)
         assert len(issues) >= 1
@@ -384,9 +418,7 @@ class TestFM156AutoBranch:
     def test_slugify_special_chars(self):
         from app.services.github_client import slugify_branch_name
 
-        name = slugify_branch_name(
-            "Add feature: @user/login (v2)", "1111-2222"
-        )
+        name = slugify_branch_name("Add feature: @user/login (v2)", "1111-2222")
         assert "/" not in name.split("/", 1)[1] or "task/" in name
         # Should not have special chars other than -
         slug_part = name.replace("task/", "")
@@ -406,10 +438,15 @@ class TestFM158DiffRiskRules:
 
         # Generate a large diff with proper header
         lines = ["+added line\n" for _ in range(400)]
-        diff = "diff --git a/big_file.py b/big_file.py\n--- a/big_file.py\n+++ b/big_file.py\n" + "".join(lines)
+        diff = (
+            "diff --git a/big_file.py b/big_file.py\n--- a/big_file.py\n+++ b/big_file.py\n"
+            + "".join(lines)
+        )
         result = evaluate_risk_rules(diff)
         assert result["risk_score"] > 0
-        assert any(r["rule_id"] == "LARGE_FILE_CHANGE" for r in result["triggered_rules"])
+        assert any(
+            r["rule_id"] == "LARGE_FILE_CHANGE" for r in result["triggered_rules"]
+        )
 
     def test_evaluate_risk_rules_secret(self):
         from app.services.diff_intelligence_service import evaluate_risk_rules
@@ -423,7 +460,9 @@ class TestFM158DiffRiskRules:
 
         diff = "diff --git a/migrations/001_init.py b/migrations/001_init.py\n--- a/migrations/001_init.py\n+++ b/migrations/001_init.py\n+ALTER TABLE"
         result = evaluate_risk_rules(diff)
-        assert any(r["rule_id"] == "MIGRATION_DETECTED" for r in result["triggered_rules"])
+        assert any(
+            r["rule_id"] == "MIGRATION_DETECTED" for r in result["triggered_rules"]
+        )
 
     def test_evaluate_risk_rules_clean_diff(self):
         from app.services.diff_intelligence_service import evaluate_risk_rules
@@ -543,7 +582,9 @@ class TestFM164TemplateCloneVersion:
         assert clone.version == sample_template.version + 1
         assert clone.parent_template_id == sample_template.id
         assert clone.constitution_template == sample_template.constitution_template
-        assert clone.default_governance_config == sample_template.default_governance_config
+        assert (
+            clone.default_governance_config == sample_template.default_governance_config
+        )
 
     async def test_create_template_version(self, db_session, sample_template):
         from app.services.template_inheritance_service import create_template_version
@@ -604,7 +645,9 @@ class TestFM165ProjectDirectory:
         from app.services.search_service import get_related_projects
 
         related = await get_related_projects(
-            db_session, sample_project.id, STUB_USER_ID,
+            db_session,
+            sample_project.id,
+            STUB_USER_ID,
         )
         assert isinstance(related, list)
 
@@ -637,7 +680,11 @@ class TestFM166ReplayRun:
         assert "error" in result
 
     async def test_replay_run_with_snapshots(
-        self, db_session, sample_project, sample_run, sample_task,
+        self,
+        db_session,
+        sample_project,
+        sample_run,
+        sample_task,
     ):
         from app.services.replay_service import capture_snapshot, replay_run
 
@@ -717,12 +764,18 @@ class TestFM172CustomRoles:
 
         ws_id = uuid.uuid4()
         await create_custom_role(
-            db_session, workspace_id=ws_id, name="Role A",
-            permissions=["project:view"], created_by=STUB_USER_ID,
+            db_session,
+            workspace_id=ws_id,
+            name="Role A",
+            permissions=["project:view"],
+            created_by=STUB_USER_ID,
         )
         await create_custom_role(
-            db_session, workspace_id=ws_id, name="Role B",
-            permissions=["project:run"], created_by=STUB_USER_ID,
+            db_session,
+            workspace_id=ws_id,
+            name="Role B",
+            permissions=["project:run"],
+            created_by=STUB_USER_ID,
         )
 
         roles = await list_custom_roles(db_session, ws_id)
@@ -732,11 +785,16 @@ class TestFM172CustomRoles:
         from app.services.authz_service import create_custom_role, update_custom_role
 
         role = await create_custom_role(
-            db_session, workspace_id=uuid.uuid4(), name="Old Name",
-            permissions=["project:view"], created_by=STUB_USER_ID,
+            db_session,
+            workspace_id=uuid.uuid4(),
+            name="Old Name",
+            permissions=["project:view"],
+            created_by=STUB_USER_ID,
         )
         updated = await update_custom_role(
-            db_session, role.id, name="New Name",
+            db_session,
+            role.id,
+            name="New Name",
             permissions=["project:view", "project:run"],
         )
         assert updated.name == "New Name"
@@ -787,10 +845,11 @@ class TestFM176ArchiveExclusion:
 
         # Backdate it
         from sqlalchemy import update
+
         await db_session.execute(
-            update(Run).where(Run.id == old_run.id).values(
-                created_at=datetime.now(timezone.utc) - timedelta(days=400)
-            )
+            update(Run)
+            .where(Run.id == old_run.id)
+            .values(created_at=datetime.now(timezone.utc) - timedelta(days=400))
         )
         await db_session.flush()
 

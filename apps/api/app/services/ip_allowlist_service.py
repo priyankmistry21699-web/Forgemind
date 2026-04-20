@@ -84,11 +84,7 @@ async def list_allowlist_entries(
 
     where_clause = and_(*conditions)
 
-    count_q = (
-        select(sa_func.count())
-        .select_from(IpAllowlistEntry)
-        .where(where_clause)
-    )
+    count_q = select(sa_func.count()).select_from(IpAllowlistEntry).where(where_clause)
     total = (await db.execute(count_q)).scalar() or 0
 
     items_q = (

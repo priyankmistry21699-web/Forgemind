@@ -105,7 +105,10 @@ async def get_project_activity(
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     cursor_dt = datetime.fromisoformat(cursor) if cursor else None
     items, total, next_cursor = await unified_activity_service.get_unified_activity(
-        db, project_id=project_id, limit=limit, cursor=cursor_dt,
+        db,
+        project_id=project_id,
+        limit=limit,
+        cursor=cursor_dt,
     )
     return UnifiedActivityList(
         items=[UnifiedActivityItem(**i) for i in items],
@@ -127,7 +130,10 @@ async def get_run_activity(
 ) -> UnifiedActivityList:
     cursor_dt = datetime.fromisoformat(cursor) if cursor else None
     items, total, next_cursor = await unified_activity_service.get_unified_activity(
-        db, run_id=run_id, limit=limit, cursor=cursor_dt,
+        db,
+        run_id=run_id,
+        limit=limit,
+        cursor=cursor_dt,
     )
     return UnifiedActivityList(
         items=[UnifiedActivityItem(**i) for i in items],

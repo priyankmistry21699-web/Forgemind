@@ -88,8 +88,11 @@ async def export_issue_to_github(
             parts = repo_link.full_name.split("/", 1)
             if len(parts) == 2:
                 resp = await github_client.create_issue(
-                    parts[0], parts[1],
-                    title=title, body=body, labels=labels,
+                    parts[0],
+                    parts[1],
+                    title=title,
+                    body=body,
+                    labels=labels,
                 )
                 issue_number = resp.get("number", 0)
                 issue_url = resp.get("html_url", issue_url)
@@ -119,10 +122,12 @@ async def list_exportable_issues(
 ) -> list[IssueLink]:
     """List issues pending outbound export (issue_number == 0)."""
     result = await db.execute(
-        select(IssueLink).where(
+        select(IssueLink)
+        .where(
             IssueLink.project_id == project_id,
             IssueLink.issue_number == 0,
-        ).order_by(IssueLink.created_at.desc())
+        )
+        .order_by(IssueLink.created_at.desc())
     )
     return list(result.scalars().all())
 
@@ -184,7 +189,9 @@ async def handle_issue_webhook(
             ls = ls.replace(tzinfo=timezone.utc)
         if (datetime.now(timezone.utc) - ls).total_seconds() < _SYNC_DEBOUNCE_SECONDS:
             if existing.sync_direction == "outbound":
-                logger.info("Debounce: skipping inbound event for issue #%s", issue_number)
+                logger.info(
+                    "Debounce: skipping inbound event for issue #%s", issue_number
+                )
                 return existing
 
     if action == "closed":
@@ -275,13 +282,16 @@ async def sync_status_to_github(
                 gh_state = "closed" if new_status == IssueLinkStatus.CLOSED else "open"
                 try:
                     await github_client.update_issue(
-                        parts[0], parts[1], issue.issue_number,
+                        parts[0],
+                        parts[1],
+                        issue.issue_number,
                         state=gh_state,
                     )
                 except Exception as exc:
                     logger.warning(
                         "GitHub API sync failed for issue #%s: %s",
-                        issue.issue_number, exc,
+                        issue.issue_number,
+                        exc,
                     )
 
     issue.sync_direction = "outbound"
@@ -290,7 +300,9 @@ async def sync_status_to_github(
     await db.refresh(issue)
     logger.info(
         "Synced issue #%s status: %s → %s",
-        issue.issue_number, old_status.value, new_status.value,
+        issue.issue_number,
+        old_status.value,
+        new_status.value,
     )
     return issue
 
@@ -329,7 +341,8 @@ async def process_pending_exports(
     for issue in pending:
         try:
             resp = await github_client.create_issue(
-                parts[0], parts[1],
+                parts[0],
+                parts[1],
                 title=issue.title,
                 body=None,
                 labels=issue.labels or [],
@@ -377,7 +390,11 @@ async def bulk_import_issues(
         if existing_q.scalar_one_or_none() is not None:
             continue
 
-        status = IssueLinkStatus.CLOSED if item.get("state") == "closed" else IssueLinkStatus.OPEN
+        status = (
+            IssueLinkStatus.CLOSED
+            if item.get("state") == "closed"
+            else IssueLinkStatus.OPEN
+        )
         labels = [lbl.get("name", "") for lbl in item.get("labels", [])]
 
         issue = IssueLink(

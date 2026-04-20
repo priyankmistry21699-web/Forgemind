@@ -148,19 +148,23 @@ async def suggest_reviewers(
     for owner_key, files in owner_files.items():
         coverage_count = len(files)
         specificities = owner_specificities[owner_key]
-        avg_specificity = sum(specificities) / len(specificities) if specificities else 0
+        avg_specificity = (
+            sum(specificities) / len(specificities) if specificities else 0
+        )
         score = round(coverage_count * (1 + avg_specificity / 100), 2)
 
-        scored.append({
-            "owner_user_id": owner_key[0],
-            "owner_team_name": owner_key[1],
-            "coverage_count": coverage_count,
-            "total_files": len(file_paths),
-            "coverage_ratio": round(coverage_count / len(file_paths), 2),
-            "avg_specificity": round(avg_specificity, 1),
-            "score": score,
-            "matched_files": files,
-        })
+        scored.append(
+            {
+                "owner_user_id": owner_key[0],
+                "owner_team_name": owner_key[1],
+                "coverage_count": coverage_count,
+                "total_files": len(file_paths),
+                "coverage_ratio": round(coverage_count / len(file_paths), 2),
+                "avg_specificity": round(avg_specificity, 1),
+                "score": score,
+                "matched_files": files,
+            }
+        )
 
     scored.sort(key=lambda x: x["score"], reverse=True)
     return scored[:max_reviewers]

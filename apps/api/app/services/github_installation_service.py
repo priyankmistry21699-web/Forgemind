@@ -122,8 +122,11 @@ async def store_installation_token(
     if inst is None:
         raise HTTPException(status_code=404, detail="Installation not found")
     from app.services.encryption_service import encrypt
+
     inst.access_token_encrypted = encrypt(access_token)
-    inst.token_expires_at = expires_at or (datetime.now(timezone.utc) + timedelta(hours=1))
+    inst.token_expires_at = expires_at or (
+        datetime.now(timezone.utc) + timedelta(hours=1)
+    )
     await db.flush()
     await db.refresh(inst)
     return inst
@@ -148,6 +151,7 @@ async def get_installation_token(
             logger.info("Token expired for installation %s", installation_pk)
             return None
     from app.services.encryption_service import decrypt
+
     try:
         return decrypt(inst.access_token_encrypted)
     except Exception:
@@ -200,8 +204,11 @@ async def handle_oauth_callback(
     if inst is None:
         raise HTTPException(status_code=404, detail="Unknown installation")
     from app.services.encryption_service import encrypt
+
     inst.access_token_encrypted = encrypt(access_token)
-    inst.token_expires_at = expires_at or (datetime.now(timezone.utc) + timedelta(hours=1))
+    inst.token_expires_at = expires_at or (
+        datetime.now(timezone.utc) + timedelta(hours=1)
+    )
     await db.flush()
     await db.refresh(inst)
     return inst
@@ -269,7 +276,9 @@ async def get_or_refresh_token(
     # Token missing or expired — try refresh
     if github_client is not None:
         return await refresh_installation_token(
-            db, installation_pk, github_client=github_client,
+            db,
+            installation_pk,
+            github_client=github_client,
         )
 
     return None

@@ -146,7 +146,9 @@ def require_scope(*scopes: str):
         api_key: str,
     ) -> APIKey:
         return await validate_api_key_with_scopes(
-            db, api_key, required_scopes=required,
+            db,
+            api_key,
+            required_scopes=required,
         )
 
     return _dependency
@@ -158,9 +160,7 @@ async def revoke_api_key(
     creator_id: uuid.UUID,
 ) -> APIKey:
     """Revoke an API key (soft delete)."""
-    result = await db.execute(
-        select(APIKey).where(APIKey.id == key_id)
-    )
+    result = await db.execute(select(APIKey).where(APIKey.id == key_id))
     key = result.scalar_one_or_none()
     if key is None:
         raise HTTPException(
@@ -288,7 +288,9 @@ def require_rate_limit(
 
     async def _dependency(request: Request, response: Response):
         # Use client IP or authenticated user as identifier
-        identifier = request.headers.get("X-API-Key", request.client.host if request.client else "unknown")
+        identifier = request.headers.get(
+            "X-API-Key", request.client.host if request.client else "unknown"
+        )
         result = check_rate_limit(
             identifier,
             max_requests=max_requests,

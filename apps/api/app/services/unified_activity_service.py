@@ -59,9 +59,7 @@ async def get_unified_activity(
     total_result = await db.execute(count_q)
     total = total_result.scalar_one()
 
-    ordered = (
-        base.order_by(ActivityFeedEntry.created_at.desc())
-    )
+    ordered = base.order_by(ActivityFeedEntry.created_at.desc())
     if cursor is None:
         ordered = ordered.offset(offset)
     ordered = ordered.limit(limit)

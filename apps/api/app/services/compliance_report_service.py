@@ -83,13 +83,21 @@ async def _generate_report_content(
     if report_type == ComplianceReportType.ACCESS_REVIEW:
         return await _generate_access_review(db, workspace_id, project_id, generated_at)
     elif report_type == ComplianceReportType.CHANGE_MANAGEMENT:
-        return await _generate_change_management(db, workspace_id, project_id, generated_at)
+        return await _generate_change_management(
+            db, workspace_id, project_id, generated_at
+        )
     elif report_type == ComplianceReportType.APPROVAL_AUDIT:
-        return await _generate_approval_audit(db, workspace_id, project_id, generated_at)
+        return await _generate_approval_audit(
+            db, workspace_id, project_id, generated_at
+        )
     elif report_type == ComplianceReportType.POLICY_COMPLIANCE:
-        return await _generate_policy_compliance(db, workspace_id, project_id, generated_at)
+        return await _generate_policy_compliance(
+            db, workspace_id, project_id, generated_at
+        )
     elif report_type == ComplianceReportType.FULL_GOVERNANCE:
-        return await _generate_full_governance(db, workspace_id, project_id, generated_at)
+        return await _generate_full_governance(
+            db, workspace_id, project_id, generated_at
+        )
     else:
         return {"error": f"Unknown report type: {report_type}"}
 
@@ -102,9 +110,7 @@ async def _generate_access_review(
 ) -> dict:
     """Access review: list all members and their roles."""
     # Workspace members
-    ws_q = select(WorkspaceMember).where(
-        WorkspaceMember.workspace_id == workspace_id
-    )
+    ws_q = select(WorkspaceMember).where(WorkspaceMember.workspace_id == workspace_id)
     ws_members = (await db.execute(ws_q)).scalars().all()
 
     ws_data = [
@@ -128,19 +134,21 @@ async def _generate_access_review(
     for pid, pname in projects:
         pm_q = select(ProjectMember).where(ProjectMember.project_id == pid)
         pm_members = (await db.execute(pm_q)).scalars().all()
-        project_access.append({
-            "project_id": str(pid),
-            "project_name": pname,
-            "members": [
-                {
-                    "user_id": str(m.user_id),
-                    "role": m.role.value,
-                    "is_approver": m.is_approver,
-                    "is_reviewer": m.is_reviewer,
-                }
-                for m in pm_members
-            ],
-        })
+        project_access.append(
+            {
+                "project_id": str(pid),
+                "project_name": pname,
+                "members": [
+                    {
+                        "user_id": str(m.user_id),
+                        "role": m.role.value,
+                        "is_approver": m.is_approver,
+                        "is_reviewer": m.is_reviewer,
+                    }
+                    for m in pm_members
+                ],
+            }
+        )
 
     return {
         "report_type": "access_review",
@@ -164,11 +172,7 @@ async def _generate_change_management(
     if project_id:
         conditions.append(AuditLog.project_id == project_id)
 
-    total_q = (
-        select(sa_func.count())
-        .select_from(AuditLog)
-        .where(and_(*conditions))
-    )
+    total_q = select(sa_func.count()).select_from(AuditLog).where(and_(*conditions))
     total = (await db.execute(total_q)).scalar() or 0
 
     # By action type
@@ -225,9 +229,7 @@ async def _generate_approval_audit(
     conditions = [ApprovalRequest.project_id.in_(project_ids)]
 
     total_q = (
-        select(sa_func.count())
-        .select_from(ApprovalRequest)
-        .where(and_(*conditions))
+        select(sa_func.count()).select_from(ApprovalRequest).where(and_(*conditions))
     )
     total = (await db.execute(total_q)).scalar() or 0
 
@@ -319,9 +321,15 @@ async def _generate_full_governance(
 ) -> dict:
     """Full governance report: combines all report types."""
     access = await _generate_access_review(db, workspace_id, project_id, generated_at)
-    changes = await _generate_change_management(db, workspace_id, project_id, generated_at)
-    approvals = await _generate_approval_audit(db, workspace_id, project_id, generated_at)
-    policies = await _generate_policy_compliance(db, workspace_id, project_id, generated_at)
+    changes = await _generate_change_management(
+        db, workspace_id, project_id, generated_at
+    )
+    approvals = await _generate_approval_audit(
+        db, workspace_id, project_id, generated_at
+    )
+    policies = await _generate_policy_compliance(
+        db, workspace_id, project_id, generated_at
+    )
 
     return {
         "report_type": "full_governance",
@@ -351,11 +359,7 @@ async def list_reports(
 
     where_clause = and_(*conditions)
 
-    count_q = (
-        select(sa_func.count())
-        .select_from(ComplianceReport)
-        .where(where_clause)
-    )
+    count_q = select(sa_func.count()).select_from(ComplianceReport).where(where_clause)
     total = (await db.execute(count_q)).scalar() or 0
 
     items_q = (

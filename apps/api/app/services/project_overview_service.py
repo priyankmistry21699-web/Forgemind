@@ -60,7 +60,10 @@ async def get_project_overview(
         )
     )
     members = [
-        {"user_id": str(m.user_id), "role": m.role.value if hasattr(m.role, "value") else str(m.role)}
+        {
+            "user_id": str(m.user_id),
+            "role": m.role.value if hasattr(m.role, "value") else str(m.role),
+        }
         for m in members_r.all()
     ]
 
@@ -108,11 +111,17 @@ async def get_cross_project_dashboard(
     project_ids = [r for (r,) in member_result.all()]
 
     if not project_ids:
-        return {"projects": [], "totals": {
-            "total_runs": 0, "successful_runs": 0, "open_tasks": 0,
-            "pending_approvals": 0, "project_count": 0,
-            "overall_success_rate": 100.0,
-        }}
+        return {
+            "projects": [],
+            "totals": {
+                "total_runs": 0,
+                "successful_runs": 0,
+                "open_tasks": 0,
+                "pending_approvals": 0,
+                "project_count": 0,
+                "overall_success_rate": 100.0,
+            },
+        }
 
     from app.models.project import Project
     from app.models.approval_request import ApprovalRequest, ApprovalStatus
@@ -143,10 +152,12 @@ async def get_cross_project_dashboard(
 
         # Per-project pending approval details
         pending_q = await db.execute(
-            select(ApprovalRequest).where(
+            select(ApprovalRequest)
+            .where(
                 ApprovalRequest.project_id == pid,
                 ApprovalRequest.status == ApprovalStatus.PENDING,
-            ).limit(10)
+            )
+            .limit(10)
         )
         pending_items = [
             {

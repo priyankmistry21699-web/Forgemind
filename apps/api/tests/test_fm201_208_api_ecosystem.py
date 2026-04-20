@@ -28,8 +28,10 @@ class TestAPIKeys:
     @pytest.mark.asyncio
     async def test_create_api_key(self, db_session: AsyncSession):
         key, raw = await api_key_service.create_api_key(
-            db_session, creator_id=STUB_USER_ID,
-            name="Test Key", scopes=["read", "write"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="Test Key",
+            scopes=["read", "write"],
         )
         await db_session.commit()
         assert key.id is not None
@@ -40,7 +42,9 @@ class TestAPIKeys:
     @pytest.mark.asyncio
     async def test_validate_api_key(self, db_session: AsyncSession):
         key, raw = await api_key_service.create_api_key(
-            db_session, creator_id=STUB_USER_ID, name="Validate Test",
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="Validate Test",
         )
         await db_session.commit()
 
@@ -50,6 +54,7 @@ class TestAPIKeys:
     @pytest.mark.asyncio
     async def test_validate_invalid_key(self, db_session: AsyncSession):
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             await api_key_service.validate_api_key(db_session, "fm_invalid_key")
         assert exc_info.value.status_code == 401
@@ -57,23 +62,30 @@ class TestAPIKeys:
     @pytest.mark.asyncio
     async def test_revoke_api_key(self, db_session: AsyncSession):
         key, raw = await api_key_service.create_api_key(
-            db_session, creator_id=STUB_USER_ID, name="Revoke Test",
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="Revoke Test",
         )
         await db_session.commit()
 
         revoked = await api_key_service.revoke_api_key(
-            db_session, key.id, STUB_USER_ID,
+            db_session,
+            key.id,
+            STUB_USER_ID,
         )
         assert revoked.revoked is True
 
     @pytest.mark.asyncio
     async def test_revoke_by_wrong_user(self, db_session: AsyncSession):
         key, _ = await api_key_service.create_api_key(
-            db_session, creator_id=STUB_USER_ID, name="Wrong User",
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="Wrong User",
         )
         await db_session.commit()
 
         from fastapi import HTTPException
+
         other_user = uuid.uuid4()
         with pytest.raises(HTTPException) as exc_info:
             await api_key_service.revoke_api_key(db_session, key.id, other_user)
@@ -82,10 +94,14 @@ class TestAPIKeys:
     @pytest.mark.asyncio
     async def test_list_api_keys(self, db_session: AsyncSession):
         await api_key_service.create_api_key(
-            db_session, creator_id=STUB_USER_ID, name="Key A",
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="Key A",
         )
         await api_key_service.create_api_key(
-            db_session, creator_id=STUB_USER_ID, name="Key B",
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="Key B",
         )
         await db_session.commit()
 
@@ -95,14 +111,18 @@ class TestAPIKeys:
     @pytest.mark.asyncio
     async def test_revoked_key_excluded_from_list(self, db_session: AsyncSession):
         key, _ = await api_key_service.create_api_key(
-            db_session, creator_id=STUB_USER_ID, name="To Revoke",
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="To Revoke",
         )
         await db_session.commit()
         await api_key_service.revoke_api_key(db_session, key.id, STUB_USER_ID)
         await db_session.commit()
 
         keys = await api_key_service.list_api_keys(
-            db_session, STUB_USER_ID, include_revoked=False,
+            db_session,
+            STUB_USER_ID,
+            include_revoked=False,
         )
         ids = {k.id for k in keys}
         assert key.id not in ids
@@ -110,13 +130,16 @@ class TestAPIKeys:
     @pytest.mark.asyncio
     async def test_validate_revoked_key_fails(self, db_session: AsyncSession):
         key, raw = await api_key_service.create_api_key(
-            db_session, creator_id=STUB_USER_ID, name="Revoked Validate",
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="Revoked Validate",
         )
         await db_session.commit()
         await api_key_service.revoke_api_key(db_session, key.id, STUB_USER_ID)
         await db_session.commit()
 
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             await api_key_service.validate_api_key(db_session, raw)
         assert exc_info.value.status_code == 401
@@ -131,7 +154,9 @@ class TestRateLimiting:
     def test_check_rate_limit_allows(self):
         api_key_service.reset_rate_limit("test-rate-1")
         result = api_key_service.check_rate_limit(
-            "test-rate-1", max_requests=10, window_seconds=60,
+            "test-rate-1",
+            max_requests=10,
+            window_seconds=60,
         )
         assert result["allowed"] is True
         assert result["remaining"] >= 0
@@ -141,13 +166,18 @@ class TestRateLimiting:
         # Exhaust the limit
         for _ in range(5):
             api_key_service.check_rate_limit(
-                "test-rate-2", max_requests=5, window_seconds=60,
+                "test-rate-2",
+                max_requests=5,
+                window_seconds=60,
             )
 
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             api_key_service.check_rate_limit(
-                "test-rate-2", max_requests=5, window_seconds=60,
+                "test-rate-2",
+                max_requests=5,
+                window_seconds=60,
             )
         assert exc_info.value.status_code == 429
 
@@ -155,11 +185,15 @@ class TestRateLimiting:
         api_key_service.reset_rate_limit("test-rate-3")
         for _ in range(5):
             api_key_service.check_rate_limit(
-                "test-rate-3", max_requests=5, window_seconds=60,
+                "test-rate-3",
+                max_requests=5,
+                window_seconds=60,
             )
         api_key_service.reset_rate_limit("test-rate-3")
         result = api_key_service.check_rate_limit(
-            "test-rate-3", max_requests=5, window_seconds=60,
+            "test-rate-3",
+            max_requests=5,
+            window_seconds=60,
         )
         assert result["allowed"] is True
 
@@ -173,7 +207,8 @@ class TestWebhooks:
     @pytest.mark.asyncio
     async def test_create_webhook(self, db_session: AsyncSession):
         wh = await webhook_connector_service.create_webhook(
-            db_session, creator_id=STUB_USER_ID,
+            db_session,
+            creator_id=STUB_USER_ID,
             url="https://example.com/hook",
             events=["run.completed", "task.failed"],
         )
@@ -184,7 +219,8 @@ class TestWebhooks:
     @pytest.mark.asyncio
     async def test_create_webhook_with_secret(self, db_session: AsyncSession):
         wh = await webhook_connector_service.create_webhook(
-            db_session, creator_id=STUB_USER_ID,
+            db_session,
+            creator_id=STUB_USER_ID,
             url="https://example.com/secure-hook",
             events=["run.completed"],
             secret="my-secret-123",
@@ -195,21 +231,26 @@ class TestWebhooks:
     @pytest.mark.asyncio
     async def test_list_webhooks(self, db_session: AsyncSession):
         await webhook_connector_service.create_webhook(
-            db_session, creator_id=STUB_USER_ID,
-            url="https://example.com/h1", events=["run.completed"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            url="https://example.com/h1",
+            events=["run.completed"],
         )
         await db_session.commit()
 
         webhooks = await webhook_connector_service.list_webhooks(
-            db_session, STUB_USER_ID,
+            db_session,
+            STUB_USER_ID,
         )
         assert len(webhooks) >= 1
 
     @pytest.mark.asyncio
     async def test_delete_webhook(self, db_session: AsyncSession):
         wh = await webhook_connector_service.create_webhook(
-            db_session, creator_id=STUB_USER_ID,
-            url="https://example.com/delete", events=["task.created"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            url="https://example.com/delete",
+            events=["task.created"],
         )
         await db_session.commit()
 
@@ -217,19 +258,23 @@ class TestWebhooks:
         await db_session.commit()
 
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException):
             await webhook_connector_service.get_webhook(db_session, wh.id)
 
     @pytest.mark.asyncio
     async def test_record_delivery(self, db_session: AsyncSession):
         wh = await webhook_connector_service.create_webhook(
-            db_session, creator_id=STUB_USER_ID,
-            url="https://example.com/deliver", events=["run.completed"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            url="https://example.com/deliver",
+            events=["run.completed"],
         )
         await db_session.commit()
 
         delivery = await webhook_connector_service.record_delivery(
-            db_session, subscription_id=wh.id,
+            db_session,
+            subscription_id=wh.id,
             event_type="run.completed",
             payload={"run_id": "abc123"},
         )
@@ -240,34 +285,46 @@ class TestWebhooks:
     @pytest.mark.asyncio
     async def test_mark_delivery_success(self, db_session: AsyncSession):
         wh = await webhook_connector_service.create_webhook(
-            db_session, creator_id=STUB_USER_ID,
-            url="https://example.com/success", events=["run.completed"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            url="https://example.com/success",
+            events=["run.completed"],
         )
         delivery = await webhook_connector_service.record_delivery(
-            db_session, subscription_id=wh.id,
-            event_type="run.completed", payload={},
+            db_session,
+            subscription_id=wh.id,
+            event_type="run.completed",
+            payload={},
         )
         await db_session.commit()
 
         success = await webhook_connector_service.mark_delivery_success(
-            db_session, delivery.id, status_code=200,
+            db_session,
+            delivery.id,
+            status_code=200,
         )
         assert success.status == DeliveryStatus.DELIVERED
 
     @pytest.mark.asyncio
     async def test_mark_delivery_failed_with_retry(self, db_session: AsyncSession):
         wh = await webhook_connector_service.create_webhook(
-            db_session, creator_id=STUB_USER_ID,
-            url="https://example.com/retry", events=["run.completed"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            url="https://example.com/retry",
+            events=["run.completed"],
         )
         delivery = await webhook_connector_service.record_delivery(
-            db_session, subscription_id=wh.id,
-            event_type="run.completed", payload={},
+            db_session,
+            subscription_id=wh.id,
+            event_type="run.completed",
+            payload={},
         )
         await db_session.commit()
 
         failed = await webhook_connector_service.mark_delivery_failed(
-            db_session, delivery.id, status_code=500,
+            db_session,
+            delivery.id,
+            status_code=500,
         )
         assert failed.status == DeliveryStatus.RETRYING
         assert failed.attempt == 2
@@ -276,21 +333,28 @@ class TestWebhooks:
     @pytest.mark.asyncio
     async def test_delivery_history(self, db_session: AsyncSession):
         wh = await webhook_connector_service.create_webhook(
-            db_session, creator_id=STUB_USER_ID,
-            url="https://example.com/history", events=["run.completed"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            url="https://example.com/history",
+            events=["run.completed"],
         )
         await webhook_connector_service.record_delivery(
-            db_session, subscription_id=wh.id,
-            event_type="run.completed", payload={"seq": 1},
+            db_session,
+            subscription_id=wh.id,
+            event_type="run.completed",
+            payload={"seq": 1},
         )
         await webhook_connector_service.record_delivery(
-            db_session, subscription_id=wh.id,
-            event_type="task.failed", payload={"seq": 2},
+            db_session,
+            subscription_id=wh.id,
+            event_type="task.failed",
+            payload={"seq": 2},
         )
         await db_session.commit()
 
         deliveries, total = await webhook_connector_service.get_delivery_history(
-            db_session, wh.id,
+            db_session,
+            wh.id,
         )
         assert total >= 2
 
@@ -310,7 +374,8 @@ class TestConnectorRegistry:
     @pytest.mark.asyncio
     async def test_register_connector(self, db_session: AsyncSession):
         conn = await webhook_connector_service.register_connector(
-            db_session, name="Slack Connector",
+            db_session,
+            name="Slack Connector",
             connector_type=ConnectorType.BIDIRECTIONAL,
             description="Slack integration",
         )
@@ -321,7 +386,9 @@ class TestConnectorRegistry:
     @pytest.mark.asyncio
     async def test_list_connectors(self, db_session: AsyncSession):
         await webhook_connector_service.register_connector(
-            db_session, name="C1", connector_type=ConnectorType.SOURCE,
+            db_session,
+            name="C1",
+            connector_type=ConnectorType.SOURCE,
         )
         await db_session.commit()
 
@@ -331,13 +398,16 @@ class TestConnectorRegistry:
     @pytest.mark.asyncio
     async def test_update_connector_status(self, db_session: AsyncSession):
         conn = await webhook_connector_service.register_connector(
-            db_session, name="Status Test",
+            db_session,
+            name="Status Test",
             connector_type=ConnectorType.SINK,
         )
         await db_session.commit()
 
         updated = await webhook_connector_service.update_connector_status(
-            db_session, conn.id, ConnectorStatus.ERROR,
+            db_session,
+            conn.id,
+            ConnectorStatus.ERROR,
         )
         assert updated.status == ConnectorStatus.ERROR
         assert updated.last_health_check is not None
@@ -345,7 +415,8 @@ class TestConnectorRegistry:
     @pytest.mark.asyncio
     async def test_delete_connector(self, db_session: AsyncSession):
         conn = await webhook_connector_service.register_connector(
-            db_session, name="Delete Me",
+            db_session,
+            name="Delete Me",
             connector_type=ConnectorType.SOURCE,
         )
         await db_session.commit()
@@ -354,6 +425,7 @@ class TestConnectorRegistry:
         await db_session.commit()
 
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException):
             await webhook_connector_service.get_connector(db_session, conn.id)
 
@@ -367,54 +439,71 @@ class TestScopeEnforcement:
     @pytest.mark.asyncio
     async def test_validate_with_matching_scopes(self, db_session: AsyncSession):
         key, raw = await api_key_service.create_api_key(
-            db_session, creator_id=STUB_USER_ID,
-            name="scoped-key", scopes=["read", "write"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="scoped-key",
+            scopes=["read", "write"],
         )
         await db_session.commit()
 
         validated = await api_key_service.validate_api_key_with_scopes(
-            db_session, raw, required_scopes=["read"],
+            db_session,
+            raw,
+            required_scopes=["read"],
         )
         assert validated.id == key.id
 
     @pytest.mark.asyncio
     async def test_validate_with_missing_scopes(self, db_session: AsyncSession):
         key, raw = await api_key_service.create_api_key(
-            db_session, creator_id=STUB_USER_ID,
-            name="read-only", scopes=["read"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="read-only",
+            scopes=["read"],
         )
         await db_session.commit()
 
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             await api_key_service.validate_api_key_with_scopes(
-                db_session, raw, required_scopes=["write"],
+                db_session,
+                raw,
+                required_scopes=["write"],
             )
         assert exc_info.value.status_code == 403
 
     @pytest.mark.asyncio
     async def test_validate_wildcard_scope(self, db_session: AsyncSession):
         key, raw = await api_key_service.create_api_key(
-            db_session, creator_id=STUB_USER_ID,
-            name="admin-key", scopes=["*"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="admin-key",
+            scopes=["*"],
         )
         await db_session.commit()
 
         validated = await api_key_service.validate_api_key_with_scopes(
-            db_session, raw, required_scopes=["read", "write", "admin"],
+            db_session,
+            raw,
+            required_scopes=["read", "write", "admin"],
         )
         assert validated.id == key.id
 
     @pytest.mark.asyncio
     async def test_validate_no_required_scopes(self, db_session: AsyncSession):
         key, raw = await api_key_service.create_api_key(
-            db_session, creator_id=STUB_USER_ID,
-            name="any-key", scopes=["read"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="any-key",
+            scopes=["read"],
         )
         await db_session.commit()
 
         validated = await api_key_service.validate_api_key_with_scopes(
-            db_session, raw, required_scopes=None,
+            db_session,
+            raw,
+            required_scopes=None,
         )
         assert validated.id == key.id
 
@@ -425,15 +514,20 @@ class TestScopeEnforcement:
     @pytest.mark.asyncio
     async def test_validate_multiple_required_scopes(self, db_session: AsyncSession):
         key, raw = await api_key_service.create_api_key(
-            db_session, creator_id=STUB_USER_ID,
-            name="partial-key", scopes=["read"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="partial-key",
+            scopes=["read"],
         )
         await db_session.commit()
 
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             await api_key_service.validate_api_key_with_scopes(
-                db_session, raw, required_scopes=["read", "write"],
+                db_session,
+                raw,
+                required_scopes=["read", "write"],
             )
         assert exc_info.value.status_code == 403
         assert "write" in exc_info.value.detail
@@ -452,14 +546,20 @@ class TestWebhookDispatch:
         from unittest.mock import AsyncMock, patch
 
         wh = await webhook_connector_service.create_webhook(
-            db_session, creator_id=STUB_USER_ID,
-            url="https://example.com/hook", events=["run.completed"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            url="https://example.com/hook",
+            events=["run.completed"],
             secret="test-secret",
         )
         await db_session.commit()
 
-        mock_response = httpx.Response(200, request=httpx.Request("POST", "https://example.com/hook"))
-        with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response):
+        mock_response = httpx.Response(
+            200, request=httpx.Request("POST", "https://example.com/hook")
+        )
+        with patch(
+            "httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response
+        ):
             delivery = await webhook_connector_service.dispatch_webhook(
                 db_session,
                 subscription=wh,
@@ -478,13 +578,19 @@ class TestWebhookDispatch:
         from unittest.mock import AsyncMock, patch
 
         wh = await webhook_connector_service.create_webhook(
-            db_session, creator_id=STUB_USER_ID,
-            url="https://example.com/fail", events=["run.failed"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            url="https://example.com/fail",
+            events=["run.failed"],
         )
         await db_session.commit()
 
-        mock_response = httpx.Response(500, request=httpx.Request("POST", "https://example.com/fail"))
-        with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response):
+        mock_response = httpx.Response(
+            500, request=httpx.Request("POST", "https://example.com/fail")
+        )
+        with patch(
+            "httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response
+        ):
             delivery = await webhook_connector_service.dispatch_webhook(
                 db_session,
                 subscription=wh,
@@ -502,12 +608,18 @@ class TestWebhookDispatch:
         from unittest.mock import AsyncMock, patch
 
         wh = await webhook_connector_service.create_webhook(
-            db_session, creator_id=STUB_USER_ID,
-            url="https://example.com/down", events=["task.created"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            url="https://example.com/down",
+            events=["task.created"],
         )
         await db_session.commit()
 
-        with patch("httpx.AsyncClient.post", new_callable=AsyncMock, side_effect=httpx.ConnectError("Connection refused")):
+        with patch(
+            "httpx.AsyncClient.post",
+            new_callable=AsyncMock,
+            side_effect=httpx.ConnectError("Connection refused"),
+        ):
             delivery = await webhook_connector_service.dispatch_webhook(
                 db_session,
                 subscription=wh,
@@ -519,23 +631,33 @@ class TestWebhookDispatch:
         assert delivery.status == DeliveryStatus.RETRYING
 
     @pytest.mark.asyncio
-    async def test_fire_event_dispatches_to_matching_subs(self, db_session: AsyncSession):
+    async def test_fire_event_dispatches_to_matching_subs(
+        self, db_session: AsyncSession
+    ):
         """Test fire_event finds matching subscriptions and dispatches."""
         import httpx
         from unittest.mock import AsyncMock, patch
 
         await webhook_connector_service.create_webhook(
-            db_session, creator_id=STUB_USER_ID,
-            url="https://a.com/hook", events=["run.completed"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            url="https://a.com/hook",
+            events=["run.completed"],
         )
         await webhook_connector_service.create_webhook(
-            db_session, creator_id=STUB_USER_ID,
-            url="https://b.com/hook", events=["task.created"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            url="https://b.com/hook",
+            events=["task.created"],
         )
         await db_session.commit()
 
-        mock_response = httpx.Response(200, request=httpx.Request("POST", "https://a.com/hook"))
-        with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response):
+        mock_response = httpx.Response(
+            200, request=httpx.Request("POST", "https://a.com/hook")
+        )
+        with patch(
+            "httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response
+        ):
             deliveries = await webhook_connector_service.fire_event(
                 db_session,
                 event_type="run.completed",
@@ -546,6 +668,7 @@ class TestWebhookDispatch:
         # Only wh1 matches "run.completed"
         assert len(deliveries) >= 1
         assert all(d.status == DeliveryStatus.DELIVERED for d in deliveries)
+
 
 # ══════════════════════════════════════════════════════════════════
 # FM-203 Enhancement: fire_event secret fix verification
@@ -560,14 +683,20 @@ class TestFireEventSecretFix:
         from unittest.mock import AsyncMock, patch
 
         await webhook_connector_service.create_webhook(
-            db_session, creator_id=STUB_USER_ID,
-            url="https://example.com/signed", events=["deploy.started"],
+            db_session,
+            creator_id=STUB_USER_ID,
+            url="https://example.com/signed",
+            events=["deploy.started"],
             secret="my-secret-key",
         )
         await db_session.commit()
 
-        mock_response = httpx.Response(200, request=httpx.Request("POST", "https://example.com/signed"))
-        with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response) as mock_post:
+        mock_response = httpx.Response(
+            200, request=httpx.Request("POST", "https://example.com/signed")
+        )
+        with patch(
+            "httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response
+        ) as mock_post:
             deliveries = await webhook_connector_service.fire_event(
                 db_session,
                 event_type="deploy.started",
@@ -595,11 +724,13 @@ class TestConnectorABC:
         """ConnectorABC abstract class should be importable."""
         from app.services.webhook_connector_service import ConnectorABC
         import abc
+
         assert issubclass(ConnectorABC, abc.ABC)
 
     def test_connector_abc_has_abstract_methods(self):
         """ConnectorABC should define validate_config, health_check, send."""
         from app.services.webhook_connector_service import ConnectorABC
+
         abstracts = ConnectorABC.__abstractmethods__
         assert "validate_config" in abstracts
         assert "health_check" in abstracts
@@ -611,14 +742,16 @@ class TestConnectorHealthCheck:
     async def test_health_check_no_url(self, db_session: AsyncSession):
         """Connector with no health_url → config_only probe."""
         conn = await webhook_connector_service.register_connector(
-            db_session, name="No URL Connector",
+            db_session,
+            name="No URL Connector",
             connector_type=ConnectorType.SOURCE,
             config_json={"api_key": "test"},
         )
         await db_session.commit()
 
         result = await webhook_connector_service.health_check_connector(
-            db_session, conn.id,
+            db_session,
+            conn.id,
         )
         assert result["probe"] == "config_only"
         assert result["new_status"] == ConnectorStatus.ACTIVE.value
@@ -630,16 +763,22 @@ class TestConnectorHealthCheck:
         from unittest.mock import AsyncMock, patch
 
         conn = await webhook_connector_service.register_connector(
-            db_session, name="URL Connector",
+            db_session,
+            name="URL Connector",
             connector_type=ConnectorType.SOURCE,
             config_json={"health_url": "https://api.example.com/health"},
         )
         await db_session.commit()
 
-        mock_response = httpx.Response(200, request=httpx.Request("GET", "https://api.example.com/health"))
-        with patch("httpx.AsyncClient.get", new_callable=AsyncMock, return_value=mock_response):
+        mock_response = httpx.Response(
+            200, request=httpx.Request("GET", "https://api.example.com/health")
+        )
+        with patch(
+            "httpx.AsyncClient.get", new_callable=AsyncMock, return_value=mock_response
+        ):
             result = await webhook_connector_service.health_check_connector(
-                db_session, conn.id,
+                db_session,
+                conn.id,
             )
 
         assert result["probe"] == "http_ok"
@@ -653,16 +792,22 @@ class TestConnectorHealthCheck:
         from unittest.mock import AsyncMock, patch
 
         conn = await webhook_connector_service.register_connector(
-            db_session, name="Failing Connector",
+            db_session,
+            name="Failing Connector",
             connector_type=ConnectorType.SOURCE,
             config_json={"health_url": "https://api.example.com/health"},
         )
         await db_session.commit()
 
-        mock_response = httpx.Response(500, request=httpx.Request("GET", "https://api.example.com/health"))
-        with patch("httpx.AsyncClient.get", new_callable=AsyncMock, return_value=mock_response):
+        mock_response = httpx.Response(
+            500, request=httpx.Request("GET", "https://api.example.com/health")
+        )
+        with patch(
+            "httpx.AsyncClient.get", new_callable=AsyncMock, return_value=mock_response
+        ):
             result = await webhook_connector_service.health_check_connector(
-                db_session, conn.id,
+                db_session,
+                conn.id,
             )
 
         assert result["probe"] == "http_error"
@@ -675,16 +820,21 @@ class TestConnectorHealthCheck:
         from unittest.mock import AsyncMock, patch
 
         conn = await webhook_connector_service.register_connector(
-            db_session, name="Unreachable Connector",
+            db_session,
+            name="Unreachable Connector",
             connector_type=ConnectorType.SOURCE,
             config_json={"health_url": "https://unreachable.example.com/health"},
         )
         await db_session.commit()
 
-        with patch("httpx.AsyncClient.get", new_callable=AsyncMock,
-                    side_effect=httpx.ConnectError("Connection refused")):
+        with patch(
+            "httpx.AsyncClient.get",
+            new_callable=AsyncMock,
+            side_effect=httpx.ConnectError("Connection refused"),
+        ):
             result = await webhook_connector_service.health_check_connector(
-                db_session, conn.id,
+                db_session,
+                conn.id,
             )
 
         assert result["probe"] == "http_unreachable"
@@ -694,14 +844,16 @@ class TestConnectorHealthCheck:
     async def test_health_check_empty_config(self, db_session: AsyncSession):
         """Connector with no config_json → INACTIVE."""
         conn = await webhook_connector_service.register_connector(
-            db_session, name="Empty Config",
+            db_session,
+            name="Empty Config",
             connector_type=ConnectorType.SOURCE,
             config_json=None,
         )
         await db_session.commit()
 
         result = await webhook_connector_service.health_check_connector(
-            db_session, conn.id,
+            db_session,
+            conn.id,
         )
         assert result["probe"] == "config_only"
         assert result["new_status"] == ConnectorStatus.INACTIVE.value
@@ -758,7 +910,9 @@ class TestWebhookConnectorConcrete:
     async def test_health_check_unhealthy(self):
         """Health check on unreachable URL returns unhealthy."""
         conn = webhook_connector_service.WebhookConnector()
-        result = await conn.health_check({"url": "http://unreachable.invalid:1", "timeout": 1})
+        result = await conn.health_check(
+            {"url": "http://unreachable.invalid:1", "timeout": 1}
+        )
         assert result["status"] == "unhealthy"
 
     @pytest.mark.asyncio
@@ -767,7 +921,8 @@ class TestWebhookConnectorConcrete:
         conn = webhook_connector_service.WebhookConnector()
         result = await conn.send(
             {"url": "http://unreachable.invalid:1", "timeout": 1},
-            "test.event", {"key": "value"},
+            "test.event",
+            {"key": "value"},
         )
         assert result["success"] is False
 
@@ -791,15 +946,18 @@ class TestE2EIntegrationScenario:
         """E2E: Create API key → register connector → health check."""
         # Step 1: Create API key
         key, raw = await api_key_service.create_api_key(
-            db_session, creator_id=uuid.uuid4(),
-            name="e2e-key", scopes=["read", "write"],
+            db_session,
+            creator_id=uuid.uuid4(),
+            name="e2e-key",
+            scopes=["read", "write"],
         )
         await db_session.commit()
         assert key.id is not None
 
         # Step 2: Register a connector
         conn = await webhook_connector_service.register_connector(
-            db_session, name="E2E Webhook",
+            db_session,
+            name="E2E Webhook",
             connector_type=ConnectorType.SOURCE,
             config_json={"health_url": "https://httpbin.org/status/200"},
         )
@@ -808,7 +966,8 @@ class TestE2EIntegrationScenario:
 
         # Step 3: Health check
         result = await webhook_connector_service.health_check_connector(
-            db_session, conn.id,
+            db_session,
+            conn.id,
         )
         assert "new_status" in result
 
@@ -851,9 +1010,10 @@ class TestVersionedAPIRouters:
                 paths.add(route.path)
 
         # projects_router has prefix="/projects", mounted at /api/v1
-        assert any("/api/v1/projects" in p for p in paths) or \
-               any(getattr(r, "path", "").startswith("/api/v1") and
-                   hasattr(r, "routes") for r in api_router.routes)
+        assert any("/api/v1/projects" in p for p in paths) or any(
+            getattr(r, "path", "").startswith("/api/v1") and hasattr(r, "routes")
+            for r in api_router.routes
+        )
 
     def test_v1_includes_costs(self):
         from app.api.router import api_router
@@ -922,6 +1082,7 @@ class TestOpenAPISpecCompleteness:
 
     def _get_openapi_spec(self) -> dict:
         from app.main import create_app
+
         app = create_app()
         return app.openapi()
 
@@ -992,6 +1153,7 @@ class TestOpenAPISpecCompleteness:
     def test_openapi_spec_is_valid_json_serializable(self):
         """Spec should be fully JSON-serializable (no unserializable objects)."""
         import json
+
         spec = self._get_openapi_spec()
         serialized = json.dumps(spec)
         assert len(serialized) > 100
@@ -1007,6 +1169,7 @@ class TestEmailService:
 
     def test_render_notification_template(self):
         from app.services import email_service
+
         rendered = email_service.render_template(
             "notification",
             {"title": "Test Title", "body": "Hello world"},
@@ -1017,11 +1180,14 @@ class TestEmailService:
 
     def test_render_alert_template(self):
         from app.services import email_service
+
         rendered = email_service.render_template(
             "alert",
             {
-                "title": "High CPU", "body": "CPU exceeded threshold",
-                "metric_type": "cpu", "current_value": "95",
+                "title": "High CPU",
+                "body": "CPU exceeded threshold",
+                "metric_type": "cpu",
+                "current_value": "95",
                 "threshold": "80",
             },
         )
@@ -1031,27 +1197,37 @@ class TestEmailService:
 
     def test_render_unknown_template_raises(self):
         from app.services import email_service
+
         with pytest.raises(ValueError, match="Unknown email template"):
             email_service.render_template("nonexistent", {})
 
     def test_send_notification_email_dev_mode(self):
         from app.services import email_service
+
         # No SMTP configured → dev-mode logging
         result = email_service.send_notification_email(
-            "user@test.com", "Title", "Body",
+            "user@test.com",
+            "Title",
+            "Body",
         )
         assert result["status"] == "logged"
 
     def test_send_alert_email_dev_mode(self):
         from app.services import email_service
+
         result = email_service.send_alert_email(
-            "user@test.com", "Alert Title", "Alert body",
-            metric_type="latency", current_value="500ms", threshold="200ms",
+            "user@test.com",
+            "Alert Title",
+            "Alert body",
+            metric_type="latency",
+            current_value="500ms",
+            threshold="200ms",
         )
         assert result["status"] == "logged"
 
     def test_digest_aggregation(self):
         from app.services import email_service
+
         email_service._pending_digest.clear()
 
         email_service.add_to_digest("dev@test.com", {"title": "A", "body": "a"})
@@ -1069,17 +1245,20 @@ class TestEmailService:
 
     def test_flush_empty_digest_returns_none(self):
         from app.services import email_service
+
         email_service._pending_digest.clear()
         assert email_service.flush_digest("nobody@test.com") is None
 
     def test_email_preferences_default_all_enabled(self):
         from app.services import email_service
+
         prefs = email_service.get_email_preferences("new@user.com")
         for cat in email_service.NOTIFICATION_CATEGORIES:
             assert prefs[cat] is True
 
     def test_unsubscribe(self):
         from app.services import email_service
+
         email_service._email_preferences.clear()
         email_service.unsubscribe("user@test.com", "alerts")
         assert not email_service.is_category_enabled("user@test.com", "alerts")
@@ -1087,6 +1266,7 @@ class TestEmailService:
 
     def test_set_email_preference(self):
         from app.services import email_service
+
         email_service._email_preferences.clear()
         email_service.set_email_preference("user@test.com", "digest", False)
         prefs = email_service.get_email_preferences("user@test.com")
@@ -1105,8 +1285,10 @@ class TestSlackIntegration:
     @pytest.mark.asyncio
     async def test_slash_command_status(self):
         from app.services import integration_service
+
         result = await integration_service.slack_handle_slash_command(
-            "/forgemind", "status",
+            "/forgemind",
+            "status",
         )
         assert result["command"] == "status"
         assert result["response_type"] == "in_channel"
@@ -1114,16 +1296,20 @@ class TestSlackIntegration:
     @pytest.mark.asyncio
     async def test_slash_command_run(self):
         from app.services import integration_service
+
         result = await integration_service.slack_handle_slash_command(
-            "/forgemind", "run",
+            "/forgemind",
+            "run",
         )
         assert result["command"] == "run"
 
     @pytest.mark.asyncio
     async def test_slash_command_help(self):
         from app.services import integration_service
+
         result = await integration_service.slack_handle_slash_command(
-            "/forgemind", "help",
+            "/forgemind",
+            "help",
         )
         assert result["command"] == "help"
         assert result["response_type"] == "ephemeral"
@@ -1131,16 +1317,21 @@ class TestSlackIntegration:
     @pytest.mark.asyncio
     async def test_slash_command_empty_defaults_help(self):
         from app.services import integration_service
+
         result = await integration_service.slack_handle_slash_command(
-            "/forgemind", "",
+            "/forgemind",
+            "",
         )
         assert result["command"] == "help"
 
     @pytest.mark.asyncio
     async def test_interactive_action_approve(self):
         from app.services import integration_service
+
         result = await integration_service.slack_handle_interactive_action(
-            "button", "approve", user_id="U123",
+            "button",
+            "approve",
+            user_id="U123",
         )
         assert result["action"] == "approve"
         assert result["status"] == "processed"
@@ -1148,8 +1339,10 @@ class TestSlackIntegration:
     @pytest.mark.asyncio
     async def test_interactive_action_reject(self):
         from app.services import integration_service
+
         result = await integration_service.slack_handle_interactive_action(
-            "button", "reject",
+            "button",
+            "reject",
         )
         assert result["action"] == "reject"
         assert result["status"] == "processed"
@@ -1157,20 +1350,24 @@ class TestSlackIntegration:
     @pytest.mark.asyncio
     async def test_interactive_action_unknown(self):
         from app.services import integration_service
+
         result = await integration_service.slack_handle_interactive_action(
-            "button", "unknown_action_xyz",
+            "button",
+            "unknown_action_xyz",
         )
         assert result["status"] == "unknown_action"
 
     @pytest.mark.asyncio
     async def test_post_message_not_configured(self):
         from app.services import integration_service
+
         integration_service._slack_config["bot_token"] = ""
         result = await integration_service.slack_post_message("#general", "hello")
         assert result.get("ok") is False or result.get("error") == "not_configured"
 
     def test_is_slack_configured(self):
         from app.services import integration_service
+
         integration_service._slack_config["bot_token"] = ""
         assert not integration_service.is_slack_configured()
         integration_service._slack_config["bot_token"] = "xoxb-test"
@@ -1188,6 +1385,7 @@ class TestJiraIntegration:
 
     def test_status_mapping_to_jira(self):
         from app.services.integration_service import map_status_to_jira
+
         assert map_status_to_jira("completed") == "Done"
         assert map_status_to_jira("in_progress") == "In Progress"
         assert map_status_to_jira("queued") == "To Do"
@@ -1195,12 +1393,14 @@ class TestJiraIntegration:
 
     def test_status_mapping_from_jira(self):
         from app.services.integration_service import map_status_from_jira
+
         assert map_status_from_jira("Done") == "completed"
         assert map_status_from_jira("In Progress") == "in_progress"
         assert map_status_from_jira("Unknown") == "queued"
 
     def test_field_mapping_to_jira(self):
         from app.services.integration_service import map_fields_to_jira
+
         task = {"title": "Test Task", "description": "A task", "status": "open"}
         fields = map_fields_to_jira(task)
         assert fields["summary"] == "Test Task"
@@ -1208,11 +1408,14 @@ class TestJiraIntegration:
 
     def test_field_mapping_from_jira(self):
         from app.services.integration_service import map_fields_from_jira
-        issue = {"fields": {
-            "summary": "Jira Issue",
-            "status": {"name": "In Progress"},
-            "priority": {"name": "High"},
-        }}
+
+        issue = {
+            "fields": {
+                "summary": "Jira Issue",
+                "status": {"name": "In Progress"},
+                "priority": {"name": "High"},
+            }
+        }
         task = map_fields_from_jira(issue)
         assert task["title"] == "Jira Issue"
         assert task["status"] == "In Progress"
@@ -1221,6 +1424,7 @@ class TestJiraIntegration:
     @pytest.mark.asyncio
     async def test_create_issue_not_configured(self):
         from app.services import integration_service
+
         integration_service._jira_config["base_url"] = ""
         result = await integration_service.jira_create_issue("Test")
         assert result.get("error") == "not_configured"
@@ -1228,6 +1432,7 @@ class TestJiraIntegration:
     @pytest.mark.asyncio
     async def test_get_issue_not_configured(self):
         from app.services import integration_service
+
         integration_service._jira_config["base_url"] = ""
         result = await integration_service.jira_get_issue("PROJ-1")
         assert result.get("error") == "not_configured"
@@ -1235,16 +1440,20 @@ class TestJiraIntegration:
     @pytest.mark.asyncio
     async def test_transition_issue_not_configured(self):
         from app.services import integration_service
+
         integration_service._jira_config["base_url"] = ""
         result = await integration_service.jira_transition_issue("PROJ-1", "31")
         assert result.get("error") == "not_configured"
 
     def test_is_jira_configured(self):
         from app.services import integration_service
+
         integration_service._jira_config["base_url"] = ""
         assert not integration_service.is_jira_configured()
         integration_service.configure_jira(
-            "https://test.atlassian.net", "u@e.com", "tok",
+            "https://test.atlassian.net",
+            "u@e.com",
+            "tok",
         )
         assert integration_service.is_jira_configured()
         integration_service._jira_config.update(base_url="", api_token="")
@@ -1260,6 +1469,7 @@ class TestPagerDutyIntegration:
 
     def test_severity_mapping(self):
         from app.services.integration_service import map_severity
+
         assert map_severity("critical") == "critical"
         assert map_severity("high") == "error"
         assert map_severity("warning") == "warning"
@@ -1270,6 +1480,7 @@ class TestPagerDutyIntegration:
     @pytest.mark.asyncio
     async def test_create_incident_not_configured(self):
         from app.services import integration_service
+
         integration_service._pagerduty_config["routing_key"] = ""
         result = await integration_service.pagerduty_create_incident("Outage")
         assert result["status"] == "not_configured"
@@ -1277,12 +1488,14 @@ class TestPagerDutyIntegration:
     @pytest.mark.asyncio
     async def test_resolve_incident_not_configured(self):
         from app.services import integration_service
+
         integration_service._pagerduty_config["routing_key"] = ""
         result = await integration_service.pagerduty_resolve_incident("dk123")
         assert result["status"] == "not_configured"
 
     def test_is_pagerduty_configured(self):
         from app.services import integration_service
+
         integration_service._pagerduty_config["routing_key"] = ""
         assert not integration_service.is_pagerduty_configured()
         integration_service.configure_pagerduty("test-key")
@@ -1291,6 +1504,7 @@ class TestPagerDutyIntegration:
 
     def test_configure_pagerduty(self):
         from app.services import integration_service
+
         integration_service.configure_pagerduty("rk-123", service_id="SVC")
         assert integration_service._pagerduty_config["routing_key"] == "rk-123"
         assert integration_service._pagerduty_config["service_id"] == "SVC"
@@ -1307,11 +1521,16 @@ class TestFM210IntegrationCoverage:
 
     def test_email_template_render_all_templates(self):
         from app.services import email_service
+
         for name in ("notification", "alert", "digest"):
             ctx = {
-                "title": "T", "body": "B", "metric_type": "m",
-                "current_value": "1", "threshold": "2",
-                "date": "2025-01-01", "items_html": "<p>x</p>",
+                "title": "T",
+                "body": "B",
+                "metric_type": "m",
+                "current_value": "1",
+                "threshold": "2",
+                "date": "2025-01-01",
+                "items_html": "<p>x</p>",
                 "items_text": "x",
             }
             rendered = email_service.render_template(name, ctx)
@@ -1320,8 +1539,10 @@ class TestFM210IntegrationCoverage:
 
     def test_jira_bidirectional_status_round_trip(self):
         from app.services.integration_service import (
-            map_status_to_jira, map_status_from_jira,
+            map_status_to_jira,
+            map_status_from_jira,
         )
+
         for fm_status, jira_status in [
             ("completed", "Done"),
             ("in_progress", "In Progress"),
@@ -1332,6 +1553,7 @@ class TestFM210IntegrationCoverage:
 
     def test_pagerduty_all_severity_levels(self):
         from app.services.integration_service import map_severity
+
         for sev in ("critical", "high", "warning", "low", "info"):
             result = map_severity(sev)
             assert result in ("critical", "error", "warning", "info")
@@ -1339,9 +1561,11 @@ class TestFM210IntegrationCoverage:
     @pytest.mark.asyncio
     async def test_slack_all_commands(self):
         from app.services import integration_service
+
         for cmd in ("status", "run", "help", "unknown"):
             result = await integration_service.slack_handle_slash_command(
-                "/forgemind", cmd,
+                "/forgemind",
+                cmd,
             )
             assert "command" in result
 
@@ -1356,12 +1580,14 @@ class TestPythonSDKClient:
 
     def test_client_init_defaults(self):
         from app.sdk.python_client import ForgeMindClient
+
         client = ForgeMindClient()
         assert client.base_url == "http://localhost:8000"
         assert client.api_key == ""
 
     def test_client_init_custom(self):
         from app.sdk.python_client import ForgeMindClient
+
         client = ForgeMindClient(
             base_url="https://api.forgemind.dev",
             api_key="fm_test123",
@@ -1371,6 +1597,7 @@ class TestPythonSDKClient:
 
     def test_auth_headers_with_key(self):
         from app.sdk.python_client import ForgeMindClient
+
         client = ForgeMindClient(api_key="fm_abc")
         headers = client._auth_headers()
         assert headers["X-API-Key"] == "fm_abc"
@@ -1378,12 +1605,14 @@ class TestPythonSDKClient:
 
     def test_auth_headers_without_key(self):
         from app.sdk.python_client import ForgeMindClient
+
         client = ForgeMindClient()
         headers = client._auth_headers()
         assert "X-API-Key" not in headers
 
     def test_error_class(self):
         from app.sdk.python_client import ForgeMindError
+
         err = ForgeMindError(404, "Not found")
         assert err.status_code == 404
         assert "Not found" in str(err)
@@ -1391,6 +1620,7 @@ class TestPythonSDKClient:
     @pytest.mark.asyncio
     async def test_context_manager(self):
         from app.sdk.python_client import ForgeMindClient
+
         async with ForgeMindClient() as client:
             assert client.base_url == "http://localhost:8000"
 
@@ -1406,8 +1636,10 @@ class TestSlackUpgraded:
     @pytest.mark.asyncio
     async def test_slash_command_status_returns_blocks(self):
         from app.services import integration_service
+
         result = await integration_service.slack_handle_slash_command(
-            "/forgemind", "status",
+            "/forgemind",
+            "status",
         )
         assert result["command"] == "status"
         assert "blocks" in result
@@ -1417,8 +1649,10 @@ class TestSlackUpgraded:
     @pytest.mark.asyncio
     async def test_slash_command_run_returns_blocks(self):
         from app.services import integration_service
+
         result = await integration_service.slack_handle_slash_command(
-            "/forgemind", "run",
+            "/forgemind",
+            "run",
         )
         assert result["command"] == "run"
         assert "blocks" in result
@@ -1426,8 +1660,10 @@ class TestSlackUpgraded:
     @pytest.mark.asyncio
     async def test_slash_command_help_returns_blocks(self):
         from app.services import integration_service
+
         result = await integration_service.slack_handle_slash_command(
-            "/forgemind", "help",
+            "/forgemind",
+            "help",
         )
         assert result["command"] == "help"
         assert "blocks" in result
@@ -1437,8 +1673,10 @@ class TestSlackUpgraded:
     @pytest.mark.asyncio
     async def test_status_blocks_have_header(self):
         from app.services import integration_service
+
         result = await integration_service.slack_handle_slash_command(
-            "/forgemind", "status",
+            "/forgemind",
+            "status",
         )
         blocks = result["blocks"]
         assert blocks[0]["type"] == "header"
@@ -1447,34 +1685,47 @@ class TestSlackUpgraded:
     @pytest.mark.asyncio
     async def test_interactive_action_with_user_id(self):
         from app.services import integration_service
+
         result = await integration_service.slack_handle_interactive_action(
-            "button", "approve", user_id="U456",
+            "button",
+            "approve",
+            user_id="U456",
         )
         assert result["user"] == "U456"
         assert result["status"] == "processed"
 
     def test_build_status_blocks_structure(self):
         from app.services.integration_service import _build_status_blocks
-        summary = {"projects": [
-            {"name": "TestProj", "status": "active", "runs": 3},
-        ]}
+
+        summary = {
+            "projects": [
+                {"name": "TestProj", "status": "active", "runs": 3},
+            ]
+        }
         blocks = _build_status_blocks(summary)
         assert any(b.get("type") == "section" for b in blocks)
 
     def test_build_status_blocks_empty_projects(self):
         from app.services.integration_service import _build_status_blocks
+
         blocks = _build_status_blocks({"projects": []})
-        texts = [b.get("text", {}).get("text", "") for b in blocks if b.get("type") == "section"]
+        texts = [
+            b.get("text", {}).get("text", "")
+            for b in blocks
+            if b.get("type") == "section"
+        ]
         assert any("No projects" in t for t in texts)
 
     def test_build_help_blocks_structure(self):
         from app.services.integration_service import _build_help_blocks
+
         blocks = _build_help_blocks()
         assert len(blocks) >= 2
         assert blocks[0]["type"] == "header"
 
     def test_build_run_blocks_structure(self):
         from app.services.integration_service import _build_run_blocks
+
         blocks = _build_run_blocks({"text": "Run done"})
         assert len(blocks) >= 1
 
@@ -1490,6 +1741,7 @@ class TestJiraUpgraded:
     @pytest.mark.asyncio
     async def test_import_jira_issue_not_configured(self):
         from app.services import integration_service
+
         integration_service._jira_config["base_url"] = ""
         result = await integration_service.import_jira_issue("PROJ-1")
         assert result.get("error") == "not_configured"
@@ -1497,6 +1749,7 @@ class TestJiraUpgraded:
     @pytest.mark.asyncio
     async def test_export_task_to_jira_not_configured(self):
         from app.services import integration_service
+
         integration_service._jira_config["base_url"] = ""
         result = await integration_service.export_task_to_jira(
             {"title": "Test Task", "description": "desc"},
@@ -1506,9 +1759,12 @@ class TestJiraUpgraded:
     @pytest.mark.asyncio
     async def test_sync_jira_status_to_jira_not_configured(self):
         from app.services import integration_service
+
         integration_service._jira_config["base_url"] = ""
         result = await integration_service.sync_jira_status(
-            "PROJ-1", "completed", direction="to_jira",
+            "PROJ-1",
+            "completed",
+            direction="to_jira",
         )
         # When not configured, jira_transition_issue returns error dict
         # but sync wraps it in synced=True with transition_result containing the error
@@ -1519,14 +1775,21 @@ class TestJiraUpgraded:
     @pytest.mark.asyncio
     async def test_sync_jira_status_from_jira_not_configured(self):
         from app.services import integration_service
+
         integration_service._jira_config["base_url"] = ""
         result = await integration_service.sync_jira_status(
-            "PROJ-1", "", direction="from_jira",
+            "PROJ-1",
+            "",
+            direction="from_jira",
         )
         assert result.get("error") == "not_configured"
 
     def test_map_fields_round_trip(self):
-        from app.services.integration_service import map_fields_to_jira, map_fields_from_jira
+        from app.services.integration_service import (
+            map_fields_to_jira,
+            map_fields_from_jira,
+        )
+
         task = {"title": "My Task", "description": "desc", "priority": "High"}
         jira_fields = map_fields_to_jira(task)
         assert jira_fields["summary"] == "My Task"
@@ -1537,10 +1800,16 @@ class TestJiraUpgraded:
 
     def test_bidirectional_status_round_trip_all(self):
         from app.services.integration_service import (
-            map_status_to_jira, map_status_from_jira,
+            map_status_to_jira,
+            map_status_from_jira,
         )
-        for fm, jira in [("queued", "To Do"), ("in_progress", "In Progress"),
-                         ("review", "In Review"), ("completed", "Done")]:
+
+        for fm, jira in [
+            ("queued", "To Do"),
+            ("in_progress", "In Progress"),
+            ("review", "In Review"),
+            ("completed", "Done"),
+        ]:
             assert map_status_to_jira(fm) == jira
             assert map_status_from_jira(jira) == fm
 
@@ -1555,10 +1824,13 @@ class TestPagerDutyUpgraded:
 
     def test_configure_alert_triggers(self):
         from app.services import integration_service
+
         integration_service._alert_trigger_config.clear()
-        integration_service.configure_alert_triggers({
-            "health_critical": {"severity": "critical", "dedup_prefix": "health"},
-        })
+        integration_service.configure_alert_triggers(
+            {
+                "health_critical": {"severity": "critical", "dedup_prefix": "health"},
+            }
+        )
         config = integration_service.get_alert_trigger_config()
         assert "health_critical" in config
         assert config["health_critical"]["severity"] == "critical"
@@ -1567,6 +1839,7 @@ class TestPagerDutyUpgraded:
     @pytest.mark.asyncio
     async def test_auto_create_incident_unconfigured_alert(self):
         from app.services import integration_service
+
         integration_service._alert_trigger_config.clear()
         result = await integration_service.auto_create_incident_from_alert(
             "unknown_alert",
@@ -1577,13 +1850,19 @@ class TestPagerDutyUpgraded:
     @pytest.mark.asyncio
     async def test_auto_create_incident_configured_no_pagerduty(self):
         from app.services import integration_service
+
         integration_service._alert_trigger_config.clear()
         integration_service._pagerduty_config["routing_key"] = ""
-        integration_service.configure_alert_triggers({
-            "test_alert": {"severity": "high", "dedup_prefix": "test"},
-        })
+        integration_service.configure_alert_triggers(
+            {
+                "test_alert": {"severity": "high", "dedup_prefix": "test"},
+            }
+        )
         result = await integration_service.auto_create_incident_from_alert(
-            "test_alert", "Something broke", current_value=95.0, threshold=90.0,
+            "test_alert",
+            "Something broke",
+            current_value=95.0,
+            threshold=90.0,
         )
         assert result["triggered"] is True
         assert result["severity"] == "high"
@@ -1595,11 +1874,14 @@ class TestPagerDutyUpgraded:
     @pytest.mark.asyncio
     async def test_auto_resolve_incident_configured(self):
         from app.services import integration_service
+
         integration_service._alert_trigger_config.clear()
         integration_service._pagerduty_config["routing_key"] = ""
-        integration_service.configure_alert_triggers({
-            "test_alert": {"severity": "high", "dedup_prefix": "test"},
-        })
+        integration_service.configure_alert_triggers(
+            {
+                "test_alert": {"severity": "high", "dedup_prefix": "test"},
+            }
+        )
         result = await integration_service.auto_resolve_incident_from_alert(
             "test_alert",
         )
@@ -1610,6 +1892,7 @@ class TestPagerDutyUpgraded:
     @pytest.mark.asyncio
     async def test_auto_resolve_incident_unconfigured_alert(self):
         from app.services import integration_service
+
         integration_service._alert_trigger_config.clear()
         result = await integration_service.auto_resolve_incident_from_alert(
             "nonexistent",
@@ -1618,6 +1901,7 @@ class TestPagerDutyUpgraded:
 
     def test_get_alert_trigger_config_empty(self):
         from app.services import integration_service
+
         integration_service._alert_trigger_config.clear()
         assert integration_service.get_alert_trigger_config() == {}
 
@@ -1632,15 +1916,25 @@ class TestTypeScriptSDK:
 
     def test_typescript_sdk_file_exists(self):
         import os
+
         sdk_path = os.path.join(
-            os.path.dirname(__file__), "..", "app", "sdk", "typescript_client.ts",
+            os.path.dirname(__file__),
+            "..",
+            "app",
+            "sdk",
+            "typescript_client.ts",
         )
         assert os.path.exists(sdk_path), "TypeScript SDK file not found"
 
     def test_typescript_sdk_exports_client_class(self):
         import os
+
         sdk_path = os.path.join(
-            os.path.dirname(__file__), "..", "app", "sdk", "typescript_client.ts",
+            os.path.dirname(__file__),
+            "..",
+            "app",
+            "sdk",
+            "typescript_client.ts",
         )
         content = open(sdk_path).read()
         assert "export class ForgeMindClient" in content
@@ -1648,39 +1942,71 @@ class TestTypeScriptSDK:
 
     def test_typescript_sdk_covers_endpoints(self):
         import os
+
         sdk_path = os.path.join(
-            os.path.dirname(__file__), "..", "app", "sdk", "typescript_client.ts",
+            os.path.dirname(__file__),
+            "..",
+            "app",
+            "sdk",
+            "typescript_client.ts",
         )
         content = open(sdk_path).read()
         # Must cover all major v1 endpoint groups
         for method in [
-            "listProjects", "getProject", "createProject",
-            "listTasks", "createTask",
-            "getDependencyGraph", "analyzeImpact", "selectTests",
+            "listProjects",
+            "getProject",
+            "createProject",
+            "listTasks",
+            "createTask",
+            "getDependencyGraph",
+            "analyzeImpact",
+            "selectTests",
             "getCodeIntelligenceContext",
-            "getCycleTime", "getQualityScore",
-            "fireWebhook", "listWebhooks",
-            "listApiKeys", "createApiKey", "revokeApiKey",
+            "getCycleTime",
+            "getQualityScore",
+            "fireWebhook",
+            "listWebhooks",
+            "listApiKeys",
+            "createApiKey",
+            "revokeApiKey",
         ]:
             assert method in content, f"Missing method: {method}"
 
     def test_typescript_sdk_has_types(self):
         import os
+
         sdk_path = os.path.join(
-            os.path.dirname(__file__), "..", "app", "sdk", "typescript_client.ts",
+            os.path.dirname(__file__),
+            "..",
+            "app",
+            "sdk",
+            "typescript_client.ts",
         )
         content = open(sdk_path).read()
         for type_name in [
-            "Project", "Task", "Run", "DependencyGraph",
-            "ImpactAnalysis", "TestSelection", "APIKey", "Webhook",
+            "Project",
+            "Task",
+            "Run",
+            "DependencyGraph",
+            "ImpactAnalysis",
+            "TestSelection",
+            "APIKey",
+            "Webhook",
         ]:
-            assert f"export interface {type_name}" in content, f"Missing type: {type_name}"
+            assert f"export interface {type_name}" in content, (
+                f"Missing type: {type_name}"
+            )
 
     def test_typescript_package_json_exists(self):
         import json
         import os
+
         pkg_path = os.path.join(
-            os.path.dirname(__file__), "..", "app", "sdk", "package.json",
+            os.path.dirname(__file__),
+            "..",
+            "app",
+            "sdk",
+            "package.json",
         )
         assert os.path.exists(pkg_path)
         pkg = json.load(open(pkg_path))
@@ -1688,8 +2014,13 @@ class TestTypeScriptSDK:
 
     def test_python_sdk_pyproject_exists(self):
         import os
+
         toml_path = os.path.join(
-            os.path.dirname(__file__), "..", "app", "sdk", "pyproject.toml",
+            os.path.dirname(__file__),
+            "..",
+            "app",
+            "sdk",
+            "pyproject.toml",
         )
         assert os.path.exists(toml_path)
         content = open(toml_path).read()
@@ -1708,8 +2039,10 @@ class TestFM210UpgradedE2E:
     async def test_slack_status_to_block_post_flow(self):
         """E2E: Slack status command produces Block Kit response."""
         from app.services import integration_service
+
         result = await integration_service.slack_handle_slash_command(
-            "/forgemind", "status",
+            "/forgemind",
+            "status",
         )
         assert "blocks" in result
         assert result["blocks"][0]["type"] == "header"
@@ -1718,8 +2051,10 @@ class TestFM210UpgradedE2E:
     async def test_jira_field_mapping_then_export_flow(self):
         """E2E: Map ForgeMind task fields to Jira then export."""
         from app.services.integration_service import (
-            map_fields_to_jira, export_task_to_jira,
+            map_fields_to_jira,
+            export_task_to_jira,
         )
+
         task = {"title": "Fix auth bug", "description": "Auth fails on SSO"}
         jira_fields = map_fields_to_jira(task)
         assert jira_fields["summary"] == "Fix auth bug"
@@ -1731,17 +2066,23 @@ class TestFM210UpgradedE2E:
     async def test_pagerduty_alert_trigger_to_resolve_flow(self):
         """E2E: Configure alert trigger, auto-create, then auto-resolve."""
         from app.services import integration_service
+
         integration_service._alert_trigger_config.clear()
         integration_service._pagerduty_config["routing_key"] = ""
 
         # Configure
-        integration_service.configure_alert_triggers({
-            "cpu_high": {"severity": "warning", "dedup_prefix": "cpu"},
-        })
+        integration_service.configure_alert_triggers(
+            {
+                "cpu_high": {"severity": "warning", "dedup_prefix": "cpu"},
+            }
+        )
 
         # Auto-create
         create_result = await integration_service.auto_create_incident_from_alert(
-            "cpu_high", "CPU at 95%", current_value=95.0, threshold=80.0,
+            "cpu_high",
+            "CPU at 95%",
+            current_value=95.0,
+            threshold=80.0,
         )
         assert create_result["triggered"] is True
         dedup_key = create_result["dedup_key"]
@@ -1759,6 +2100,7 @@ class TestFM210UpgradedE2E:
     async def test_sdk_typescript_python_both_exist(self):
         """E2E: Both Python and TypeScript SDK artifacts exist."""
         import os
+
         base = os.path.join(os.path.dirname(__file__), "..", "app", "sdk")
         assert os.path.exists(os.path.join(base, "python_client.py"))
         assert os.path.exists(os.path.join(base, "typescript_client.ts"))

@@ -505,7 +505,9 @@ async def plan_with_code_intelligence(
 
     # Build code intelligence context
     ci_context = await build_code_intelligence_context(
-        db, project_id, changed_files=changed_files,
+        db,
+        project_id,
+        changed_files=changed_files,
     )
 
     # Format for LLM injection
@@ -532,7 +534,8 @@ async def plan_with_code_intelligence(
             "coverage_avg": ci_context.get("coverage", {}).get("avg_coverage", 0),
             "hotspot_count": len(ci_context.get("complexity_hotspots", [])),
             "debt_score": ci_context.get("debt", {}).get("total_score", 0)
-            if isinstance(ci_context.get("debt"), dict) else 0,
+            if isinstance(ci_context.get("debt"), dict)
+            else 0,
             "has_impact_analysis": "impact_analysis" in ci_context,
         },
         "changed_files": changed_files,

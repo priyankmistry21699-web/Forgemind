@@ -97,12 +97,8 @@ class AuditLog(Base):
         nullable=False,
         default=AuditActorType.USER,
     )
-    action: Mapped[str] = mapped_column(
-        String(200), nullable=False, index=True
-    )
-    resource_type: Mapped[str] = mapped_column(
-        String(100), nullable=False
-    )
+    action: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
+    resource_type: Mapped[str] = mapped_column(String(100), nullable=False)
     resource_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), nullable=True
     )
@@ -129,7 +125,9 @@ class AuditLog(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<AuditLog {self.action} by={self.actor_id} outcome={self.outcome.value}>"
+        return (
+            f"<AuditLog {self.action} by={self.actor_id} outcome={self.outcome.value}>"
+        )
 
 
 class GovernancePolicyEvaluation(Base):
@@ -140,9 +138,7 @@ class GovernancePolicyEvaluation(Base):
     """
 
     __tablename__ = "governance_policy_evaluations"
-    __table_args__ = (
-        Index("ix_gpe_policy_created", "policy_id", "created_at"),
-    )
+    __table_args__ = (Index("ix_gpe_policy_created", "policy_id", "created_at"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -174,9 +170,7 @@ class GovernancePolicyEvaluation(Base):
         nullable=False,
     )
     details: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    enforced: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
-    )
+    enforced: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -254,9 +248,7 @@ class IpAllowlistEntry(Base):
     )
     cidr: Mapped[str] = mapped_column(String(50), nullable=False)
     description: Mapped[str | None] = mapped_column(String(300), nullable=True)
-    is_active: Mapped[bool] = mapped_column(
-        Boolean, default=True, nullable=False
-    )
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_by: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
@@ -293,23 +285,15 @@ class RetentionPolicy(Base):
         nullable=False,
         index=True,
     )
-    entity_type: Mapped[str] = mapped_column(
-        String(100), nullable=False
-    )
-    retention_days: Mapped[int] = mapped_column(
-        Integer, nullable=False
-    )
+    entity_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    retention_days: Mapped[int] = mapped_column(Integer, nullable=False)
     action: Mapped[RetentionAction] = mapped_column(
         Enum(RetentionAction, name="retention_action"),
         nullable=False,
         default=RetentionAction.ARCHIVE,
     )
-    is_active: Mapped[bool] = mapped_column(
-        Boolean, default=True, nullable=False
-    )
-    legal_hold: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
-    )
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    legal_hold: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     project_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("projects.id", ondelete="SET NULL"),
@@ -360,9 +344,7 @@ class CustomRole(Base):
     scope: Mapped[str] = mapped_column(
         String(20), nullable=False, default="project"
     )  # "workspace" or "project"
-    permissions: Mapped[list] = mapped_column(
-        JSON, nullable=False, default=list
-    )
+    permissions: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_by: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

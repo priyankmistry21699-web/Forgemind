@@ -115,9 +115,7 @@ async def create_webhook(
     org_id: uuid.UUID | None = None,
 ) -> WebhookSubscription:
     """Create a webhook subscription."""
-    secret_hash = (
-        hashlib.sha256(secret.encode()).hexdigest() if secret else None
-    )
+    secret_hash = hashlib.sha256(secret.encode()).hexdigest() if secret else None
     wh = WebhookSubscription(
         creator_id=creator_id,
         url=url,
@@ -248,7 +246,7 @@ async def mark_delivery_failed(
         delivery.status = DeliveryStatus.RETRYING
         delivery.attempt += 1
         # Exponential backoff: 2^attempt minutes
-        backoff = timedelta(minutes=2 ** delivery.attempt)
+        backoff = timedelta(minutes=2**delivery.attempt)
         delivery.next_retry_at = datetime.now(timezone.utc) + backoff
     else:
         delivery.status = DeliveryStatus.FAILED
@@ -481,7 +479,9 @@ async def health_check_connector(
             probe_result["error"] = str(exc)
     else:
         # No URL configured — consider active if config exists
-        new_status = ConnectorStatus.ACTIVE if conn.config_json else ConnectorStatus.INACTIVE
+        new_status = (
+            ConnectorStatus.ACTIVE if conn.config_json else ConnectorStatus.INACTIVE
+        )
         probe_result["probe"] = "config_only"
 
     conn.status = new_status

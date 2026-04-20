@@ -74,11 +74,13 @@ async def get_digest_preview(
 ) -> list[Notification]:
     """Return unread, undismissed notifications for digest email preview."""
     result = await db.execute(
-        select(Notification).where(
+        select(Notification)
+        .where(
             Notification.user_id == user_id,
             Notification.is_read.is_(False),
             Notification.dismissed_at.is_(None),
-        ).order_by(Notification.created_at.desc())
+        )
+        .order_by(Notification.created_at.desc())
         .limit(100)
     )
     return list(result.scalars().all())
@@ -112,25 +114,29 @@ async def get_grouped_notifications(
     items: list[dict] = []
     for key, notifs in groups.items():
         latest = notifs[0]
-        items.append({
-            "group_key": key,
-            "count": len(notifs),
-            "latest_id": str(latest.id),
-            "latest_title": latest.title,
-            "notification_type": latest.notification_type.value
-            if hasattr(latest.notification_type, "value")
-            else str(latest.notification_type),
-            "latest_created_at": latest.created_at.isoformat(),
-        })
+        items.append(
+            {
+                "group_key": key,
+                "count": len(notifs),
+                "latest_id": str(latest.id),
+                "latest_title": latest.title,
+                "notification_type": latest.notification_type.value
+                if hasattr(latest.notification_type, "value")
+                else str(latest.notification_type),
+                "latest_created_at": latest.created_at.isoformat(),
+            }
+        )
     for n in ungrouped:
-        items.append({
-            "group_key": None,
-            "count": 1,
-            "latest_id": str(n.id),
-            "latest_title": n.title,
-            "notification_type": n.notification_type.value
-            if hasattr(n.notification_type, "value")
-            else str(n.notification_type),
-            "latest_created_at": n.created_at.isoformat(),
-        })
+        items.append(
+            {
+                "group_key": None,
+                "count": 1,
+                "latest_id": str(n.id),
+                "latest_title": n.title,
+                "notification_type": n.notification_type.value
+                if hasattr(n.notification_type, "value")
+                else str(n.notification_type),
+                "latest_created_at": n.created_at.isoformat(),
+            }
+        )
     return items

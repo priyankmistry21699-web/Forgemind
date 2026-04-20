@@ -60,8 +60,8 @@ async def compute_velocity(
     cycle_q = await db.execute(
         select(
             sa_func.avg(
-                sa_func.extract("epoch", Run.updated_at) -
-                sa_func.extract("epoch", Run.created_at)
+                sa_func.extract("epoch", Run.updated_at)
+                - sa_func.extract("epoch", Run.created_at)
             ).label("avg_cycle_seconds")
         ).where(
             Run.project_id == project_id,
@@ -364,7 +364,9 @@ async def evaluate_quality_gates(
                 "direction": "below_min",
             }
             violations.append(entry)
-            warnings.append(f"{label} is {value:.2%}, below minimum {gate_cfg['min']:.2%}")
+            warnings.append(
+                f"{label} is {value:.2%}, below minimum {gate_cfg['min']:.2%}"
+            )
 
         # Check max threshold
         if "max" in gate_cfg and value > gate_cfg["max"]:
@@ -376,7 +378,9 @@ async def evaluate_quality_gates(
                 "direction": "above_max",
             }
             violations.append(entry)
-            warnings.append(f"{label} is {value:.2%}, above maximum {gate_cfg['max']:.2%}")
+            warnings.append(
+                f"{label} is {value:.2%}, above maximum {gate_cfg['max']:.2%}"
+            )
 
     passed = len(violations) == 0
 
@@ -434,9 +438,9 @@ async def get_portfolio_summary(
 
         # Cost
         cost_q = await db.execute(
-            select(
-                sa_func.coalesce(sa_func.sum(CostRecord.cost_usd), 0.0)
-            ).where(CostRecord.project_id == pid)
+            select(sa_func.coalesce(sa_func.sum(CostRecord.cost_usd), 0.0)).where(
+                CostRecord.project_id == pid
+            )
         )
         cost = float(cost_q.scalar_one())
 
@@ -465,7 +469,12 @@ async def get_portfolio_summary(
         total_runs += total_r
 
     # Apply sorting
-    if sort_by and sort_by in ("total_runs", "completed_runs", "total_cost_usd", "success_rate"):
+    if sort_by and sort_by in (
+        "total_runs",
+        "completed_runs",
+        "total_cost_usd",
+        "success_rate",
+    ):
         reverse = sort_order != "asc"
         projects_data.sort(key=lambda p: p.get(sort_by, 0), reverse=reverse)
 

@@ -85,10 +85,12 @@ async def get_flaky_tests(
     ).subquery()
 
     result = await db.execute(
-        select(subq).where(
+        select(subq)
+        .where(
             subq.c.pass_count > 0,
             subq.c.fail_count > 0,
-        ).limit(limit)
+        )
+        .limit(limit)
     )
     rows = result.all()
 
@@ -97,14 +99,16 @@ async def get_flaky_tests(
         total = row.total_runs
         flip_rate = min(row.pass_count, row.fail_count) / total if total > 0 else 0
         if flip_rate >= min_flip_rate:
-            flaky.append({
-                "test_name": row.test_name,
-                "test_file": row.test_file,
-                "total_runs": total,
-                "pass_count": row.pass_count,
-                "fail_count": row.fail_count,
-                "flip_rate": round(flip_rate, 3),
-            })
+            flaky.append(
+                {
+                    "test_name": row.test_name,
+                    "test_file": row.test_file,
+                    "total_runs": total,
+                    "pass_count": row.pass_count,
+                    "fail_count": row.fail_count,
+                    "flip_rate": round(flip_rate, 3),
+                }
+            )
     return sorted(flaky, key=lambda x: x["flip_rate"], reverse=True)
 
 
@@ -204,16 +208,20 @@ async def get_quarantined_test_report(
     for row in rows:
         total = row.total_runs
         pass_rate = round(row.pass_count / total, 3) if total else 0.0
-        tests.append({
-            "test_name": row.test_name,
-            "test_file": row.test_file,
-            "total_runs": total,
-            "pass_count": row.pass_count,
-            "fail_count": row.fail_count,
-            "pass_rate": pass_rate,
-            "last_run_at": row.last_run_at.isoformat() if row.last_run_at else None,
-            "recommendation": "un-quarantine" if pass_rate >= 0.9 and total >= 5 else "keep quarantined",
-        })
+        tests.append(
+            {
+                "test_name": row.test_name,
+                "test_file": row.test_file,
+                "total_runs": total,
+                "pass_count": row.pass_count,
+                "fail_count": row.fail_count,
+                "pass_rate": pass_rate,
+                "last_run_at": row.last_run_at.isoformat() if row.last_run_at else None,
+                "recommendation": "un-quarantine"
+                if pass_rate >= 0.9 and total >= 5
+                else "keep quarantined",
+            }
+        )
 
     return {
         "project_id": str(project_id),
@@ -246,11 +254,13 @@ def _compute_cyclomatic_complexity(source_code: str) -> list[dict[str, Any]]:
                     complexity += len(child.values) - 1
                 elif isinstance(child, ast.Assert):
                     complexity += 1
-            results.append({
-                "function_name": node.name,
-                "complexity": complexity,
-                "line": node.lineno,
-            })
+            results.append(
+                {
+                    "function_name": node.name,
+                    "complexity": complexity,
+                    "line": node.lineno,
+                }
+            )
     return results
 
 
@@ -271,11 +281,13 @@ def _compute_cognitive_complexity(source_code: str) -> list[dict[str, Any]]:
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             score = _cognitive_visit_body(node.body, nesting=0)
-            results.append({
-                "function_name": node.name,
-                "complexity": score,
-                "line": node.lineno,
-            })
+            results.append(
+                {
+                    "function_name": node.name,
+                    "complexity": score,
+                    "line": node.lineno,
+                }
+            )
     return results
 
 
@@ -297,11 +309,17 @@ def _cognitive_visit_body(stmts: list[ast.AST], nesting: int) -> int:
                     score += _cognitive_visit_body(elif_node.body, nesting + 1)
                     # Recurse elif's orelse
                     if elif_node.orelse:
-                        if len(elif_node.orelse) == 1 and isinstance(elif_node.orelse[0], ast.If):
-                            score += _cognitive_visit_body([elif_node.orelse[0]], nesting)
+                        if len(elif_node.orelse) == 1 and isinstance(
+                            elif_node.orelse[0], ast.If
+                        ):
+                            score += _cognitive_visit_body(
+                                [elif_node.orelse[0]], nesting
+                            )
                         else:
                             score += 1  # else
-                            score += _cognitive_visit_body(elif_node.orelse, nesting + 1)
+                            score += _cognitive_visit_body(
+                                elif_node.orelse, nesting + 1
+                            )
                 else:
                     # else clause
                     score += 1
@@ -309,7 +327,7 @@ def _cognitive_visit_body(stmts: list[ast.AST], nesting: int) -> int:
 
         elif isinstance(stmt, ast.Try):
             score += _cognitive_visit_body(stmt.body, nesting)
-            for handler in (stmt.handlers or []):
+            for handler in stmt.handlers or []:
                 score += 1 + nesting
                 score += _cognitive_visit_body(handler.body, nesting + 1)
             score += _cognitive_visit_body(stmt.orelse or [], nesting)
@@ -352,6 +370,7 @@ async def analyze_file_complexity(
 ) -> list[ComplexityMetric]:
     """Compute cyclomatic + cognitive complexity for all functions and persist."""
     from sqlalchemy import delete as sa_delete
+
     await db.execute(
         sa_delete(ComplexityMetric).where(
             ComplexityMetric.project_id == project_id,
@@ -444,6 +463,7 @@ async def get_complexity_hotspots(
         query = query.where(ComplexityMetric.exceeds_threshold.is_(True))
     if since_days is not None:
         from datetime import datetime, timedelta, timezone
+
         cutoff = datetime.now(timezone.utc) - timedelta(days=since_days)
         query = query.where(ComplexityMetric.snapshot_date >= cutoff)
 
@@ -459,6 +479,7 @@ async def get_complexity_summary(
 ) -> dict[str, Any]:
     """Summary stats for complexity metrics."""
     from sqlalchemy import case as sa_case
+
     result = await db.execute(
         select(
             sa_func.count(ComplexityMetric.id).label("total_metrics"),

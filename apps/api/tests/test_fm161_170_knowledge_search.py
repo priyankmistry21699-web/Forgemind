@@ -1,4 +1,4 @@
-﻿"""Tests for FM-161-170: Search, Knowledge & Organizational Memory.
+"""Tests for FM-161-170: Search, Knowledge & Organizational Memory.
 
 Covers:
   FM-161: Full-text search index
@@ -77,9 +77,7 @@ class TestSearchIndexing:
         assert total >= 1
 
     @pytest.mark.asyncio
-    async def test_upsert_updates_existing(
-        self, db_session: AsyncSession, sample_task
-    ):
+    async def test_upsert_updates_existing(self, db_session: AsyncSession, sample_task):
         """Indexing the same entity twice should update, not duplicate."""
         await search_service.index_task(db_session, sample_task)
         await db_session.commit()
@@ -89,7 +87,9 @@ class TestSearchIndexing:
         await search_service.index_task(db_session, sample_task)
         await db_session.commit()
 
-        items, _, _ = await search_service.search(db_session, query="Updated Task Title")
+        items, _, _ = await search_service.search(
+            db_session, query="Updated Task Title"
+        )
         matches = [i for i in items if i["entity_id"] == str(sample_task.id)]
         assert len(matches) == 1
 
@@ -308,9 +308,7 @@ class TestRunComparison:
 
 class TestConventions:
     @pytest.mark.asyncio
-    async def test_create_convention(
-        self, db_session: AsyncSession, sample_project
-    ):
+    async def test_create_convention(self, db_session: AsyncSession, sample_project):
         conv = await convention_service.create_convention(
             db_session,
             project_id=sample_project.id,
@@ -327,9 +325,7 @@ class TestConventions:
         assert conv.active is True
 
     @pytest.mark.asyncio
-    async def test_list_conventions(
-        self, db_session: AsyncSession, sample_project
-    ):
+    async def test_list_conventions(self, db_session: AsyncSession, sample_project):
         await convention_service.create_convention(
             db_session,
             project_id=sample_project.id,
@@ -348,9 +344,7 @@ class TestConventions:
         assert any(c.name == "Test coverage" for c in items)
 
     @pytest.mark.asyncio
-    async def test_update_convention(
-        self, db_session: AsyncSession, sample_project
-    ):
+    async def test_update_convention(self, db_session: AsyncSession, sample_project):
         conv = await convention_service.create_convention(
             db_session,
             project_id=sample_project.id,
@@ -371,9 +365,7 @@ class TestConventions:
         assert updated.name == "No hardcoded secrets or tokens"
 
     @pytest.mark.asyncio
-    async def test_delete_convention(
-        self, db_session: AsyncSession, sample_project
-    ):
+    async def test_delete_convention(self, db_session: AsyncSession, sample_project):
         conv = await convention_service.create_convention(
             db_session,
             project_id=sample_project.id,
@@ -445,9 +437,7 @@ class TestConventions:
 
 class TestArtifactVersioning:
     @pytest.mark.asyncio
-    async def test_get_version_history(
-        self, db_session: AsyncSession, sample_artifact
-    ):
+    async def test_get_version_history(self, db_session: AsyncSession, sample_artifact):
         versions = await artifact_version_service.get_version_history(
             db_session, sample_artifact.id
         )
@@ -455,9 +445,7 @@ class TestArtifactVersioning:
         assert versions[0].id == sample_artifact.id
 
     @pytest.mark.asyncio
-    async def test_create_new_version(
-        self, db_session: AsyncSession, sample_artifact
-    ):
+    async def test_create_new_version(self, db_session: AsyncSession, sample_artifact):
         new_ver = await artifact_version_service.create_new_version(
             db_session,
             parent_artifact_id=sample_artifact.id,
@@ -471,9 +459,7 @@ class TestArtifactVersioning:
         assert "V2" in new_ver.content
 
     @pytest.mark.asyncio
-    async def test_diff_versions(
-        self, db_session: AsyncSession, sample_artifact
-    ):
+    async def test_diff_versions(self, db_session: AsyncSession, sample_artifact):
         _new_ver = await artifact_version_service.create_new_version(
             db_session,
             parent_artifact_id=sample_artifact.id,
@@ -491,9 +477,7 @@ class TestArtifactVersioning:
         assert len(result["diff_lines"]) > 0
 
     @pytest.mark.asyncio
-    async def test_tag_version(
-        self, db_session: AsyncSession, sample_artifact
-    ):
+    async def test_tag_version(self, db_session: AsyncSession, sample_artifact):
         tagged = await artifact_version_service.tag_version(
             db_session, sample_artifact.id, "v1.0-release"
         )
@@ -501,9 +485,7 @@ class TestArtifactVersioning:
         assert tagged.version_tag == "v1.0-release"
 
     @pytest.mark.asyncio
-    async def test_version_chain(
-        self, db_session: AsyncSession, sample_artifact
-    ):
+    async def test_version_chain(self, db_session: AsyncSession, sample_artifact):
         """Create 3 versions and verify the chain."""
         v2 = await artifact_version_service.create_new_version(
             db_session,
@@ -569,9 +551,7 @@ class TestRecommendations:
         assert len(knowledge_gaps) >= 1
 
     @pytest.mark.asyncio
-    async def test_list_recommendations(
-        self, db_session: AsyncSession, sample_project
-    ):
+    async def test_list_recommendations(self, db_session: AsyncSession, sample_project):
         # Generate first
         await recommendation_service.generate_recommendations(
             db_session, sample_project.id
@@ -739,9 +719,7 @@ class TestIndexIntegrity:
     @pytest.mark.asyncio
     async def test_integrity_empty_project(self, db_session: AsyncSession):
         """Non-existent project should pass (nothing indexed, nothing to index)."""
-        result = await search_service.check_index_integrity(
-            db_session, uuid.uuid4()
-        )
+        result = await search_service.check_index_integrity(db_session, uuid.uuid4())
         assert result["total_indexed"] == 0
         assert result["passed"] is True
 
@@ -776,9 +754,7 @@ class TestEdgeCases:
     @pytest.mark.asyncio
     async def test_search_special_characters(self, db_session: AsyncSession):
         """Search with special characters should not crash."""
-        items, total, _ = await search_service.search(
-            db_session, query="test@#$%^&*()"
-        )
+        items, total, _ = await search_service.search(db_session, query="test@#$%^&*()")
         assert isinstance(items, list)
         assert isinstance(total, int)
 
@@ -1221,11 +1197,7 @@ class TestSemanticSearch:
             for r in results
             if "Machine" in r["title"] or "Neural" in r["title"]
         ]
-        db_scores = [
-            r["semantic_score"]
-            for r in results
-            if "Database" in r["title"]
-        ]
+        db_scores = [r["semantic_score"] for r in results if "Database" in r["title"]]
         if db_scores:
             assert min(ml_scores) > max(db_scores)
 
@@ -1482,12 +1454,8 @@ class TestFindSimilarWithEmbeddings:
         # t3 (data analysis) should be more similar to t1 than t2 (web)
         if len(results) >= 2:
             titles = [r["title"] for r in results]
-            gamma_idx = next(
-                (i for i, t in enumerate(titles) if "Gamma" in t), None
-            )
-            beta_idx = next(
-                (i for i, t in enumerate(titles) if "Beta" in t), None
-            )
+            gamma_idx = next((i for i, t in enumerate(titles) if "Gamma" in t), None)
+            beta_idx = next((i for i, t in enumerate(titles) if "Beta" in t), None)
             if gamma_idx is not None and beta_idx is not None:
                 assert gamma_idx < beta_idx  # Gamma ranks higher
 
@@ -1559,7 +1527,9 @@ class TestSemanticSearchRoute:
                         SearchIndex.entity_id == task.id,
                     )
                 )
-            ).scalar_one().id,
+            )
+            .scalar_one()
+            .id,
             embedding=[0.5, 0.5, 0.5, 0.5],
             dimensions=4,
         )

@@ -36,6 +36,7 @@ async def assign_task(
     project_id = None
     if run_id:
         from app.models.run import Run
+
         run = await db.get(Run, run_id)
         if run:
             project_id = run.project_id
@@ -49,7 +50,9 @@ async def assign_task(
         task_id=task_id,
         metadata={
             "assignee_id": str(assignee_id),
-            "previous_assignee_id": str(previous_assignee) if previous_assignee else None,
+            "previous_assignee_id": str(previous_assignee)
+            if previous_assignee
+            else None,
         },
     )
     return task
@@ -76,6 +79,7 @@ async def unassign_task(
     project_id = None
     if run_id:
         from app.models.run import Run
+
         run = await db.get(Run, run_id)
         if run:
             project_id = run.project_id
@@ -88,7 +92,9 @@ async def unassign_task(
         run_id=run_id,
         task_id=task_id,
         metadata={
-            "previous_assignee_id": str(previous_assignee) if previous_assignee else None,
+            "previous_assignee_id": str(previous_assignee)
+            if previous_assignee
+            else None,
         },
     )
     return task
@@ -133,6 +139,8 @@ async def get_project_workload(
         uid = str(row.assignee_id)
         if uid not in workload:
             workload[uid] = {}
-        workload[uid][row.status.value if hasattr(row.status, "value") else str(row.status)] = row.count
+        workload[uid][
+            row.status.value if hasattr(row.status, "value") else str(row.status)
+        ] = row.count
 
     return [{"user_id": uid, "tasks": counts} for uid, counts in workload.items()]

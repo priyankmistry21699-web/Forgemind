@@ -36,9 +36,8 @@ class ForgeMindClient:
         api_key: str = "",
         timeout: float = 30.0,
     ):
-        self.base_url = (
-            base_url.rstrip("/")
-            or os.environ.get("FORGEMIND_BASE_URL", "http://localhost:8000")
+        self.base_url = base_url.rstrip("/") or os.environ.get(
+            "FORGEMIND_BASE_URL", "http://localhost:8000"
         )
         self.api_key = api_key or os.environ.get("FORGEMIND_API_KEY", "")
         self._client = httpx.AsyncClient(
@@ -71,7 +70,10 @@ class ForgeMindClient:
         params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         resp = await self._client.request(
-            method, path, json=json, params=params,
+            method,
+            path,
+            json=json,
+            params=params,
         )
         if resp.status_code >= 400:
             try:
@@ -95,30 +97,42 @@ class ForgeMindClient:
     # ── Tasks ─────────────────────────────────────────────────
 
     async def list_tasks(
-        self, project_id: str, **params: Any,
+        self,
+        project_id: str,
+        **params: Any,
     ) -> dict[str, Any]:
         return await self._request(
-            "GET", f"/api/v1/projects/{project_id}/tasks", params=params,
+            "GET",
+            f"/api/v1/projects/{project_id}/tasks",
+            params=params,
         )
 
     async def create_task(
-        self, project_id: str, data: dict[str, Any],
+        self,
+        project_id: str,
+        data: dict[str, Any],
     ) -> dict[str, Any]:
         return await self._request(
-            "POST", f"/api/v1/projects/{project_id}/tasks", json=data,
+            "POST",
+            f"/api/v1/projects/{project_id}/tasks",
+            json=data,
         )
 
     # ── Code Intelligence ─────────────────────────────────────
 
     async def get_dependency_graph(
-        self, project_id: str,
+        self,
+        project_id: str,
     ) -> dict[str, Any]:
         return await self._request(
-            "GET", f"/api/v1/projects/{project_id}/dependencies/graph",
+            "GET",
+            f"/api/v1/projects/{project_id}/dependencies/graph",
         )
 
     async def analyze_impact(
-        self, project_id: str, changed_files: list[str],
+        self,
+        project_id: str,
+        changed_files: list[str],
     ) -> dict[str, Any]:
         return await self._request(
             "POST",
@@ -127,7 +141,10 @@ class ForgeMindClient:
         )
 
     async def select_tests(
-        self, project_id: str, changed_files: list[str], mode: str = "standard",
+        self,
+        project_id: str,
+        changed_files: list[str],
+        mode: str = "standard",
     ) -> dict[str, Any]:
         return await self._request(
             "POST",
@@ -136,7 +153,9 @@ class ForgeMindClient:
         )
 
     async def get_code_intelligence_context(
-        self, project_id: str, changed_files: list[str] | None = None,
+        self,
+        project_id: str,
+        changed_files: list[str] | None = None,
     ) -> dict[str, Any]:
         body: dict[str, Any] = {}
         if changed_files:
@@ -150,26 +169,35 @@ class ForgeMindClient:
     # ── Analytics ─────────────────────────────────────────────
 
     async def get_cycle_time(
-        self, project_id: str, **params: Any,
+        self,
+        project_id: str,
+        **params: Any,
     ) -> dict[str, Any]:
         return await self._request(
-            "GET", f"/api/v1/projects/{project_id}/cycle-time", params=params,
+            "GET",
+            f"/api/v1/projects/{project_id}/cycle-time",
+            params=params,
         )
 
     async def get_quality_score(
-        self, project_id: str,
+        self,
+        project_id: str,
     ) -> dict[str, Any]:
         return await self._request(
-            "GET", f"/api/v1/projects/{project_id}/quality-score",
+            "GET",
+            f"/api/v1/projects/{project_id}/quality-score",
         )
 
     # ── Webhooks ──────────────────────────────────────────────
 
     async def fire_webhook(
-        self, event_type: str, payload: dict[str, Any],
+        self,
+        event_type: str,
+        payload: dict[str, Any],
     ) -> dict[str, Any]:
         return await self._request(
-            "POST", "/api/v1/webhooks/fire",
+            "POST",
+            "/api/v1/webhooks/fire",
             json={"event_type": event_type, "payload": payload},
         )
 
@@ -179,7 +207,9 @@ class ForgeMindClient:
         return await self._request("GET", "/api/v1/api-keys")
 
     async def create_api_key(
-        self, name: str, scopes: list[str] | None = None,
+        self,
+        name: str,
+        scopes: list[str] | None = None,
     ) -> dict[str, Any]:
         body: dict[str, Any] = {"name": name}
         if scopes:

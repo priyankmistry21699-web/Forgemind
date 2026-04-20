@@ -56,7 +56,9 @@ async def _run_retention_cycle() -> dict:
             from app.services import retention_policy_service
 
             report = await retention_policy_service.evaluate_retention(
-                db, ws_id, dry_run=False,
+                db,
+                ws_id,
+                dry_run=False,
             )
             await db.commit()
             results.append(report)
@@ -191,7 +193,9 @@ async def _run_scheduled_reports_cycle() -> dict:
                 # project search scope — execute for *each* project linked
                 # to the org if available.  If no org_id, skip gracefully.
                 await dashboard_alert_service.execute_scheduled_report(
-                    db, report.id, project_id=report.org_id or report.id,
+                    db,
+                    report.id,
+                    project_id=report.org_id or report.id,
                 )
                 executed += 1
             except Exception:
@@ -221,9 +225,7 @@ async def scheduled_report_loop() -> None:
             await asyncio.sleep(REPORT_CHECK_INTERVAL_SECONDS)
             result = await _run_scheduled_reports_cycle()
             if result["reports_executed"]:
-                logger.info(
-                    "background_scheduler: report cycle result=%s", result
-                )
+                logger.info("background_scheduler: report cycle result=%s", result)
         except asyncio.CancelledError:
             logger.info("background_scheduler: report loop cancelled")
             break

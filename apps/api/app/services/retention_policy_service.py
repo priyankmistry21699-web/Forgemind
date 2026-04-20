@@ -78,11 +78,7 @@ async def list_retention_policies(
 
     where_clause = and_(*conditions)
 
-    count_q = (
-        select(sa_func.count())
-        .select_from(RetentionPolicy)
-        .where(where_clause)
-    )
+    count_q = select(sa_func.count()).select_from(RetentionPolicy).where(where_clause)
     total = (await db.execute(count_q)).scalar() or 0
 
     items_q = (
@@ -143,7 +139,9 @@ async def _count_entities(db: AsyncSession, model, conditions):
     return (await db.execute(count_q)).scalar() or 0
 
 
-async def _delete_entities(db: AsyncSession, model, conditions, entity_type, workspace_id, cutoff):
+async def _delete_entities(
+    db: AsyncSession, model, conditions, entity_type, workspace_id, cutoff
+):
     """Delete entities and log the action."""
     from sqlalchemy import delete as sa_delete
 
@@ -152,7 +150,10 @@ async def _delete_entities(db: AsyncSession, model, conditions, entity_type, wor
     deleted_count = del_result.rowcount
     logger.info(
         "retention: EXECUTED delete for %s workspace=%s cutoff=%s deleted=%d",
-        entity_type, workspace_id, cutoff.isoformat(), deleted_count,
+        entity_type,
+        workspace_id,
+        cutoff.isoformat(),
+        deleted_count,
     )
     return deleted_count
 
@@ -168,17 +169,18 @@ async def _archive_entities(
     # Actually stamp archived_at on supported entity types
     now = datetime.now(timezone.utc)
     model_cls, conditions = await _build_conditions(
-        db, policy.entity_type, policy, workspace_id, cutoff,
+        db,
+        policy.entity_type,
+        policy,
+        workspace_id,
+        cutoff,
     )
 
     if hasattr(model_cls, "archived_at"):
         from sqlalchemy import update
+
         conditions.append(model_cls.archived_at.is_(None))
-        stmt = (
-            update(model_cls)
-            .where(and_(*conditions))
-            .values(archived_at=now)
-        )
+        stmt = update(model_cls).where(and_(*conditions)).values(archived_at=now)
         result = await db.execute(stmt)
         affected_count = result.rowcount
 
@@ -201,7 +203,10 @@ async def _archive_entities(
     await db.flush()
     logger.info(
         "retention: ARCHIVED %s workspace=%s cutoff=%s count=%d",
-        policy.entity_type, workspace_id, cutoff.isoformat(), affected_count,
+        policy.entity_type,
+        workspace_id,
+        cutoff.isoformat(),
+        affected_count,
     )
     return affected_count
 
@@ -214,6 +219,7 @@ async def _build_conditions(db, entity_type, policy, workspace_id, cutoff):
             conditions.append(Run.project_id == policy.project_id)
         else:
             from app.models.project import Project
+
             ws_projects = select(Project.id).where(Project.workspace_id == workspace_id)
             conditions.append(Run.project_id.in_(ws_projects))
         return Run, conditions
@@ -227,6 +233,7 @@ async def _build_conditions(db, entity_type, policy, workspace_id, cutoff):
 
     elif entity_type == "artifact":
         from app.models.project import Project
+
         conditions = [Artifact.created_at < cutoff]
         if policy.project_id:
             conditions.append(Artifact.project_id == policy.project_id)
@@ -237,6 +244,7 @@ async def _build_conditions(db, entity_type, policy, workspace_id, cutoff):
 
     elif entity_type == "notification":
         from app.models.membership import WorkspaceMember
+
         ws_users = select(WorkspaceMember.user_id).where(
             WorkspaceMember.workspace_id == workspace_id
         )
@@ -289,25 +297,35 @@ async def evaluate_retention(
             if not dry_run and affected_count > 0:
                 if policy.action == RetentionAction.DELETE:
                     deleted_count = await _delete_entities(
-                        db, model, conditions,
-                        policy.entity_type, workspace_id, cutoff,
+                        db,
+                        model,
+                        conditions,
+                        policy.entity_type,
+                        workspace_id,
+                        cutoff,
                     )
                 elif policy.action == RetentionAction.ARCHIVE:
                     archived_count = await _archive_entities(
-                        db, workspace_id, policy, affected_count, cutoff,
+                        db,
+                        workspace_id,
+                        policy,
+                        affected_count,
+                        cutoff,
                     )
 
-        results.append({
-            "policy_id": str(policy.id),
-            "entity_type": policy.entity_type,
-            "retention_days": policy.retention_days,
-            "action": policy.action.value,
-            "cutoff_date": cutoff.isoformat(),
-            "affected_count": affected_count,
-            "deleted_count": deleted_count,
-            "archived_count": archived_count,
-            "dry_run": dry_run,
-        })
+        results.append(
+            {
+                "policy_id": str(policy.id),
+                "entity_type": policy.entity_type,
+                "retention_days": policy.retention_days,
+                "action": policy.action.value,
+                "cutoff_date": cutoff.isoformat(),
+                "affected_count": affected_count,
+                "deleted_count": deleted_count,
+                "archived_count": archived_count,
+                "dry_run": dry_run,
+            }
+        )
 
     return {
         "workspace_id": str(workspace_id),

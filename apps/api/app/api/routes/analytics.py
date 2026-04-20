@@ -101,9 +101,14 @@ async def record_execution_metric(
     """Record an execution timing metric."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_EDIT)
     from app.models.analytics_metrics import ExecutionMetricType
+
     m = await execution_health_service.record_execution_metric(
-        db, project_id=project_id, metric_type=ExecutionMetricType(data.metric_type),
-        value_ms=data.value_ms, run_id=data.run_id, task_id=data.task_id,
+        db,
+        project_id=project_id,
+        metric_type=ExecutionMetricType(data.metric_type),
+        value_ms=data.value_ms,
+        run_id=data.run_id,
+        task_id=data.task_id,
     )
     return {"id": str(m.id), "metric_type": data.metric_type, "value_ms": data.value_ms}
 
@@ -124,17 +129,27 @@ async def get_execution_metrics(
     mt = None
     if metric_type:
         from app.models.analytics_metrics import ExecutionMetricType
+
         mt = ExecutionMetricType(metric_type)
     items, total = await execution_health_service.get_execution_metrics(
-        db, project_id, metric_type=mt, run_id=run_id,
-        since_days=since_days, limit=limit, offset=offset,
+        db,
+        project_id,
+        metric_type=mt,
+        run_id=run_id,
+        since_days=since_days,
+        limit=limit,
+        offset=offset,
     )
     return {
         "total": total,
         "items": [
-            {"id": str(i.id), "metric_type": i.metric_type.value if i.metric_type else None,
-             "value_ms": i.value_ms, "run_id": str(i.run_id) if i.run_id else None,
-             "recorded_at": i.recorded_at.isoformat() if i.recorded_at else None}
+            {
+                "id": str(i.id),
+                "metric_type": i.metric_type.value if i.metric_type else None,
+                "value_ms": i.value_ms,
+                "run_id": str(i.run_id) if i.run_id else None,
+                "recorded_at": i.recorded_at.isoformat() if i.recorded_at else None,
+            }
             for i in items
         ],
     }
@@ -169,16 +184,21 @@ async def auto_record_status_transition(
     """FM-191: Auto-record an execution metric from a run/task status transition."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_EDIT)
     metric = await execution_health_service.auto_record_from_status_transition(
-        db, project_id=project_id,
-        run_id=data.run_id, task_id=data.task_id,
-        old_status=data.old_status, new_status=data.new_status,
+        db,
+        project_id=project_id,
+        run_id=data.run_id,
+        task_id=data.task_id,
+        old_status=data.old_status,
+        new_status=data.new_status,
         duration_ms=data.duration_ms,
     )
     if metric is None:
         return {"recorded": False, "reason": "no metric mapped for this transition"}
     return {
         "recorded": True,
-        "metric_type": metric.metric_type.value if hasattr(metric.metric_type, "value") else str(metric.metric_type),
+        "metric_type": metric.metric_type.value
+        if hasattr(metric.metric_type, "value")
+        else str(metric.metric_type),
         "value_ms": metric.value_ms,
     }
 
@@ -196,11 +216,14 @@ async def compute_health(
     """Compute and store a health snapshot for the project."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_EDIT)
     snap = await execution_health_service.compute_health_snapshot(
-        db, project_id, dimension_scores=data.dimension_scores,
+        db,
+        project_id,
+        dimension_scores=data.dimension_scores,
     )
     return {
-        "id": str(snap.id), "composite_score": snap.composite_score,
-        "grade": snap.grade.value if hasattr(snap.grade, 'value') else str(snap.grade),
+        "id": str(snap.id),
+        "composite_score": snap.composite_score,
+        "grade": snap.grade.value if hasattr(snap.grade, "value") else str(snap.grade),
     }
 
 
@@ -216,8 +239,9 @@ async def get_health(
     if snap is None:
         return {"health": None}
     return {
-        "id": str(snap.id), "composite_score": snap.composite_score,
-        "grade": snap.grade.value if hasattr(snap.grade, 'value') else str(snap.grade),
+        "id": str(snap.id),
+        "composite_score": snap.composite_score,
+        "grade": snap.grade.value if hasattr(snap.grade, "value") else str(snap.grade),
         "dimension_scores": snap.dimension_scores,
     }
 
@@ -294,7 +318,9 @@ async def get_budget(
         budget_data = {
             "monthly_budget_usd": config.monthly_budget_usd,
             "warn_threshold_pct": config.warn_threshold_pct,
-            "action_on_exceed": config.action_on_exceed.value if config.action_on_exceed else None,
+            "action_on_exceed": config.action_on_exceed.value
+            if config.action_on_exceed
+            else None,
         }
 
     return {
@@ -338,7 +364,9 @@ async def get_approval_velocity(
 ):
     """FM-194: Get approval pipeline velocity metrics."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
-    return await velocity_quality_service.compute_approval_velocity(db, project_id, days=days)
+    return await velocity_quality_service.compute_approval_velocity(
+        db, project_id, days=days
+    )
 
 
 @router.get("/projects/{project_id}/velocity/comparison")
@@ -352,7 +380,10 @@ async def get_velocity_comparison(
     """FM-194: Compare velocity between current and previous period."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     return await velocity_quality_service.compute_velocity_comparison(
-        db, project_id, days=days, compare_days=compare_days,
+        db,
+        project_id,
+        days=days,
+        compare_days=compare_days,
     )
 
 
@@ -369,7 +400,8 @@ async def record_quality(
     """Record a quality metrics snapshot."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_EDIT)
     snap = await velocity_quality_service.record_quality_snapshot(
-        db, project_id=project_id,
+        db,
+        project_id=project_id,
         test_pass_rate=data.test_pass_rate,
         defect_density=data.defect_density,
         rollback_rate=data.rollback_rate,
@@ -419,7 +451,9 @@ async def evaluate_quality_gates(
     """FM-195: Evaluate quality gates against latest snapshot. FM-187: excludes quarantined tests."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     return await velocity_quality_service.evaluate_quality_gates(
-        db, project_id, exclude_quarantined=exclude_quarantined,
+        db,
+        project_id,
+        exclude_quarantined=exclude_quarantined,
     )
 
 
@@ -434,8 +468,10 @@ async def get_portfolio(
 ):
     """Get aggregate analytics across multiple projects."""
     return await velocity_quality_service.get_portfolio_summary(
-        db, data.project_ids,
-        sort_by=data.sort_by, sort_order=data.sort_order,
+        db,
+        data.project_ids,
+        sort_by=data.sort_by,
+        sort_order=data.sort_order,
         filter_min_runs=data.filter_min_runs,
     )
 
@@ -451,9 +487,14 @@ async def create_dashboard(
 ):
     """Create a custom dashboard."""
     from app.models.analytics_metrics import DashboardVisibility
+
     dash = await dashboard_alert_service.create_dashboard(
-        db, creator_id=user_id, name=data.name, description=data.description,
-        layout_json=data.layout_json, visibility=DashboardVisibility(data.visibility),
+        db,
+        creator_id=user_id,
+        name=data.name,
+        description=data.description,
+        layout_json=data.layout_json,
+        visibility=DashboardVisibility(data.visibility),
         org_id=data.org_id,
     )
     return {"id": str(dash.id), "name": dash.name}
@@ -468,12 +509,19 @@ async def list_dashboards(
 ):
     """List dashboards for the current user."""
     dashboards, total = await dashboard_alert_service.list_dashboards(
-        db, user_id, limit=limit, offset=offset,
+        db,
+        user_id,
+        limit=limit,
+        offset=offset,
     )
     return {
         "total": total,
         "items": [
-            {"id": str(d.id), "name": d.name, "visibility": d.visibility.value if d.visibility else None}
+            {
+                "id": str(d.id),
+                "name": d.name,
+                "visibility": d.visibility.value if d.visibility else None,
+            }
             for d in dashboards
         ],
     }
@@ -488,7 +536,9 @@ async def get_dashboard(
     """Get a dashboard by ID."""
     dash = await dashboard_alert_service.get_dashboard(db, dashboard_id)
     return {
-        "id": str(dash.id), "name": dash.name, "description": dash.description,
+        "id": str(dash.id),
+        "name": dash.name,
+        "description": dash.description,
         "layout_json": dash.layout_json,
         "visibility": dash.visibility.value if dash.visibility else None,
     }
@@ -503,7 +553,9 @@ async def update_dashboard(
 ):
     """Update a dashboard."""
     dash = await dashboard_alert_service.update_dashboard(
-        db, dashboard_id, **data.model_dump(exclude_unset=True),
+        db,
+        dashboard_id,
+        **data.model_dump(exclude_unset=True),
     )
     return {"id": str(dash.id), "name": dash.name}
 
@@ -529,7 +581,9 @@ async def get_widget_data(
 ):
     """FM-197: Resolve live data for a dashboard widget."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
-    return await dashboard_alert_service.resolve_widget_data(db, project_id, widget_type)
+    return await dashboard_alert_service.resolve_widget_data(
+        db, project_id, widget_type
+    )
 
 
 @router.post("/scheduled-reports")
@@ -540,8 +594,11 @@ async def create_report(
 ):
     """Create a scheduled report."""
     report = await dashboard_alert_service.create_scheduled_report(
-        db, name=data.name, metrics=data.metrics,
-        schedule_cron=data.schedule_cron, recipients=data.recipients,
+        db,
+        name=data.name,
+        metrics=data.metrics,
+        schedule_cron=data.schedule_cron,
+        recipients=data.recipients,
         org_id=data.org_id,
     )
     return {"id": str(report.id), "name": report.name}
@@ -556,11 +613,18 @@ async def list_reports(
 ):
     """List scheduled reports."""
     reports = await dashboard_alert_service.list_scheduled_reports(
-        db, org_id=org_id, active_only=active_only,
+        db,
+        org_id=org_id,
+        active_only=active_only,
     )
     return {
         "items": [
-            {"id": str(r.id), "name": r.name, "schedule_cron": r.schedule_cron, "active": r.active}
+            {
+                "id": str(r.id),
+                "name": r.name,
+                "schedule_cron": r.schedule_cron,
+                "active": r.active,
+            }
             for r in reports
         ]
     }
@@ -574,11 +638,16 @@ async def create_alert(
 ):
     """Create a metric alert rule."""
     from app.models.analytics_metrics import AlertConditionOp
+
     alert = await dashboard_alert_service.create_metric_alert(
-        db, name=data.name, metric_type=data.metric_type,
+        db,
+        name=data.name,
+        metric_type=data.metric_type,
         condition_op=AlertConditionOp(data.condition_op),
-        threshold=data.threshold, recipients=data.recipients,
-        cooldown_minutes=data.cooldown_minutes, org_id=data.org_id,
+        threshold=data.threshold,
+        recipients=data.recipients,
+        cooldown_minutes=data.cooldown_minutes,
+        org_id=data.org_id,
         project_id=data.project_id,
     )
     return {"id": str(alert.id), "name": alert.name}
@@ -594,12 +663,20 @@ async def list_alerts(
 ):
     """List metric alert rules."""
     alerts = await dashboard_alert_service.list_metric_alerts(
-        db, org_id=org_id, project_id=project_id, active_only=active_only,
+        db,
+        org_id=org_id,
+        project_id=project_id,
+        active_only=active_only,
     )
     return {
         "items": [
-            {"id": str(a.id), "name": a.name, "metric_type": a.metric_type,
-             "threshold": a.threshold, "active": a.active}
+            {
+                "id": str(a.id),
+                "name": a.name,
+                "metric_type": a.metric_type,
+                "threshold": a.threshold,
+                "active": a.active,
+            }
             for a in alerts
         ]
     }
@@ -647,9 +724,12 @@ async def update_scheduled_report(
 ):
     """FM-198: Update a scheduled report."""
     return await dashboard_alert_service.update_scheduled_report(
-        db, report_id,
-        name=data.name, metrics=data.metrics,
-        schedule_cron=data.schedule_cron, recipients=data.recipients,
+        db,
+        report_id,
+        name=data.name,
+        metrics=data.metrics,
+        schedule_cron=data.schedule_cron,
+        recipients=data.recipients,
     )
 
 
@@ -663,7 +743,9 @@ async def execute_scheduled_report(
     """FM-198: Execute a scheduled report — collect current metrics."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     return await dashboard_alert_service.execute_scheduled_report(
-        db, report_id, project_id=project_id,
+        db,
+        report_id,
+        project_id=project_id,
     )
 
 
@@ -699,4 +781,6 @@ async def get_summary_artifacts(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """FM-199: List stored executive summary artifacts."""
-    return {"items": await dashboard_alert_service.get_summary_artifacts(db, project_id)}
+    return {
+        "items": await dashboard_alert_service.get_summary_artifacts(db, project_id)
+    }

@@ -87,7 +87,9 @@ class TestDefaultViewSeeding:
             assert v.visibility == ViewVisibility.TEAM
 
     @pytest.mark.asyncio
-    async def test_seeded_views_have_correct_entity_types(self, db_session: AsyncSession):
+    async def test_seeded_views_have_correct_entity_types(
+        self, db_session: AsyncSession
+    ):
         from app.services.saved_view_service import seed_default_views
 
         project = await _seed_project(db_session)
@@ -128,7 +130,11 @@ class TestDefaultViewSeeding:
 class TestNotificationDismiss:
     @pytest.mark.asyncio
     async def test_dismiss_sets_dismissed_at(self, db_session: AsyncSession):
-        from app.models.notification import Notification, NotificationType, NotificationPriority
+        from app.models.notification import (
+            Notification,
+            NotificationType,
+            NotificationPriority,
+        )
         from app.services.notification_digest_service import dismiss_notification
 
         n = Notification(
@@ -147,7 +153,11 @@ class TestNotificationDismiss:
 
     @pytest.mark.asyncio
     async def test_dismiss_wrong_user_returns_none(self, db_session: AsyncSession):
-        from app.models.notification import Notification, NotificationType, NotificationPriority
+        from app.models.notification import (
+            Notification,
+            NotificationType,
+            NotificationPriority,
+        )
         from app.services.notification_digest_service import dismiss_notification
 
         n = Notification(
@@ -166,7 +176,11 @@ class TestNotificationDismiss:
 
     @pytest.mark.asyncio
     async def test_dismissed_excluded_from_list(self, db_session: AsyncSession):
-        from app.models.notification import Notification, NotificationType, NotificationPriority
+        from app.models.notification import (
+            Notification,
+            NotificationType,
+            NotificationPriority,
+        )
         from app.services.notification_digest_service import (
             dismiss_notification,
             list_notifications,
@@ -190,7 +204,11 @@ class TestNotificationDismiss:
 class TestGroupedNotifications:
     @pytest.mark.asyncio
     async def test_grouped_collapses_same_key(self, db_session: AsyncSession):
-        from app.models.notification import Notification, NotificationType, NotificationPriority
+        from app.models.notification import (
+            Notification,
+            NotificationType,
+            NotificationPriority,
+        )
         from app.services.notification_digest_service import get_grouped_notifications
 
         for i in range(3):
@@ -213,7 +231,11 @@ class TestGroupedNotifications:
 
     @pytest.mark.asyncio
     async def test_ungrouped_appear_individually(self, db_session: AsyncSession):
-        from app.models.notification import Notification, NotificationType, NotificationPriority
+        from app.models.notification import (
+            Notification,
+            NotificationType,
+            NotificationPriority,
+        )
         from app.services.notification_digest_service import get_grouped_notifications
 
         for i in range(2):
@@ -236,8 +258,14 @@ class TestGroupedNotifications:
             assert g["count"] == 1
 
     @pytest.mark.asyncio
-    async def test_read_notifications_excluded_from_groups(self, db_session: AsyncSession):
-        from app.models.notification import Notification, NotificationType, NotificationPriority
+    async def test_read_notifications_excluded_from_groups(
+        self, db_session: AsyncSession
+    ):
+        from app.models.notification import (
+            Notification,
+            NotificationType,
+            NotificationPriority,
+        )
         from app.services.notification_digest_service import get_grouped_notifications
 
         db_session.add(
@@ -260,7 +288,11 @@ class TestGroupedNotifications:
 class TestDigestPreview:
     @pytest.mark.asyncio
     async def test_digest_returns_unread_undismissed(self, db_session: AsyncSession):
-        from app.models.notification import Notification, NotificationType, NotificationPriority
+        from app.models.notification import (
+            Notification,
+            NotificationType,
+            NotificationPriority,
+        )
         from app.services.notification_digest_service import get_digest_preview
 
         for i in range(3):
@@ -290,7 +322,11 @@ class TestDigestPreview:
 
     @pytest.mark.asyncio
     async def test_digest_excludes_dismissed(self, db_session: AsyncSession):
-        from app.models.notification import Notification, NotificationType, NotificationPriority
+        from app.models.notification import (
+            Notification,
+            NotificationType,
+            NotificationPriority,
+        )
         from app.services.notification_digest_service import (
             get_digest_preview,
             dismiss_notification,
@@ -339,7 +375,9 @@ class TestCursorPagination:
 
         # First page (no cursor) — get the 3 newest
         items, total, cursor = await get_unified_activity(
-            db_session, project_id=project.id, limit=3,
+            db_session,
+            project_id=project.id,
+            limit=3,
         )
         assert len(items) == 3
         assert total == 5
@@ -348,7 +386,10 @@ class TestCursorPagination:
         # Second page (with cursor) — get the 2 remaining
         cursor_dt = datetime.fromisoformat(cursor)
         items2, total2, cursor2 = await get_unified_activity(
-            db_session, project_id=project.id, limit=3, cursor=cursor_dt,
+            db_session,
+            project_id=project.id,
+            limit=3,
+            cursor=cursor_dt,
         )
         assert len(items2) == 2
         # No next cursor since this is the last page
@@ -374,7 +415,9 @@ class TestCursorPagination:
         await db_session.flush()
 
         page1, _, c1 = await get_unified_activity(
-            db_session, project_id=project.id, limit=3,
+            db_session,
+            project_id=project.id,
+            limit=3,
         )
         page2, _, _ = await get_unified_activity(
             db_session,
@@ -403,7 +446,9 @@ class TestCursorPagination:
         await db_session.flush()
 
         items, total, cursor = await get_unified_activity(
-            db_session, project_id=project.id, limit=50,
+            db_session,
+            project_id=project.id,
+            limit=50,
         )
         assert len(items) == 1
         assert cursor is None
@@ -414,7 +459,8 @@ class TestCursorPagination:
 
         project = await _seed_project(db_session)
         items, total, cursor = await get_unified_activity(
-            db_session, project_id=project.id,
+            db_session,
+            project_id=project.id,
         )
         assert items == []
         assert cursor is None

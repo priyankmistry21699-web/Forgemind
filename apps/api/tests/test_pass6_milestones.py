@@ -24,13 +24,17 @@ async def _seed_project(db):
     from app.models.membership import ProjectMember, ProjectRole
 
     project = Project(
-        name="Pass6 Project", description="pass6", owner_id=STUB_USER_ID,
+        name="Pass6 Project",
+        description="pass6",
+        owner_id=STUB_USER_ID,
     )
     db.add(project)
     await db.flush()
     await db.refresh(project)
     lead = ProjectMember(
-        project_id=project.id, user_id=STUB_USER_ID, role=ProjectRole.LEAD,
+        project_id=project.id,
+        user_id=STUB_USER_ID,
+        role=ProjectRole.LEAD,
     )
     db.add(lead)
     await db.flush()
@@ -39,6 +43,7 @@ async def _seed_project(db):
 
 async def _seed_run(db, project_id):
     from app.models.run import Run
+
     run = Run(run_number=1, project_id=project_id, trigger="test")
     db.add(run)
     await db.flush()
@@ -48,9 +53,14 @@ async def _seed_run(db, project_id):
 
 async def _seed_task(db, run_id):
     from app.models.task import Task, TaskStatus
+
     task = Task(
-        title="P6 Task", description="test", task_type="code",
-        status=TaskStatus.READY, order_index=0, run_id=run_id,
+        title="P6 Task",
+        description="test",
+        task_type="code",
+        status=TaskStatus.READY,
+        order_index=0,
+        run_id=run_id,
     )
     db.add(task)
     await db.flush()
@@ -60,6 +70,7 @@ async def _seed_task(db, run_id):
 
 async def _seed_approval(db, project_id, task_id=None):
     from app.models.approval_request import ApprovalRequest, ApprovalStatus
+
     ar = ApprovalRequest(
         project_id=project_id,
         task_id=task_id,
@@ -74,6 +85,7 @@ async def _seed_approval(db, project_id, task_id=None):
 
 async def _seed_installation(db):
     from app.models.github_integration import GitHubInstallation
+
     inst = GitHubInstallation(
         installation_id=67890,
         account_login="p6-org",
@@ -88,6 +100,7 @@ async def _seed_installation(db):
 
 async def _seed_repo_link(db, installation_id, project_id):
     from app.models.github_integration import RepositoryLink
+
     link = RepositoryLink(
         installation_id=installation_id,
         project_id=project_id,
@@ -140,7 +153,8 @@ class TestFM148AtomicBatch:
         from app.models.approval_request import ApprovalStatus
 
         results = await batch_decide(
-            db_session, [a1.id, a2.id],
+            db_session,
+            [a1.id, a2.id],
             status=ApprovalStatus.APPROVED,
             decided_by=str(STUB_USER_ID),
         )
@@ -162,7 +176,8 @@ class TestFM148AtomicBatch:
 
         with pytest.raises(HTTPException) as exc_info:
             await batch_decide(
-                db_session, [a1.id, fake_id],
+                db_session,
+                [a1.id, fake_id],
                 status=ApprovalStatus.APPROVED,
                 decided_by=str(STUB_USER_ID),
             )
@@ -185,7 +200,8 @@ class TestFM148AtomicBatch:
 
         # Decide a2 first
         await batch_decide(
-            db_session, [a2.id],
+            db_session,
+            [a2.id],
             status=ApprovalStatus.APPROVED,
             decided_by=str(STUB_USER_ID),
         )
@@ -193,7 +209,8 @@ class TestFM148AtomicBatch:
         # Now try to batch-decide a1 and a2 together
         with pytest.raises(HTTPException) as exc_info:
             await batch_decide(
-                db_session, [a1.id, a2.id],
+                db_session,
+                [a1.id, a2.id],
                 status=ApprovalStatus.REJECTED,
                 decided_by=str(STUB_USER_ID),
             )
@@ -209,7 +226,8 @@ class TestFM148AtomicBatch:
         from app.models.approval_request import ApprovalStatus
 
         results = await batch_decide(
-            db_session, [],
+            db_session,
+            [],
             status=ApprovalStatus.APPROVED,
             decided_by=str(STUB_USER_ID),
         )
@@ -323,7 +341,10 @@ class TestFM179CredentialEncryption:
     @pytest.mark.asyncio
     async def test_create_credential_with_encrypted_value(self, db_session):
         # Seed a connector-less credential with secret_value
-        from app.services.credential_vault_service import create_credential, resolve_secret
+        from app.services.credential_vault_service import (
+            create_credential,
+            resolve_secret,
+        )
         from app.models.credential_vault import SecretStatus
 
         cred = await create_credential(
@@ -341,7 +362,10 @@ class TestFM179CredentialEncryption:
 
     @pytest.mark.asyncio
     async def test_resolve_falls_back_to_env(self, db_session):
-        from app.services.credential_vault_service import create_credential, resolve_secret
+        from app.services.credential_vault_service import (
+            create_credential,
+            resolve_secret,
+        )
 
         os.environ["P6_TEST_ENV_FALLBACK"] = "env-value-123"
         try:
@@ -359,16 +383,22 @@ class TestFM179CredentialEncryption:
     @pytest.mark.asyncio
     async def test_store_encrypted_secret_update(self, db_session):
         from app.services.credential_vault_service import (
-            create_credential, store_encrypted_secret, resolve_secret,
+            create_credential,
+            store_encrypted_secret,
+            resolve_secret,
         )
 
         cred = await create_credential(
-            db_session, name="Update Me", env_key="P6_TEST_UPDATE_ENC",
+            db_session,
+            name="Update Me",
+            env_key="P6_TEST_UPDATE_ENC",
         )
         assert cred.encrypted_value is None
 
         updated = await store_encrypted_secret(
-            db_session, cred.id, "newly-encrypted-value",
+            db_session,
+            cred.id,
+            "newly-encrypted-value",
         )
         assert updated is not None
         assert updated.encrypted_value is not None
@@ -379,7 +409,8 @@ class TestFM179CredentialEncryption:
     @pytest.mark.asyncio
     async def test_build_credential_read_with_encryption(self, db_session):
         from app.services.credential_vault_service import (
-            create_credential, build_credential_read,
+            create_credential,
+            build_credential_read,
         )
 
         cred = await create_credential(
@@ -483,11 +514,14 @@ class TestFM151TokenManagement:
         inst = await _seed_installation(db_session)
 
         from app.services.github_installation_service import (
-            store_installation_token, get_installation_token,
+            store_installation_token,
+            get_installation_token,
         )
 
         await store_installation_token(
-            db_session, inst.id, "ghs_test_token_123",
+            db_session,
+            inst.id,
+            "ghs_test_token_123",
         )
         token = await get_installation_token(db_session, inst.id)
         assert token == "ghs_test_token_123"
@@ -497,12 +531,16 @@ class TestFM151TokenManagement:
         inst = await _seed_installation(db_session)
 
         from app.services.github_installation_service import (
-            store_installation_token, get_installation_token,
+            store_installation_token,
+            get_installation_token,
         )
 
         past = datetime.now(timezone.utc) - timedelta(hours=2)
         await store_installation_token(
-            db_session, inst.id, "ghs_expired", expires_at=past,
+            db_session,
+            inst.id,
+            "ghs_expired",
+            expires_at=past,
         )
         token = await get_installation_token(db_session, inst.id)
         assert token is None
@@ -511,6 +549,7 @@ class TestFM151TokenManagement:
     async def test_no_token_stored(self, db_session):
         inst = await _seed_installation(db_session)
         from app.services.github_installation_service import get_installation_token
+
         token = await get_installation_token(db_session, inst.id)
         assert token is None
 
@@ -519,7 +558,8 @@ class TestFM151TokenManagement:
         inst = await _seed_installation(db_session)
 
         from app.services.github_installation_service import (
-            handle_oauth_callback, get_installation_token,
+            handle_oauth_callback,
+            get_installation_token,
         )
 
         result = await handle_oauth_callback(
@@ -537,6 +577,7 @@ class TestFM151TokenManagement:
     async def test_refresh_without_client_returns_none(self, db_session):
         inst = await _seed_installation(db_session)
         from app.services.github_installation_service import refresh_installation_token
+
         result = await refresh_installation_token(db_session, inst.id)
         assert result is None
 
@@ -544,11 +585,16 @@ class TestFM151TokenManagement:
     async def test_oauth_callback_route(self, client, db_session):
         inst = await _seed_installation(db_session)
         await db_session.commit()
-        resp = await client.post("/github/auth/callback", json={
-            "installation_id": inst.installation_id,
-            "access_token": "ghs_route_token",
-            "expires_at": (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat(),
-        })
+        resp = await client.post(
+            "/github/auth/callback",
+            json={
+                "installation_id": inst.installation_id,
+                "access_token": "ghs_route_token",
+                "expires_at": (
+                    datetime.now(timezone.utc) + timedelta(hours=1)
+                ).isoformat(),
+            },
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert data["token_stored"] is True
@@ -557,10 +603,13 @@ class TestFM151TokenManagement:
     @pytest.mark.asyncio
     async def test_oauth_callback_unknown_installation(self, client, db_session):
         await db_session.commit()
-        resp = await client.post("/github/auth/callback", json={
-            "installation_id": 99999999,
-            "access_token": "ghs_unknown",
-        })
+        resp = await client.post(
+            "/github/auth/callback",
+            json={
+                "installation_id": 99999999,
+                "access_token": "ghs_unknown",
+            },
+        )
         assert resp.status_code == 404
 
 
@@ -606,9 +655,13 @@ class TestFM155IssueSyncWebhook:
 
         # Create existing issue
         issue = IssueLink(
-            repository_link_id=repo.id, project_id=project.id,
-            issue_number=42, title="Test", issue_url="http://x",
-            status=IssueLinkStatus.OPEN, labels=[],
+            repository_link_id=repo.id,
+            project_id=project.id,
+            issue_number=42,
+            title="Test",
+            issue_url="http://x",
+            status=IssueLinkStatus.OPEN,
+            labels=[],
         )
         db_session.add(issue)
         await db_session.flush()
@@ -631,9 +684,13 @@ class TestFM155IssueSyncWebhook:
         from app.models.github_integration import IssueLinkStatus, IssueLink
 
         issue = IssueLink(
-            repository_link_id=repo.id, project_id=project.id,
-            issue_number=100, title="Original", issue_url="http://x",
-            status=IssueLinkStatus.OPEN, labels=[],
+            repository_link_id=repo.id,
+            project_id=project.id,
+            issue_number=100,
+            title="Original",
+            issue_url="http://x",
+            status=IssueLinkStatus.OPEN,
+            labels=[],
         )
         db_session.add(issue)
         await db_session.flush()
@@ -660,9 +717,13 @@ class TestFM155IssueSyncWebhook:
         from app.models.github_integration import IssueLinkStatus, IssueLink
 
         issue = IssueLink(
-            repository_link_id=repo.id, project_id=project.id,
-            issue_number=50, title="Closed One", issue_url="http://x",
-            status=IssueLinkStatus.CLOSED, labels=[],
+            repository_link_id=repo.id,
+            project_id=project.id,
+            issue_number=50,
+            title="Closed One",
+            issue_url="http://x",
+            status=IssueLinkStatus.CLOSED,
+            labels=[],
         )
         db_session.add(issue)
         await db_session.flush()
@@ -684,16 +745,21 @@ class TestFM155IssueSyncWebhook:
         from app.services.issue_sync_service import resolve_conflict
 
         issue = IssueLink(
-            repository_link_id=repo.id, project_id=project.id,
-            issue_number=77, title="Local Title", issue_url="http://x",
-            status=IssueLinkStatus.OPEN, labels=["old"],
+            repository_link_id=repo.id,
+            project_id=project.id,
+            issue_number=77,
+            title="Local Title",
+            issue_url="http://x",
+            status=IssueLinkStatus.OPEN,
+            labels=["old"],
         )
         db_session.add(issue)
         await db_session.flush()
         await db_session.refresh(issue)
 
         result = await resolve_conflict(
-            db_session, issue.id,
+            db_session,
+            issue.id,
             strategy="remote_wins",
             remote_title="Remote Title",
             remote_status="closed",
@@ -713,16 +779,21 @@ class TestFM155IssueSyncWebhook:
         from app.services.issue_sync_service import resolve_conflict
 
         issue = IssueLink(
-            repository_link_id=repo.id, project_id=project.id,
-            issue_number=88, title="My Title", issue_url="http://x",
-            status=IssueLinkStatus.OPEN, labels=["mine"],
+            repository_link_id=repo.id,
+            project_id=project.id,
+            issue_number=88,
+            title="My Title",
+            issue_url="http://x",
+            status=IssueLinkStatus.OPEN,
+            labels=["mine"],
         )
         db_session.add(issue)
         await db_session.flush()
         await db_session.refresh(issue)
 
         result = await resolve_conflict(
-            db_session, issue.id,
+            db_session,
+            issue.id,
             strategy="local_wins",
             remote_title="Ignored",
         )

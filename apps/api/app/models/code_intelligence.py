@@ -106,9 +106,7 @@ class CoverageMap(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    __table_args__ = (
-        Index("ix_coverage_project_source", "project_id", "source_file"),
-    )
+    __table_args__ = (Index("ix_coverage_project_source", "project_id", "source_file"),)
 
 
 # ── FM-185: Code Pattern Detection ──────────────────────────────
@@ -139,9 +137,7 @@ class PatternRule(Base):
     pattern_type: Mapped[PatternType] = mapped_column(
         Enum(PatternType, name="pattern_type"), nullable=False
     )
-    language: Mapped[str] = mapped_column(
-        String(50), default="python", nullable=False
-    )
+    language: Mapped[str] = mapped_column(String(50), default="python", nullable=False)
     rule_definition: Mapped[str] = mapped_column(Text, nullable=False)
     severity: Mapped[PatternSeverity] = mapped_column(
         Enum(PatternSeverity, name="pattern_severity"),
@@ -288,9 +284,7 @@ class TestResult(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    __table_args__ = (
-        Index("ix_test_result_project_name", "project_id", "test_name"),
-    )
+    __table_args__ = (Index("ix_test_result_project_name", "project_id", "test_name"),)
 
 
 # ── FM-188: Code Complexity Metrics ──────────────────────────────
@@ -331,6 +325,4 @@ class ComplexityMetric(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    __table_args__ = (
-        Index("ix_complexity_project_file", "project_id", "file_path"),
-    )
+    __table_args__ = (Index("ix_complexity_project_file", "project_id", "file_path"),)

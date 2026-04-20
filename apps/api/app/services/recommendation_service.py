@@ -301,11 +301,9 @@ async def _check_reusable_patterns(
     """Rule 5: Knowledge from other projects that may be relevant."""
     # Get this project's task types
     task_types_result = await db.execute(
-        select(Task.task_type).where(
-            Task.run_id.in_(
-                select(Run.id).where(Run.project_id == project_id)
-            )
-        ).distinct()
+        select(Task.task_type)
+        .where(Task.run_id.in_(select(Run.id).where(Run.project_id == project_id)))
+        .distinct()
     )
     task_types = [r[0] for r in task_types_result.all() if r[0]]
 
@@ -347,9 +345,7 @@ async def _check_tech_debt(
             select(sa_func.count()).select_from(
                 select(Task.id)
                 .where(
-                    Task.run_id.in_(
-                        select(Run.id).where(Run.project_id == project_id)
-                    ),
+                    Task.run_id.in_(select(Run.id).where(Run.project_id == project_id)),
                     Task.status == TaskStatus.FAILED,
                 )
                 .subquery()
@@ -378,16 +374,27 @@ async def _check_similar_projects(
     db: AsyncSession, project_id: uuid.UUID
 ) -> Recommendation | None:
     """Rule 7: Other projects with similar descriptions."""
-    proj_result = await db.execute(
-        select(Project).where(Project.id == project_id)
-    )
+    proj_result = await db.execute(select(Project).where(Project.id == project_id))
     project = proj_result.scalar_one_or_none()
     if not project or not project.description:
         return None
 
     # Simple keyword match — find other projects with overlapping words
     desc_words = set(project.description.lower().split())
-    stopwords = {"the", "a", "an", "is", "are", "and", "or", "to", "for", "of", "in", "with"}
+    stopwords = {
+        "the",
+        "a",
+        "an",
+        "is",
+        "are",
+        "and",
+        "or",
+        "to",
+        "for",
+        "of",
+        "in",
+        "with",
+    }
     keywords = [w for w in desc_words if len(w) > 3 and w not in stopwords]
 
     if not keywords:
@@ -396,9 +403,7 @@ async def _check_similar_projects(
     # Check for other projects
     other_result = await db.execute(
         select(sa_func.count()).select_from(
-            select(Project.id)
-            .where(Project.id != project_id)
-            .subquery()
+            select(Project.id).where(Project.id != project_id).subquery()
         )
     )
     others = other_result.scalar_one()

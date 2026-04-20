@@ -43,7 +43,9 @@ async def create_comment(
     await db.refresh(comment)
     # Eagerly load replies to avoid MissingGreenlet during Pydantic serialization
     result = await db.execute(
-        select(Comment).where(Comment.id == comment.id).options(selectinload(Comment.replies))
+        select(Comment)
+        .where(Comment.id == comment.id)
+        .options(selectinload(Comment.replies))
     )
     return result.scalar_one()
 
@@ -51,7 +53,9 @@ async def create_comment(
 async def get_comment(db: AsyncSession, comment_id: uuid.UUID) -> Comment:
     """Get a single comment by ID."""
     result = await db.execute(
-        select(Comment).where(Comment.id == comment_id).options(selectinload(Comment.replies))
+        select(Comment)
+        .where(Comment.id == comment_id)
+        .options(selectinload(Comment.replies))
     )
     comment = result.scalar_one_or_none()
     if comment is None or comment.deleted_at is not None:
@@ -75,7 +79,9 @@ async def list_comments(
     if not include_deleted:
         base = base.where(Comment.deleted_at.is_(None))
 
-    base = base.options(selectinload(Comment.replies)).order_by(Comment.created_at.asc())
+    base = base.options(selectinload(Comment.replies)).order_by(
+        Comment.created_at.asc()
+    )
 
     count_q = select(func.count()).select_from(
         select(Comment.id)
@@ -105,11 +111,15 @@ async def update_comment(
     """Update a comment body. Only the author may edit."""
     comment = await get_comment(db, comment_id)
     if comment.author_id != user_id:
-        raise HTTPException(status_code=403, detail="Only the author can edit this comment")
+        raise HTTPException(
+            status_code=403, detail="Only the author can edit this comment"
+        )
     comment.body = data.body
     await db.flush()
     result = await db.execute(
-        select(Comment).where(Comment.id == comment_id).options(selectinload(Comment.replies))
+        select(Comment)
+        .where(Comment.id == comment_id)
+        .options(selectinload(Comment.replies))
     )
     return result.scalar_one()
 
@@ -122,10 +132,14 @@ async def delete_comment(
     """Soft-delete a comment (preserves audit trail)."""
     comment = await get_comment(db, comment_id)
     if comment.author_id != user_id:
-        raise HTTPException(status_code=403, detail="Only the author can delete this comment")
+        raise HTTPException(
+            status_code=403, detail="Only the author can delete this comment"
+        )
     comment.deleted_at = datetime.now(timezone.utc)
     await db.flush()
     result = await db.execute(
-        select(Comment).where(Comment.id == comment_id).options(selectinload(Comment.replies))
+        select(Comment)
+        .where(Comment.id == comment_id)
+        .options(selectinload(Comment.replies))
     )
     return result.scalar_one()

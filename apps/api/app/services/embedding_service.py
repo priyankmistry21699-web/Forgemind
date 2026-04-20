@@ -350,9 +350,7 @@ async def hybrid_search(
             semantic_scores[eid] = item.get("semantic_score", 0.0)
             semantic_data[eid] = item
     except Exception as exc:
-        logger.warning(
-            "Semantic search failed, falling back to keyword-only: %s", exc
-        )
+        logger.warning("Semantic search failed, falling back to keyword-only: %s", exc)
 
     # 3. Fuse scores
     all_entity_ids = set(text_scores.keys()) | set(semantic_scores.keys())

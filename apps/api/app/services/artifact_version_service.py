@@ -26,9 +26,7 @@ async def get_version_history(
     then returns them sorted by version number ascending.
     """
     # Get the starting artifact
-    result = await db.execute(
-        select(Artifact).where(Artifact.id == artifact_id)
-    )
+    result = await db.execute(select(Artifact).where(Artifact.id == artifact_id))
     artifact = result.scalar_one_or_none()
     if not artifact:
         return []
@@ -36,13 +34,15 @@ async def get_version_history(
     # Find all artifacts with the same title, project, and type — these form a version chain
     # Also include any linked via parent_version_id
     chain = await db.execute(
-        select(Artifact).where(
+        select(Artifact)
+        .where(
             and_(
                 Artifact.project_id == artifact.project_id,
                 Artifact.title == artifact.title,
                 Artifact.artifact_type == artifact.artifact_type,
             )
-        ).order_by(Artifact.version.asc(), Artifact.created_at.asc())
+        )
+        .order_by(Artifact.version.asc(), Artifact.created_at.asc())
     )
     return list(chain.scalars().all())
 
@@ -56,9 +56,7 @@ async def create_new_version(
     version_tag: str | None = None,
 ) -> Artifact | None:
     """Create a new version of an artifact, chaining from the parent."""
-    result = await db.execute(
-        select(Artifact).where(Artifact.id == parent_artifact_id)
-    )
+    result = await db.execute(select(Artifact).where(Artifact.id == parent_artifact_id))
     parent = result.scalar_one_or_none()
     if not parent:
         return None
@@ -92,9 +90,7 @@ async def diff_versions(
     Returns a dict with diff_lines, additions count, deletions count.
     """
     # Get the artifact to find its chain key
-    result = await db.execute(
-        select(Artifact).where(Artifact.id == artifact_id)
-    )
+    result = await db.execute(select(Artifact).where(Artifact.id == artifact_id))
     base = result.scalar_one_or_none()
     if not base:
         return None
@@ -137,8 +133,12 @@ async def diff_versions(
         )
     )
 
-    additions = sum(1 for line in diff if line.startswith("+") and not line.startswith("+++"))
-    deletions = sum(1 for line in diff if line.startswith("-") and not line.startswith("---"))
+    additions = sum(
+        1 for line in diff if line.startswith("+") and not line.startswith("+++")
+    )
+    deletions = sum(
+        1 for line in diff if line.startswith("-") and not line.startswith("---")
+    )
 
     return {
         "artifact_id": str(artifact_id),
@@ -156,9 +156,7 @@ async def tag_version(
     version_tag: str,
 ) -> Artifact | None:
     """Tag a specific artifact version."""
-    result = await db.execute(
-        select(Artifact).where(Artifact.id == artifact_id)
-    )
+    result = await db.execute(select(Artifact).where(Artifact.id == artifact_id))
     art = result.scalar_one_or_none()
     if not art:
         return None

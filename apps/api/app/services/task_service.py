@@ -67,7 +67,10 @@ async def update_task_status(
 
     # FM-191: Auto-capture execution metric from status transition
     await _emit_execution_metric(
-        db, task=task, old_status=old_status, new_status=new_status,
+        db,
+        task=task,
+        old_status=old_status,
+        new_status=new_status,
     )
 
     # If task just completed, promote any blocked dependents that are now ready
@@ -173,6 +176,8 @@ async def _emit_execution_metric(
     except Exception:
         logger.debug(
             "FM-191: failed to emit execution metric for task %s (%s→%s)",
-            task.id, old_status.value, new_status.value,
+            task.id,
+            old_status.value,
+            new_status.value,
             exc_info=True,
         )

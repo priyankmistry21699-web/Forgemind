@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 # Shared HTTP abstraction
 # ══════════════════════════════════════════════════════════════════
 
+
 async def _api_request(
     method: str,
     url: str,
@@ -39,7 +40,10 @@ async def _api_request(
 
     async with httpx.AsyncClient(timeout=timeout) as client:
         resp = await client.request(
-            method, url, headers=headers, json=json_body,
+            method,
+            url,
+            headers=headers,
+            json=json_body,
         )
         try:
             body = resp.json()
@@ -86,9 +90,14 @@ def verify_slack_signature(
     if not secret:
         return False
     basestring = f"v0:{timestamp}:{body.decode()}"
-    expected = "v0=" + hmac.new(
-        secret.encode(), basestring.encode(), hashlib.sha256,
-    ).hexdigest()
+    expected = (
+        "v0="
+        + hmac.new(
+            secret.encode(),
+            basestring.encode(),
+            hashlib.sha256,
+        ).hexdigest()
+    )
     return hmac.compare_digest(expected, signature)
 
 
@@ -195,8 +204,13 @@ async def _fetch_project_summary_for_slack(db: Any | None) -> dict[str, Any]:
         )
         rows = result.all()
         projects = [
-            {"name": r.name, "status": r.status.value if hasattr(r.status, "value") else str(r.status),
-             "runs": r.run_count}
+            {
+                "name": r.name,
+                "status": r.status.value
+                if hasattr(r.status, "value")
+                else str(r.status),
+                "runs": r.run_count,
+            }
             for r in rows
         ]
         text = f"📊 Showing {len(projects)} most recent projects."
@@ -261,20 +275,28 @@ def _build_status_blocks(summary: dict[str, Any]) -> list[dict]:
     projects = summary.get("projects", [])
     if projects:
         for p in projects:
-            status_emoji = {"planning": "🔵", "active": "🟢", "completed": "✅",
-                           "failed": "🔴"}.get(p.get("status", ""), "⚪")
-            blocks.append({
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"{status_emoji} *{p['name']}*\nStatus: `{p['status']}` | Runs: {p['runs']}",
-                },
-            })
+            status_emoji = {
+                "planning": "🔵",
+                "active": "🟢",
+                "completed": "✅",
+                "failed": "🔴",
+            }.get(p.get("status", ""), "⚪")
+            blocks.append(
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"{status_emoji} *{p['name']}*\nStatus: `{p['status']}` | Runs: {p['runs']}",
+                    },
+                }
+            )
     else:
-        blocks.append({
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": "_No projects found._"},
-        })
+        blocks.append(
+            {
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": "_No projects found._"},
+            }
+        )
     return blocks
 
 
@@ -377,6 +399,7 @@ def is_jira_configured() -> bool:
 def _jira_auth_header() -> dict[str, str]:
     """Build Basic auth header for Jira Cloud API."""
     import base64
+
     creds = f"{_jira_config['email']}:{_jira_config['api_token']}"
     encoded = base64.b64encode(creds.encode()).decode()
     return {
@@ -410,7 +433,10 @@ async def jira_create_issue(
     }
     url = urljoin(_jira_config["base_url"] + "/", "rest/api/3/issue")
     result = await _api_request(
-        "POST", url, headers=_jira_auth_header(), json_body=payload,
+        "POST",
+        url,
+        headers=_jira_auth_header(),
+        json_body=payload,
     )
     return result.get("body", {})
 
@@ -441,7 +467,8 @@ async def jira_transition_issue(
         f"rest/api/3/issue/{issue_key}/transitions",
     )
     result = await _api_request(
-        "POST", url,
+        "POST",
+        url,
         headers=_jira_auth_header(),
         json_body={"transition": {"id": transition_id}},
     )
@@ -509,6 +536,7 @@ def map_fields_from_jira(issue: dict[str, Any]) -> dict[str, Any]:
 
 # FM-205: Bidirectional sync operations
 
+
 async def import_jira_issue(
     issue_key: str,
     *,
@@ -544,7 +572,9 @@ async def import_jira_issue(
                 title=task_data.get("title", issue_key),
                 description=task_data.get("description", ""),
                 task_type="generic",
-                status=status_map.get(task_data.get("jira_status", "queued"), TaskStatus.BLOCKED),
+                status=status_map.get(
+                    task_data.get("jira_status", "queued"), TaskStatus.BLOCKED
+                ),
             )
             db.add(task)
             await db.flush()
@@ -686,7 +716,8 @@ async def pagerduty_create_incident(
     payload = {
         "routing_key": _pagerduty_config["routing_key"],
         "event_action": "trigger",
-        "dedup_key": dedup_key or f"forgemind-{hashlib.sha256(title.encode()).hexdigest()[:12]}",
+        "dedup_key": dedup_key
+        or f"forgemind-{hashlib.sha256(title.encode()).hexdigest()[:12]}",
         "payload": {
             "summary": title,
             "severity": map_severity(severity),
@@ -775,8 +806,13 @@ async def auto_create_incident_from_alert(
         severity=severity,
         dedup_key=dedup_key,
     )
-    return {"triggered": True, "alert_name": alert_name, "severity": severity,
-            "dedup_key": dedup_key, "pagerduty_response": result}
+    return {
+        "triggered": True,
+        "alert_name": alert_name,
+        "severity": severity,
+        "dedup_key": dedup_key,
+        "pagerduty_response": result,
+    }
 
 
 async def auto_resolve_incident_from_alert(
@@ -794,5 +830,9 @@ async def auto_resolve_incident_from_alert(
     dedup_key = f"forgemind-alert-{dedup_prefix}-{alert_name}"
 
     result = await pagerduty_resolve_incident(dedup_key)
-    return {"resolved": True, "alert_name": alert_name,
-            "dedup_key": dedup_key, "pagerduty_response": result}
+    return {
+        "resolved": True,
+        "alert_name": alert_name,
+        "dedup_key": dedup_key,
+        "pagerduty_response": result,
+    }

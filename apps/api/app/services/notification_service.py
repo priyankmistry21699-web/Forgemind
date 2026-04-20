@@ -183,7 +183,9 @@ async def upsert_preference(
     if pref:
         pref.enabled = enabled
         if muted_until is not None:
-            pref.muted_until = datetime.fromisoformat(muted_until) if muted_until else None
+            pref.muted_until = (
+                datetime.fromisoformat(muted_until) if muted_until else None
+            )
         if channel_overrides is not None:
             pref.channel_overrides = channel_overrides
     else:

@@ -137,25 +137,37 @@ async def export_audit_logs_csv(
 
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow([
-        "id", "actor_id", "actor_type", "action", "resource_type",
-        "resource_id", "project_id", "outcome", "ip_address",
-        "user_agent", "created_at",
-    ])
+    writer.writerow(
+        [
+            "id",
+            "actor_id",
+            "actor_type",
+            "action",
+            "resource_type",
+            "resource_id",
+            "project_id",
+            "outcome",
+            "ip_address",
+            "user_agent",
+            "created_at",
+        ]
+    )
     for row in rows:
-        writer.writerow([
-            str(row.id),
-            str(row.actor_id) if row.actor_id else "",
-            row.actor_type.value,
-            row.action,
-            row.resource_type,
-            str(row.resource_id) if row.resource_id else "",
-            str(row.project_id) if row.project_id else "",
-            row.outcome.value,
-            row.ip_address or "",
-            row.user_agent or "",
-            row.created_at.isoformat() if row.created_at else "",
-        ])
+        writer.writerow(
+            [
+                str(row.id),
+                str(row.actor_id) if row.actor_id else "",
+                row.actor_type.value,
+                row.action,
+                row.resource_type,
+                str(row.resource_id) if row.resource_id else "",
+                str(row.project_id) if row.project_id else "",
+                row.outcome.value,
+                row.ip_address or "",
+                row.user_agent or "",
+                row.created_at.isoformat() if row.created_at else "",
+            ]
+        )
 
     return output.getvalue()
 

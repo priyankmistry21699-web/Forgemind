@@ -130,9 +130,7 @@ async def my_assigned_tasks(
     ]
 
 
-@router.get(
-    "/projects/{project_id}/workload", response_model=list[WorkloadEntry]
-)
+@router.get("/projects/{project_id}/workload", response_model=list[WorkloadEntry])
 async def project_workload(
     project_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),

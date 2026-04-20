@@ -61,13 +61,15 @@ async def compare_runs(
         for ta in a_tasks:
             for tb in b_tasks:
                 if ta.status != tb.status:
-                    divergent.append({
-                        "task_type": task_type,
-                        "run_a_task": ta.title,
-                        "run_a_status": ta.status.value if ta.status else "unknown",
-                        "run_b_task": tb.title,
-                        "run_b_status": tb.status.value if tb.status else "unknown",
-                    })
+                    divergent.append(
+                        {
+                            "task_type": task_type,
+                            "run_a_task": ta.title,
+                            "run_a_status": ta.status.value if ta.status else "unknown",
+                            "run_b_task": tb.title,
+                            "run_b_status": tb.status.value if tb.status else "unknown",
+                        }
+                    )
 
     # Artifact counts
     art_a_count = (

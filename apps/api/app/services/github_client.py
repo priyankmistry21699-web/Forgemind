@@ -92,15 +92,16 @@ async def _github_request(
     }
 
     async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.request(
-            method, url, headers=headers, json=json_body
-        )
+        response = await client.request(method, url, headers=headers, json=json_body)
 
     if response.status_code >= 400:
         error_body = response.text[:500]
         logger.error(
             "github_api: %s %s → %d: %s",
-            method, path, response.status_code, error_body,
+            method,
+            path,
+            response.status_code,
+            error_body,
         )
         raise GitHubClientError(response.status_code, error_body)
 
@@ -299,7 +300,9 @@ async def request_reviewers(
         json_body=payload,
     )
     return {
-        "requested_reviewers": [u.get("login", "") for u in data.get("requested_reviewers", [])],
+        "requested_reviewers": [
+            u.get("login", "") for u in data.get("requested_reviewers", [])
+        ],
         "requested_teams": [t.get("slug", "") for t in data.get("requested_teams", [])],
     }
 

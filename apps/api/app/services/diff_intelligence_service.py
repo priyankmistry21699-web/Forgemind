@@ -70,7 +70,11 @@ def analyze_diff_stats(diff_text: str) -> dict:
         if line.startswith("diff --git"):
             if current_file:
                 files.append(
-                    {"file": current_file, "additions": additions, "deletions": deletions}
+                    {
+                        "file": current_file,
+                        "additions": additions,
+                        "deletions": deletions,
+                    }
                 )
             match = re.search(r"b/(.+)$", line)
             current_file = match.group(1) if match else "unknown"
@@ -139,12 +143,14 @@ def evaluate_risk_rules(diff_text: str) -> list[dict]:
 
         # LARGE_FILE_CHANGE
         if churn > 300:
-            triggered.append({
-                "rule_id": "LARGE_FILE_CHANGE",
-                "severity": "high",
-                "file": filepath,
-                "detail": f"{churn} lines changed in single file",
-            })
+            triggered.append(
+                {
+                    "rule_id": "LARGE_FILE_CHANGE",
+                    "severity": "high",
+                    "file": filepath,
+                    "detail": f"{churn} lines changed in single file",
+                }
+            )
 
         # Pattern-based rules
         for rule in _RISK_RULES:
@@ -171,12 +177,14 @@ def evaluate_risk_rules(diff_text: str) -> list[dict]:
         for line in diff_text.splitlines():
             if line.startswith("+") and not line.startswith("+++"):
                 if re.search(secret_rule["pattern"], line, re.IGNORECASE):
-                    triggered.append({
-                        "rule_id": "SECRET_PATTERN",
-                        "severity": "critical",
-                        "file": "(added line)",
-                        "detail": "Potential secret or credential detected in added line",
-                    })
+                    triggered.append(
+                        {
+                            "rule_id": "SECRET_PATTERN",
+                            "severity": "critical",
+                            "file": "(added line)",
+                            "detail": "Potential secret or credential detected in added line",
+                        }
+                    )
                     break  # report once
 
     # Compute overall risk score
@@ -189,9 +197,12 @@ def evaluate_risk_rules(diff_text: str) -> list[dict]:
     return {
         "risk_score": risk_score,
         "risk_level": (
-            "critical" if risk_score >= 60
-            else "high" if risk_score >= 30
-            else "medium" if risk_score >= 10
+            "critical"
+            if risk_score >= 60
+            else "high"
+            if risk_score >= 30
+            else "medium"
+            if risk_score >= 10
             else "low"
         ),
         "triggered_rules": triggered,

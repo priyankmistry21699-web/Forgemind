@@ -298,14 +298,16 @@ async def replay_run(
         if not match:
             divergent_count += 1
 
-        replays.append({
-            "original_id": str(original.id),
-            "replay_id": str(replay.id),
-            "task_id": str(original.task_id),
-            "agent_slug": original.agent_slug,
-            "output_match": match,
-            "sequence_number": original.sequence_number,
-        })
+        replays.append(
+            {
+                "original_id": str(original.id),
+                "replay_id": str(replay.id),
+                "task_id": str(original.task_id),
+                "agent_slug": original.agent_slug,
+                "output_match": match,
+                "sequence_number": original.sequence_number,
+            }
+        )
 
     return {
         "run_id": str(run_id),

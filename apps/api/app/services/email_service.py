@@ -38,8 +38,12 @@ def configure_smtp(
 ) -> None:
     """Set SMTP configuration at runtime."""
     _smtp_config.update(
-        host=host, port=port, username=username,
-        password=password, from_address=from_address, use_tls=use_tls,
+        host=host,
+        port=port,
+        username=username,
+        password=password,
+        from_address=from_address,
+        use_tls=use_tls,
     )
 
 
@@ -76,7 +80,7 @@ _TEMPLATES: dict[str, dict[str, str]] = {
             "</body></html>"
         ),
         "text": "⚠ {title}\n\n{body}\n\nMetric: {metric_type} = {current_value} "
-                "(threshold: {threshold})\n\n-- ForgeMind Alert ({timestamp})",
+        "(threshold: {threshold})\n\n-- ForgeMind Alert ({timestamp})",
     },
     "digest": {
         "subject": "[ForgeMind] Daily Digest — {date}",
@@ -89,7 +93,7 @@ _TEMPLATES: dict[str, dict[str, str]] = {
             "</body></html>"
         ),
         "text": "Daily Digest — {date}\n\n{items_text}\n\n"
-                "-- ForgeMind (adjust preferences in Settings)",
+        "-- ForgeMind (adjust preferences in Settings)",
     },
 }
 
@@ -142,16 +146,18 @@ def flush_digest(email: str) -> dict[str, str] | None:
         for it in items
     )
     items_text = "\n".join(
-        f"- {it.get('title', '')}: {it.get('body', '')}"
-        for it in items
+        f"- {it.get('title', '')}: {it.get('body', '')}" for it in items
     )
     date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-    return render_template("digest", {
-        "date": date,
-        "items_html": items_html,
-        "items_text": items_text,
-    })
+    return render_template(
+        "digest",
+        {
+            "date": date,
+            "items_html": items_html,
+            "items_text": items_text,
+        },
+    )
 
 
 def get_pending_digest_count(email: str) -> int:
@@ -175,7 +181,9 @@ def send_email(
     """
     if not is_smtp_configured():
         logger.info(
-            "Email (dev-mode, not sent): to=%s subject=%s", to, subject,
+            "Email (dev-mode, not sent): to=%s subject=%s",
+            to,
+            subject,
         )
         return {"status": "logged", "to": to, "subject": subject}
 
@@ -222,12 +230,16 @@ def send_alert_email(
     threshold: str = "",
 ) -> dict[str, Any]:
     """Send an alert email using the 'alert' template."""
-    rendered = render_template("alert", {
-        "title": title, "body": body,
-        "metric_type": metric_type,
-        "current_value": current_value,
-        "threshold": threshold,
-    })
+    rendered = render_template(
+        "alert",
+        {
+            "title": title,
+            "body": body,
+            "metric_type": metric_type,
+            "current_value": current_value,
+            "threshold": threshold,
+        },
+    )
     return send_email(to, rendered["subject"], rendered["html"], rendered["text"])
 
 
@@ -237,7 +249,11 @@ def send_alert_email(
 _email_preferences: dict[str, dict[str, bool]] = {}
 
 NOTIFICATION_CATEGORIES = (
-    "alerts", "reports", "mentions", "approvals", "digest",
+    "alerts",
+    "reports",
+    "mentions",
+    "approvals",
+    "digest",
 )
 
 

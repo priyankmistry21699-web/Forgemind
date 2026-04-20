@@ -117,7 +117,10 @@ async def clone_template(
     """Deep-clone a template with all nested configs (FM-164)."""
     try:
         clone = await template_inheritance_service.clone_template(
-            db, template_id, new_slug=body.new_slug, new_name=body.new_name,
+            db,
+            template_id,
+            new_slug=body.new_slug,
+            new_name=body.new_name,
         )
         await db.commit()
         return ProjectTemplateRead.model_validate(clone)
@@ -135,7 +138,9 @@ async def create_version(
     """Create a new version of a template with field overrides (FM-164)."""
     try:
         versioned = await template_inheritance_service.create_template_version(
-            db, template_id, updates=body.updates,
+            db,
+            template_id,
+            updates=body.updates,
         )
         await db.commit()
         return ProjectTemplateRead.model_validate(versioned)

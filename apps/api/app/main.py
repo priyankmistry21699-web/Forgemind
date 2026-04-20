@@ -37,7 +37,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     if not settings.debug:
         bg_tasks.append(asyncio.create_task(escalation_loop(), name="escalation-loop"))
         bg_tasks.append(asyncio.create_task(retention_loop(), name="retention-loop"))
-        bg_tasks.append(asyncio.create_task(scheduled_report_loop(), name="report-loop"))
+        bg_tasks.append(
+            asyncio.create_task(scheduled_report_loop(), name="report-loop")
+        )
 
     yield
 

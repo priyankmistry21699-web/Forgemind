@@ -208,9 +208,7 @@ async def transition_run(
     )
 
     # FM-191: Auto-capture execution metric from run lifecycle transition
-    await _try_emit_run_execution_metric(
-        db, run, old_status.value, target_status.value
-    )
+    await _try_emit_run_execution_metric(db, run, old_status.value, target_status.value)
 
     return {
         "transitioned": True,
@@ -267,7 +265,9 @@ async def _try_emit_run_execution_metric(
     except Exception:
         logger.debug(
             "FM-191: metric emission failed for run %s on %s → %s",
-            run.id, old_status, new_status,
+            run.id,
+            old_status,
+            new_status,
             exc_info=True,
         )
 

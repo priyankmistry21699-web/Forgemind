@@ -28,7 +28,9 @@ async def batch_decide(
     then applies changes. If any validation fails, no items are mutated.
     """
     if status not in (ApprovalStatus.APPROVED, ApprovalStatus.REJECTED):
-        raise HTTPException(status_code=400, detail="Status must be approved or rejected")
+        raise HTTPException(
+            status_code=400, detail="Status must be approved or rejected"
+        )
 
     if not approval_ids:
         return []
@@ -73,29 +75,23 @@ async def get_pending_approvals_for_user(
     now = datetime.now(timezone.utc)
 
     # Sub-query: project IDs where user is a lead or designated approver
-    lead_projects = (
-        select(ProjectMember.project_id)
-        .where(
-            ProjectMember.user_id == user_id,
-            or_(
-                ProjectMember.role == ProjectRole.LEAD,
-                ProjectMember.is_approver.is_(True),
-            ),
-        )
+    lead_projects = select(ProjectMember.project_id).where(
+        ProjectMember.user_id == user_id,
+        or_(
+            ProjectMember.role == ProjectRole.LEAD,
+            ProjectMember.is_approver.is_(True),
+        ),
     )
 
     # Sub-query: project IDs where user is an active, non-expired delegate
-    delegated_projects = (
-        select(ApprovalDelegation.project_id)
-        .where(
-            ApprovalDelegation.delegate_id == user_id,
-            ApprovalDelegation.is_active.is_(True),
-            ApprovalDelegation.project_id.isnot(None),
-            or_(
-                ApprovalDelegation.active_until.is_(None),
-                ApprovalDelegation.active_until > now,
-            ),
-        )
+    delegated_projects = select(ApprovalDelegation.project_id).where(
+        ApprovalDelegation.delegate_id == user_id,
+        ApprovalDelegation.is_active.is_(True),
+        ApprovalDelegation.project_id.isnot(None),
+        or_(
+            ApprovalDelegation.active_until.is_(None),
+            ApprovalDelegation.active_until > now,
+        ),
     )
 
     result = await db.execute(
@@ -217,19 +213,23 @@ async def escalate_expired_approvals(
         for d in delegates:
             if d.delegate_id not in seen_user_ids:
                 seen_user_ids.add(d.delegate_id)
-                targets.append({
-                    "user_id": str(d.delegate_id),
-                    "role": "delegate",
-                    "delegator_id": str(d.delegator_id),
-                })
+                targets.append(
+                    {
+                        "user_id": str(d.delegate_id),
+                        "role": "delegate",
+                        "delegator_id": str(d.delegator_id),
+                    }
+                )
 
         for lead in leads:
             if lead.user_id not in seen_user_ids:
                 seen_user_ids.add(lead.user_id)
-                targets.append({
-                    "user_id": str(lead.user_id),
-                    "role": "lead" if lead.role == ProjectRole.LEAD else "approver",
-                })
+                targets.append(
+                    {
+                        "user_id": str(lead.user_id),
+                        "role": "lead" if lead.role == ProjectRole.LEAD else "approver",
+                    }
+                )
 
         # Create notifications for each escalation target
         for target in targets:
@@ -240,7 +240,7 @@ async def escalate_expired_approvals(
                 title=f"Escalation: {approval.title}",
                 priority="high",
                 body=(
-                    f"Approval \"{approval.title}\" has expired and requires "
+                    f'Approval "{approval.title}" has expired and requires '
                     f"attention. You are being notified as a {target['role']}."
                 ),
                 resource_type="approval_request",
@@ -255,15 +255,19 @@ async def escalate_expired_approvals(
         # Mark this approval as escalated so it won't be re-processed
         approval.escalated_at = datetime.now(timezone.utc)
 
-        escalation_report.append({
-            "approval_id": str(approval.id),
-            "title": approval.title,
-            "project_id": str(approval.project_id),
-            "expired_at": approval.expires_at.isoformat() if approval.expires_at else None,
-            "escalation_targets": targets,
-            "target_count": len(targets),
-            "notifications_created": notifications_created,
-        })
+        escalation_report.append(
+            {
+                "approval_id": str(approval.id),
+                "title": approval.title,
+                "project_id": str(approval.project_id),
+                "expired_at": approval.expires_at.isoformat()
+                if approval.expires_at
+                else None,
+                "escalation_targets": targets,
+                "target_count": len(targets),
+                "notifications_created": notifications_created,
+            }
+        )
 
     return escalation_report
 

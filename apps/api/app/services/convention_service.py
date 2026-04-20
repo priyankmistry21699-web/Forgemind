@@ -52,9 +52,7 @@ async def create_convention(
 async def get_convention(
     db: AsyncSession, convention_id: uuid.UUID
 ) -> Convention | None:
-    result = await db.execute(
-        select(Convention).where(Convention.id == convention_id)
-    )
+    result = await db.execute(select(Convention).where(Convention.id == convention_id))
     return result.scalar_one_or_none()
 
 
@@ -109,9 +107,7 @@ async def update_convention(
     return conv
 
 
-async def delete_convention(
-    db: AsyncSession, convention_id: uuid.UUID
-) -> bool:
+async def delete_convention(db: AsyncSession, convention_id: uuid.UUID) -> bool:
     conv = await get_convention(db, convention_id)
     if not conv:
         return False
@@ -129,10 +125,12 @@ async def get_active_conventions_for_injection(
     Returns a list of dicts with category, name, rule_text, enforcement_level.
     """
     result = await db.execute(
-        select(Convention).where(
+        select(Convention)
+        .where(
             Convention.project_id == project_id,
             Convention.active.is_(True),
-        ).order_by(Convention.category, Convention.name)
+        )
+        .order_by(Convention.category, Convention.name)
     )
     conventions = list(result.scalars().all())
 
@@ -160,7 +158,12 @@ async def check_conventions_compliance(
     run_result = await db.execute(select(Run).where(Run.id == run_id))
     run = run_result.scalar_one_or_none()
     if not run:
-        return {"run_id": str(run_id), "checked_count": 0, "violations": [], "passed": True}
+        return {
+            "run_id": str(run_id),
+            "checked_count": 0,
+            "violations": [],
+            "passed": True,
+        }
 
     # Get active conventions for this project
     convs_result = await db.execute(
@@ -180,9 +183,7 @@ async def check_conventions_compliance(
         }
 
     # Get run artifacts content for checking
-    arts_result = await db.execute(
-        select(Artifact).where(Artifact.run_id == run_id)
-    )
+    arts_result = await db.execute(select(Artifact).where(Artifact.run_id == run_id))
     artifacts = list(arts_result.scalars().all())
 
     # Get tasks for checking
@@ -238,13 +239,15 @@ async def check_conventions_compliance(
                             break
 
         if violated:
-            violations.append({
-                "convention_id": str(conv.id),
-                "convention_name": conv.name,
-                "enforcement_level": conv.enforcement_level.value,
-                "rule_text": conv.rule_text,
-                "violation_detail": detail,
-            })
+            violations.append(
+                {
+                    "convention_id": str(conv.id),
+                    "convention_name": conv.name,
+                    "enforcement_level": conv.enforcement_level.value,
+                    "rule_text": conv.rule_text,
+                    "violation_detail": detail,
+                }
+            )
 
     has_required_violations = any(
         v["enforcement_level"] == ConventionEnforcement.REQUIRED.value

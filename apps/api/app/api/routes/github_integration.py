@@ -218,7 +218,9 @@ class _ExportIssueBody(_BaseModel):
     labels: list[str] | None = None
 
 
-@router.post("/issues/{project_id}/export", response_model=IssueLinkRead, status_code=201)
+@router.post(
+    "/issues/{project_id}/export", response_model=IssueLinkRead, status_code=201
+)
 async def export_issue(
     project_id: uuid.UUID,
     body: _ExportIssueBody,
@@ -254,13 +256,17 @@ async def sync_issue_status_to_github(
     Without a configured github_client, updates local state only.
     """
     from app.models.github_integration import IssueLinkStatus
+
     try:
         new_status = IssueLinkStatus(body.status)
     except ValueError:
         raise HTTPException(status_code=422, detail=f"Invalid status: {body.status}")
 
     issue = await issue_sync_service.sync_status_to_github(
-        db, issue_link_id, new_status, github_client=None,
+        db,
+        issue_link_id,
+        new_status,
+        github_client=None,
     )
     if issue is None:
         raise HTTPException(status_code=404, detail="Issue link not found")
@@ -270,7 +276,9 @@ async def sync_issue_status_to_github(
         "issue_number": issue.issue_number,
         "status": issue.status.value,
         "sync_direction": issue.sync_direction,
-        "last_synced_at": issue.last_synced_at.isoformat() if issue.last_synced_at else None,
+        "last_synced_at": issue.last_synced_at.isoformat()
+        if issue.last_synced_at
+        else None,
     }
 
 
@@ -286,7 +294,9 @@ async def sync_pending_exports(
     no mutations occur — just returns what would be exported.
     """
     pending = await issue_sync_service.process_pending_exports(
-        db, project_id, github_client=None,
+        db,
+        project_id,
+        github_client=None,
     )
     return {
         "pending_count": len(pending),
@@ -468,7 +478,9 @@ async def post_pr_comment(
         )
 
     try:
-        comment = await gh_post_comment(owner, repo_name, pr.pr_number, body.body, token)
+        comment = await gh_post_comment(
+            owner, repo_name, pr.pr_number, body.body, token
+        )
         return {
             "posted": True,
             "github_comment_id": comment.id,
@@ -510,7 +522,9 @@ async def create_commit_status(
 
     try:
         status = await gh_create_status(
-            owner, repo_name, sha,
+            owner,
+            repo_name,
+            sha,
             state=body.state,
             description=body.description,
             target_url=body.target_url,
@@ -574,7 +588,8 @@ async def create_pull_request(
 
     try:
         gh_pr = await gh_create_pr(
-            owner, repo_name,
+            owner,
+            repo_name,
             title=body.title,
             head=body.head,
             base=body.base,
@@ -659,7 +674,9 @@ async def request_pr_reviewers(
 
     try:
         result = await gh_request_reviewers(
-            owner, repo_name, pr.pr_number,
+            owner,
+            repo_name,
+            pr.pr_number,
             reviewers=body.reviewers,
             team_reviewers=body.team_reviewers,
             token=token,
@@ -709,7 +726,10 @@ async def get_ci_pass_rate(
 
     try:
         return await gh_pass_rate(
-            owner, repo_name, branch=branch, token=token,
+            owner,
+            repo_name,
+            branch=branch,
+            token=token,
         )
     except GitHubClientError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
@@ -736,7 +756,10 @@ async def get_ci_readiness(
         raise HTTPException(status_code=404, detail="Repository link not found")
 
     return await merge_readiness_service.evaluate_ci_readiness(
-        db, repo_link_id, threshold=threshold, window=window,
+        db,
+        repo_link_id,
+        threshold=threshold,
+        window=window,
     )
 
 
@@ -826,7 +849,8 @@ async def auto_create_branch(
     branch_name = slugify_branch_name(body.task_title, body.task_id)
     owner, repo_name = repo_link.full_name.split("/", 1)
     result = await create_branch(
-        owner, repo_name,
+        owner,
+        repo_name,
         branch_name=branch_name,
         base_branch=body.base_branch,
         token=token,
@@ -860,9 +884,13 @@ async def refresh_installation_token(
     Without a configured GitHub App client, returns current token status.
     """
     token = await github_installation_service.get_or_refresh_token(
-        db, installation_id, github_client=None,
+        db,
+        installation_id,
+        github_client=None,
     )
-    status = await github_installation_service.validate_installation(db, installation_id)
+    status = await github_installation_service.validate_installation(
+        db, installation_id
+    )
     status["token_refreshed"] = token is not None
     return status
 
@@ -874,7 +902,9 @@ async def deactivate_installation(
     _user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Deactivate a GitHub installation (FM-151)."""
-    inst = await github_installation_service.deactivate_installation(db, installation_id)
+    inst = await github_installation_service.deactivate_installation(
+        db, installation_id
+    )
     return {"installation_id": inst.installation_id, "active": inst.is_active}
 
 
@@ -915,5 +945,7 @@ async def github_auth_callback(
         "installation_id": inst.installation_id,
         "account_login": inst.account_login,
         "token_stored": True,
-        "expires_at": inst.token_expires_at.isoformat() if inst.token_expires_at else None,
+        "expires_at": inst.token_expires_at.isoformat()
+        if inst.token_expires_at
+        else None,
     }

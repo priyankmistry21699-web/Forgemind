@@ -289,9 +289,7 @@ class MetricAlert(Base):
     )
     threshold: Mapped[float] = mapped_column(Float, nullable=False)
     recipients: Mapped[list] = mapped_column(PG_JSON, nullable=False, default=list)
-    cooldown_minutes: Mapped[int] = mapped_column(
-        Integer, default=60, nullable=False
-    )
+    cooldown_minutes: Mapped[int] = mapped_column(Integer, default=60, nullable=False)
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     last_triggered_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

@@ -172,7 +172,11 @@ def build_oidc_authorize_url(
     issuer = config.issuer_url.rstrip("/")
     authorize_endpoint = f"{issuer}/authorize"
 
-    scopes = config.scopes if isinstance(config.scopes, list) else ["openid", "profile", "email"]
+    scopes = (
+        config.scopes
+        if isinstance(config.scopes, list)
+        else ["openid", "profile", "email"]
+    )
     scope_str = " ".join(scopes) if scopes else "openid profile email"
 
     params = {
@@ -198,10 +202,12 @@ async def get_active_sso_for_workspace(
 ) -> SSOConfiguration | None:
     """Get the active SSO configuration for a workspace, if any."""
     result = await db.execute(
-        select(SSOConfiguration).where(
+        select(SSOConfiguration)
+        .where(
             SSOConfiguration.workspace_id == workspace_id,
             SSOConfiguration.is_active.is_(True),
-        ).limit(1)
+        )
+        .limit(1)
     )
     return result.scalar_one_or_none()
 
@@ -233,7 +239,9 @@ async def check_sso_enforcement(
         "provider_type": (
             active_config.provider_type
             if active_config and hasattr(active_config.provider_type, "value")
-            else str(active_config.provider_type) if active_config else None
+            else str(active_config.provider_type)
+            if active_config
+            else None
         ),
         "display_name": active_config.display_name if active_config else None,
         "auto_provision": active_config.auto_provision if active_config else False,

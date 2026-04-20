@@ -189,57 +189,87 @@ api_router.include_router(annotations_router, tags=["annotations"])
 api_router.include_router(github_router, tags=["github"])
 
 # Search, Knowledge & Organizational Memory (FM-161–170)
-api_router.include_router(search_knowledge_router, tags=["search", "knowledge", "conventions", "recommendations"])
+api_router.include_router(
+    search_knowledge_router,
+    tags=["search", "knowledge", "conventions", "recommendations"],
+)
 
 # Enterprise Governance, Permissions & Compliance (FM-171–180)
-api_router.include_router(enterprise_governance_router, tags=["enterprise-governance", "audit", "compliance"])
+api_router.include_router(
+    enterprise_governance_router, tags=["enterprise-governance", "audit", "compliance"]
+)
 
 # Task Assignment, Approval Delegation, Project Overview (FM-147/148/150)
-api_router.include_router(collaboration_router, tags=["collaboration", "assignments", "delegations"])
+api_router.include_router(
+    collaboration_router, tags=["collaboration", "assignments", "delegations"]
+)
 
 # Code Intelligence: Dependency Graph, Impact, Coverage, Patterns, Debt, Flakiness, Complexity (FM-181–189)
-api_router.include_router(code_intelligence_router, tags=["code-intelligence", "dependencies", "patterns", "debt", "complexity"])
+api_router.include_router(
+    code_intelligence_router,
+    tags=["code-intelligence", "dependencies", "patterns", "debt", "complexity"],
+)
 
 # Analytics & Metrics: Execution, Health, Budget, Velocity, Quality, Portfolio, Dashboards, Alerts (FM-191–199)
-api_router.include_router(analytics_router, tags=["analytics", "metrics", "health", "dashboards", "alerts"])
+api_router.include_router(
+    analytics_router, tags=["analytics", "metrics", "health", "dashboards", "alerts"]
+)
 
 # ── FM-201 / FM-202: Versioned Public API with rate limiting ─────
 # Mount ALL core endpoint groups under /api/v1/ with rate-limit headers.
 _v1_rate_limit = Depends(api_key_service.require_rate_limit())
 
 api_router.include_router(
-    projects_router, prefix="/api/v1",
-    tags=["api-v1", "projects"], dependencies=[_v1_rate_limit],
+    projects_router,
+    prefix="/api/v1",
+    tags=["api-v1", "projects"],
+    dependencies=[_v1_rate_limit],
 )
 api_router.include_router(
-    runs_router, prefix="/api/v1",
-    tags=["api-v1", "runs"], dependencies=[_v1_rate_limit],
+    runs_router,
+    prefix="/api/v1",
+    tags=["api-v1", "runs"],
+    dependencies=[_v1_rate_limit],
 )
 api_router.include_router(
-    tasks_router, prefix="/api/v1",
-    tags=["api-v1", "tasks"], dependencies=[_v1_rate_limit],
+    tasks_router,
+    prefix="/api/v1",
+    tags=["api-v1", "tasks"],
+    dependencies=[_v1_rate_limit],
 )
 api_router.include_router(
-    costs_router, prefix="/api/v1",
-    tags=["api-v1", "costs"], dependencies=[_v1_rate_limit],
+    costs_router,
+    prefix="/api/v1",
+    tags=["api-v1", "costs"],
+    dependencies=[_v1_rate_limit],
 )
 api_router.include_router(
-    code_intelligence_router, prefix="/api/v1",
-    tags=["api-v1", "code-intelligence"], dependencies=[_v1_rate_limit],
+    code_intelligence_router,
+    prefix="/api/v1",
+    tags=["api-v1", "code-intelligence"],
+    dependencies=[_v1_rate_limit],
 )
 api_router.include_router(
-    analytics_router, prefix="/api/v1",
-    tags=["api-v1", "analytics"], dependencies=[_v1_rate_limit],
+    analytics_router,
+    prefix="/api/v1",
+    tags=["api-v1", "analytics"],
+    dependencies=[_v1_rate_limit],
 )
 api_router.include_router(
-    approvals_router, prefix="/api/v1",
-    tags=["api-v1", "approvals"], dependencies=[_v1_rate_limit],
+    approvals_router,
+    prefix="/api/v1",
+    tags=["api-v1", "approvals"],
+    dependencies=[_v1_rate_limit],
 )
 api_router.include_router(
-    governance_router, prefix="/api/v1",
-    tags=["api-v1", "governance"], dependencies=[_v1_rate_limit],
+    governance_router,
+    prefix="/api/v1",
+    tags=["api-v1", "governance"],
+    dependencies=[_v1_rate_limit],
 )
 
 # API & Ecosystem: API Keys, Rate Limiting, Webhooks, Connectors (FM-201–208)
 # (already has /api/v1/ecosystem prefix + rate limiting in its own router)
-api_router.include_router(api_ecosystem_router, tags=["api-keys", "webhooks", "connectors", "ecosystem"])
+api_router.include_router(
+    api_ecosystem_router, tags=["api-keys", "webhooks", "connectors", "ecosystem"]
+)

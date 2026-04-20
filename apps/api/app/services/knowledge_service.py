@@ -306,9 +306,7 @@ async def suggest_knowledge_for_task(
             for entry in result.scalars().all():
                 if entry.id not in seen_ids:
                     seen_ids.add(entry.id)
-                    suggestions.append(
-                        (entry.relevance_score or 0.0 + 5.0, entry)
-                    )
+                    suggestions.append((entry.relevance_score or 0.0 + 5.0, entry))
 
     # Sort by score descending, return top N
     suggestions.sort(key=lambda x: x[0], reverse=True)

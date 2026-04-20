@@ -48,7 +48,9 @@ class TestDependencyGraph:
         assert dep.target_file == "app/utils.py"
 
     @pytest.mark.asyncio
-    async def test_scan_file_dependencies(self, db_session: AsyncSession, sample_project):
+    async def test_scan_file_dependencies(
+        self, db_session: AsyncSession, sample_project
+    ):
         source = "import os\nimport json\nfrom app.utils import helper\n"
         deps = await code_graph_service.scan_file_dependencies(
             db_session,
@@ -60,7 +62,9 @@ class TestDependencyGraph:
         assert len(deps) == 3  # os, json, app.utils.helper
 
     @pytest.mark.asyncio
-    async def test_get_file_dependencies(self, db_session: AsyncSession, sample_project):
+    async def test_get_file_dependencies(
+        self, db_session: AsyncSession, sample_project
+    ):
         await code_graph_service.record_dependency(
             db_session,
             project_id=sample_project.id,
@@ -128,12 +132,16 @@ class TestImpactAnalysis:
     async def test_analyze_impact_basic(self, db_session: AsyncSession, sample_project):
         # Build a chain: a -> b -> c
         await code_graph_service.record_dependency(
-            db_session, project_id=sample_project.id,
-            source_file="b.py", target_file="a.py",
+            db_session,
+            project_id=sample_project.id,
+            source_file="b.py",
+            target_file="a.py",
         )
         await code_graph_service.record_dependency(
-            db_session, project_id=sample_project.id,
-            source_file="c.py", target_file="b.py",
+            db_session,
+            project_id=sample_project.id,
+            source_file="c.py",
+            target_file="b.py",
         )
         await db_session.commit()
 
@@ -143,7 +151,9 @@ class TestImpactAnalysis:
         assert "b.py" in result["affected_files"]
 
     @pytest.mark.asyncio
-    async def test_analyze_impact_max_depth(self, db_session: AsyncSession, sample_project):
+    async def test_analyze_impact_max_depth(
+        self, db_session: AsyncSession, sample_project
+    ):
         result = await code_graph_service.analyze_impact(
             db_session, sample_project.id, ["nonexistent.py"], max_depth=1
         )
@@ -170,16 +180,24 @@ class TestCoverageMapping:
         assert mapping.coverage_pct == 85.5
 
     @pytest.mark.asyncio
-    async def test_record_coverage_upsert(self, db_session: AsyncSession, sample_project):
+    async def test_record_coverage_upsert(
+        self, db_session: AsyncSession, sample_project
+    ):
         await code_graph_service.record_coverage(
-            db_session, project_id=sample_project.id,
-            source_file="s.py", test_file="t.py", coverage_pct=50.0,
+            db_session,
+            project_id=sample_project.id,
+            source_file="s.py",
+            test_file="t.py",
+            coverage_pct=50.0,
         )
         await db_session.commit()
 
         updated = await code_graph_service.record_coverage(
-            db_session, project_id=sample_project.id,
-            source_file="s.py", test_file="t.py", coverage_pct=90.0,
+            db_session,
+            project_id=sample_project.id,
+            source_file="s.py",
+            test_file="t.py",
+            coverage_pct=90.0,
         )
         await db_session.commit()
         assert updated.coverage_pct == 90.0
@@ -187,8 +205,10 @@ class TestCoverageMapping:
     @pytest.mark.asyncio
     async def test_get_tests_for_source(self, db_session: AsyncSession, sample_project):
         await code_graph_service.record_coverage(
-            db_session, project_id=sample_project.id,
-            source_file="mod.py", test_file="test_mod.py",
+            db_session,
+            project_id=sample_project.id,
+            source_file="mod.py",
+            test_file="test_mod.py",
         )
         await db_session.commit()
 
@@ -200,8 +220,11 @@ class TestCoverageMapping:
     @pytest.mark.asyncio
     async def test_get_coverage_summary(self, db_session: AsyncSession, sample_project):
         await code_graph_service.record_coverage(
-            db_session, project_id=sample_project.id,
-            source_file="f1.py", test_file="t1.py", coverage_pct=80.0,
+            db_session,
+            project_id=sample_project.id,
+            source_file="f1.py",
+            test_file="t1.py",
+            coverage_pct=80.0,
         )
         await db_session.commit()
 
@@ -233,7 +256,8 @@ class TestPatternDetection:
     @pytest.mark.asyncio
     async def test_list_pattern_rules(self, db_session: AsyncSession):
         await pattern_debt_service.create_pattern_rule(
-            db_session, name="Rule1",
+            db_session,
+            name="Rule1",
             pattern_type=PatternType.ANTI_PATTERN,
             rule_definition=r"eval\(",
         )
@@ -243,9 +267,12 @@ class TestPatternDetection:
         assert len(rules) >= 1
 
     @pytest.mark.asyncio
-    async def test_scan_file_for_patterns(self, db_session: AsyncSession, sample_project):
+    async def test_scan_file_for_patterns(
+        self, db_session: AsyncSession, sample_project
+    ):
         rule = await pattern_debt_service.create_pattern_rule(
-            db_session, name="Eval usage",
+            db_session,
+            name="Eval usage",
             pattern_type=PatternType.ANTI_PATTERN,
             rule_definition=r"eval\(",
         )
@@ -253,24 +280,33 @@ class TestPatternDetection:
 
         source = "x = 1\nresult = eval('1+1')\ny = 2\n"
         occs = await pattern_debt_service.scan_file_for_patterns(
-            db_session, project_id=sample_project.id,
-            file_path="test.py", source_code=source, rules=[rule],
+            db_session,
+            project_id=sample_project.id,
+            file_path="test.py",
+            source_code=source,
+            rules=[rule],
         )
         await db_session.commit()
         assert len(occs) == 1
         assert occs[0].line_start == 2
 
     @pytest.mark.asyncio
-    async def test_get_pattern_occurrences(self, db_session: AsyncSession, sample_project):
+    async def test_get_pattern_occurrences(
+        self, db_session: AsyncSession, sample_project
+    ):
         rule = await pattern_debt_service.create_pattern_rule(
-            db_session, name="Print usage",
+            db_session,
+            name="Print usage",
             pattern_type=PatternType.ANTI_PATTERN,
             rule_definition=r"print\(",
         )
         source = "print('hello')\nprint('world')\n"
         await pattern_debt_service.scan_file_for_patterns(
-            db_session, project_id=sample_project.id,
-            file_path="noisy.py", source_code=source, rules=[rule],
+            db_session,
+            project_id=sample_project.id,
+            file_path="noisy.py",
+            source_code=source,
+            rules=[rule],
         )
         await db_session.commit()
 
@@ -290,8 +326,10 @@ class TestTechnicalDebt:
     async def test_scan_file_for_debt(self, db_session: AsyncSession, sample_project):
         source = "# TODO: fix this\nx = 1\n# FIXME: urgent\n# HACK: workaround\n"
         entries = await pattern_debt_service.scan_file_for_debt(
-            db_session, project_id=sample_project.id,
-            file_path="debt.py", source_code=source,
+            db_session,
+            project_id=sample_project.id,
+            file_path="debt.py",
+            source_code=source,
         )
         await db_session.commit()
         assert len(entries) == 3
@@ -300,8 +338,10 @@ class TestTechnicalDebt:
     async def test_debt_entry_scores(self, db_session: AsyncSession, sample_project):
         source = "# TODO: minor\n# HACK: critical\n"
         entries = await pattern_debt_service.scan_file_for_debt(
-            db_session, project_id=sample_project.id,
-            file_path="scores.py", source_code=source,
+            db_session,
+            project_id=sample_project.id,
+            file_path="scores.py",
+            source_code=source,
         )
         await db_session.commit()
         scores = {e.description.strip(): e.score for e in entries}
@@ -311,8 +351,10 @@ class TestTechnicalDebt:
     async def test_list_debt_entries(self, db_session: AsyncSession, sample_project):
         source = "# TODO: a\n# FIXME: b\n"
         await pattern_debt_service.scan_file_for_debt(
-            db_session, project_id=sample_project.id,
-            file_path="list_debt.py", source_code=source,
+            db_session,
+            project_id=sample_project.id,
+            file_path="list_debt.py",
+            source_code=source,
         )
         await db_session.commit()
 
@@ -325,8 +367,10 @@ class TestTechnicalDebt:
     async def test_get_debt_summary(self, db_session: AsyncSession, sample_project):
         source = "# TODO: one\n# TODO: two\n"
         await pattern_debt_service.scan_file_for_debt(
-            db_session, project_id=sample_project.id,
-            file_path="summary.py", source_code=source,
+            db_session,
+            project_id=sample_project.id,
+            file_path="summary.py",
+            source_code=source,
         )
         await db_session.commit()
 
@@ -340,8 +384,10 @@ class TestTechnicalDebt:
     async def test_take_debt_snapshot(self, db_session: AsyncSession, sample_project):
         source = "# TODO: snap\n"
         await pattern_debt_service.scan_file_for_debt(
-            db_session, project_id=sample_project.id,
-            file_path="snap.py", source_code=source,
+            db_session,
+            project_id=sample_project.id,
+            file_path="snap.py",
+            source_code=source,
         )
         await db_session.commit()
 
@@ -376,9 +422,15 @@ class TestFlakiness:
     @pytest.mark.asyncio
     async def test_get_flaky_tests(self, db_session: AsyncSession, sample_project):
         # Record alternating results to create a flaky test
-        for outcome in [TestOutcome.PASSED, TestOutcome.FAILED, TestOutcome.PASSED, TestOutcome.FAILED]:
+        for outcome in [
+            TestOutcome.PASSED,
+            TestOutcome.FAILED,
+            TestOutcome.PASSED,
+            TestOutcome.FAILED,
+        ]:
             await flakiness_complexity_service.record_test_result(
-                db_session, project_id=sample_project.id,
+                db_session,
+                project_id=sample_project.id,
                 test_name="test_flaky_one",
                 test_file="tests/test_flaky.py",
                 outcome=outcome,
@@ -386,7 +438,9 @@ class TestFlakiness:
         await db_session.commit()
 
         flaky = await flakiness_complexity_service.get_flaky_tests(
-            db_session, sample_project.id, min_runs=3,
+            db_session,
+            sample_project.id,
+            min_runs=3,
         )
         assert len(flaky) >= 1
         assert flaky[0]["test_name"] == "test_flaky_one"
@@ -394,7 +448,8 @@ class TestFlakiness:
     @pytest.mark.asyncio
     async def test_quarantine_test(self, db_session: AsyncSession, sample_project):
         await flakiness_complexity_service.record_test_result(
-            db_session, project_id=sample_project.id,
+            db_session,
+            project_id=sample_project.id,
             test_name="test_to_quarantine",
             test_file="tests/test_q.py",
             outcome=TestOutcome.FAILED,
@@ -409,7 +464,8 @@ class TestFlakiness:
     @pytest.mark.asyncio
     async def test_flakiness_summary(self, db_session: AsyncSession, sample_project):
         await flakiness_complexity_service.record_test_result(
-            db_session, project_id=sample_project.id,
+            db_session,
+            project_id=sample_project.id,
             test_name="test_summary",
             test_file="tests/test_s.py",
             outcome=TestOutcome.PASSED,
@@ -429,7 +485,9 @@ class TestFlakiness:
 
 class TestComplexity:
     @pytest.mark.asyncio
-    async def test_analyze_file_complexity(self, db_session: AsyncSession, sample_project):
+    async def test_analyze_file_complexity(
+        self, db_session: AsyncSession, sample_project
+    ):
         source = """
 def simple_func():
     return 1
@@ -443,8 +501,10 @@ def complex_func(x):
     return x
 """
         metrics = await flakiness_complexity_service.analyze_file_complexity(
-            db_session, project_id=sample_project.id,
-            file_path="complex.py", source_code=source,
+            db_session,
+            project_id=sample_project.id,
+            file_path="complex.py",
+            source_code=source,
         )
         await db_session.commit()
         # Should have cyclomatic for 2 functions + LOC + function_count
@@ -470,13 +530,18 @@ def mega_complex(a, b, c, d):
         pass
 """
         await flakiness_complexity_service.analyze_file_complexity(
-            db_session, project_id=sample_project.id,
-            file_path="hotspot.py", source_code=source, threshold=3.0,
+            db_session,
+            project_id=sample_project.id,
+            file_path="hotspot.py",
+            source_code=source,
+            threshold=3.0,
         )
         await db_session.commit()
 
         hotspots = await flakiness_complexity_service.get_complexity_hotspots(
-            db_session, sample_project.id, exceeds_only=True,
+            db_session,
+            sample_project.id,
+            exceeds_only=True,
         )
         assert len(hotspots) >= 1
 
@@ -484,8 +549,10 @@ def mega_complex(a, b, c, d):
     async def test_complexity_summary(self, db_session: AsyncSession, sample_project):
         source = "def f():\n    return 1\n"
         await flakiness_complexity_service.analyze_file_complexity(
-            db_session, project_id=sample_project.id,
-            file_path="simple_summary.py", source_code=source,
+            db_session,
+            project_id=sample_project.id,
+            file_path="simple_summary.py",
+            source_code=source,
         )
         await db_session.commit()
 
@@ -598,10 +665,7 @@ class TestTypeScriptImportParsing:
         assert imports[0]["module"] == "lodash"
 
     def test_deduplication(self):
-        source = (
-            "import React from 'react';\n"
-            "import React from 'react';\n"
-        )
+        source = "import React from 'react';\nimport React from 'react';\n"
         imports = code_graph_service._extract_imports_from_typescript(source)
         assert len(imports) == 1
 
@@ -672,7 +736,9 @@ class TestTypeScriptScanIntegration:
 
     @pytest.mark.asyncio
     async def test_scan_ts_file_creates_dependencies(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         ts_source = (
             "import React from 'react';\n"
@@ -694,7 +760,9 @@ class TestTypeScriptScanIntegration:
 
     @pytest.mark.asyncio
     async def test_scan_ts_file_incremental_skip(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         ts_source = "import axios from 'axios';\n"
         deps1 = await code_graph_service.scan_file_dependencies(
@@ -716,7 +784,9 @@ class TestTypeScriptScanIntegration:
 
     @pytest.mark.asyncio
     async def test_scan_python_file_still_works(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         """Ensure Python parsing is not broken by TS additions."""
         py_source = "import os\nfrom sys import argv\n"
@@ -806,12 +876,16 @@ class TestCognitiveComplexity:
         cyclo = flakiness_complexity_service._compute_cyclomatic_complexity(source)
         cogni = flakiness_complexity_service._compute_cognitive_complexity(source)
         # Cyclomatic: 1+3=4, Cognitive: should be higher due to nesting penalties
-        assert cogni[0]["complexity"] > cyclo[0]["complexity"] - 1  # cognitive penalizes nesting
+        assert (
+            cogni[0]["complexity"] > cyclo[0]["complexity"] - 1
+        )  # cognitive penalizes nesting
 
 
 class TestCognitiveMetricPersistence:
     @pytest.mark.asyncio
-    async def test_analyze_file_stores_cognitive(self, db_session: AsyncSession, sample_project):
+    async def test_analyze_file_stores_cognitive(
+        self, db_session: AsyncSession, sample_project
+    ):
         source = (
             "def simple():\n"
             "    return 1\n\n"
@@ -823,8 +897,10 @@ class TestCognitiveMetricPersistence:
             "    return x\n"
         )
         metrics = await flakiness_complexity_service.analyze_file_complexity(
-            db_session, project_id=sample_project.id,
-            file_path="both.py", source_code=source,
+            db_session,
+            project_id=sample_project.id,
+            file_path="both.py",
+            source_code=source,
         )
         await db_session.commit()
 
@@ -841,48 +917,65 @@ class TestCognitiveMetricPersistence:
 
 class TestPatternDebt:
     @pytest.mark.asyncio
-    async def test_scan_for_pattern_debt(self, db_session: AsyncSession, sample_project):
+    async def test_scan_for_pattern_debt(
+        self, db_session: AsyncSession, sample_project
+    ):
         """Pattern debt: create a pattern rule + occurrence, then scan_file_for_pattern_debt."""
         from app.models.code_intelligence import PatternType
 
         rule = await pattern_debt_service.create_pattern_rule(
-            db_session, name="Eval usage",
+            db_session,
+            name="Eval usage",
             pattern_type=PatternType.ANTI_PATTERN,
             rule_definition=r"eval\(",
             severity=PatternSeverity.WARNING,
         )
         source = "result = eval('1+1')\n"
         await pattern_debt_service.scan_file_for_patterns(
-            db_session, project_id=sample_project.id,
-            file_path="evil.py", source_code=source, rules=[rule],
+            db_session,
+            project_id=sample_project.id,
+            file_path="evil.py",
+            source_code=source,
+            rules=[rule],
         )
         await db_session.commit()
 
         entries = await pattern_debt_service.scan_file_for_pattern_debt(
-            db_session, project_id=sample_project.id, file_path="evil.py",
+            db_session,
+            project_id=sample_project.id,
+            file_path="evil.py",
         )
         await db_session.commit()
         assert len(entries) >= 1
         assert entries[0].debt_type == DebtType.PATTERN
 
     @pytest.mark.asyncio
-    async def test_pattern_debt_no_occurrences(self, db_session: AsyncSession, sample_project):
+    async def test_pattern_debt_no_occurrences(
+        self, db_session: AsyncSession, sample_project
+    ):
         entries = await pattern_debt_service.scan_file_for_pattern_debt(
-            db_session, project_id=sample_project.id, file_path="clean.py",
+            db_session,
+            project_id=sample_project.id,
+            file_path="clean.py",
         )
         assert entries == []
 
 
 class TestAgeDebt:
     @pytest.mark.asyncio
-    async def test_old_file_creates_debt(self, db_session: AsyncSession, sample_project):
+    async def test_old_file_creates_debt(
+        self, db_session: AsyncSession, sample_project
+    ):
         from datetime import datetime, timezone, timedelta
 
         old_date = datetime.now(timezone.utc) - timedelta(days=365)
         entries = await pattern_debt_service.scan_file_for_age_debt(
-            db_session, project_id=sample_project.id,
-            file_path="ancient.py", source_code="x = 1\n",
-            last_modified=old_date, age_threshold_days=180,
+            db_session,
+            project_id=sample_project.id,
+            file_path="ancient.py",
+            source_code="x = 1\n",
+            last_modified=old_date,
+            age_threshold_days=180,
         )
         await db_session.commit()
         assert len(entries) == 1
@@ -895,17 +988,24 @@ class TestAgeDebt:
 
         recent = datetime.now(timezone.utc)
         entries = await pattern_debt_service.scan_file_for_age_debt(
-            db_session, project_id=sample_project.id,
-            file_path="new.py", source_code="x = 1\n",
-            last_modified=recent, age_threshold_days=180,
+            db_session,
+            project_id=sample_project.id,
+            file_path="new.py",
+            source_code="x = 1\n",
+            last_modified=recent,
+            age_threshold_days=180,
         )
         assert entries == []
 
     @pytest.mark.asyncio
-    async def test_no_last_modified_no_debt(self, db_session: AsyncSession, sample_project):
+    async def test_no_last_modified_no_debt(
+        self, db_session: AsyncSession, sample_project
+    ):
         entries = await pattern_debt_service.scan_file_for_age_debt(
-            db_session, project_id=sample_project.id,
-            file_path="unknown.py", source_code="x = 1\n",
+            db_session,
+            project_id=sample_project.id,
+            file_path="unknown.py",
+            source_code="x = 1\n",
             last_modified=None,
         )
         assert entries == []
@@ -913,7 +1013,9 @@ class TestAgeDebt:
 
 class TestComplexityDebt:
     @pytest.mark.asyncio
-    async def test_complex_function_creates_debt(self, db_session: AsyncSession, sample_project):
+    async def test_complex_function_creates_debt(
+        self, db_session: AsyncSession, sample_project
+    ):
 
         source = (
             "def mega(a, b, c, d, e):\n"
@@ -934,8 +1036,10 @@ class TestComplexityDebt:
             "        pass\n"
         )
         entries = await pattern_debt_service.scan_file_for_complexity_debt(
-            db_session, project_id=sample_project.id,
-            file_path="mega.py", source_code=source,
+            db_session,
+            project_id=sample_project.id,
+            file_path="mega.py",
+            source_code=source,
             complexity_threshold=5.0,
         )
         await db_session.commit()
@@ -943,11 +1047,15 @@ class TestComplexityDebt:
         assert entries[0].debt_type == DebtType.COMPLEXITY
 
     @pytest.mark.asyncio
-    async def test_simple_function_no_debt(self, db_session: AsyncSession, sample_project):
+    async def test_simple_function_no_debt(
+        self, db_session: AsyncSession, sample_project
+    ):
         source = "def f():\n    return 1\n"
         entries = await pattern_debt_service.scan_file_for_complexity_debt(
-            db_session, project_id=sample_project.id,
-            file_path="simple.py", source_code=source,
+            db_session,
+            project_id=sample_project.id,
+            file_path="simple.py",
+            source_code=source,
             complexity_threshold=10.0,
         )
         assert entries == []
@@ -955,7 +1063,9 @@ class TestComplexityDebt:
 
 class TestAllDebtScan:
     @pytest.mark.asyncio
-    async def test_scan_all_debt_sources(self, db_session: AsyncSession, sample_project):
+    async def test_scan_all_debt_sources(
+        self, db_session: AsyncSession, sample_project
+    ):
         """scan_file_for_all_debt should combine all 4 debt source types."""
         source = (
             "# TODO: fix this later\n"
@@ -977,19 +1087,22 @@ class TestAllDebtScan:
             "        pass\n"
         )
         from datetime import datetime, timezone, timedelta
+
         old_date = datetime.now(timezone.utc) - timedelta(days=365)
 
         entries = await pattern_debt_service.scan_file_for_all_debt(
-            db_session, project_id=sample_project.id,
-            file_path="all_debt.py", source_code=source,
+            db_session,
+            project_id=sample_project.id,
+            file_path="all_debt.py",
+            source_code=source,
             last_modified=old_date,
             complexity_threshold=5.0,
         )
         await db_session.commit()
 
         types = {e.debt_type for e in entries}
-        assert DebtType.COMMENT in types   # TODO marker
-        assert DebtType.AGE in types        # Old file
+        assert DebtType.COMMENT in types  # TODO marker
+        assert DebtType.AGE in types  # Old file
         assert DebtType.COMPLEXITY in types  # Complex function
 
 
@@ -1000,19 +1113,25 @@ class TestAllDebtScan:
 
 class TestIncrementalScan:
     @pytest.mark.asyncio
-    async def test_scan_skip_unchanged_file(self, db_session: AsyncSession, sample_project):
+    async def test_scan_skip_unchanged_file(
+        self, db_session: AsyncSession, sample_project
+    ):
         """Second scan of identical source should reuse cached result."""
         source = "import os\nimport json\n"
         deps1 = await code_graph_service.scan_file_dependencies(
-            db_session, project_id=sample_project.id,
-            file_path="app/cached.py", source_code=source,
+            db_session,
+            project_id=sample_project.id,
+            file_path="app/cached.py",
+            source_code=source,
         )
         await db_session.commit()
 
         # Same file, same content — should skip scan
         deps2 = await code_graph_service.scan_file_dependencies(
-            db_session, project_id=sample_project.id,
-            file_path="app/cached.py", source_code=source,
+            db_session,
+            project_id=sample_project.id,
+            file_path="app/cached.py",
+            source_code=source,
         )
         # Returns existing deps (fast path)
         assert len(deps2) == len(deps1)
@@ -1022,14 +1141,19 @@ class TestIncrementalScan:
         """force=True bypasses content hash cache."""
         source = "import os\n"
         await code_graph_service.scan_file_dependencies(
-            db_session, project_id=sample_project.id,
-            file_path="app/force.py", source_code=source,
+            db_session,
+            project_id=sample_project.id,
+            file_path="app/force.py",
+            source_code=source,
         )
         await db_session.commit()
 
         deps = await code_graph_service.scan_file_dependencies(
-            db_session, project_id=sample_project.id,
-            file_path="app/force.py", source_code=source, force=True,
+            db_session,
+            project_id=sample_project.id,
+            file_path="app/force.py",
+            source_code=source,
+            force=True,
         )
         await db_session.commit()
         assert len(deps) >= 1
@@ -1042,7 +1166,9 @@ class TestIncrementalScan:
 
 class TestImpactAnalysisEnhanced:
     @pytest.mark.asyncio
-    async def test_analyze_impact_returns_risk_score(self, db_session: AsyncSession, sample_project):
+    async def test_analyze_impact_returns_risk_score(
+        self, db_session: AsyncSession, sample_project
+    ):
         """analyze_impact should include risk_score, risk_level, affected_tests."""
         await code_graph_service.record_dependency(
             db_session,
@@ -1054,7 +1180,9 @@ class TestImpactAnalysisEnhanced:
         await db_session.commit()
 
         result = await code_graph_service.analyze_impact(
-            db_session, sample_project.id, ["app/utils.py"],
+            db_session,
+            sample_project.id,
+            ["app/utils.py"],
         )
         assert "risk_score" in result
         assert "risk_level" in result
@@ -1074,8 +1202,10 @@ class TestCoverageGaps:
         """get_coverage_gaps returns source files with no coverage mapping."""
         # Record deps but no coverage for one file
         await code_graph_service.record_dependency(
-            db_session, project_id=sample_project.id,
-            source_file="app/main.py", target_file="app/uncovered.py",
+            db_session,
+            project_id=sample_project.id,
+            source_file="app/main.py",
+            target_file="app/uncovered.py",
             dependency_type=DependencyType.IMPORT,
         )
         await db_session.commit()
@@ -1085,20 +1215,30 @@ class TestCoverageGaps:
         assert "uncovered_files" in gaps
 
     @pytest.mark.asyncio
-    async def test_coverage_gaps_with_covered_file(self, db_session: AsyncSession, sample_project):
+    async def test_coverage_gaps_with_covered_file(
+        self, db_session: AsyncSession, sample_project
+    ):
         """Files that have coverage mappings should not appear in gaps."""
         await code_graph_service.record_dependency(
-            db_session, project_id=sample_project.id,
-            source_file="app/a.py", target_file="app/b.py",
+            db_session,
+            project_id=sample_project.id,
+            source_file="app/a.py",
+            target_file="app/b.py",
             dependency_type=DependencyType.IMPORT,
         )
         await code_graph_service.record_coverage(
-            db_session, project_id=sample_project.id,
-            source_file="app/a.py", test_file="tests/test_a.py", coverage_pct=80.0,
+            db_session,
+            project_id=sample_project.id,
+            source_file="app/a.py",
+            test_file="tests/test_a.py",
+            coverage_pct=80.0,
         )
         await code_graph_service.record_coverage(
-            db_session, project_id=sample_project.id,
-            source_file="app/b.py", test_file="tests/test_b.py", coverage_pct=90.0,
+            db_session,
+            project_id=sample_project.id,
+            source_file="app/b.py",
+            test_file="tests/test_b.py",
+            coverage_pct=90.0,
         )
         await db_session.commit()
 
@@ -1141,16 +1281,22 @@ class TestBuiltinRules:
 
 class TestDebtBudget:
     @pytest.mark.asyncio
-    async def test_check_debt_budget_no_debt(self, db_session: AsyncSession, sample_project):
+    async def test_check_debt_budget_no_debt(
+        self, db_session: AsyncSession, sample_project
+    ):
         """Empty project → not exceeded."""
         result = await pattern_debt_service.check_debt_budget(
-            db_session, sample_project.id, score_threshold=50.0,
+            db_session,
+            sample_project.id,
+            score_threshold=50.0,
         )
         assert result["exceeded"] is False
         assert result["severity"] == "ok"
 
     @pytest.mark.asyncio
-    async def test_check_debt_budget_exceeded(self, db_session: AsyncSession, sample_project):
+    async def test_check_debt_budget_exceeded(
+        self, db_session: AsyncSession, sample_project
+    ):
         """Create enough debt to exceed threshold."""
         source = (
             "# TODO: fix A\n"
@@ -1161,13 +1307,17 @@ class TestDebtBudget:
             "# TODO: fix D\n"
         ) * 10  # Many markers → high score
         await pattern_debt_service.scan_file_for_debt(
-            db_session, project_id=sample_project.id,
-            file_path="messy.py", source_code=source,
+            db_session,
+            project_id=sample_project.id,
+            file_path="messy.py",
+            source_code=source,
         )
         await db_session.commit()
 
         result = await pattern_debt_service.check_debt_budget(
-            db_session, sample_project.id, score_threshold=1.0,
+            db_session,
+            sample_project.id,
+            score_threshold=1.0,
         )
         assert result["exceeded"] is True
         assert result["severity"] in ("warning", "critical")
@@ -1180,25 +1330,29 @@ class TestDebtBudget:
 
 class TestComplexityTrend:
     @pytest.mark.asyncio
-    async def test_get_hotspots_with_since_days(self, db_session: AsyncSession, sample_project):
+    async def test_get_hotspots_with_since_days(
+        self, db_session: AsyncSession, sample_project
+    ):
         """get_complexity_hotspots accepts since_days parameter."""
-        source = (
-            "def f():\n"
-            "    if True: pass\n"
-            "    if True: pass\n"
-            "    if True: pass\n"
-        )
+        source = "def f():\n    if True: pass\n    if True: pass\n    if True: pass\n"
         await flakiness_complexity_service.analyze_file_complexity(
-            db_session, project_id=sample_project.id,
-            file_path="trend.py", source_code=source, threshold=1.0,
+            db_session,
+            project_id=sample_project.id,
+            file_path="trend.py",
+            source_code=source,
+            threshold=1.0,
         )
         await db_session.commit()
 
         hotspots = await flakiness_complexity_service.get_complexity_hotspots(
-            db_session, sample_project.id, since_days=7, exceeds_only=False,
+            db_session,
+            sample_project.id,
+            since_days=7,
+            exceeds_only=False,
         )
         # Recent analysis should appear within 7-day window
         assert isinstance(hotspots, list)
+
 
 # ══════════════════════════════════════════════════════════════════
 # FM-183 Enhancement: Coverage Report Ingestion
@@ -1207,7 +1361,9 @@ class TestComplexityTrend:
 
 class TestCoverageReportIngestion:
     @pytest.mark.asyncio
-    async def test_ingest_pytest_cov_report(self, db_session: AsyncSession, sample_project):
+    async def test_ingest_pytest_cov_report(
+        self, db_session: AsyncSession, sample_project
+    ):
         """ingest_coverage_report handles pytest-cov JSON format."""
         report = {
             "files": {
@@ -1216,15 +1372,19 @@ class TestCoverageReportIngestion:
             }
         }
         result = await code_graph_service.ingest_coverage_report(
-            db_session, project_id=sample_project.id,
-            report_json=report, report_format="pytest-cov",
+            db_session,
+            project_id=sample_project.id,
+            report_json=report,
+            report_format="pytest-cov",
         )
         await db_session.commit()
         assert result["files_ingested"] == 2
         assert result["format"] == "pytest-cov"
 
     @pytest.mark.asyncio
-    async def test_ingest_istanbul_report(self, db_session: AsyncSession, sample_project):
+    async def test_ingest_istanbul_report(
+        self, db_session: AsyncSession, sample_project
+    ):
         """ingest_coverage_report handles istanbul JSON format."""
         report = {
             "src/index.js": {
@@ -1232,8 +1392,10 @@ class TestCoverageReportIngestion:
             },
         }
         result = await code_graph_service.ingest_coverage_report(
-            db_session, project_id=sample_project.id,
-            report_json=report, report_format="istanbul",
+            db_session,
+            project_id=sample_project.id,
+            report_json=report,
+            report_format="istanbul",
         )
         await db_session.commit()
         assert result["files_ingested"] >= 1
@@ -1244,27 +1406,35 @@ class TestCoverageReportIngestion:
         """ingest_coverage_report handles LCOV text format."""
         lcov_text = "SF:app/main.py\nLF:10\nLH:8\nend_of_record\nSF:app/other.py\nLF:5\nLH:5\nend_of_record\n"
         result = await code_graph_service.ingest_coverage_report(
-            db_session, project_id=sample_project.id,
-            report_json=lcov_text, report_format="lcov",
+            db_session,
+            project_id=sample_project.id,
+            report_json=lcov_text,
+            report_format="lcov",
         )
         await db_session.commit()
         assert result["files_ingested"] == 2
         assert result["format"] == "lcov"
 
     @pytest.mark.asyncio
-    async def test_ingest_coverage_upserts(self, db_session: AsyncSession, sample_project):
+    async def test_ingest_coverage_upserts(
+        self, db_session: AsyncSession, sample_project
+    ):
         """Second ingest for same project updates existing coverage entries."""
         report = {"files": {"app/main.py": {"summary": {"percent_covered": 50.0}}}}
         await code_graph_service.ingest_coverage_report(
-            db_session, project_id=sample_project.id,
-            report_json=report, report_format="pytest-cov",
+            db_session,
+            project_id=sample_project.id,
+            report_json=report,
+            report_format="pytest-cov",
         )
         await db_session.commit()
 
         report2 = {"files": {"app/main.py": {"summary": {"percent_covered": 75.0}}}}
         result = await code_graph_service.ingest_coverage_report(
-            db_session, project_id=sample_project.id,
-            report_json=report2, report_format="pytest-cov",
+            db_session,
+            project_id=sample_project.id,
+            report_json=report2,
+            report_format="pytest-cov",
         )
         await db_session.commit()
         assert result["files_ingested"] == 1
@@ -1277,32 +1447,45 @@ class TestCoverageReportIngestion:
 
 class TestQuarantineMonitoring:
     @pytest.mark.asyncio
-    async def test_get_quarantined_test_report_empty(self, db_session: AsyncSession, sample_project):
+    async def test_get_quarantined_test_report_empty(
+        self, db_session: AsyncSession, sample_project
+    ):
         """No quarantined tests → empty report."""
         report = await flakiness_complexity_service.get_quarantined_test_report(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
         )
         assert report["quarantined_tests"] == 0
         assert report["tests"] == []
 
     @pytest.mark.asyncio
-    async def test_get_quarantined_test_report_with_data(self, db_session: AsyncSession, sample_project):
+    async def test_get_quarantined_test_report_with_data(
+        self, db_session: AsyncSession, sample_project
+    ):
         """Quarantined test with results shows pass rate and recommendation."""
         from app.models.code_intelligence import TestOutcome
+
         # Record results + quarantine
         for outcome in [TestOutcome.PASSED, TestOutcome.PASSED, TestOutcome.FAILED]:
             await flakiness_complexity_service.record_test_result(
-                db_session, project_id=sample_project.id,
-                test_file="tests/test_flaky.py", test_name="test_flaky",
-                outcome=outcome, duration_ms=100,
+                db_session,
+                project_id=sample_project.id,
+                test_file="tests/test_flaky.py",
+                test_name="test_flaky",
+                outcome=outcome,
+                duration_ms=100,
             )
         await flakiness_complexity_service.quarantine_test(
-            db_session, sample_project.id, "test_flaky", quarantined=True,
+            db_session,
+            sample_project.id,
+            "test_flaky",
+            quarantined=True,
         )
         await db_session.commit()
 
         report = await flakiness_complexity_service.get_quarantined_test_report(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
         )
         assert report["quarantined_tests"] >= 1
         item = report["tests"][0]
@@ -1322,7 +1505,9 @@ class TestPatternKBIntegration:
 
     @pytest.mark.asyncio
     async def test_critical_pattern_creates_kb_entry(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         """A CRITICAL-severity pattern should generate a KB entry."""
         rule = await pattern_debt_service.create_pattern_rule(
@@ -1353,7 +1538,8 @@ class TestPatternKBIntegration:
         from app.models.project_knowledge import KnowledgeType
 
         entries, total = await knowledge_service.list_knowledge(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
             knowledge_type=KnowledgeType.PATTERN,
         )
         assert total >= 1
@@ -1363,7 +1549,9 @@ class TestPatternKBIntegration:
 
     @pytest.mark.asyncio
     async def test_info_pattern_does_not_create_kb_entry(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         """INFO-severity patterns should NOT create KB entries."""
         rule = await pattern_debt_service.create_pattern_rule(
@@ -1391,7 +1579,8 @@ class TestPatternKBIntegration:
         from app.models.project_knowledge import KnowledgeType
 
         entries, total = await knowledge_service.list_knowledge(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
             knowledge_type=KnowledgeType.PATTERN,
         )
         # Should be 0 (no KB entry for INFO patterns)
@@ -1400,7 +1589,9 @@ class TestPatternKBIntegration:
 
     @pytest.mark.asyncio
     async def test_positive_pattern_does_not_create_kb_entry(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         """POSITIVE patterns should NOT create KB entries (they are good)."""
         rule = await pattern_debt_service.create_pattern_rule(
@@ -1428,7 +1619,8 @@ class TestPatternKBIntegration:
         from app.models.project_knowledge import KnowledgeType
 
         entries, _ = await knowledge_service.list_knowledge(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
             knowledge_type=KnowledgeType.PATTERN,
         )
         type_entries = [e for e in entries if "type-annotation" in e.title]
@@ -1445,7 +1637,9 @@ class TestGraphPerformance:
 
     @pytest.mark.asyncio
     async def test_graph_traversal_10k_under_2_seconds(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         """Insert 1000 dependency edges and verify graph query is fast.
 
@@ -1469,7 +1663,8 @@ class TestGraphPerformance:
 
         start = time.perf_counter()
         graph = await code_graph_service.get_dependency_graph(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
         )
         elapsed = time.perf_counter() - start
 
@@ -1478,7 +1673,9 @@ class TestGraphPerformance:
 
     @pytest.mark.asyncio
     async def test_impact_analysis_performance(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         """Impact analysis for a hub file in a 200-file graph."""
         import time
@@ -1496,7 +1693,9 @@ class TestGraphPerformance:
 
         start = time.perf_counter()
         result = await code_graph_service.analyze_impact(
-            db_session, sample_project.id, [HUB],
+            db_session,
+            sample_project.id,
+            [HUB],
         )
         elapsed = time.perf_counter() - start
 
@@ -1513,26 +1712,34 @@ class TestIntelligentTestSelection:
     """Tests for select_tests_for_changes()."""
 
     async def _seed_graph_and_coverage(
-        self, db_session, project_id,
+        self,
+        db_session,
+        project_id,
     ):
         """Seed a small dependency graph + coverage data for test selection."""
         await code_graph_service.record_dependency(
-            db_session, project_id=project_id,
-            source_file="src/auth.py", target_file="src/utils.py",
+            db_session,
+            project_id=project_id,
+            source_file="src/auth.py",
+            target_file="src/utils.py",
             dependency_type=DependencyType.IMPORT,
         )
         await code_graph_service.record_dependency(
-            db_session, project_id=project_id,
-            source_file="src/api.py", target_file="src/auth.py",
+            db_session,
+            project_id=project_id,
+            source_file="src/api.py",
+            target_file="src/auth.py",
             dependency_type=DependencyType.IMPORT,
         )
         await code_graph_service.record_coverage(
-            db_session, project_id=project_id,
+            db_session,
+            project_id=project_id,
             test_file="tests/test_auth.py",
             source_file="src/auth.py",
         )
         await code_graph_service.record_coverage(
-            db_session, project_id=project_id,
+            db_session,
+            project_id=project_id,
             test_file="tests/test_utils.py",
             source_file="src/utils.py",
         )
@@ -1540,11 +1747,14 @@ class TestIntelligentTestSelection:
 
     @pytest.mark.asyncio
     async def test_select_minimal_mode(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         await self._seed_graph_and_coverage(db_session, sample_project.id)
         result = await code_graph_service.select_tests_for_changes(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
             changed_files=["src/auth.py"],
             mode="minimal",
         )
@@ -1554,11 +1764,14 @@ class TestIntelligentTestSelection:
 
     @pytest.mark.asyncio
     async def test_select_standard_mode(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         await self._seed_graph_and_coverage(db_session, sample_project.id)
         result = await code_graph_service.select_tests_for_changes(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
             changed_files=["src/auth.py"],
             mode="standard",
         )
@@ -1566,11 +1779,14 @@ class TestIntelligentTestSelection:
 
     @pytest.mark.asyncio
     async def test_select_comprehensive_mode(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         await self._seed_graph_and_coverage(db_session, sample_project.id)
         result = await code_graph_service.select_tests_for_changes(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
             changed_files=["src/utils.py"],
             mode="comprehensive",
         )
@@ -1578,10 +1794,13 @@ class TestIntelligentTestSelection:
 
     @pytest.mark.asyncio
     async def test_select_empty_changed_files(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         result = await code_graph_service.select_tests_for_changes(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
             changed_files=[],
             mode="standard",
         )
@@ -1590,11 +1809,14 @@ class TestIntelligentTestSelection:
 
     @pytest.mark.asyncio
     async def test_select_confidence_between_0_and_1(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         await self._seed_graph_and_coverage(db_session, sample_project.id)
         result = await code_graph_service.select_tests_for_changes(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
             changed_files=["src/auth.py"],
             mode="standard",
         )
@@ -1602,11 +1824,14 @@ class TestIntelligentTestSelection:
 
     @pytest.mark.asyncio
     async def test_select_returns_risk_info(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         await self._seed_graph_and_coverage(db_session, sample_project.id)
         result = await code_graph_service.select_tests_for_changes(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
             changed_files=["src/auth.py"],
             mode="standard",
         )
@@ -1614,17 +1839,21 @@ class TestIntelligentTestSelection:
 
     @pytest.mark.asyncio
     async def test_select_mode_depth_ordering(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         """Comprehensive mode should select >= as many tests as minimal."""
         await self._seed_graph_and_coverage(db_session, sample_project.id)
         minimal = await code_graph_service.select_tests_for_changes(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
             changed_files=["src/utils.py"],
             mode="minimal",
         )
         comprehensive = await code_graph_service.select_tests_for_changes(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
             changed_files=["src/utils.py"],
             mode="comprehensive",
         )
@@ -1641,10 +1870,13 @@ class TestCodeIntelligenceContext:
 
     @pytest.mark.asyncio
     async def test_build_context_basic(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         ctx = await code_graph_service.build_code_intelligence_context(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
         )
         assert isinstance(ctx, dict)
         assert "dependency_graph" in ctx
@@ -1652,55 +1884,72 @@ class TestCodeIntelligenceContext:
 
     @pytest.mark.asyncio
     async def test_build_context_with_changed_files(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         # seed some graph data
         await code_graph_service.record_dependency(
-            db_session, project_id=sample_project.id,
-            source_file="src/a.py", target_file="src/b.py",
+            db_session,
+            project_id=sample_project.id,
+            source_file="src/a.py",
+            target_file="src/b.py",
             dependency_type=DependencyType.IMPORT,
         )
         await db_session.flush()
 
         ctx = await code_graph_service.build_code_intelligence_context(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
             changed_files=["src/b.py"],
         )
         assert "impact_analysis" in ctx
 
     @pytest.mark.asyncio
     async def test_build_context_no_changed_files(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         ctx = await code_graph_service.build_code_intelligence_context(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
         )
         assert "impact_analysis" not in ctx or ctx.get("impact_analysis") is None
 
     @pytest.mark.asyncio
     async def test_context_includes_coverage_gap_count(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         ctx = await code_graph_service.build_code_intelligence_context(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
         )
         assert "gap_count" in ctx["coverage"]
 
     @pytest.mark.asyncio
     async def test_context_includes_complexity_hotspots(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         ctx = await code_graph_service.build_code_intelligence_context(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
         )
         assert "complexity_hotspots" in ctx
 
     @pytest.mark.asyncio
     async def test_format_context_for_prompt(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         ctx = await code_graph_service.build_code_intelligence_context(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
         )
         text = code_graph_service.format_context_for_prompt(ctx)
         assert isinstance(text, str)
@@ -1708,10 +1957,13 @@ class TestCodeIntelligenceContext:
 
     @pytest.mark.asyncio
     async def test_format_context_contains_sections(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         ctx = await code_graph_service.build_code_intelligence_context(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
         )
         text = code_graph_service.format_context_for_prompt(ctx)
         # Should contain section headers
@@ -1733,12 +1985,15 @@ class TestPlannerWithCodeIntelligence:
 
     @pytest.mark.asyncio
     async def test_plan_with_code_intelligence_returns_plan_and_audit(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         from app.services.planner_service import (
             plan_with_code_intelligence,
             clear_decision_audit_log,
         )
+
         clear_decision_audit_log()
 
         plan, audit = await plan_with_code_intelligence(
@@ -1754,13 +2009,16 @@ class TestPlannerWithCodeIntelligence:
 
     @pytest.mark.asyncio
     async def test_plan_with_intelligence_records_decision_audit(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         from app.services.planner_service import (
             plan_with_code_intelligence,
             get_decision_audit_log,
             clear_decision_audit_log,
         )
+
         clear_decision_audit_log()
 
         await plan_with_code_intelligence(
@@ -1778,18 +2036,23 @@ class TestPlannerWithCodeIntelligence:
 
     @pytest.mark.asyncio
     async def test_plan_with_intelligence_includes_impact_when_files_provided(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         from app.services.planner_service import (
             plan_with_code_intelligence,
             clear_decision_audit_log,
         )
+
         clear_decision_audit_log()
 
         # Seed dependency data
         await code_graph_service.record_dependency(
-            db_session, project_id=sample_project.id,
-            source_file="src/auth.py", target_file="src/models.py",
+            db_session,
+            project_id=sample_project.id,
+            source_file="src/auth.py",
+            target_file="src/models.py",
             dependency_type=DependencyType.IMPORT,
         )
         await db_session.flush()
@@ -1806,12 +2069,15 @@ class TestPlannerWithCodeIntelligence:
 
     @pytest.mark.asyncio
     async def test_plan_without_changed_files_no_impact(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         from app.services.planner_service import (
             plan_with_code_intelligence,
             clear_decision_audit_log,
         )
+
         clear_decision_audit_log()
 
         _, audit = await plan_with_code_intelligence(
@@ -1828,5 +2094,6 @@ class TestPlannerWithCodeIntelligence:
             get_decision_audit_log,
             clear_decision_audit_log,
         )
+
         clear_decision_audit_log()
         assert get_decision_audit_log() == []

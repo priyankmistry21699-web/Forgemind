@@ -33,7 +33,9 @@ def get_model_rates() -> dict[str, dict[str, float]]:
     return {k: dict(v) for k, v in MODEL_COSTS.items()}
 
 
-def update_model_rates(updates: dict[str, dict[str, float]]) -> dict[str, dict[str, float]]:
+def update_model_rates(
+    updates: dict[str, dict[str, float]],
+) -> dict[str, dict[str, float]]:
     """FM-193: Update model rates at runtime. Merges into existing table.
 
     ``updates`` format: ``{"model-name": {"prompt": <rate>, "completion": <rate>}}``

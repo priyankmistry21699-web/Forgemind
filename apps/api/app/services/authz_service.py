@@ -303,9 +303,7 @@ async def get_custom_role(
     """Get a single custom role by ID."""
     from app.models.enterprise_governance import CustomRole
 
-    result = await db.execute(
-        select(CustomRole).where(CustomRole.id == role_id)
-    )
+    result = await db.execute(select(CustomRole).where(CustomRole.id == role_id))
     return result.scalar_one_or_none()
 
 
@@ -321,9 +319,7 @@ async def update_custom_role(
     """Update a custom role."""
     from app.models.enterprise_governance import CustomRole
 
-    result = await db.execute(
-        select(CustomRole).where(CustomRole.id == role_id)
-    )
+    result = await db.execute(select(CustomRole).where(CustomRole.id == role_id))
     role = result.scalar_one_or_none()
     if role is None:
         raise ValueError(f"Custom role {role_id} not found")

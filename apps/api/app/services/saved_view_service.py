@@ -61,7 +61,9 @@ async def update_saved_view(
     if view is None:
         raise HTTPException(status_code=404, detail="Saved view not found")
     if view.creator_id != user_id:
-        raise HTTPException(status_code=403, detail="Only the creator can update this view")
+        raise HTTPException(
+            status_code=403, detail="Only the creator can update this view"
+        )
     if data.name is not None:
         view.name = data.name
     if data.filter_json is not None:
@@ -82,7 +84,9 @@ async def delete_saved_view(
     if view is None:
         raise HTTPException(status_code=404, detail="Saved view not found")
     if view.creator_id != user_id:
-        raise HTTPException(status_code=403, detail="Only the creator can delete this view")
+        raise HTTPException(
+            status_code=403, detail="Only the creator can delete this view"
+        )
     await db.delete(view)
     await db.flush()
 

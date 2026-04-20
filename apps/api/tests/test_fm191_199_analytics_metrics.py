@@ -32,7 +32,9 @@ STUB_USER_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
 
 class TestExecutionMetrics:
     @pytest.mark.asyncio
-    async def test_record_execution_metric(self, db_session: AsyncSession, sample_project):
+    async def test_record_execution_metric(
+        self, db_session: AsyncSession, sample_project
+    ):
         m = await execution_health_service.record_execution_metric(
             db_session,
             project_id=sample_project.id,
@@ -58,10 +60,14 @@ class TestExecutionMetrics:
         assert m.run_id == sample_run.id
 
     @pytest.mark.asyncio
-    async def test_get_execution_metrics(self, db_session: AsyncSession, sample_project):
+    async def test_get_execution_metrics(
+        self, db_session: AsyncSession, sample_project
+    ):
         await execution_health_service.record_execution_metric(
-            db_session, project_id=sample_project.id,
-            metric_type=ExecutionMetricType.PLANNING_TIME, value_ms=1000,
+            db_session,
+            project_id=sample_project.id,
+            metric_type=ExecutionMetricType.PLANNING_TIME,
+            value_ms=1000,
         )
         await db_session.commit()
 
@@ -76,8 +82,10 @@ class TestExecutionMetrics:
     ):
         for ms in [100, 200, 300]:
             await execution_health_service.record_execution_metric(
-                db_session, project_id=sample_project.id,
-                metric_type=ExecutionMetricType.EXECUTION_TIME, value_ms=ms,
+                db_session,
+                project_id=sample_project.id,
+                metric_type=ExecutionMetricType.EXECUTION_TIME,
+                value_ms=ms,
             )
         await db_session.commit()
 
@@ -94,7 +102,9 @@ class TestExecutionMetrics:
 
 class TestHealthScoring:
     @pytest.mark.asyncio
-    async def test_compute_health_defaults(self, db_session: AsyncSession, sample_project):
+    async def test_compute_health_defaults(
+        self, db_session: AsyncSession, sample_project
+    ):
         snap = await execution_health_service.compute_health_snapshot(
             db_session, sample_project.id
         )
@@ -102,18 +112,27 @@ class TestHealthScoring:
         assert snap.id is not None
         # Auto-computed from real data: empty project gets default dimension scores
         assert snap.composite_score > 0
-        assert snap.grade in (HealthGrade.D, HealthGrade.F)  # Low scores for empty project
+        assert snap.grade in (
+            HealthGrade.D,
+            HealthGrade.F,
+        )  # Low scores for empty project
 
     @pytest.mark.asyncio
     async def test_compute_health_high_scores(
         self, db_session: AsyncSession, sample_project
     ):
         scores = {
-            "success_rate": 95, "velocity": 90, "cost_efficiency": 85,
-            "quality": 92, "coverage": 88, "complexity": 91,
+            "success_rate": 95,
+            "velocity": 90,
+            "cost_efficiency": 85,
+            "quality": 92,
+            "coverage": 88,
+            "complexity": 91,
         }
         snap = await execution_health_service.compute_health_snapshot(
-            db_session, sample_project.id, dimension_scores=scores,
+            db_session,
+            sample_project.id,
+            dimension_scores=scores,
         )
         await db_session.commit()
         assert snap.grade == HealthGrade.A
@@ -122,7 +141,8 @@ class TestHealthScoring:
     @pytest.mark.asyncio
     async def test_get_latest_health(self, db_session: AsyncSession, sample_project):
         await execution_health_service.compute_health_snapshot(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
         )
         await db_session.commit()
 
@@ -135,10 +155,16 @@ class TestHealthScoring:
     async def test_get_health_trend(self, db_session: AsyncSession, sample_project):
         for i in range(3):
             await execution_health_service.compute_health_snapshot(
-                db_session, sample_project.id,
-                dimension_scores={"success_rate": 50 + i * 10,
-                                  "velocity": 50, "cost_efficiency": 50,
-                                  "quality": 50, "coverage": 50, "complexity": 50},
+                db_session,
+                sample_project.id,
+                dimension_scores={
+                    "success_rate": 50 + i * 10,
+                    "velocity": 50,
+                    "cost_efficiency": 50,
+                    "quality": 50,
+                    "coverage": 50,
+                    "complexity": 50,
+                },
             )
         await db_session.commit()
 
@@ -151,6 +177,7 @@ class TestHealthScoring:
     async def test_grade_boundaries(self, db_session: AsyncSession):
         """Verify grade thresholds match roadmap: A≥90, B≥75, C≥60, D≥45, F<45."""
         from app.services.execution_health_service import _compute_grade
+
         # A grade
         assert _compute_grade(95) == HealthGrade.A
         assert _compute_grade(90) == HealthGrade.A
@@ -212,7 +239,9 @@ class TestVelocity:
     @pytest.mark.asyncio
     async def test_compute_velocity(self, db_session: AsyncSession, sample_project):
         velocity = await velocity_quality_service.compute_velocity(
-            db_session, sample_project.id, days=30,
+            db_session,
+            sample_project.id,
+            days=30,
         )
         assert velocity["project_id"] == str(sample_project.id)
         assert "completed_runs" in velocity
@@ -256,7 +285,9 @@ class TestVelocity:
 
         # Velocity for sample_project must NOT include other_task
         velocity = await velocity_quality_service.compute_velocity(
-            db_session, sample_project.id, days=365,
+            db_session,
+            sample_project.id,
+            days=365,
         )
         assert velocity["completed_tasks"] == 0
 
@@ -268,11 +299,16 @@ class TestVelocity:
 
 class TestQualityMetrics:
     @pytest.mark.asyncio
-    async def test_record_quality_snapshot(self, db_session: AsyncSession, sample_project):
+    async def test_record_quality_snapshot(
+        self, db_session: AsyncSession, sample_project
+    ):
         snap = await velocity_quality_service.record_quality_snapshot(
-            db_session, project_id=sample_project.id,
-            test_pass_rate=95.5, defect_density=0.02,
-            rollback_rate=1.0, review_coverage=88.0,
+            db_session,
+            project_id=sample_project.id,
+            test_pass_rate=95.5,
+            defect_density=0.02,
+            rollback_rate=1.0,
+            review_coverage=88.0,
         )
         await db_session.commit()
         assert snap.id is not None
@@ -281,7 +317,8 @@ class TestQualityMetrics:
     @pytest.mark.asyncio
     async def test_get_latest_quality(self, db_session: AsyncSession, sample_project):
         await velocity_quality_service.record_quality_snapshot(
-            db_session, project_id=sample_project.id,
+            db_session,
+            project_id=sample_project.id,
             test_pass_rate=90.0,
         )
         await db_session.commit()
@@ -296,7 +333,8 @@ class TestQualityMetrics:
     async def test_get_quality_trend(self, db_session: AsyncSession, sample_project):
         for rate in [80.0, 85.0, 90.0]:
             await velocity_quality_service.record_quality_snapshot(
-                db_session, project_id=sample_project.id,
+                db_session,
+                project_id=sample_project.id,
                 test_pass_rate=rate,
             )
         await db_session.commit()
@@ -314,7 +352,9 @@ class TestQualityMetrics:
 
 class TestPortfolio:
     @pytest.mark.asyncio
-    async def test_get_portfolio_summary(self, db_session: AsyncSession, sample_project):
+    async def test_get_portfolio_summary(
+        self, db_session: AsyncSession, sample_project
+    ):
         result = await velocity_quality_service.get_portfolio_summary(
             db_session, [sample_project.id]
         )
@@ -331,7 +371,8 @@ class TestDashboards:
     @pytest.mark.asyncio
     async def test_create_dashboard(self, db_session: AsyncSession):
         dash = await dashboard_alert_service.create_dashboard(
-            db_session, creator_id=STUB_USER_ID,
+            db_session,
+            creator_id=STUB_USER_ID,
             name="My Dashboard",
             layout_json={"widgets": []},
         )
@@ -342,7 +383,9 @@ class TestDashboards:
     @pytest.mark.asyncio
     async def test_get_dashboard(self, db_session: AsyncSession):
         dash = await dashboard_alert_service.create_dashboard(
-            db_session, creator_id=STUB_USER_ID, name="Get Test",
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="Get Test",
         )
         await db_session.commit()
 
@@ -352,34 +395,45 @@ class TestDashboards:
     @pytest.mark.asyncio
     async def test_list_dashboards(self, db_session: AsyncSession):
         await dashboard_alert_service.create_dashboard(
-            db_session, creator_id=STUB_USER_ID, name="D1",
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="D1",
         )
         await dashboard_alert_service.create_dashboard(
-            db_session, creator_id=STUB_USER_ID, name="D2",
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="D2",
         )
         await db_session.commit()
 
         dashboards, total = await dashboard_alert_service.list_dashboards(
-            db_session, STUB_USER_ID,
+            db_session,
+            STUB_USER_ID,
         )
         assert total >= 2
 
     @pytest.mark.asyncio
     async def test_update_dashboard(self, db_session: AsyncSession):
         dash = await dashboard_alert_service.create_dashboard(
-            db_session, creator_id=STUB_USER_ID, name="Old Name",
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="Old Name",
         )
         await db_session.commit()
 
         updated = await dashboard_alert_service.update_dashboard(
-            db_session, dash.id, name="New Name",
+            db_session,
+            dash.id,
+            name="New Name",
         )
         assert updated.name == "New Name"
 
     @pytest.mark.asyncio
     async def test_delete_dashboard(self, db_session: AsyncSession):
         dash = await dashboard_alert_service.create_dashboard(
-            db_session, creator_id=STUB_USER_ID, name="To Delete",
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="To Delete",
         )
         await db_session.commit()
 
@@ -387,13 +441,16 @@ class TestDashboards:
         await db_session.commit()
 
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException):
             await dashboard_alert_service.get_dashboard(db_session, dash.id)
 
     @pytest.mark.asyncio
     async def test_dashboard_visibility(self, db_session: AsyncSession):
         dash = await dashboard_alert_service.create_dashboard(
-            db_session, creator_id=STUB_USER_ID, name="Team Dash",
+            db_session,
+            creator_id=STUB_USER_ID,
+            name="Team Dash",
             visibility=DashboardVisibility.TEAM,
         )
         await db_session.commit()
@@ -409,7 +466,8 @@ class TestScheduledReports:
     @pytest.mark.asyncio
     async def test_create_scheduled_report(self, db_session: AsyncSession):
         report = await dashboard_alert_service.create_scheduled_report(
-            db_session, name="Weekly Summary",
+            db_session,
+            name="Weekly Summary",
             metrics=["velocity", "cost"],
             schedule_cron="0 9 * * 1",
             recipients=["user@example.com"],
@@ -421,8 +479,10 @@ class TestScheduledReports:
     @pytest.mark.asyncio
     async def test_list_scheduled_reports(self, db_session: AsyncSession):
         await dashboard_alert_service.create_scheduled_report(
-            db_session, name="Report A",
-            metrics=["health"], schedule_cron="0 0 * * *",
+            db_session,
+            name="Report A",
+            metrics=["health"],
+            schedule_cron="0 0 * * *",
         )
         await db_session.commit()
 
@@ -434,7 +494,8 @@ class TestMetricAlerts:
     @pytest.mark.asyncio
     async def test_create_metric_alert(self, db_session: AsyncSession):
         alert = await dashboard_alert_service.create_metric_alert(
-            db_session, name="High Cost Alert",
+            db_session,
+            name="High Cost Alert",
             metric_type="cost_usd",
             condition_op=AlertConditionOp.GT,
             threshold=100.0,
@@ -447,8 +508,10 @@ class TestMetricAlerts:
     @pytest.mark.asyncio
     async def test_list_metric_alerts(self, db_session: AsyncSession):
         await dashboard_alert_service.create_metric_alert(
-            db_session, name="Alert 1",
-            metric_type="latency", condition_op=AlertConditionOp.GTE,
+            db_session,
+            name="Alert 1",
+            metric_type="latency",
+            condition_op=AlertConditionOp.GTE,
             threshold=5000.0,
         )
         await db_session.commit()
@@ -459,8 +522,10 @@ class TestMetricAlerts:
     @pytest.mark.asyncio
     async def test_evaluate_alert_triggers(self, db_session: AsyncSession):
         alert = await dashboard_alert_service.create_metric_alert(
-            db_session, name="Test Eval",
-            metric_type="latency", condition_op=AlertConditionOp.GT,
+            db_session,
+            name="Test Eval",
+            metric_type="latency",
+            condition_op=AlertConditionOp.GT,
             threshold=1000.0,
         )
         await db_session.commit()
@@ -471,8 +536,10 @@ class TestMetricAlerts:
     @pytest.mark.asyncio
     async def test_evaluate_alert_no_trigger(self, db_session: AsyncSession):
         alert = await dashboard_alert_service.create_metric_alert(
-            db_session, name="No Trigger",
-            metric_type="latency", condition_op=AlertConditionOp.GT,
+            db_session,
+            name="No Trigger",
+            metric_type="latency",
+            condition_op=AlertConditionOp.GT,
             threshold=1000.0,
         )
         await db_session.commit()
@@ -483,8 +550,10 @@ class TestMetricAlerts:
     @pytest.mark.asyncio
     async def test_trigger_alert_updates_timestamp(self, db_session: AsyncSession):
         alert = await dashboard_alert_service.create_metric_alert(
-            db_session, name="Timestamp Test",
-            metric_type="error_rate", condition_op=AlertConditionOp.GTE,
+            db_session,
+            name="Timestamp Test",
+            metric_type="error_rate",
+            condition_op=AlertConditionOp.GTE,
             threshold=5.0,
         )
         await db_session.commit()
@@ -506,9 +575,12 @@ class TestAlertCooldown:
         """Alert in cooldown should not fire even when condition is met."""
 
         alert = await dashboard_alert_service.create_metric_alert(
-            db_session, name="Cooldown Test",
-            metric_type="latency", condition_op=AlertConditionOp.GT,
-            threshold=100.0, cooldown_minutes=60,
+            db_session,
+            name="Cooldown Test",
+            metric_type="latency",
+            condition_op=AlertConditionOp.GT,
+            threshold=100.0,
+            cooldown_minutes=60,
         )
         await db_session.commit()
 
@@ -518,13 +590,16 @@ class TestAlertCooldown:
 
         # Simulate trigger to set last_triggered_at
         await dashboard_alert_service.trigger_alert(
-            db_session, alert.id, current_value=200.0,
+            db_session,
+            alert.id,
+            current_value=200.0,
         )
         await db_session.commit()
 
         # Re-fetch alert to get updated last_triggered_at
         from sqlalchemy import select
         from app.models.analytics_metrics import MetricAlert
+
         result = await db_session.execute(
             select(MetricAlert).where(MetricAlert.id == alert.id)
         )
@@ -542,9 +617,12 @@ class TestAlertCooldown:
         from sqlalchemy import select
 
         alert = await dashboard_alert_service.create_metric_alert(
-            db_session, name="Cooldown Expire",
-            metric_type="latency", condition_op=AlertConditionOp.GT,
-            threshold=100.0, cooldown_minutes=5,
+            db_session,
+            name="Cooldown Expire",
+            metric_type="latency",
+            condition_op=AlertConditionOp.GT,
+            threshold=100.0,
+            cooldown_minutes=5,
         )
         await db_session.commit()
 
@@ -567,19 +645,24 @@ class TestAlertHistory:
     async def test_trigger_records_history(self, db_session: AsyncSession):
         """trigger_alert with current_value logs to AlertTriggerHistory."""
         alert = await dashboard_alert_service.create_metric_alert(
-            db_session, name="History Test",
-            metric_type="cost", condition_op=AlertConditionOp.GT,
+            db_session,
+            name="History Test",
+            metric_type="cost",
+            condition_op=AlertConditionOp.GT,
             threshold=50.0,
         )
         await db_session.commit()
 
         await dashboard_alert_service.trigger_alert(
-            db_session, alert.id, current_value=75.0,
+            db_session,
+            alert.id,
+            current_value=75.0,
         )
         await db_session.commit()
 
         history, total = await dashboard_alert_service.get_alert_history(
-            db_session, alert.id,
+            db_session,
+            alert.id,
         )
         assert total >= 1
         assert history[0].current_value == 75.0
@@ -588,25 +671,31 @@ class TestAlertHistory:
     @pytest.mark.asyncio
     async def test_multiple_triggers_recorded(self, db_session: AsyncSession):
         alert = await dashboard_alert_service.create_metric_alert(
-            db_session, name="Multi History",
-            metric_type="errors", condition_op=AlertConditionOp.GTE,
+            db_session,
+            name="Multi History",
+            metric_type="errors",
+            condition_op=AlertConditionOp.GTE,
             threshold=10.0,
         )
         await db_session.commit()
 
         # Trigger multiple times (bypassing cooldown for test purposes)
         from datetime import datetime, timezone, timedelta
+
         for val in [15.0, 20.0, 25.0]:
             # Reset cooldown to allow re-trigger
             alert.last_triggered_at = datetime.now(timezone.utc) - timedelta(hours=2)
             await db_session.flush()
             await dashboard_alert_service.trigger_alert(
-                db_session, alert.id, current_value=val,
+                db_session,
+                alert.id,
+                current_value=val,
             )
         await db_session.commit()
 
         history, total = await dashboard_alert_service.get_alert_history(
-            db_session, alert.id,
+            db_session,
+            alert.id,
         )
         assert total >= 3
 
@@ -645,7 +734,14 @@ class TestAutoComputeHealth:
         scores = await execution_health_service.auto_compute_health_dimensions(
             db_session, sample_project.id
         )
-        for key in ("success_rate", "velocity", "cost_efficiency", "quality", "coverage", "complexity"):
+        for key in (
+            "success_rate",
+            "velocity",
+            "cost_efficiency",
+            "quality",
+            "coverage",
+            "complexity",
+        ):
             assert key in scores, f"Missing dimension: {key}"
             assert isinstance(scores[key], float)
 
@@ -657,10 +753,14 @@ class TestAutoComputeHealth:
         from app.models.run import Run, RunStatus
 
         for s in [RunStatus.COMPLETED, RunStatus.COMPLETED, RunStatus.FAILED]:
-            db_session.add(Run(
-                run_number=0, project_id=sample_project.id,
-                status=s, trigger="test",
-            ))
+            db_session.add(
+                Run(
+                    run_number=0,
+                    project_id=sample_project.id,
+                    status=s,
+                    trigger="test",
+                )
+            )
         await db_session.flush()
         await db_session.commit()
 
@@ -676,8 +776,10 @@ class TestAutoComputeHealth:
     ):
         """Quality and coverage come from latest QualitySnapshot."""
         await velocity_quality_service.record_quality_snapshot(
-            db_session, project_id=sample_project.id,
-            test_pass_rate=0.92, review_coverage=0.85,
+            db_session,
+            project_id=sample_project.id,
+            test_pass_rate=0.92,
+            review_coverage=0.85,
         )
         await db_session.commit()
 
@@ -737,13 +839,17 @@ class TestBudgetEnforcement:
         db_session.add(config)
 
         # Add $50 of cost (50% of $100 budget, under 80% threshold)
-        db_session.add(CostRecord(
-            project_id=sample_project.id,
-            model_name="gpt-4",
-            prompt_tokens=1000, completion_tokens=500,
-            total_tokens=1500, cost_usd=50.0,
-            caller="test",
-        ))
+        db_session.add(
+            CostRecord(
+                project_id=sample_project.id,
+                model_name="gpt-4",
+                prompt_tokens=1000,
+                completion_tokens=500,
+                total_tokens=1500,
+                cost_usd=50.0,
+                caller="test",
+            )
+        )
         await db_session.commit()
 
         result = await execution_health_service.check_budget(
@@ -754,9 +860,7 @@ class TestBudgetEnforcement:
         assert result["pct_used"] == 50.0
 
     @pytest.mark.asyncio
-    async def test_check_budget_warn(
-        self, db_session: AsyncSession, sample_project
-    ):
+    async def test_check_budget_warn(self, db_session: AsyncSession, sample_project):
         """Spend over threshold with WARN action → warns but doesn't block."""
         from app.models.analytics_metrics import BudgetConfig, BudgetAction
         from app.models.cost_record import CostRecord
@@ -768,13 +872,17 @@ class TestBudgetEnforcement:
             action_on_exceed=BudgetAction.WARN,
         )
         db_session.add(config)
-        db_session.add(CostRecord(
-            project_id=sample_project.id,
-            model_name="gpt-4",
-            prompt_tokens=10000, completion_tokens=5000,
-            total_tokens=15000, cost_usd=85.0,
-            caller="test",
-        ))
+        db_session.add(
+            CostRecord(
+                project_id=sample_project.id,
+                model_name="gpt-4",
+                prompt_tokens=10000,
+                completion_tokens=5000,
+                total_tokens=15000,
+                cost_usd=85.0,
+                caller="test",
+            )
+        )
         await db_session.commit()
 
         result = await execution_health_service.check_budget(
@@ -800,19 +908,21 @@ class TestBudgetEnforcement:
             action_on_exceed=BudgetAction.BLOCK,
         )
         db_session.add(config)
-        db_session.add(CostRecord(
-            project_id=sample_project.id,
-            model_name="gpt-4",
-            prompt_tokens=10000, completion_tokens=5000,
-            total_tokens=15000, cost_usd=90.0,
-            caller="test",
-        ))
+        db_session.add(
+            CostRecord(
+                project_id=sample_project.id,
+                model_name="gpt-4",
+                prompt_tokens=10000,
+                completion_tokens=5000,
+                total_tokens=15000,
+                cost_usd=90.0,
+                caller="test",
+            )
+        )
         await db_session.commit()
 
         with pytest.raises(HTTPException) as exc_info:
-            await execution_health_service.check_budget(
-                db_session, sample_project.id
-            )
+            await execution_health_service.check_budget(db_session, sample_project.id)
         assert exc_info.value.status_code == 403
 
 
@@ -862,11 +972,11 @@ class TestApprovalVelocity:
         assert result["approval_rate"] == 100.0
 
     @pytest.mark.asyncio
-    async def test_velocity_comparison(
-        self, db_session: AsyncSession, sample_project
-    ):
+    async def test_velocity_comparison(self, db_session: AsyncSession, sample_project):
         result = await velocity_quality_service.compute_velocity_comparison(
-            db_session, sample_project.id, days=30,
+            db_session,
+            sample_project.id,
+            days=30,
         )
         assert "current" in result
         assert "previous" in result
@@ -896,9 +1006,12 @@ class TestQualityGates:
     ):
         """All metrics within thresholds → passed=True, no violations."""
         await velocity_quality_service.record_quality_snapshot(
-            db_session, project_id=sample_project.id,
-            test_pass_rate=0.95, defect_density=0.01,
-            rollback_rate=0.02, review_coverage=0.90,
+            db_session,
+            project_id=sample_project.id,
+            test_pass_rate=0.95,
+            defect_density=0.01,
+            rollback_rate=0.02,
+            review_coverage=0.90,
         )
         await db_session.commit()
 
@@ -914,7 +1027,8 @@ class TestQualityGates:
     ):
         """Low test_pass_rate and high defect_density trigger violations."""
         await velocity_quality_service.record_quality_snapshot(
-            db_session, project_id=sample_project.id,
+            db_session,
+            project_id=sample_project.id,
             test_pass_rate=0.50,  # below 0.8 min
             defect_density=0.10,  # above 0.05 max
             rollback_rate=0.02,
@@ -935,15 +1049,19 @@ class TestQualityGates:
     ):
         """Custom gate thresholds override defaults."""
         await velocity_quality_service.record_quality_snapshot(
-            db_session, project_id=sample_project.id,
-            test_pass_rate=0.85, defect_density=0.03,
-            rollback_rate=0.05, review_coverage=0.75,
+            db_session,
+            project_id=sample_project.id,
+            test_pass_rate=0.85,
+            defect_density=0.03,
+            rollback_rate=0.05,
+            review_coverage=0.75,
         )
         await db_session.commit()
 
         # Stricter custom gate: test_pass_rate >= 0.95
         result = await velocity_quality_service.evaluate_quality_gates(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
             gates={"test_pass_rate": {"min": 0.95, "label": "Test pass rate"}},
         )
         assert result["passed"] is False
@@ -962,8 +1080,10 @@ class TestPortfolioSortFilter:
     ):
         """sort_by=total_runs works without error."""
         result = await velocity_quality_service.get_portfolio_summary(
-            db_session, [sample_project.id],
-            sort_by="total_runs", sort_order="desc",
+            db_session,
+            [sample_project.id],
+            sort_by="total_runs",
+            sort_order="desc",
         )
         assert result["project_count"] >= 1
 
@@ -973,7 +1093,8 @@ class TestPortfolioSortFilter:
     ):
         """filter_min_runs=1000 filters out project with 0 runs."""
         result = await velocity_quality_service.get_portfolio_summary(
-            db_session, [sample_project.id],
+            db_session,
+            [sample_project.id],
             filter_min_runs=1000,
         )
         assert result["project_count"] == 0
@@ -985,8 +1106,10 @@ class TestPortfolioSortFilter:
     ):
         """success_rate dimension available in portfolio results."""
         result = await velocity_quality_service.get_portfolio_summary(
-            db_session, [sample_project.id],
-            sort_by="success_rate", sort_order="asc",
+            db_session,
+            [sample_project.id],
+            sort_by="success_rate",
+            sort_order="asc",
         )
         for proj in result["projects"]:
             assert "success_rate" in proj
@@ -997,7 +1120,8 @@ class TestPortfolioSortFilter:
     ):
         """filter_max_cost filters projects by cost."""
         result = await velocity_quality_service.get_portfolio_summary(
-            db_session, [sample_project.id],
+            db_session,
+            [sample_project.id],
             filter_max_cost=0.001,  # Very low, should exclude if any cost
         )
         # With no cost records, cost=0 passes the filter
@@ -1013,6 +1137,7 @@ class TestRateLimitHeaders:
     def test_rate_limit_headers_from_result(self):
         """rate_limit_headers_from_result builds proper header dict."""
         from app.services.api_key_service import rate_limit_headers_from_result
+
         result = {"limit": 100, "remaining": 95, "reset_at": 1700000000}
         headers = rate_limit_headers_from_result(result)
         assert headers["X-RateLimit-Limit"] == "100"
@@ -1022,6 +1147,7 @@ class TestRateLimitHeaders:
     def test_require_rate_limit_returns_callable(self):
         """require_rate_limit() returns a dependency function."""
         from app.services.api_key_service import require_rate_limit
+
         dep = require_rate_limit(max_requests=50)
         assert callable(dep)
 
@@ -1038,13 +1164,17 @@ class TestTimeWindowFiltering:
     ):
         """since_days filters metrics to recent window."""
         await execution_health_service.record_execution_metric(
-            db_session, project_id=sample_project.id,
-            metric_type=ExecutionMetricType.EXECUTION_TIME, value_ms=1000,
+            db_session,
+            project_id=sample_project.id,
+            metric_type=ExecutionMetricType.EXECUTION_TIME,
+            value_ms=1000,
         )
         await db_session.commit()
 
         items, total = await execution_health_service.get_execution_metrics(
-            db_session, sample_project.id, since_days=7,
+            db_session,
+            sample_project.id,
+            since_days=7,
         )
         assert total >= 1  # Just recorded within 7 days
 
@@ -1054,7 +1184,9 @@ class TestTimeWindowFiltering:
     ):
         """since_days=0 should still work (returns nothing or recent)."""
         items, total = await execution_health_service.get_execution_metrics(
-            db_session, sample_project.id, since_days=1,
+            db_session,
+            sample_project.id,
+            since_days=1,
         )
         # No metrics recorded → 0
         assert total == 0
@@ -1071,7 +1203,9 @@ class TestBudgetEnforcementWiring:
         self, db_session: AsyncSession, sample_project
     ):
         """No budget config → returns a result (may indicate no budget set)."""
-        result = await execution_health_service.check_budget(db_session, sample_project.id)
+        result = await execution_health_service.check_budget(
+            db_session, sample_project.id
+        )
         # check_budget may return status or raise; validate shape
         assert isinstance(result, dict)
 
@@ -1088,7 +1222,9 @@ class TestQualityGatesQuarantine:
     ):
         """evaluate_quality_gates returns quarantined_excluded field."""
         result = await velocity_quality_service.evaluate_quality_gates(
-            db_session, sample_project.id, exclude_quarantined=True,
+            db_session,
+            sample_project.id,
+            exclude_quarantined=True,
         )
         assert "quarantined_excluded" in result
         assert result["quarantined_excluded"] is True
@@ -1099,7 +1235,9 @@ class TestQualityGatesQuarantine:
     ):
         """exclude_quarantined=False still works."""
         result = await velocity_quality_service.evaluate_quality_gates(
-            db_session, sample_project.id, exclude_quarantined=False,
+            db_session,
+            sample_project.id,
+            exclude_quarantined=False,
         )
         assert result["quarantined_excluded"] is False
 
@@ -1114,15 +1252,22 @@ class TestPortfolioSortFilterForwarding:
     async def test_portfolio_with_sort(self, db_session: AsyncSession, sample_project):
         """get_portfolio_summary accepts sort_by and sort_order."""
         result = await velocity_quality_service.get_portfolio_summary(
-            db_session, [sample_project.id], sort_by="health", sort_order="asc",
+            db_session,
+            [sample_project.id],
+            sort_by="health",
+            sort_order="asc",
         )
         assert "projects" in result
 
     @pytest.mark.asyncio
-    async def test_portfolio_with_filter(self, db_session: AsyncSession, sample_project):
+    async def test_portfolio_with_filter(
+        self, db_session: AsyncSession, sample_project
+    ):
         """get_portfolio_summary accepts filter_min_runs."""
         result = await velocity_quality_service.get_portfolio_summary(
-            db_session, [sample_project.id], filter_min_runs=0,
+            db_session,
+            [sample_project.id],
+            filter_min_runs=0,
         )
         assert "projects" in result
 
@@ -1139,9 +1284,11 @@ class TestWidgetDataResolution:
     ):
         """resolve_widget_data returns velocity data."""
         result = await dashboard_alert_service.resolve_widget_data(
-            db_session, sample_project.id, "velocity",
+            db_session,
+            sample_project.id,
+            "velocity",
         )
-        assert result["widget_type"] == "velocity"  
+        assert result["widget_type"] == "velocity"
         assert "data" in result
 
     @pytest.mark.asyncio
@@ -1150,9 +1297,12 @@ class TestWidgetDataResolution:
     ):
         """Unknown widget type → 400 error."""
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             await dashboard_alert_service.resolve_widget_data(
-                db_session, sample_project.id, "nonexistent_widget",
+                db_session,
+                sample_project.id,
+                "nonexistent_widget",
             )
         assert exc_info.value.status_code == 400
 
@@ -1274,7 +1424,10 @@ class TestSummaryArtifacts:
     async def test_get_summary_artifacts_empty(self, db_session: AsyncSession):
         """No stored artifacts → empty list."""
         import uuid as _uuid
-        result = await dashboard_alert_service.get_summary_artifacts(db_session, _uuid.uuid4())
+
+        result = await dashboard_alert_service.get_summary_artifacts(
+            db_session, _uuid.uuid4()
+        )
         assert result == []
 
 
@@ -1285,12 +1438,17 @@ class TestSummaryArtifacts:
 
 class TestStatusTransitionAutoCapture:
     @pytest.mark.asyncio
-    async def test_auto_record_known_transition(self, db_session: AsyncSession, sample_project):
+    async def test_auto_record_known_transition(
+        self, db_session: AsyncSession, sample_project
+    ):
         """Known status transition records an execution metric."""
         metric = await execution_health_service.auto_record_from_status_transition(
-            db_session, project_id=sample_project.id,
-            run_id=None, task_id=None,
-            old_status="queued", new_status="in_progress",
+            db_session,
+            project_id=sample_project.id,
+            run_id=None,
+            task_id=None,
+            old_status="queued",
+            new_status="in_progress",
             duration_ms=1500,
         )
         await db_session.commit()
@@ -1298,24 +1456,35 @@ class TestStatusTransitionAutoCapture:
         assert metric.value_ms == 1500
 
     @pytest.mark.asyncio
-    async def test_auto_record_unknown_transition_returns_none(self, db_session: AsyncSession, sample_project):
+    async def test_auto_record_unknown_transition_returns_none(
+        self, db_session: AsyncSession, sample_project
+    ):
         """Unknown status transition returns None without recording."""
         result = await execution_health_service.auto_record_from_status_transition(
-            db_session, project_id=sample_project.id,
-            run_id=None, task_id=None,
-            old_status="unknown", new_status="whatever",
+            db_session,
+            project_id=sample_project.id,
+            run_id=None,
+            task_id=None,
+            old_status="unknown",
+            new_status="whatever",
             duration_ms=100,
         )
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_auto_record_execution_time_transition(self, db_session: AsyncSession, sample_project):
+    async def test_auto_record_execution_time_transition(
+        self, db_session: AsyncSession, sample_project
+    ):
         """in_progress → review records EXECUTION_TIME."""
         from app.models.analytics_metrics import ExecutionMetricType
+
         metric = await execution_health_service.auto_record_from_status_transition(
-            db_session, project_id=sample_project.id,
-            run_id=None, task_id=None,
-            old_status="in_progress", new_status="review",
+            db_session,
+            project_id=sample_project.id,
+            run_id=None,
+            task_id=None,
+            old_status="in_progress",
+            new_status="review",
             duration_ms=5000,
         )
         await db_session.commit()
@@ -1332,6 +1501,7 @@ class TestConfigurableModelRates:
     def test_get_model_rates(self):
         """get_model_rates returns the current rate table."""
         from app.services import cost_tracking_service
+
         rates = cost_tracking_service.get_model_rates()
         assert isinstance(rates, dict)
         assert "gpt-4o" in rates
@@ -1341,10 +1511,11 @@ class TestConfigurableModelRates:
     def test_update_model_rates(self):
         """update_model_rates modifies the rate table."""
         from app.services import cost_tracking_service
+
         cost_tracking_service.get_model_rates()
-        cost_tracking_service.update_model_rates({
-            "test-model-xyz": {"prompt": 0.001, "completion": 0.002}
-        })
+        cost_tracking_service.update_model_rates(
+            {"test-model-xyz": {"prompt": 0.001, "completion": 0.002}}
+        )
         updated = cost_tracking_service.get_model_rates()
         assert "test-model-xyz" in updated
         assert updated["test-model-xyz"]["prompt"] == 0.001
@@ -1354,9 +1525,10 @@ class TestConfigurableModelRates:
     def test_estimate_cost_uses_configurable_rates(self):
         """estimate_cost uses the MODEL_COSTS table which is configurable."""
         from app.services import cost_tracking_service
-        cost_tracking_service.update_model_rates({
-            "test-custom": {"prompt": 1.0, "completion": 2.0}
-        })
+
+        cost_tracking_service.update_model_rates(
+            {"test-custom": {"prompt": 1.0, "completion": 2.0}}
+        )
         cost = cost_tracking_service.estimate_cost("test-custom", 10, 5)
         assert cost == 10 * 1.0 + 5 * 2.0
         cost_tracking_service.MODEL_COSTS.pop("test-custom", None)
@@ -1369,31 +1541,41 @@ class TestConfigurableModelRates:
 
 class TestReportExecution:
     @pytest.mark.asyncio
-    async def test_execute_scheduled_report(self, db_session: AsyncSession, sample_project):
+    async def test_execute_scheduled_report(
+        self, db_session: AsyncSession, sample_project
+    ):
         """execute_scheduled_report collects metrics."""
         # Create a scheduled report first
         report = await dashboard_alert_service.create_scheduled_report(
             db_session,
-            name="Weekly Health", metrics=["health", "quality"],
+            name="Weekly Health",
+            metrics=["health", "quality"],
             schedule_cron="0 9 * * 1",
         )
         await db_session.commit()
 
         result = await dashboard_alert_service.execute_scheduled_report(
-            db_session, report.id, project_id=sample_project.id,
+            db_session,
+            report.id,
+            project_id=sample_project.id,
         )
         assert result["report_name"] == "Weekly Health"
         assert "metrics_collected" in result
         assert "generated_at" in result
 
     @pytest.mark.asyncio
-    async def test_execute_report_not_found(self, db_session: AsyncSession, sample_project):
+    async def test_execute_report_not_found(
+        self, db_session: AsyncSession, sample_project
+    ):
         """execute_scheduled_report raises 404 for missing report."""
         import uuid as _uuid
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             await dashboard_alert_service.execute_scheduled_report(
-                db_session, _uuid.uuid4(), project_id=sample_project.id,
+                db_session,
+                _uuid.uuid4(),
+                project_id=sample_project.id,
             )
         assert exc_info.value.status_code == 404
 
@@ -1405,26 +1587,34 @@ class TestReportExecution:
 
 class TestDBPersistedArtifacts:
     @pytest.mark.asyncio
-    async def test_save_and_retrieve_artifacts(self, db_session: AsyncSession, sample_project):
+    async def test_save_and_retrieve_artifacts(
+        self, db_session: AsyncSession, sample_project
+    ):
         """Saved summaries are retrievable from DB."""
         a1 = await dashboard_alert_service.save_executive_summary(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
         )
         await db_session.commit()
         artifacts = await dashboard_alert_service.get_summary_artifacts(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
         )
         assert len(artifacts) >= 1
         assert artifacts[0]["version"] == a1["version"]
 
     @pytest.mark.asyncio
-    async def test_artifacts_versioned_incrementally(self, db_session: AsyncSession, sample_project):
+    async def test_artifacts_versioned_incrementally(
+        self, db_session: AsyncSession, sample_project
+    ):
         """Each save increments the version number."""
         a1 = await dashboard_alert_service.save_executive_summary(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
         )
         a2 = await dashboard_alert_service.save_executive_summary(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
         )
         await db_session.commit()
         assert a2["version"] == a1["version"] + 1
@@ -1440,13 +1630,17 @@ class TestLifecycleAutoCapture:
 
     @pytest.mark.asyncio
     async def test_task_transition_emits_metric(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         """Transitioning READY→RUNNING should invoke auto_record_from_status_transition."""
         from app.models.task import Task, TaskStatus
         from app.models.run import Run, RunStatus
 
-        run = Run(project_id=sample_project.id, run_number=999, status=RunStatus.RUNNING)
+        run = Run(
+            project_id=sample_project.id, run_number=999, status=RunStatus.RUNNING
+        )
         db_session.add(run)
         await db_session.flush()
 
@@ -1462,7 +1656,9 @@ class TestLifecycleAutoCapture:
         from app.services import task_service
 
         updated = await task_service.update_task_status(
-            db_session, task.id, TaskStatus.RUNNING,
+            db_session,
+            task.id,
+            TaskStatus.RUNNING,
         )
         await db_session.commit()
         assert updated.status == TaskStatus.RUNNING
@@ -1483,24 +1679,32 @@ class TestLifecycleAutoCapture:
 
     @pytest.mark.asyncio
     async def test_unmapped_transition_no_metric(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         """PENDING→READY has no metric mapping — should silently succeed."""
         from app.models.task import Task, TaskStatus
         from app.models.run import Run, RunStatus
 
-        run = Run(project_id=sample_project.id, run_number=998, status=RunStatus.RUNNING)
+        run = Run(
+            project_id=sample_project.id, run_number=998, status=RunStatus.RUNNING
+        )
         db_session.add(run)
         await db_session.flush()
 
-        task = Task(title="noop-task", run_id=run.id, status=TaskStatus.PENDING, order_index=0)
+        task = Task(
+            title="noop-task", run_id=run.id, status=TaskStatus.PENDING, order_index=0
+        )
         db_session.add(task)
         await db_session.flush()
 
         from app.services import task_service
 
         updated = await task_service.update_task_status(
-            db_session, task.id, TaskStatus.READY,
+            db_session,
+            task.id,
+            TaskStatus.READY,
         )
         await db_session.commit()
         assert updated.status == TaskStatus.READY
@@ -1576,9 +1780,15 @@ class TestNarrativeGeneration:
         from app.services.dashboard_alert_service import _generate_narrative
 
         narrative = _generate_narrative(
-            health={"grade": "A", "composite_score": 92.5, "dimension_scores": {
-                "velocity": 95, "quality": 88, "cost_efficiency": 50,
-            }},
+            health={
+                "grade": "A",
+                "composite_score": 92.5,
+                "dimension_scores": {
+                    "velocity": 95,
+                    "quality": 88,
+                    "cost_efficiency": 50,
+                },
+            },
             velocity={"completed_runs": 42, "runs_per_day": 1.4},
             quality={"test_pass_rate": 0.97, "defect_density": 0.01},
         )
@@ -1597,9 +1807,14 @@ class TestNarrativeGeneration:
         from app.services.dashboard_alert_service import _generate_narrative
 
         narrative = _generate_narrative(
-            health={"grade": "C", "composite_score": 62.0, "dimension_scores": {
-                "velocity": 80, "cost_efficiency": 40,
-            }},
+            health={
+                "grade": "C",
+                "composite_score": 62.0,
+                "dimension_scores": {
+                    "velocity": 80,
+                    "cost_efficiency": 40,
+                },
+            },
             velocity=None,
             quality=None,
         )
@@ -1607,11 +1822,14 @@ class TestNarrativeGeneration:
 
     @pytest.mark.asyncio
     async def test_full_summary_includes_narrative(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         """generate_executive_summary should include a 'narrative' key."""
         summary = await dashboard_alert_service.generate_executive_summary(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
         )
         assert "narrative" in summary
         assert isinstance(summary["narrative"], str)
@@ -1628,7 +1846,9 @@ class TestPortfolioPerformance:
 
     @pytest.mark.asyncio
     async def test_portfolio_50_projects_under_1_second(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         """Benchmark portfolio summary with multiple project IDs."""
         import time
@@ -1636,18 +1856,19 @@ class TestPortfolioPerformance:
 
         project_ids = [sample_project.id]
         for i in range(49):
-            p = Project(name=f"bench-proj-{i}", description="benchmark", owner_id=STUB_USER_ID)
+            p = Project(
+                name=f"bench-proj-{i}", description="benchmark", owner_id=STUB_USER_ID
+            )
             db_session.add(p)
         await db_session.flush()
 
-        result = await db_session.execute(
-            select(Project.id).limit(50)
-        )
+        result = await db_session.execute(select(Project.id).limit(50))
         project_ids = [row[0] for row in result.fetchall()]
 
         start = time.perf_counter()
         summary = await velocity_quality_service.get_portfolio_summary(
-            db_session, project_ids,
+            db_session,
+            project_ids,
         )
         elapsed = time.perf_counter() - start
 
@@ -1665,7 +1886,9 @@ class TestAnalyticsPerformance:
 
     @pytest.mark.asyncio
     async def test_metric_query_performance(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         """Record 500 metrics and query them within SLA."""
         import time
@@ -1695,14 +1918,17 @@ class TestAnalyticsPerformance:
 
     @pytest.mark.asyncio
     async def test_health_computation_performance(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         """Health computation should complete in <500ms."""
         import time
 
         start = time.perf_counter()
         health = await execution_health_service.compute_health_snapshot(
-            db_session, sample_project.id,
+            db_session,
+            sample_project.id,
         )
         elapsed = time.perf_counter() - start
 
@@ -1720,7 +1946,9 @@ class TestDashboardLoadPerformance:
 
     @pytest.mark.asyncio
     async def test_dashboard_10_widgets_under_2_seconds(
-        self, db_session: AsyncSession, sample_project,
+        self,
+        db_session: AsyncSession,
+        sample_project,
     ):
         """Simulate a dashboard with 10 widgets and verify total resolution
         time stays under the 2-second SLA.
@@ -1740,7 +1968,9 @@ class TestDashboardLoadPerformance:
         results = []
         for wt in widget_types:
             data = await dashboard_alert_service.resolve_widget_data(
-                db_session, sample_project.id, wt,
+                db_session,
+                sample_project.id,
+                wt,
             )
             results.append(data)
         elapsed = time.perf_counter() - start

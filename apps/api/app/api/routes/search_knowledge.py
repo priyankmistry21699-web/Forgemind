@@ -64,11 +64,18 @@ router = APIRouter()
 async def search(
     q: str = Query(..., min_length=1, max_length=500),
     project_id: uuid.UUID | None = Query(None),
-    entity_type: str | None = Query(None, description="Comma-separated: task,artifact,comment,run,project,knowledge,annotation,approval"),
+    entity_type: str | None = Query(
+        None,
+        description="Comma-separated: task,artifact,comment,run,project,knowledge,annotation,approval",
+    ),
     entity_status: str | None = Query(None),
-    created_after: str | None = Query(None, description="ISO date filter (e.g. 2026-01-01)"),
+    created_after: str | None = Query(
+        None, description="ISO date filter (e.g. 2026-01-01)"
+    ),
     created_before: str | None = Query(None, description="ISO date filter"),
-    facets: bool = Query(False, description="Include facet counts by entity_type and status"),
+    facets: bool = Query(
+        False, description="Include facet counts by entity_type and status"
+    ),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
@@ -103,12 +110,16 @@ async def search(
         try:
             dt_after = _dt.fromisoformat(created_after)
         except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid created_after date format")
+            raise HTTPException(
+                status_code=400, detail="Invalid created_after date format"
+            )
     if created_before:
         try:
             dt_before = _dt.fromisoformat(created_before)
         except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid created_before date format")
+            raise HTTPException(
+                status_code=400, detail="Invalid created_before date format"
+            )
 
     items, total, facet_data = await search_service.search(
         db,
@@ -172,7 +183,10 @@ async def search_suggestions(
 ):
     """Return related search term suggestions (FM-162)."""
     terms = await search_service.search_suggestions(
-        db, query=q, project_id=project_id, limit=limit,
+        db,
+        query=q,
+        project_id=project_id,
+        limit=limit,
     )
     return {"query": q, "suggestions": terms}
 
@@ -186,7 +200,9 @@ async def semantic_search(
     project_id: uuid.UUID | None = Query(None),
     entity_type: str | None = Query(None, description="Comma-separated entity types"),
     alpha: float = Query(
-        0.5, ge=0.0, le=1.0,
+        0.5,
+        ge=0.0,
+        le=1.0,
         description="Hybrid blend: 1.0=keyword-only, 0.0=semantic-only",
     ),
     limit: int = Query(20, ge=1, le=100),
@@ -248,7 +264,8 @@ async def generate_embeddings(
     from app.services import embedding_service
 
     stats = await embedding_service.batch_generate_embeddings(
-        db, project_id=project_id,
+        db,
+        project_id=project_id,
     )
     await db.commit()
     return stats
@@ -664,7 +681,10 @@ async def project_directory(
     each annotated with run stats and a health grade.
     """
     items, total = await search_service.get_project_directory(
-        db, user_id, limit=limit, offset=offset,
+        db,
+        user_id,
+        limit=limit,
+        offset=offset,
     )
     return {"items": items, "total": total}
 
@@ -679,6 +699,9 @@ async def related_projects(
     """Suggest related projects based on shared knowledge and content (FM-165)."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     items = await search_service.get_related_projects(
-        db, project_id, user_id, limit=limit,
+        db,
+        project_id,
+        user_id,
+        limit=limit,
     )
     return {"project_id": str(project_id), "related": items, "total": len(items)}

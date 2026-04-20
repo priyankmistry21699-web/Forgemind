@@ -243,7 +243,8 @@ async def create_template_version(
             "constitution_template", _copy.deepcopy(source.constitution_template)
         ),
         default_governance_config=updates.get(
-            "default_governance_config", _copy.deepcopy(source.default_governance_config)
+            "default_governance_config",
+            _copy.deepcopy(source.default_governance_config),
         ),
         default_phase_profiles=updates.get(
             "default_phase_profiles", _copy.deepcopy(source.default_phase_profiles)
@@ -251,8 +252,12 @@ async def create_template_version(
         suggested_task_types=updates.get(
             "suggested_task_types", _copy.deepcopy(source.suggested_task_types)
         ),
-        spec_defaults=updates.get("spec_defaults", _copy.deepcopy(source.spec_defaults)),
-        plan_defaults=updates.get("plan_defaults", _copy.deepcopy(source.plan_defaults)),
+        spec_defaults=updates.get(
+            "spec_defaults", _copy.deepcopy(source.spec_defaults)
+        ),
+        plan_defaults=updates.get(
+            "plan_defaults", _copy.deepcopy(source.plan_defaults)
+        ),
         is_builtin=False,
         is_active=True,
         version=source.version + 1,
@@ -261,5 +266,7 @@ async def create_template_version(
     db.add(new_tpl)
     await db.flush()
     await db.refresh(new_tpl)
-    logger.info("Versioned template %s → %s (v%d)", source.slug, new_tpl.slug, new_tpl.version)
+    logger.info(
+        "Versioned template %s → %s (v%d)", source.slug, new_tpl.slug, new_tpl.version
+    )
     return new_tpl

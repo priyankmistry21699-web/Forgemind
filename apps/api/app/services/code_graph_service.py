@@ -48,8 +48,10 @@ def _extract_imports_from_source(source_code: str) -> list[dict[str, str]]:
             module = node.module or ""
             for alias in node.names:
                 imports.append(
-                    {"module": f"{module}.{alias.name}" if module else alias.name,
-                     "type": "import"}
+                    {
+                        "module": f"{module}.{alias.name}" if module else alias.name,
+                        "type": "import",
+                    }
                 )
     return imports
 
@@ -102,6 +104,7 @@ def _extract_imports_from_typescript(source_code: str) -> list[dict[str, str]]:
 def _is_typescript_file(file_path: str) -> bool:
     """Check if a file path looks like TypeScript / JavaScript."""
     import os
+
     _, ext = os.path.splitext(file_path)
     return ext.lower() in _TS_EXTENSIONS
 
@@ -116,6 +119,7 @@ def _ts_module_to_file(module_path: str) -> str:
     if module_path.startswith("."):
         # Relative import — add .ts if no extension present
         import os
+
         _, ext = os.path.splitext(module_path)
         if ext and ext.lower() in _TS_EXTENSIONS:
             return module_path
@@ -248,12 +252,14 @@ async def get_dependency_graph(
     for d in deps:
         nodes.add(d.source_file)
         nodes.add(d.target_file)
-        edges.append({
-            "source": d.source_file,
-            "target": d.target_file,
-            "type": d.dependency_type.value if d.dependency_type else "import",
-            "import_name": d.import_name,
-        })
+        edges.append(
+            {
+                "source": d.source_file,
+                "target": d.target_file,
+                "type": d.dependency_type.value if d.dependency_type else "import",
+                "import_name": d.import_name,
+            }
+        )
 
     return {
         "project_id": str(project_id),
@@ -335,6 +341,7 @@ async def analyze_impact(
 def _is_test_file(file_path: str) -> bool:
     """Heuristic: a file is a test file if its basename starts with test_ or ends with _test."""
     import os
+
     base = os.path.basename(file_path)
     name = os.path.splitext(base)[0]
     return name.startswith("test_") or name.endswith("_test")
@@ -399,7 +406,9 @@ async def get_coverage_summary(
     result = await db.execute(
         select(
             sa_func.count(CoverageMap.id).label("mapping_count"),
-            sa_func.count(sa_func.distinct(CoverageMap.source_file)).label("covered_files"),
+            sa_func.count(sa_func.distinct(CoverageMap.source_file)).label(
+                "covered_files"
+            ),
             sa_func.avg(CoverageMap.coverage_pct).label("avg_coverage"),
         ).where(CoverageMap.project_id == project_id)
     )
@@ -432,7 +441,9 @@ async def get_coverage_gaps(
             ModuleDependency.project_id == project_id,
         )
     )
-    all_files = set(r[0] for r in all_sources_q.all()) | set(r[0] for r in all_targets_q.all())
+    all_files = set(r[0] for r in all_sources_q.all()) | set(
+        r[0] for r in all_targets_q.all()
+    )
 
     # Covered source files
     covered_q = await db.execute(
@@ -517,12 +528,14 @@ async def ingest_coverage_report(
         if existing:
             existing.coverage_pct = pct
         else:
-            db.add(CoverageMap(
-                project_id=project_id,
-                source_file=source_file,
-                test_file="__coverage_report__",
-                coverage_pct=pct,
-            ))
+            db.add(
+                CoverageMap(
+                    project_id=project_id,
+                    source_file=source_file,
+                    test_file="__coverage_report__",
+                    coverage_pct=pct,
+                )
+            )
         created += 1
 
     await db.flush()
@@ -592,8 +605,8 @@ def _parse_lcov(text: str) -> dict[str, float]:
 
 # Selection modes control how far into the dependency graph we look.
 _MODE_DEPTH = {
-    "minimal": 1,       # Direct dependents only
-    "standard": 2,      # 1-hop transitive
+    "minimal": 1,  # Direct dependents only
+    "standard": 2,  # 1-hop transitive
     "comprehensive": 5,  # Full blast radius
 }
 
@@ -619,7 +632,10 @@ async def select_tests_for_changes(
 
     # Step 1: Run impact analysis to find affected files
     impact = await analyze_impact(
-        db, project_id, changed_files, max_depth=max_depth,
+        db,
+        project_id,
+        changed_files,
+        max_depth=max_depth,
     )
 
     affected_sources = impact["affected_sources"]
@@ -646,7 +662,8 @@ async def select_tests_for_changes(
                 n = len(info["covers"])
                 prev_avg = info["avg_coverage"]
                 info["avg_coverage"] = round(
-                    prev_avg + (m.coverage_pct - prev_avg) / n, 2,
+                    prev_avg + (m.coverage_pct - prev_avg) / n,
+                    2,
                 )
 
     # Step 3: Also include tests found via impact analysis (naming-convention match)
@@ -708,7 +725,10 @@ async def build_code_intelligence_context(
 
     # Complexity hotspots — top 10 most complex functions
     hotspots = await flakiness_complexity_service.get_complexity_hotspots(
-        db, project_id, exceeds_only=True, limit=10,
+        db,
+        project_id,
+        exceeds_only=True,
+        limit=10,
     )
 
     # Debt summary
@@ -716,7 +736,8 @@ async def build_code_intelligence_context(
 
     # Flakiness snapshot
     flakiness = await flakiness_complexity_service.get_test_flakiness_summary(
-        db, project_id,
+        db,
+        project_id,
     )
 
     context: dict[str, Any] = {
@@ -735,7 +756,9 @@ async def build_code_intelligence_context(
             {
                 "file": h.file_path,
                 "function": h.function_name,
-                "metric_type": h.metric_type.value if hasattr(h.metric_type, "value") else str(h.metric_type),
+                "metric_type": h.metric_type.value
+                if hasattr(h.metric_type, "value")
+                else str(h.metric_type),
                 "value": float(h.value),
             }
             for h in hotspots
@@ -769,33 +792,45 @@ def format_context_for_prompt(context: dict[str, Any]) -> str:
 
     # Dependency graph
     dg = context.get("dependency_graph", {})
-    lines.append(f"**Dependency Graph:** {dg.get('node_count', 0)} files, "
-                 f"{dg.get('edge_count', 0)} dependencies")
+    lines.append(
+        f"**Dependency Graph:** {dg.get('node_count', 0)} files, "
+        f"{dg.get('edge_count', 0)} dependencies"
+    )
 
     # Coverage
     cov = context.get("coverage", {})
-    lines.append(f"**Coverage:** {cov.get('covered_files', 0)} files covered, "
-                 f"avg {cov.get('avg_coverage', 0)}%, "
-                 f"{cov.get('gap_count', 0)} gaps")
+    lines.append(
+        f"**Coverage:** {cov.get('covered_files', 0)} files covered, "
+        f"avg {cov.get('avg_coverage', 0)}%, "
+        f"{cov.get('gap_count', 0)} gaps"
+    )
 
     # Complexity hotspots
     hotspots = context.get("complexity_hotspots", [])
     if hotspots:
-        lines.append(f"**Complexity Hotspots:** {len(hotspots)} functions above threshold")
+        lines.append(
+            f"**Complexity Hotspots:** {len(hotspots)} functions above threshold"
+        )
         for h in hotspots[:5]:
-            lines.append(f"  - {h['file']}:{h['function']} ({h['metric_type']}={h['value']})")
+            lines.append(
+                f"  - {h['file']}:{h['function']} ({h['metric_type']}={h['value']})"
+            )
 
     # Debt
     debt = context.get("debt", {})
     if isinstance(debt, dict):
-        lines.append(f"**Technical Debt:** score={debt.get('total_score', 0)}, "
-                     f"{debt.get('entry_count', 0)} entries")
+        lines.append(
+            f"**Technical Debt:** score={debt.get('total_score', 0)}, "
+            f"{debt.get('entry_count', 0)} entries"
+        )
 
     # Impact analysis (if present)
     impact = context.get("impact_analysis")
     if impact:
-        lines.append(f"**Change Impact:** {impact['total_affected']} files affected, "
-                     f"risk={impact['risk_level']} ({impact['risk_score']})")
+        lines.append(
+            f"**Change Impact:** {impact['total_affected']} files affected, "
+            f"risk={impact['risk_level']} ({impact['risk_score']})"
+        )
         if impact.get("affected_tests"):
             lines.append(f"  Affected tests: {', '.join(impact['affected_tests'][:5])}")
 

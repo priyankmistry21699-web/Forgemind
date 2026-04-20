@@ -34,9 +34,7 @@ async def list_pipelines_for_repo(
     )
     if status:
         q = q.where(CIPipelineRun.status == status)
-    result = await db.execute(
-        q.order_by(CIPipelineRun.created_at.desc()).limit(limit)
-    )
+    result = await db.execute(q.order_by(CIPipelineRun.created_at.desc()).limit(limit))
     return list(result.scalars().all())
 
 
@@ -50,7 +48,5 @@ async def get_latest_pipeline(
     )
     if branch:
         q = q.where(CIPipelineRun.branch == branch)
-    result = await db.execute(
-        q.order_by(CIPipelineRun.created_at.desc()).limit(1)
-    )
+    result = await db.execute(q.order_by(CIPipelineRun.created_at.desc()).limit(1))
     return result.scalar_one_or_none()

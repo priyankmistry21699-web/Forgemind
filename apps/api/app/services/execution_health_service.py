@@ -61,9 +61,7 @@ async def get_execution_metrics(
 
     FM-191: since_days provides time-window preset filtering (e.g. 1, 7, 30, 90).
     """
-    query = select(ExecutionMetric).where(
-        ExecutionMetric.project_id == project_id
-    )
+    query = select(ExecutionMetric).where(ExecutionMetric.project_id == project_id)
     if metric_type:
         query = query.where(ExecutionMetric.metric_type == metric_type)
     if run_id:
@@ -77,9 +75,7 @@ async def get_execution_metrics(
     ).scalar_one()
 
     result = await db.execute(
-        query.order_by(ExecutionMetric.recorded_at.desc())
-        .offset(offset)
-        .limit(limit)
+        query.order_by(ExecutionMetric.recorded_at.desc()).offset(offset).limit(limit)
     )
     return list(result.scalars().all()), total
 
@@ -106,7 +102,9 @@ async def get_execution_metrics_summary(
         "project_id": str(project_id),
         "metrics": [
             {
-                "metric_type": row.metric_type.value if hasattr(row.metric_type, 'value') else str(row.metric_type),
+                "metric_type": row.metric_type.value
+                if hasattr(row.metric_type, "value")
+                else str(row.metric_type),
                 "count": row.count,
                 "avg_ms": round(float(row.avg_ms or 0), 2),
                 "min_ms": int(row.min_ms or 0),
@@ -213,12 +211,12 @@ async def auto_compute_health_dimensions(
     run_q = await db.execute(
         select(
             sa_func.count(Run.id).label("total"),
-            sa_func.sum(
-                sa_case((Run.status == RunStatus.COMPLETED, 1), else_=0)
-            ).label("completed"),
-            sa_func.sum(
-                sa_case((Run.status == RunStatus.FAILED, 1), else_=0)
-            ).label("failed"),
+            sa_func.sum(sa_case((Run.status == RunStatus.COMPLETED, 1), else_=0)).label(
+                "completed"
+            ),
+            sa_func.sum(sa_case((Run.status == RunStatus.FAILED, 1), else_=0)).label(
+                "failed"
+            ),
         ).where(
             Run.project_id == project_id,
             Run.created_at >= cutoff,
@@ -346,7 +344,7 @@ async def get_health_trend(
         {
             "id": str(s.id),
             "composite_score": s.composite_score,
-            "grade": s.grade.value if hasattr(s.grade, 'value') else str(s.grade),
+            "grade": s.grade.value if hasattr(s.grade, "value") else str(s.grade),
             "dimension_scores": s.dimension_scores,
             "snapshot_date": s.snapshot_date.isoformat() if s.snapshot_date else None,
         }
@@ -399,7 +397,11 @@ async def check_budget(
     pct_used = round((spent / budget * 100) if budget > 0 else 0, 2)
     threshold = float(config.warn_threshold_pct)
     exceeded = pct_used >= threshold
-    action_str = config.action_on_exceed.value if hasattr(config.action_on_exceed, "value") else str(config.action_on_exceed)
+    action_str = (
+        config.action_on_exceed.value
+        if hasattr(config.action_on_exceed, "value")
+        else str(config.action_on_exceed)
+    )
 
     result = {
         "spent_usd": round(spent, 4),
@@ -411,6 +413,7 @@ async def check_budget(
 
     if exceeded and config.action_on_exceed == BudgetAction.BLOCK:
         from fastapi import HTTPException
+
         raise HTTPException(
             status_code=403,
             detail=f"Budget exceeded: {pct_used:.1f}% of ${budget:.2f} used. Action: BLOCK",
@@ -419,7 +422,11 @@ async def check_budget(
     if exceeded:
         logger.warning(
             "Budget warning for project %s: %.1f%% used ($%.4f / $%.2f). Action: %s",
-            project_id, pct_used, spent, budget, action_str,
+            project_id,
+            pct_used,
+            spent,
+            budget,
+            action_str,
         )
 
     return result

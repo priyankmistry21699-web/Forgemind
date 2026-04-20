@@ -795,7 +795,9 @@ async def create_role(
     db: AsyncSession = Depends(get_db),
 ):
     """Create a custom role with specific permissions (FM-172)."""
-    await check_workspace_permission(db, workspace_id, current_user_id, Action.WORKSPACE_MANAGE_MEMBERS)
+    await check_workspace_permission(
+        db, workspace_id, current_user_id, Action.WORKSPACE_MANAGE_MEMBERS
+    )
     try:
         role = await create_custom_role(
             db,
@@ -1026,7 +1028,8 @@ async def get_sso_login_url(
     For SAML providers, returns the IdP SSO URL.
     """
     config = await sso_configuration_service.get_active_sso_for_workspace(
-        db, workspace_id,
+        db,
+        workspace_id,
     )
     if config is None:
         raise HTTPException(status_code=404, detail="No active SSO configuration")
@@ -1037,11 +1040,13 @@ async def get_sso_login_url(
 
     if ptype in ("oidc", "SSOProviderType.OIDC"):
         url = sso_configuration_service.build_oidc_authorize_url(
-            config, redirect_uri=redirect_uri,
+            config,
+            redirect_uri=redirect_uri,
         )
         if url is None:
             raise HTTPException(
-                status_code=422, detail="OIDC config incomplete (missing client_id or issuer_url)"
+                status_code=422,
+                detail="OIDC config incomplete (missing client_id or issuer_url)",
             )
         return {"provider_type": "oidc", "login_url": url}
 

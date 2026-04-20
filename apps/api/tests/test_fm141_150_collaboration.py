@@ -264,7 +264,9 @@ class TestUnifiedActivity:
         from app.services.unified_activity_service import get_unified_activity
 
         project = await _seed_project(db_session)
-        items, total, _cursor = await get_unified_activity(db_session, project_id=project.id)
+        items, total, _cursor = await get_unified_activity(
+            db_session, project_id=project.id
+        )
         assert total == 0
         assert items == []
 
@@ -283,7 +285,9 @@ class TestUnifiedActivity:
         db_session.add(entry)
         await db_session.flush()
 
-        items, total, _cursor = await get_unified_activity(db_session, project_id=project.id)
+        items, total, _cursor = await get_unified_activity(
+            db_session, project_id=project.id
+        )
         assert total == 1
         assert items[0]["event_type"] == "run_started"
 

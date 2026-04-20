@@ -86,9 +86,7 @@ async def evaluate_merge_readiness(
             passed.append("ci_passing")
 
         # 3b. CI pass-rate gate — historical pass rate must meet threshold
-        ci_readiness = await evaluate_ci_readiness(
-            db, pr_link.repository_link_id
-        )
+        ci_readiness = await evaluate_ci_readiness(db, pr_link.repository_link_id)
         if ci_readiness["status"] == "fail":
             blockers.append(
                 MergeBlocker(
@@ -176,10 +174,12 @@ async def evaluate_ci_readiness(
         select(CIPipelineRun)
         .where(
             CIPipelineRun.repository_link_id == repository_link_id,
-            CIPipelineRun.status.in_([
-                CIPipelineStatus.SUCCESS,
-                CIPipelineStatus.FAILURE,
-            ]),
+            CIPipelineRun.status.in_(
+                [
+                    CIPipelineStatus.SUCCESS,
+                    CIPipelineStatus.FAILURE,
+                ]
+            ),
         )
         .order_by(CIPipelineRun.created_at.desc())
         .limit(window)

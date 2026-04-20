@@ -118,7 +118,8 @@ class TestEscalationDedup:
 
         project = await _seed_project(db)
         await _seed_expired_approval(
-            db, project.id,
+            db,
+            project.id,
             escalated_at=datetime.now(timezone.utc) - timedelta(minutes=30),
         )
 
@@ -152,7 +153,10 @@ class TestDelegationExpiry:
 
         # Create user for delegate
         from app.models.user import User
-        delegate_user = User(id=delegate_id, email="delegate@test.dev", display_name="Delegate")
+
+        delegate_user = User(
+            id=delegate_id, email="delegate@test.dev", display_name="Delegate"
+        )
         db.add(delegate_user)
         await db.flush()
 
@@ -434,6 +438,7 @@ class TestRetentionArchiveAction:
 
         # Verify audit log was created
         from app.models.enterprise_governance import AuditLog
+
         logs_q = select(AuditLog).where(
             AuditLog.workspace_id == ws.id,
             AuditLog.action == "retention.archive",
@@ -453,7 +458,9 @@ class TestRetentionArchiveAction:
         project.workspace_id = ws.id
         await db.flush()
 
-        old_run = Run(run_number=2, project_id=project.id, trigger="test", created_at=OLD_DATE)
+        old_run = Run(
+            run_number=2, project_id=project.id, trigger="test", created_at=OLD_DATE
+        )
         db.add(old_run)
         await db.flush()
 
@@ -531,7 +538,9 @@ class TestRetentionDryRun:
         project.workspace_id = ws.id
         await db.flush()
 
-        old_run = Run(run_number=3, project_id=project.id, trigger="test", created_at=OLD_DATE)
+        old_run = Run(
+            run_number=3, project_id=project.id, trigger="test", created_at=OLD_DATE
+        )
         db.add(old_run)
         await db.flush()
 
@@ -548,7 +557,9 @@ class TestRetentionDryRun:
         await db.flush()
 
         report = await retention_policy_service.evaluate_retention(
-            db, ws.id, dry_run=True,
+            db,
+            ws.id,
+            dry_run=True,
         )
 
         assert report["dry_run"] is True
@@ -597,7 +608,11 @@ class TestRetentionArchiveAuditLog:
     async def test_archive_audit_logs(self, db):
         from app.services import retention_policy_service
         from app.models.enterprise_governance import (
-            RetentionPolicy, RetentionAction, AuditLog, AuditActorType, AuditOutcome
+            RetentionPolicy,
+            RetentionAction,
+            AuditLog,
+            AuditActorType,
+            AuditOutcome,
         )
 
         ws = await _seed_workspace(db)
@@ -771,12 +786,20 @@ class TestRetentionPolicyCRUD:
         ws = await _seed_workspace(db)
 
         await retention_policy_service.create_retention_policy(
-            db, workspace_id=ws.id, entity_type="run",
-            retention_days=30, action=RetentionAction.DELETE, created_by=STUB_USER_ID,
+            db,
+            workspace_id=ws.id,
+            entity_type="run",
+            retention_days=30,
+            action=RetentionAction.DELETE,
+            created_by=STUB_USER_ID,
         )
         await retention_policy_service.create_retention_policy(
-            db, workspace_id=ws.id, entity_type="artifact",
-            retention_days=60, action=RetentionAction.ARCHIVE, created_by=STUB_USER_ID,
+            db,
+            workspace_id=ws.id,
+            entity_type="artifact",
+            retention_days=60,
+            action=RetentionAction.ARCHIVE,
+            created_by=STUB_USER_ID,
         )
 
         items, total = await retention_policy_service.list_retention_policies(db, ws.id)
@@ -790,8 +813,12 @@ class TestRetentionPolicyCRUD:
 
         ws = await _seed_workspace(db)
         policy = await retention_policy_service.create_retention_policy(
-            db, workspace_id=ws.id, entity_type="run",
-            retention_days=30, action=RetentionAction.DELETE, created_by=STUB_USER_ID,
+            db,
+            workspace_id=ws.id,
+            entity_type="run",
+            retention_days=30,
+            action=RetentionAction.DELETE,
+            created_by=STUB_USER_ID,
         )
 
         updated = await retention_policy_service.update_retention_policy(
@@ -807,12 +834,18 @@ class TestRetentionPolicyCRUD:
 
         ws = await _seed_workspace(db)
         policy = await retention_policy_service.create_retention_policy(
-            db, workspace_id=ws.id, entity_type="run",
-            retention_days=30, action=RetentionAction.DELETE, created_by=STUB_USER_ID,
+            db,
+            workspace_id=ws.id,
+            entity_type="run",
+            retention_days=30,
+            action=RetentionAction.DELETE,
+            created_by=STUB_USER_ID,
         )
 
         deleted = await retention_policy_service.delete_retention_policy(db, policy.id)
         assert deleted is True
 
-        deleted_again = await retention_policy_service.delete_retention_policy(db, policy.id)
+        deleted_again = await retention_policy_service.delete_retention_policy(
+            db, policy.id
+        )
         assert deleted_again is False

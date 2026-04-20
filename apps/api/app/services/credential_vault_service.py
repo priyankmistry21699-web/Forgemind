@@ -36,6 +36,7 @@ def _mask_secret(env_key: str, credential: "CredentialVault | None" = None) -> s
     if credential and credential.encrypted_value:
         try:
             from app.services.encryption_service import decrypt
+
             plaintext = decrypt(credential.encrypted_value)
             return _mask_value(plaintext)
         except Exception:
@@ -82,10 +83,13 @@ async def create_credential(
     encrypted_value = None
     if secret_value:
         from app.services.encryption_service import encrypt
+
         encrypted_value = encrypt(secret_value)
 
     # Determine initial status
-    has_secret = encrypted_value is not None or bool(os.environ.get(env_key, "").strip())
+    has_secret = encrypted_value is not None or bool(
+        os.environ.get(env_key, "").strip()
+    )
     status = SecretStatus.ACTIVE if has_secret else SecretStatus.MISSING
 
     credential = CredentialVault(
@@ -153,6 +157,7 @@ async def resolve_secret(
     if cred.encrypted_value:
         try:
             from app.services.encryption_service import decrypt
+
             return decrypt(cred.encrypted_value)
         except Exception:
             logger.warning("Failed to decrypt secret %s", credential_id)
@@ -255,6 +260,7 @@ async def store_encrypted_secret(
     if credential is None:
         return None
     from app.services.encryption_service import encrypt
+
     credential.encrypted_value = encrypt(secret_value)
     credential.status = SecretStatus.ACTIVE
     await db.flush()

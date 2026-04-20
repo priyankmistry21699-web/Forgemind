@@ -110,6 +110,7 @@ VALID_COMPLIANCE_LEVELS = {"none", "basic", "soc2", "hipaa"}
 
 class GovernanceSettingsUpdate(BaseModel):
     """Validated governance settings schema."""
+
     plan_tier: str | None = None
     compliance_level: str | None = None
     sso_enforced: bool | None = None
@@ -156,12 +157,23 @@ async def update_governance_settings(
     patch = data.model_dump(exclude_unset=True)
 
     if "plan_tier" in patch and patch["plan_tier"] not in VALID_PLAN_TIERS:
-        raise HTTPException(status_code=422, detail=f"plan_tier must be one of {VALID_PLAN_TIERS}")
-    if "compliance_level" in patch and patch["compliance_level"] not in VALID_COMPLIANCE_LEVELS:
-        raise HTTPException(status_code=422, detail=f"compliance_level must be one of {VALID_COMPLIANCE_LEVELS}")
+        raise HTTPException(
+            status_code=422, detail=f"plan_tier must be one of {VALID_PLAN_TIERS}"
+        )
+    if (
+        "compliance_level" in patch
+        and patch["compliance_level"] not in VALID_COMPLIANCE_LEVELS
+    ):
+        raise HTTPException(
+            status_code=422,
+            detail=f"compliance_level must be one of {VALID_COMPLIANCE_LEVELS}",
+        )
     if "audit_retention_days" in patch and patch["audit_retention_days"] is not None:
         if patch["audit_retention_days"] < 1 or patch["audit_retention_days"] > 3650:
-            raise HTTPException(status_code=422, detail="audit_retention_days must be between 1 and 3650")
+            raise HTTPException(
+                status_code=422,
+                detail="audit_retention_days must be between 1 and 3650",
+            )
 
     updated.update(patch)
     ws.governance_settings = updated

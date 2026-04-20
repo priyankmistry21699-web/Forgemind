@@ -59,9 +59,7 @@ async def get_dashboard(
     dashboard_id: uuid.UUID,
 ) -> Dashboard:
     """Get a dashboard by ID."""
-    result = await db.execute(
-        select(Dashboard).where(Dashboard.id == dashboard_id)
-    )
+    result = await db.execute(select(Dashboard).where(Dashboard.id == dashboard_id))
     dash = result.scalar_one_or_none()
     if dash is None:
         raise HTTPException(
@@ -225,7 +223,13 @@ async def execute_scheduled_report(
                 collected[metric_name] = None
             elif hasattr(raw, "__dict__"):
                 collected[metric_name] = {
-                    k: (v.value if hasattr(v, "value") else str(v) if isinstance(v, uuid.UUID) else v)
+                    k: (
+                        v.value
+                        if hasattr(v, "value")
+                        else str(v)
+                        if isinstance(v, uuid.UUID)
+                        else v
+                    )
                     for k, v in raw.__dict__.items()
                     if not k.startswith("_")
                 }
@@ -307,7 +311,9 @@ async def evaluate_alert(
     """
     # Cooldown check
     if alert.last_triggered_at is not None:
-        cooldown_end = alert.last_triggered_at + timedelta(minutes=alert.cooldown_minutes)
+        cooldown_end = alert.last_triggered_at + timedelta(
+            minutes=alert.cooldown_minutes
+        )
         now = datetime.now(timezone.utc)
         last = alert.last_triggered_at
         if last.tzinfo is None:
@@ -336,9 +342,7 @@ async def trigger_alert(
     current_value: float | None = None,
 ) -> MetricAlert:
     """Mark an alert as triggered, update last_triggered_at, and log to history."""
-    result = await db.execute(
-        select(MetricAlert).where(MetricAlert.id == alert_id)
-    )
+    result = await db.execute(select(MetricAlert).where(MetricAlert.id == alert_id))
     alert = result.scalar_one_or_none()
     if alert is None:
         raise HTTPException(
@@ -355,7 +359,9 @@ async def trigger_alert(
             triggered_at=now,
             current_value=current_value,
             threshold=alert.threshold,
-            condition_op=alert.condition_op.value if hasattr(alert.condition_op, 'value') else str(alert.condition_op),
+            condition_op=alert.condition_op.value
+            if hasattr(alert.condition_op, "value")
+            else str(alert.condition_op),
         )
         db.add(history_entry)
 
@@ -371,15 +377,14 @@ async def get_alert_history(
     offset: int = 0,
 ) -> tuple[list[AlertTriggerHistory], int]:
     """Get trigger history for a specific alert."""
-    query = select(AlertTriggerHistory).where(
-        AlertTriggerHistory.alert_id == alert_id
-    )
+    query = select(AlertTriggerHistory).where(AlertTriggerHistory.alert_id == alert_id)
     total = (
         await db.execute(select(sa_func.count()).select_from(query.subquery()))
     ).scalar_one()
     result = await db.execute(
         query.order_by(AlertTriggerHistory.triggered_at.desc())
-        .offset(offset).limit(limit)
+        .offset(offset)
+        .limit(limit)
     )
     return list(result.scalars().all()), total
 
@@ -400,7 +405,9 @@ async def generate_executive_summary(
     health_data = None
     if health:
         health_data = {
-            "grade": health.grade.value if hasattr(health.grade, 'value') else str(health.grade),
+            "grade": health.grade.value
+            if hasattr(health.grade, "value")
+            else str(health.grade),
             "composite_score": health.composite_score,
             "dimension_scores": health.dimension_scores,
         }
@@ -464,13 +471,9 @@ def _generate_narrative(
         weak = [k for k, v in dims.items() if isinstance(v, (int, float)) and v < 60]
         strong = [k for k, v in dims.items() if isinstance(v, (int, float)) and v >= 85]
         if strong:
-            parts.append(
-                f"Strong areas include {', '.join(strong)}."
-            )
+            parts.append(f"Strong areas include {', '.join(strong)}.")
         if weak:
-            parts.append(
-                f"Areas needing attention: {', '.join(weak)}."
-            )
+            parts.append(f"Areas needing attention: {', '.join(weak)}.")
     else:
         parts.append("No health data is available yet for this project.")
 
@@ -494,9 +497,13 @@ def _generate_narrative(
             if pct >= 95:
                 parts.append(f"Test quality is excellent with a {pct:.1f}% pass rate.")
             elif pct >= 80:
-                parts.append(f"Test quality is good at {pct:.1f}% pass rate, with room for improvement.")
+                parts.append(
+                    f"Test quality is good at {pct:.1f}% pass rate, with room for improvement."
+                )
             else:
-                parts.append(f"Test pass rate is {pct:.1f}% — this needs immediate attention.")
+                parts.append(
+                    f"Test pass rate is {pct:.1f}% — this needs immediate attention."
+                )
 
         defect = quality.get("defect_density")
         if defect is not None and defect > 0.05:
@@ -523,8 +530,9 @@ async def save_executive_summary(
 
     # Determine next version number
     result = await db.execute(
-        select(sa_func.coalesce(sa_func.max(ExecutiveSummaryArtifact.version), 0))
-        .where(ExecutiveSummaryArtifact.project_id == project_id)
+        select(
+            sa_func.coalesce(sa_func.max(ExecutiveSummaryArtifact.version), 0)
+        ).where(ExecutiveSummaryArtifact.project_id == project_id)
     )
     version = result.scalar_one() + 1
 
@@ -539,7 +547,9 @@ async def save_executive_summary(
     return {
         "version": version,
         "summary": summary,
-        "stored_at": artifact.stored_at.isoformat() if artifact.stored_at else datetime.now(timezone.utc).isoformat(),
+        "stored_at": artifact.stored_at.isoformat()
+        if artifact.stored_at
+        else datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -577,9 +587,16 @@ WIDGET_DATA_SOURCES = {
 }
 
 # Chart types that the frontend should support for each widget
-WIDGET_CHART_TYPES = frozenset({
-    "line", "bar", "pie", "table", "number", "gauge",
-})
+WIDGET_CHART_TYPES = frozenset(
+    {
+        "line",
+        "bar",
+        "pie",
+        "table",
+        "number",
+        "gauge",
+    }
+)
 
 
 def validate_widget_config(widget: dict[str, Any]) -> list[str]:
@@ -654,7 +671,7 @@ async def resolve_widget_data(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Unknown widget type: {widget_type}. "
-                   f"Valid: {', '.join(sorted(WIDGET_DATA_SOURCES))}",
+            f"Valid: {', '.join(sorted(WIDGET_DATA_SOURCES))}",
         )
 
     from app.services import execution_health_service as ehs
@@ -678,10 +695,7 @@ async def resolve_widget_data(
     if result is None:
         return {"widget_type": widget_type, "data": None}
     if hasattr(result, "__dict__"):
-        data = {
-            k: v for k, v in result.__dict__.items()
-            if not k.startswith("_")
-        }
+        data = {k: v for k, v in result.__dict__.items() if not k.startswith("_")}
         # Serialize UUIDs and enums
         for k, v in data.items():
             if hasattr(v, "value"):

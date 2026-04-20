@@ -985,6 +985,7 @@ class TestRetentionPolicies:
         # Backdate the artifact
         from sqlalchemy import update
         from datetime import timedelta
+
         await db_session.execute(
             update(Artifact)
             .where(Artifact.id == old_artifact.id)

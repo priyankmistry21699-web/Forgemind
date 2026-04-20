@@ -56,7 +56,9 @@ async def update_annotation(
     if annotation is None:
         raise HTTPException(status_code=404, detail="Annotation not found")
     if annotation.author_id != user_id:
-        raise HTTPException(status_code=403, detail="Only the author can edit this annotation")
+        raise HTTPException(
+            status_code=403, detail="Only the author can edit this annotation"
+        )
     annotation.body = data.body
     await db.flush()
     await db.refresh(annotation)
@@ -72,6 +74,8 @@ async def delete_annotation(
     if annotation is None:
         raise HTTPException(status_code=404, detail="Annotation not found")
     if annotation.author_id != user_id:
-        raise HTTPException(status_code=403, detail="Only the author can delete this annotation")
+        raise HTTPException(
+            status_code=403, detail="Only the author can delete this annotation"
+        )
     await db.delete(annotation)
     await db.flush()

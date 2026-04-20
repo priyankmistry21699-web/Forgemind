@@ -68,8 +68,11 @@ async def create_api_key(
     FM-202: Rate limiting applied at router level to ALL ecosystem routes.
     """
     key, raw_key = await api_key_service.create_api_key(
-        db, creator_id=user_id, name=data.name,
-        scopes=data.scopes, org_id=data.org_id,
+        db,
+        creator_id=user_id,
+        name=data.name,
+        scopes=data.scopes,
+        org_id=data.org_id,
     )
     return {
         "id": str(key.id),
@@ -88,13 +91,20 @@ async def list_api_keys(
 ):
     """List API keys (without raw key values)."""
     keys = await api_key_service.list_api_keys(
-        db, user_id, include_revoked=include_revoked,
+        db,
+        user_id,
+        include_revoked=include_revoked,
     )
     return {
         "items": [
-            {"id": str(k.id), "name": k.name, "key_prefix": k.key_prefix,
-             "scopes": k.scopes, "revoked": k.revoked,
-             "last_used_at": k.last_used_at.isoformat() if k.last_used_at else None}
+            {
+                "id": str(k.id),
+                "name": k.name,
+                "key_prefix": k.key_prefix,
+                "scopes": k.scopes,
+                "revoked": k.revoked,
+                "last_used_at": k.last_used_at.isoformat() if k.last_used_at else None,
+            }
             for k in keys
         ]
     }
@@ -134,8 +144,13 @@ async def create_webhook(
 ):
     """Create a webhook subscription."""
     wh = await webhook_connector_service.create_webhook(
-        db, creator_id=user_id, url=data.url, events=data.events,
-        secret=data.secret, description=data.description, org_id=data.org_id,
+        db,
+        creator_id=user_id,
+        url=data.url,
+        events=data.events,
+        secret=data.secret,
+        description=data.description,
+        org_id=data.org_id,
     )
     return {"id": str(wh.id), "url": wh.url, "events": wh.events}
 
@@ -148,7 +163,9 @@ async def list_webhooks(
 ):
     """List webhook subscriptions."""
     webhooks = await webhook_connector_service.list_webhooks(
-        db, user_id, active_only=active_only,
+        db,
+        user_id,
+        active_only=active_only,
     )
     return {
         "items": [
@@ -167,8 +184,11 @@ async def get_webhook(
     """Get webhook details."""
     wh = await webhook_connector_service.get_webhook(db, webhook_id)
     return {
-        "id": str(wh.id), "url": wh.url, "events": wh.events,
-        "active": wh.active, "description": wh.description,
+        "id": str(wh.id),
+        "url": wh.url,
+        "events": wh.events,
+        "active": wh.active,
+        "description": wh.description,
     }
 
 
@@ -193,14 +213,21 @@ async def get_deliveries(
 ):
     """Get delivery history for a webhook."""
     deliveries, total = await webhook_connector_service.get_delivery_history(
-        db, webhook_id, limit=limit, offset=offset,
+        db,
+        webhook_id,
+        limit=limit,
+        offset=offset,
     )
     return {
         "total": total,
         "items": [
-            {"id": str(d.id), "event_type": d.event_type,
-             "status": d.status.value if d.status else None,
-             "attempt": d.attempt, "status_code": d.status_code}
+            {
+                "id": str(d.id),
+                "event_type": d.event_type,
+                "status": d.status.value if d.status else None,
+                "attempt": d.attempt,
+                "status_code": d.status_code,
+            }
             for d in deliveries
         ],
     }
@@ -217,9 +244,13 @@ async def register_connector(
 ):
     """Register an integration connector."""
     from app.models.api_ecosystem import ConnectorType
+
     conn = await webhook_connector_service.register_connector(
-        db, name=data.name, connector_type=ConnectorType(data.connector_type),
-        description=data.description, config_json=data.config_json,
+        db,
+        name=data.name,
+        connector_type=ConnectorType(data.connector_type),
+        description=data.description,
+        config_json=data.config_json,
         org_id=data.org_id,
     )
     return {"id": str(conn.id), "name": conn.name}
@@ -235,9 +266,12 @@ async def list_connectors(
     connectors = await webhook_connector_service.list_connectors(db, org_id=org_id)
     return {
         "items": [
-            {"id": str(c.id), "name": c.name,
-             "connector_type": c.connector_type.value if c.connector_type else None,
-             "status": c.status.value if c.status else None}
+            {
+                "id": str(c.id),
+                "name": c.name,
+                "connector_type": c.connector_type.value if c.connector_type else None,
+                "status": c.status.value if c.status else None,
+            }
             for c in connectors
         ]
     }
@@ -252,7 +286,9 @@ async def get_connector(
     """Get connector details."""
     conn = await webhook_connector_service.get_connector(db, connector_id)
     return {
-        "id": str(conn.id), "name": conn.name, "description": conn.description,
+        "id": str(conn.id),
+        "name": conn.name,
+        "description": conn.description,
         "connector_type": conn.connector_type.value if conn.connector_type else None,
         "status": conn.status.value if conn.status else None,
         "config_json": conn.config_json,
@@ -291,14 +327,19 @@ async def fire_webhook_event(
 ):
     """FM-203: Fire an event to all matching webhook subscriptions."""
     deliveries = await webhook_connector_service.fire_event(
-        db, event_type=data.event_type, payload=data.payload,
+        db,
+        event_type=data.event_type,
+        payload=data.payload,
     )
     return {
         "event_type": data.event_type,
         "deliveries": len(deliveries),
         "items": [
-            {"id": str(d.id), "status": d.status.value if d.status else None,
-             "status_code": d.status_code}
+            {
+                "id": str(d.id),
+                "status": d.status.value if d.status else None,
+                "status_code": d.status_code,
+            }
             for d in deliveries
         ],
     }
@@ -324,8 +365,10 @@ async def handle_slack_command(
 ):
     """FM-204: Handle incoming Slack slash command."""
     from app.services import integration_service
+
     return await integration_service.slack_handle_slash_command(
-        data.command, data.text,
+        data.command,
+        data.text,
     )
 
 
@@ -336,8 +379,10 @@ async def handle_slack_action(
 ):
     """FM-204: Handle interactive Slack action (approve/reject buttons)."""
     from app.services import integration_service
+
     return await integration_service.slack_handle_interactive_action(
-        data.action_type, data.action_id,
+        data.action_type,
+        data.action_id,
     )
 
 
@@ -353,6 +398,7 @@ async def post_slack_message(
 ):
     """FM-204: Post a message to a Slack channel."""
     from app.services import integration_service
+
     return await integration_service.slack_post_message(data.channel, data.text)
 
 
@@ -373,8 +419,12 @@ async def create_jira_issue(
 ):
     """FM-205: Create a Jira issue from ForgeMind."""
     from app.services import integration_service
+
     return await integration_service.jira_create_issue(
-        data.summary, data.description, data.issue_type, data.project_key,
+        data.summary,
+        data.description,
+        data.issue_type,
+        data.project_key,
     )
 
 
@@ -385,6 +435,7 @@ async def get_jira_issue(
 ):
     """FM-205: Fetch a Jira issue."""
     from app.services import integration_service
+
     return await integration_service.jira_get_issue(issue_key)
 
 
@@ -403,6 +454,7 @@ async def import_jira_issue(
 ):
     """FM-205: Import a Jira issue into ForgeMind as a task."""
     from app.services import integration_service
+
     return await integration_service.import_jira_issue(data.issue_key, db=db)
 
 
@@ -420,7 +472,12 @@ async def export_task_to_jira(
 ):
     """FM-205: Export a ForgeMind task to Jira as an issue."""
     from app.services import integration_service
-    task_data = {"title": data.title, "description": data.description, "status": data.status}
+
+    task_data = {
+        "title": data.title,
+        "description": data.description,
+        "status": data.status,
+    }
     return await integration_service.export_task_to_jira(task_data, data.project_key)
 
 
@@ -437,8 +494,11 @@ async def sync_jira_status(
 ):
     """FM-205: Bidirectional status sync between ForgeMind and Jira."""
     from app.services import integration_service
+
     return await integration_service.sync_jira_status(
-        data.issue_key, data.forgemind_status, direction=data.direction,
+        data.issue_key,
+        data.forgemind_status,
+        direction=data.direction,
     )
 
 
@@ -459,8 +519,12 @@ async def create_pagerduty_incident(
 ):
     """FM-206: Create a PagerDuty incident."""
     from app.services import integration_service
+
     return await integration_service.pagerduty_create_incident(
-        data.title, data.description, data.severity, data.dedup_key,
+        data.title,
+        data.description,
+        data.severity,
+        data.dedup_key,
     )
 
 
@@ -475,6 +539,7 @@ async def resolve_pagerduty_incident(
 ):
     """FM-206: Resolve a PagerDuty incident."""
     from app.services import integration_service
+
     return await integration_service.pagerduty_resolve_incident(data.dedup_key)
 
 
@@ -492,6 +557,7 @@ async def configure_alert_triggers(
 ):
     """FM-206: Configure which alerts auto-create PagerDuty incidents."""
     from app.services import integration_service
+
     integration_service.configure_alert_triggers(data.triggers)
     return {"configured": True, "trigger_count": len(data.triggers)}
 
@@ -502,6 +568,7 @@ async def get_alert_triggers(
 ):
     """FM-206: Get current alert trigger configuration."""
     from app.services import integration_service
+
     return {"triggers": integration_service.get_alert_trigger_config()}
 
 
@@ -519,9 +586,12 @@ async def auto_create_incident(
 ):
     """FM-206: Auto-create a PagerDuty incident from an alert."""
     from app.services import integration_service
+
     return await integration_service.auto_create_incident_from_alert(
-        data.alert_name, data.alert_detail,
-        current_value=data.current_value, threshold=data.threshold,
+        data.alert_name,
+        data.alert_detail,
+        current_value=data.current_value,
+        threshold=data.threshold,
     )
 
 
@@ -536,4 +606,5 @@ async def auto_resolve_incident(
 ):
     """FM-206: Auto-resolve a PagerDuty incident when alert clears."""
     from app.services import integration_service
+
     return await integration_service.auto_resolve_incident_from_alert(data.alert_name)

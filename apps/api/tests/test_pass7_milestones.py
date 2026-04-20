@@ -24,13 +24,17 @@ async def _seed_project(db):
     from app.models.membership import ProjectMember, ProjectRole
 
     project = Project(
-        name="Pass7 Project", description="pass7", owner_id=STUB_USER_ID,
+        name="Pass7 Project",
+        description="pass7",
+        owner_id=STUB_USER_ID,
     )
     db.add(project)
     await db.flush()
     await db.refresh(project)
     lead = ProjectMember(
-        project_id=project.id, user_id=STUB_USER_ID, role=ProjectRole.LEAD,
+        project_id=project.id,
+        user_id=STUB_USER_ID,
+        role=ProjectRole.LEAD,
     )
     db.add(lead)
     await db.flush()
@@ -78,7 +82,9 @@ async def _seed_repo_link(db, installation_id, project_id):
     return link
 
 
-async def _seed_issue_link(db, repo_link_id, project_id, *, issue_number=0, sync_direction=None):
+async def _seed_issue_link(
+    db, repo_link_id, project_id, *, issue_number=0, sync_direction=None
+):
     from app.models.github_integration import IssueLink
 
     issue = IssueLink(
@@ -193,6 +199,7 @@ class TestFM151InstallationHealth:
         await db_session.commit()
 
         from app.services import github_installation_service as svc
+
         result = await svc.validate_installation(db_session, inst.id)
 
         assert result["active"] is True
@@ -208,6 +215,7 @@ class TestFM151InstallationHealth:
         await db_session.commit()
 
         from app.services import github_installation_service as svc
+
         result = await svc.validate_installation(db_session, inst.id)
 
         assert result["has_token"] is True
@@ -221,6 +229,7 @@ class TestFM151InstallationHealth:
         await db_session.commit()
 
         from app.services import github_installation_service as svc
+
         result = await svc.validate_installation(db_session, inst.id)
 
         assert result["has_token"] is False
@@ -231,6 +240,7 @@ class TestFM151InstallationHealth:
         """Non-existent installation raises HTTPException."""
         from app.services import github_installation_service as svc
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             await svc.validate_installation(db_session, uuid.uuid4())
         assert exc_info.value.status_code == 404
@@ -242,6 +252,7 @@ class TestFM151InstallationHealth:
         await db_session.commit()
 
         from app.services import github_installation_service as svc
+
         result = await svc.deactivate_installation(db_session, inst.id)
 
         assert result is not None
@@ -252,6 +263,7 @@ class TestFM151InstallationHealth:
         """deactivate_installation raises HTTPException for missing id."""
         from app.services import github_installation_service as svc
         from fastapi import HTTPException
+
         with pytest.raises(HTTPException) as exc_info:
             await svc.deactivate_installation(db_session, uuid.uuid4())
         assert exc_info.value.status_code == 404
@@ -283,6 +295,7 @@ class TestFM151InstallationHealth:
         await db_session.commit()
 
         from app.services import github_installation_service as svc
+
         needing = await svc.list_installations_needing_refresh(db_session)
 
         ids = [r.id for r in needing]
@@ -296,6 +309,7 @@ class TestFM151InstallationHealth:
         await db_session.commit()
 
         from app.services import github_installation_service as svc
+
         # Without a real github_client, the get path should still work
         # (it tries to decrypt — will fail on fake data, but exercises the path)
         token = await svc.get_or_refresh_token(db_session, inst.id)
@@ -352,7 +366,10 @@ class TestFM155IssueSyncService:
         inst = await _seed_installation(db_session)
         repo_link = await _seed_repo_link(db_session, inst.id, proj.id)
         issue = await _seed_issue_link(
-            db_session, repo_link.id, proj.id, issue_number=42,
+            db_session,
+            repo_link.id,
+            proj.id,
+            issue_number=42,
         )
         await db_session.commit()
 
@@ -360,7 +377,9 @@ class TestFM155IssueSyncService:
         from app.models.github_integration import IssueLinkStatus
 
         result = await svc.sync_status_to_github(
-            db_session, issue.id, IssueLinkStatus.CLOSED,
+            db_session,
+            issue.id,
+            IssueLinkStatus.CLOSED,
         )
         assert result is not None
         assert result.status.value == IssueLinkStatus.CLOSED.value
@@ -378,6 +397,7 @@ class TestFM155IssueSyncService:
         await db_session.commit()
 
         from app.services import issue_sync_service as svc
+
         result = await svc.process_pending_exports(db_session, proj.id)
         assert result == []
 
@@ -392,10 +412,20 @@ class TestFM155IssueSyncService:
         from app.services import issue_sync_service as svc
 
         payload = [
-            {"number": 100, "title": "Bug 100", "body": "desc100",
-             "html_url": "https://github.com/org/repo/issues/100", "state": "open"},
-            {"number": 101, "title": "Bug 101", "body": "desc101",
-             "html_url": "https://github.com/org/repo/issues/101", "state": "closed"},
+            {
+                "number": 100,
+                "title": "Bug 100",
+                "body": "desc100",
+                "html_url": "https://github.com/org/repo/issues/100",
+                "state": "open",
+            },
+            {
+                "number": 101,
+                "title": "Bug 101",
+                "body": "desc101",
+                "html_url": "https://github.com/org/repo/issues/101",
+                "state": "closed",
+            },
         ]
         imported = await svc.bulk_import_issues(db_session, repo_link, payload)
         assert len(imported) == 2
@@ -416,10 +446,20 @@ class TestFM155IssueSyncService:
         from app.services import issue_sync_service as svc
 
         payload = [
-            {"number": 200, "title": "Dup", "body": "dup",
-             "html_url": "https://github.com/org/repo/issues/200", "state": "open"},
-            {"number": 201, "title": "New", "body": "new",
-             "html_url": "https://github.com/org/repo/issues/201", "state": "open"},
+            {
+                "number": 200,
+                "title": "Dup",
+                "body": "dup",
+                "html_url": "https://github.com/org/repo/issues/200",
+                "state": "open",
+            },
+            {
+                "number": 201,
+                "title": "New",
+                "body": "new",
+                "html_url": "https://github.com/org/repo/issues/201",
+                "state": "open",
+            },
         ]
         imported = await svc.bulk_import_issues(db_session, repo_link, payload)
         assert len(imported) == 1
@@ -432,7 +472,11 @@ class TestFM155IssueSyncService:
         inst = await _seed_installation(db_session)
         repo_link = await _seed_repo_link(db_session, inst.id, proj.id)
         issue = await _seed_issue_link(
-            db_session, repo_link.id, proj.id, issue_number=50, sync_direction="outbound",
+            db_session,
+            repo_link.id,
+            proj.id,
+            issue_number=50,
+            sync_direction="outbound",
         )
         # Set last_synced_at to now (within debounce window)
         issue.last_synced_at = datetime.now(timezone.utc)
@@ -465,7 +509,10 @@ class TestFM155IssueSyncService:
         inst = await _seed_installation(db_session)
         repo_link = await _seed_repo_link(db_session, inst.id, proj.id)
         issue = await _seed_issue_link(
-            db_session, repo_link.id, proj.id, sync_direction="inbound",
+            db_session,
+            repo_link.id,
+            proj.id,
+            sync_direction="inbound",
         )
         await db_session.commit()
 
@@ -483,7 +530,10 @@ class TestFM155Routes:
         inst = await _seed_installation(db_session)
         repo_link = await _seed_repo_link(db_session, inst.id, proj.id)
         issue = await _seed_issue_link(
-            db_session, repo_link.id, proj.id, issue_number=42,
+            db_session,
+            repo_link.id,
+            proj.id,
+            issue_number=42,
         )
         await db_session.commit()
 
@@ -522,19 +572,22 @@ class TestFM162SearchSimilar:
 
         # Source document about "quantum computing optimization"
         source = await _seed_search_index(
-            db_session, proj.id,
+            db_session,
+            proj.id,
             title="Quantum Computing Optimization Report",
             body="Quantum computing uses qubits for parallel optimization tasks",
         )
         # Candidate 1: shares rare term "quantum" — should rank higher
         await _seed_search_index(
-            db_session, proj.id,
+            db_session,
+            proj.id,
             title="Quantum Algorithm Analysis",
             body="Analysis of quantum algorithms for optimization problems",
         )
         # Candidate 2: shares only common term "tasks"
         await _seed_search_index(
-            db_session, proj.id,
+            db_session,
+            proj.id,
             title="Project Task Management",
             body="Managing project tasks and workflows effectively",
         )
@@ -572,19 +625,22 @@ class TestFM162SearchSimilar:
         proj = await _seed_project(db_session)
 
         source = await _seed_search_index(
-            db_session, proj.id,
+            db_session,
+            proj.id,
             title="Database Migration Strategy",
             body="Planning migration strategy for database systems upgrade",
         )
         # Candidate A: term "migration" in title (3× weight)
         await _seed_search_index(
-            db_session, proj.id,
+            db_session,
+            proj.id,
             title="Migration Framework Design",
             body="Technical design document for data transfer framework",
         )
         # Candidate B: term "migration" only in body
         await _seed_search_index(
-            db_session, proj.id,
+            db_session,
+            proj.id,
             title="Technical Documentation",
             body="This covers migration strategy details and planning",
         )
@@ -611,12 +667,14 @@ class TestFM162SearchSimilar:
 
         # Seed multiple search entries
         await _seed_search_index(
-            db_session, proj.id,
+            db_session,
+            proj.id,
             title="Python Machine Learning Guide",
             body="Introduction to machine learning with Python frameworks",
         )
         await _seed_search_index(
-            db_session, proj.id,
+            db_session,
+            proj.id,
             title="Python Data Analysis",
             body="Using Python for data analysis and visualization",
         )
@@ -625,7 +683,10 @@ class TestFM162SearchSimilar:
         from app.services import search_service
 
         suggestions = await search_service.search_suggestions(
-            db_session, query="python", project_id=proj.id, limit=5,
+            db_session,
+            query="python",
+            project_id=proj.id,
+            limit=5,
         )
         # Should return related terms (not "python" itself)
         assert isinstance(suggestions, list)
@@ -637,7 +698,9 @@ class TestFM162SearchSimilar:
         from app.services import search_service
 
         suggestions = await search_service.search_suggestions(
-            db_session, query="", limit=5,
+            db_session,
+            query="",
+            limit=5,
         )
         assert suggestions == []
 
@@ -685,6 +748,7 @@ class TestFM175SSOValidation:
         await db_session.commit()
 
         from app.services import sso_configuration_service as svc
+
         errors = svc.validate_sso_config(config)
         assert errors == []
 
@@ -696,6 +760,7 @@ class TestFM175SSOValidation:
         await db_session.commit()
 
         from app.services import sso_configuration_service as svc
+
         errors = svc.validate_sso_config(config)
         assert any("client_id" in e for e in errors)
 
@@ -707,6 +772,7 @@ class TestFM175SSOValidation:
         await db_session.commit()
 
         from app.services import sso_configuration_service as svc
+
         errors = svc.validate_sso_config(config)
         assert errors == []
 
@@ -721,6 +787,7 @@ class TestFM175SSOValidation:
         await db_session.commit()
 
         from app.services import sso_configuration_service as svc
+
         errors = svc.validate_sso_config(config)
         assert len(errors) > 0
 
@@ -732,6 +799,7 @@ class TestFM175SSOValidation:
         await db_session.commit()
 
         from app.services import sso_configuration_service as svc
+
         url = svc.build_oidc_authorize_url(
             config,
             redirect_uri="https://app.forgemind.dev/callback",
@@ -755,8 +823,10 @@ class TestFM175SSOValidation:
         await db_session.commit()
 
         from app.services import sso_configuration_service as svc
+
         url = svc.build_oidc_authorize_url(
-            config, redirect_uri="https://example.com/callback",
+            config,
+            redirect_uri="https://example.com/callback",
         )
         assert url is None
 
@@ -768,6 +838,7 @@ class TestFM175SSOValidation:
         await db_session.commit()
 
         from app.services import sso_configuration_service as svc
+
         result = await svc.get_active_sso_for_workspace(db_session, ws.id)
         assert result is not None
         assert result.id == config.id
@@ -780,6 +851,7 @@ class TestFM175SSOValidation:
         await db_session.commit()
 
         from app.services import sso_configuration_service as svc
+
         result = await svc.get_active_sso_for_workspace(db_session, ws.id)
         assert result is None
 
@@ -791,6 +863,7 @@ class TestFM175SSOValidation:
         await db_session.commit()
 
         from app.services import sso_configuration_service as svc
+
         result = await svc.check_sso_enforcement(db_session, ws.id)
         assert result["enforced"] is True
         assert result["has_active_config"] is True
@@ -802,6 +875,7 @@ class TestFM175SSOValidation:
         await db_session.commit()
 
         from app.services import sso_configuration_service as svc
+
         result = await svc.check_sso_enforcement(db_session, ws.id)
         assert result["enforced"] is False
         assert result["sso_enforced_flag"] is True
@@ -815,6 +889,7 @@ class TestFM175SSOValidation:
         await db_session.commit()
 
         from app.services import sso_configuration_service as svc
+
         result = svc.check_jit_provisioning_ready(config)
         assert result["jit_ready"] is True
         assert result["auto_provision_enabled"] is True

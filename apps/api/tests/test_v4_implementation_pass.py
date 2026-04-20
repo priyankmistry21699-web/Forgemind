@@ -187,7 +187,9 @@ class TestTaskAssignmentRoutes:
         assert resp.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_my_assigned_tasks(self, client: AsyncClient, db_session: AsyncSession):
+    async def test_my_assigned_tasks(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
         task = await _seed_task(db_session, run.id)
@@ -205,7 +207,9 @@ class TestTaskAssignmentRoutes:
         assert any(t["id"] == str(task.id) for t in items)
 
     @pytest.mark.asyncio
-    async def test_project_workload(self, client: AsyncClient, db_session: AsyncSession):
+    async def test_project_workload(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
         project = await _seed_project(db_session)
         run = await _seed_run(db_session, project.id)
         task = await _seed_task(db_session, run.id)
@@ -278,7 +282,9 @@ class TestApprovalDelegationRoutes:
         assert len(items) >= 1
 
     @pytest.mark.asyncio
-    async def test_pending_approvals(self, client: AsyncClient, db_session: AsyncSession):
+    async def test_pending_approvals(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
         project = await _seed_project(db_session)
         await _seed_approval(db_session, project.id)
 
@@ -292,7 +298,9 @@ class TestApprovalDelegationRoutes:
     @pytest.mark.asyncio
     async def test_pending_approvals_scoped_to_user(self, db_session: AsyncSession):
         """Pending approvals must only return approvals for projects the user leads."""
-        from app.services.approval_enhanced_service import get_pending_approvals_for_user
+        from app.services.approval_enhanced_service import (
+            get_pending_approvals_for_user,
+        )
         from app.models.project import Project
         from app.models.approval_request import ApprovalRequest, ApprovalStatus
 
@@ -351,7 +359,9 @@ class TestApprovalDelegationRoutes:
         assert resp.status_code == 400
 
     @pytest.mark.asyncio
-    async def test_expired_approvals(self, client: AsyncClient, db_session: AsyncSession):
+    async def test_expired_approvals(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
         project = await _seed_project(db_session)
         from app.models.approval_request import ApprovalRequest, ApprovalStatus
 
@@ -421,7 +431,9 @@ class TestApprovalDelegationRoutes:
         assert data["escalated_count"] >= 1
 
         # Find our escalation
-        matched = [e for e in data["escalations"] if e["title"] == "Expired With Delegate"]
+        matched = [
+            e for e in data["escalations"] if e["title"] == "Expired With Delegate"
+        ]
         assert len(matched) == 1
         esc = matched[0]
         assert esc["target_count"] >= 1
@@ -461,7 +473,9 @@ class TestProjectOverviewRoute:
     """Test FM-150 project overview route (newly wired)."""
 
     @pytest.mark.asyncio
-    async def test_project_overview(self, client: AsyncClient, db_session: AsyncSession):
+    async def test_project_overview(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
         project = await _seed_project(db_session)
         await _seed_run(db_session, project.id)
 
@@ -477,13 +491,20 @@ class TestProjectOverviewRoute:
         assert data["team_size"] >= 1
 
     @pytest.mark.asyncio
-    async def test_overview_health_grade_a(self, client: AsyncClient, db_session: AsyncSession):
+    async def test_overview_health_grade_a(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
         project = await _seed_project(db_session)
         from app.models.run import Run
 
         # All runs completed — success rate 100% → grade A
         for i in range(3):
-            r = Run(project_id=project.id, run_number=i + 1, trigger="test", status="completed")
+            r = Run(
+                project_id=project.id,
+                run_number=i + 1,
+                trigger="test",
+                status="completed",
+            )
             db_session.add(r)
         await db_session.flush()
 
@@ -537,9 +558,7 @@ class TestWebhookSignatureVerification:
             assert "signature" in resp.json()["detail"].lower()
 
     @pytest.mark.asyncio
-    async def test_webhook_accepts_valid_signature(
-        self, client: AsyncClient
-    ):
+    async def test_webhook_accepts_valid_signature(self, client: AsyncClient):
         """When GITHUB_WEBHOOK_SECRET is set, valid signatures must pass."""
         secret = "my-secret"
         payload = b'{"action": "opened"}'
@@ -561,9 +580,7 @@ class TestWebhookSignatureVerification:
             assert resp.status_code == 201
 
     @pytest.mark.asyncio
-    async def test_webhook_skips_verification_when_no_secret(
-        self, client: AsyncClient
-    ):
+    async def test_webhook_skips_verification_when_no_secret(self, client: AsyncClient):
         """When GITHUB_WEBHOOK_SECRET is empty, webhooks pass without signature."""
         with patch("app.core.config.settings") as mock_settings:
             mock_settings.github_webhook_secret = ""
@@ -595,7 +612,11 @@ class TestGitHubClient:
 
         mock_response = httpx.Response(
             status_code=201,
-            json={"id": 123, "html_url": "https://github.com/o/r/pull/1#comment-123", "body": "Test comment"},
+            json={
+                "id": 123,
+                "html_url": "https://github.com/o/r/pull/1#comment-123",
+                "body": "Test comment",
+            },
             request=httpx.Request("POST", "https://api.github.com/test"),
         )
 
@@ -653,7 +674,11 @@ class TestGitHubClient:
 
         mock_response = httpx.Response(
             status_code=201,
-            json={"id": 456, "html_url": "https://github.com/o/r/issues/5#comment-456", "body": "Issue note"},
+            json={
+                "id": 456,
+                "html_url": "https://github.com/o/r/issues/5#comment-456",
+                "body": "Issue note",
+            },
             request=httpx.Request("POST", "https://api.github.com/test"),
         )
 
@@ -676,7 +701,13 @@ class TestGitHubClient:
 
         mock_response = httpx.Response(
             status_code=201,
-            json={"id": 789, "state": "success", "target_url": None, "description": "All checks passed", "context": "forgemind/ci"},
+            json={
+                "id": 789,
+                "state": "success",
+                "target_url": None,
+                "description": "All checks passed",
+                "context": "forgemind/ci",
+            },
             request=httpx.Request("POST", "https://api.github.com/test"),
         )
 
@@ -688,7 +719,9 @@ class TestGitHubClient:
             mock_client_cls.return_value = mock_client
 
             result = await create_commit_status(
-                "owner", "repo", "abc123",
+                "owner",
+                "repo",
+                "abc123",
                 state="success",
                 description="All checks passed",
                 token="tok",
@@ -726,7 +759,9 @@ class TestGitHubClient:
 
         with pytest.raises(ValueError, match="Invalid commit status state"):
             await create_commit_status(
-                "owner", "repo", "abc123",
+                "owner",
+                "repo",
+                "abc123",
                 state="invalid",
                 token="tok",
             )
@@ -741,6 +776,7 @@ class TestGitHubClient:
 
         # The route now uses settings.github_api_token (not webhook_secret)
         from app.core.config import settings as _s
+
         old_val = getattr(_s, "github_api_token", "")
         object.__setattr__(_s, "github_api_token", "")
         try:

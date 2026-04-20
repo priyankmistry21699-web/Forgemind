@@ -65,7 +65,11 @@ async def index_artifact(db: AsyncSession, artifact: Artifact) -> SearchIndex:
         title=artifact.title or "",
         body=(artifact.content or "")[:5000],  # Limit indexed content
         entity_status=artifact.artifact_type.value if artifact.artifact_type else None,
-        entity_meta={"artifact_type": artifact.artifact_type.value if artifact.artifact_type else None},
+        entity_meta={
+            "artifact_type": artifact.artifact_type.value
+            if artifact.artifact_type
+            else None
+        },
     )
 
 
@@ -121,7 +125,11 @@ async def index_knowledge(db: AsyncSession, entry: ProjectKnowledge) -> SearchIn
         project_id=entry.project_id,
         title=entry.title or "",
         body=f"{entry.content or ''} {tags_str}",
-        entity_meta={"knowledge_type": entry.knowledge_type.value if entry.knowledge_type else None},
+        entity_meta={
+            "knowledge_type": entry.knowledge_type.value
+            if entry.knowledge_type
+            else None
+        },
     )
 
 
@@ -423,12 +431,13 @@ async def search(
 
         facets = {
             "entity_type": {
-                row.entity_type.value if hasattr(row.entity_type, "value") else str(row.entity_type): row.count
+                row.entity_type.value
+                if hasattr(row.entity_type, "value")
+                else str(row.entity_type): row.count
                 for row in type_rows
             },
             "entity_status": {
-                (row.entity_status or "unknown"): row.count
-                for row in status_rows
+                (row.entity_status or "unknown"): row.count for row in status_rows
             },
         }
 
@@ -487,7 +496,10 @@ async def find_similar(
 
     # Fallback: TF-IDF weighted keyword scoring
     return await _find_similar_tfidf(
-        db, entity_type=entity_type, entity_id=entity_id, limit=limit,
+        db,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        limit=limit,
     )
 
 
@@ -514,25 +526,118 @@ async def _find_similar_tfidf(
     combined = f"{source.title} {source.body}".lower()
     # Simple keyword extraction: split, filter stopwords, take significant terms
     stopwords = {
-        "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
-        "have", "has", "had", "do", "does", "did", "will", "would", "could",
-        "should", "may", "might", "shall", "can", "to", "of", "in", "for",
-        "on", "with", "at", "by", "from", "as", "into", "through", "during",
-        "before", "after", "above", "below", "between", "out", "off", "over",
-        "under", "again", "further", "then", "once", "here", "there", "when",
-        "where", "why", "how", "all", "each", "every", "both", "few", "more",
-        "most", "other", "some", "such", "no", "nor", "not", "only", "own",
-        "same", "so", "than", "too", "very", "and", "but", "or", "if", "it",
-        "its", "this", "that", "these", "those", "i", "me", "my", "we", "our",
-        "you", "your", "he", "him", "his", "she", "her", "they", "them", "their",
-        "what", "which", "who", "whom",
+        "the",
+        "a",
+        "an",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "have",
+        "has",
+        "had",
+        "do",
+        "does",
+        "did",
+        "will",
+        "would",
+        "could",
+        "should",
+        "may",
+        "might",
+        "shall",
+        "can",
+        "to",
+        "of",
+        "in",
+        "for",
+        "on",
+        "with",
+        "at",
+        "by",
+        "from",
+        "as",
+        "into",
+        "through",
+        "during",
+        "before",
+        "after",
+        "above",
+        "below",
+        "between",
+        "out",
+        "off",
+        "over",
+        "under",
+        "again",
+        "further",
+        "then",
+        "once",
+        "here",
+        "there",
+        "when",
+        "where",
+        "why",
+        "how",
+        "all",
+        "each",
+        "every",
+        "both",
+        "few",
+        "more",
+        "most",
+        "other",
+        "some",
+        "such",
+        "no",
+        "nor",
+        "not",
+        "only",
+        "own",
+        "same",
+        "so",
+        "than",
+        "too",
+        "very",
+        "and",
+        "but",
+        "or",
+        "if",
+        "it",
+        "its",
+        "this",
+        "that",
+        "these",
+        "those",
+        "i",
+        "me",
+        "my",
+        "we",
+        "our",
+        "you",
+        "your",
+        "he",
+        "him",
+        "his",
+        "she",
+        "her",
+        "they",
+        "them",
+        "their",
+        "what",
+        "which",
+        "who",
+        "whom",
     }
     words = [
-        w for w in combined.split()
-        if len(w) > 2 and w.isalpha() and w not in stopwords
+        w for w in combined.split() if len(w) > 2 and w.isalpha() and w not in stopwords
     ]
     # Take up to 10 most frequent terms
     from collections import Counter
+
     term_counts = Counter(words)
     key_terms = [t for t, _ in term_counts.most_common(10)]
 
@@ -540,17 +645,18 @@ async def _find_similar_tfidf(
         return []
 
     # ── IDF computation: count documents containing each term ──
-    total_docs_r = await db.execute(
-        select(sa_func.count()).select_from(SearchIndex)
-    )
+    total_docs_r = await db.execute(select(sa_func.count()).select_from(SearchIndex))
     total_docs = max((total_docs_r.scalar_one() or 1), 1)
 
     import math
+
     term_idf: dict[str, float] = {}
     for term in key_terms:
         term_like = f"%{term}%"
         doc_count_r = await db.execute(
-            select(sa_func.count()).select_from(SearchIndex).where(
+            select(sa_func.count())
+            .select_from(SearchIndex)
+            .where(
                 or_(
                     sa_func.lower(SearchIndex.title).like(term_like),
                     sa_func.lower(SearchIndex.body).like(term_like),
@@ -636,7 +742,10 @@ async def search_suggestions(
 
     # Run a quick search to get top results
     items, _total, _ = await search(
-        db, query=query, project_id=project_id, limit=10,
+        db,
+        query=query,
+        project_id=project_id,
+        limit=10,
     )
     if not items:
         return []
@@ -645,9 +754,33 @@ async def search_suggestions(
     query_terms = set(query.lower().split())
     suggestion_counter: dict[str, int] = {}
     stopwords = {
-        "the", "a", "an", "is", "are", "was", "were", "be", "to", "of",
-        "in", "for", "on", "with", "at", "by", "from", "and", "or", "it",
-        "its", "this", "that", "not", "but", "run", "task",
+        "the",
+        "a",
+        "an",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "to",
+        "of",
+        "in",
+        "for",
+        "on",
+        "with",
+        "at",
+        "by",
+        "from",
+        "and",
+        "or",
+        "it",
+        "its",
+        "this",
+        "that",
+        "not",
+        "but",
+        "run",
+        "task",
     }
     for item in items:
         title_words = (item.get("title") or "").lower().split()
@@ -702,9 +835,7 @@ async def check_index_integrity(
     )
     run_ids = [r for (r,) in run_ids_result.all()]
     if run_ids:
-        task_result = await db.execute(
-            select(Task.id).where(Task.run_id.in_(run_ids))
-        )
+        task_result = await db.execute(select(Task.id).where(Task.run_id.in_(run_ids)))
         actual_by_type["task"] = {r for (r,) in task_result.all()}
 
     # Artifacts
@@ -717,25 +848,19 @@ async def check_index_integrity(
     actual_by_type["run"] = set(run_ids)
 
     # Project itself
-    proj_result = await db.execute(
-        select(Project.id).where(Project.id == project_id)
-    )
+    proj_result = await db.execute(select(Project.id).where(Project.id == project_id))
     proj = proj_result.scalar_one_or_none()
     actual_by_type["project"] = {proj} if proj else set()
 
     # Knowledge
     know_result = await db.execute(
-        select(ProjectKnowledge.id).where(
-            ProjectKnowledge.project_id == project_id
-        )
+        select(ProjectKnowledge.id).where(ProjectKnowledge.project_id == project_id)
     )
     actual_by_type["knowledge"] = {r for (r,) in know_result.all()}
 
     # Approvals
     appr_result = await db.execute(
-        select(ApprovalRequest.id).where(
-            ApprovalRequest.project_id == project_id
-        )
+        select(ApprovalRequest.id).where(ApprovalRequest.project_id == project_id)
     )
     actual_by_type["approval"] = {r for (r,) in appr_result.all()}
 
@@ -836,16 +961,20 @@ async def get_project_directory(
         else:
             grade = "F"
 
-        entries.append({
-            "project_id": str(proj.id),
-            "name": proj.name,
-            "description": (proj.description or "")[:200],
-            "status": proj.status.value if hasattr(proj.status, "value") else str(proj.status),
-            "health_grade": grade,
-            "total_runs": total_runs,
-            "success_rate": round(rate, 1),
-            "owner_id": str(proj.owner_id) if proj.owner_id else None,
-        })
+        entries.append(
+            {
+                "project_id": str(proj.id),
+                "name": proj.name,
+                "description": (proj.description or "")[:200],
+                "status": proj.status.value
+                if hasattr(proj.status, "value")
+                else str(proj.status),
+                "health_grade": grade,
+                "total_runs": total_runs,
+                "success_rate": round(rate, 1),
+                "owner_id": str(proj.owner_id) if proj.owner_id else None,
+            }
+        )
 
     return entries, total
 
@@ -886,10 +1015,7 @@ async def get_related_projects(
     proj_terms: set[str] = set()
     if proj_idx:
         text = f"{proj_idx.title} {proj_idx.body}".lower()
-        proj_terms = {
-            w for w in text.split()
-            if len(w) > 3 and w.isalpha()
-        }
+        proj_terms = {w for w in text.split() if len(w) > 3 and w.isalpha()}
 
     # Get other projects user has access to
     member_pids_result = await db.execute(
@@ -930,8 +1056,7 @@ async def get_related_projects(
             if other_proj_idx:
                 other_text = f"{other_proj_idx.title} {other_proj_idx.body}".lower()
                 other_terms = {
-                    w for w in other_text.split()
-                    if len(w) > 3 and w.isalpha()
+                    w for w in other_text.split() if len(w) > 3 and w.isalpha()
                 }
                 term_overlap = len(proj_terms & other_terms)
                 score += term_overlap * 2.0
@@ -941,12 +1066,17 @@ async def get_related_projects(
             p_result = await db.execute(select(Project).where(Project.id == pid))
             p = p_result.scalar_one_or_none()
             if p:
-                scored.append((score, {
-                    "project_id": str(p.id),
-                    "name": p.name,
-                    "description": (p.description or "")[:200],
-                    "similarity_score": round(score, 2),
-                }))
+                scored.append(
+                    (
+                        score,
+                        {
+                            "project_id": str(p.id),
+                            "name": p.name,
+                            "description": (p.description or "")[:200],
+                            "similarity_score": round(score, 2),
+                        },
+                    )
+                )
 
     scored.sort(key=lambda x: x[0], reverse=True)
     return [item for _, item in scored[:limit]]

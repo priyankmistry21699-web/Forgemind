@@ -84,7 +84,10 @@ async def scan_file_dependencies(
     """Scan a Python file and record its import dependencies."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     deps = await code_graph_service.scan_file_dependencies(
-        db, project_id=project_id, file_path=data.file_path, source_code=data.source_code,
+        db,
+        project_id=project_id,
+        file_path=data.file_path,
+        source_code=data.source_code,
     )
     return {"file_path": data.file_path, "dependencies_found": len(deps)}
 
@@ -113,8 +116,11 @@ async def get_file_dependencies(
     return {
         "file_path": file_path,
         "dependencies": [
-            {"target": d.target_file, "type": d.dependency_type.value if d.dependency_type else "import",
-             "import_name": d.import_name}
+            {
+                "target": d.target_file,
+                "type": d.dependency_type.value if d.dependency_type else "import",
+                "import_name": d.import_name,
+            }
             for d in deps
         ],
     }
@@ -133,7 +139,10 @@ async def analyze_impact(
     """Analyze downstream impact of file changes."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     return await code_graph_service.analyze_impact(
-        db, project_id, data.changed_files, max_depth=data.max_depth,
+        db,
+        project_id,
+        data.changed_files,
+        max_depth=data.max_depth,
     )
 
 
@@ -150,12 +159,17 @@ async def record_coverage(
     """Record a source-to-test coverage mapping."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_EDIT)
     mapping = await code_graph_service.record_coverage(
-        db, project_id=project_id,
+        db,
+        project_id=project_id,
         source_file=data.source_file,
         test_file=data.test_file,
         coverage_pct=data.coverage_pct,
     )
-    return {"id": str(mapping.id), "source_file": data.source_file, "test_file": data.test_file}
+    return {
+        "id": str(mapping.id),
+        "source_file": data.source_file,
+        "test_file": data.test_file,
+    }
 
 
 @router.get("/projects/{project_id}/coverage/summary")
@@ -182,8 +196,7 @@ async def get_tests_for_source(
     return {
         "source_file": source_file,
         "tests": [
-            {"test_file": m.test_file, "coverage_pct": m.coverage_pct}
-            for m in maps
+            {"test_file": m.test_file, "coverage_pct": m.coverage_pct} for m in maps
         ],
     }
 
@@ -211,6 +224,7 @@ async def create_pattern_rule(
 ):
     """Create a code pattern detection rule."""
     from app.models.code_intelligence import PatternType, PatternSeverity
+
     rule = await pattern_debt_service.create_pattern_rule(
         db,
         name=data.name,
@@ -234,6 +248,8 @@ async def seed_builtin_pattern_rules(
         "seeded": len(rules),
         "rules": [{"id": str(r.id), "name": r.name} for r in rules],
     }
+
+
 async def list_pattern_rules(
     active_only: bool = Query(True),
     language: str | None = Query(None),
@@ -242,12 +258,19 @@ async def list_pattern_rules(
 ):
     """List all pattern detection rules."""
     rules = await pattern_debt_service.list_pattern_rules(
-        db, active_only=active_only, language=language,
+        db,
+        active_only=active_only,
+        language=language,
     )
     return {
         "rules": [
-            {"id": str(r.id), "name": r.name, "pattern_type": r.pattern_type.value if r.pattern_type else None,
-             "severity": r.severity.value if r.severity else None, "active": r.active}
+            {
+                "id": str(r.id),
+                "name": r.name,
+                "pattern_type": r.pattern_type.value if r.pattern_type else None,
+                "severity": r.severity.value if r.severity else None,
+                "active": r.active,
+            }
             for r in rules
         ]
     }
@@ -263,7 +286,10 @@ async def scan_file_patterns(
     """Scan a file for code pattern occurrences."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     occs = await pattern_debt_service.scan_file_for_patterns(
-        db, project_id=project_id, file_path=data.file_path, source_code=data.source_code,
+        db,
+        project_id=project_id,
+        file_path=data.file_path,
+        source_code=data.source_code,
     )
     return {"file_path": data.file_path, "occurrences_found": len(occs)}
 
@@ -281,13 +307,23 @@ async def get_pattern_occurrences(
     """List detected pattern occurrences for a project."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     occs, total = await pattern_debt_service.get_pattern_occurrences(
-        db, project_id, rule_id=rule_id, file_path=file_path, limit=limit, offset=offset,
+        db,
+        project_id,
+        rule_id=rule_id,
+        file_path=file_path,
+        limit=limit,
+        offset=offset,
     )
     return {
         "total": total,
         "items": [
-            {"id": str(o.id), "rule_id": str(o.rule_id), "file_path": o.file_path,
-             "line_start": o.line_start, "snippet": o.snippet}
+            {
+                "id": str(o.id),
+                "rule_id": str(o.rule_id),
+                "file_path": o.file_path,
+                "line_start": o.line_start,
+                "snippet": o.snippet,
+            }
             for o in occs
         ],
     }
@@ -306,7 +342,10 @@ async def scan_file_debt(
     """Scan a file for TODO/FIXME/HACK debt markers."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     entries = await pattern_debt_service.scan_file_for_debt(
-        db, project_id=project_id, file_path=data.file_path, source_code=data.source_code,
+        db,
+        project_id=project_id,
+        file_path=data.file_path,
+        source_code=data.source_code,
     )
     return {"file_path": data.file_path, "debt_entries_found": len(entries)}
 
@@ -323,13 +362,23 @@ async def list_debt_entries(
     """List technical debt entries for a project."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     entries, total = await pattern_debt_service.list_debt_entries(
-        db, project_id, file_path=file_path, limit=limit, offset=offset,
+        db,
+        project_id,
+        file_path=file_path,
+        limit=limit,
+        offset=offset,
     )
     return {
         "total": total,
         "items": [
-            {"id": str(e.id), "file_path": e.file_path, "debt_type": e.debt_type.value if e.debt_type else None,
-             "description": e.description, "score": e.score, "line_number": e.line_number}
+            {
+                "id": str(e.id),
+                "file_path": e.file_path,
+                "debt_type": e.debt_type.value if e.debt_type else None,
+                "description": e.description,
+                "score": e.score,
+                "line_number": e.line_number,
+            }
             for e in entries
         ],
     }
@@ -355,7 +404,11 @@ async def take_debt_snapshot(
     """Take a point-in-time debt snapshot for trend tracking."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_EDIT)
     snap = await pattern_debt_service.take_debt_snapshot(db, project_id)
-    return {"id": str(snap.id), "total_score": snap.total_score, "entry_count": snap.entry_count}
+    return {
+        "id": str(snap.id),
+        "total_score": snap.total_score,
+        "entry_count": snap.entry_count,
+    }
 
 
 @router.post("/projects/{project_id}/debt/budget-check")
@@ -368,7 +421,9 @@ async def check_debt_budget(
     """FM-186: Check if project tech debt exceeds a configurable budget threshold."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     return await pattern_debt_service.check_debt_budget(
-        db, project_id, score_threshold=threshold,
+        db,
+        project_id,
+        score_threshold=threshold,
     )
 
 
@@ -385,10 +440,16 @@ async def record_test_result(
     """Record a test execution result."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_EDIT)
     from app.models.code_intelligence import TestOutcome
+
     tr = await flakiness_complexity_service.record_test_result(
-        db, project_id=project_id, test_name=data.test_name, test_file=data.test_file,
-        outcome=TestOutcome(data.outcome), duration_ms=data.duration_ms,
-        error_message=data.error_message, run_id=data.run_id,
+        db,
+        project_id=project_id,
+        test_name=data.test_name,
+        test_file=data.test_file,
+        outcome=TestOutcome(data.outcome),
+        duration_ms=data.duration_ms,
+        error_message=data.error_message,
+        run_id=data.run_id,
     )
     return {"id": str(tr.id), "test_name": data.test_name, "outcome": data.outcome}
 
@@ -405,7 +466,11 @@ async def get_flaky_tests(
     """Identify flaky tests by analyzing pass/fail flip rate."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     return await flakiness_complexity_service.get_flaky_tests(
-        db, project_id, min_runs=min_runs, min_flip_rate=min_flip_rate, limit=limit,
+        db,
+        project_id,
+        min_runs=min_runs,
+        min_flip_rate=min_flip_rate,
+        limit=limit,
     )
 
 
@@ -420,9 +485,16 @@ async def quarantine_test(
     """Quarantine or un-quarantine a flaky test."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_EDIT)
     updated = await flakiness_complexity_service.quarantine_test(
-        db, project_id, test_name, quarantined=quarantined,
+        db,
+        project_id,
+        test_name,
+        quarantined=quarantined,
     )
-    return {"test_name": test_name, "quarantined": quarantined, "records_updated": updated}
+    return {
+        "test_name": test_name,
+        "quarantined": quarantined,
+        "records_updated": updated,
+    }
 
 
 @router.get("/projects/{project_id}/flakiness/summary")
@@ -449,8 +521,11 @@ async def analyze_file_complexity(
     """Analyze code complexity for a file."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     metrics = await flakiness_complexity_service.analyze_file_complexity(
-        db, project_id=project_id, file_path=data.file_path,
-        source_code=data.source_code, threshold=data.threshold,
+        db,
+        project_id=project_id,
+        file_path=data.file_path,
+        source_code=data.source_code,
+        threshold=data.threshold,
     )
     return {"file_path": data.file_path, "metrics_count": len(metrics)}
 
@@ -467,12 +542,21 @@ async def get_complexity_hotspots(
     """Get functions/files with highest complexity. FM-188: optional since_days filter."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     hotspots = await flakiness_complexity_service.get_complexity_hotspots(
-        db, project_id, exceeds_only=exceeds_only, limit=limit, since_days=since_days,
+        db,
+        project_id,
+        exceeds_only=exceeds_only,
+        limit=limit,
+        since_days=since_days,
     )
     return {
         "hotspots": [
-            {"file_path": h.file_path, "function_name": h.function_name,
-             "value": h.value, "threshold": h.threshold, "exceeds": h.exceeds_threshold}
+            {
+                "file_path": h.file_path,
+                "function_name": h.function_name,
+                "value": h.value,
+                "threshold": h.threshold,
+                "exceeds": h.exceeds_threshold,
+            }
             for h in hotspots
         ]
     }
@@ -507,11 +591,16 @@ async def ingest_coverage_report(
     """FM-183: Ingest a coverage report (pytest-cov JSON, istanbul JSON, or LCOV text)."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_EDIT)
     count = await code_graph_service.ingest_coverage_report(
-        db, project_id=project_id,
+        db,
+        project_id=project_id,
         report_json=data.report,
         report_format=data.report_format,
     )
-    return {"project_id": str(project_id), "files_ingested": count.get("files_ingested", 0), "format": data.report_format}
+    return {
+        "project_id": str(project_id),
+        "files_ingested": count.get("files_ingested", 0),
+        "format": data.report_format,
+    }
 
 
 # ── FM-187: Quarantine Monitoring Report ─────────────────────────
@@ -527,7 +616,9 @@ async def get_quarantined_test_report(
     """FM-187: Get quarantined tests with pass rates and un-quarantine recommendations."""
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     report = await flakiness_complexity_service.get_quarantined_test_report(
-        db, project_id, limit=limit,
+        db,
+        project_id,
+        limit=limit,
     )
     return {"items": report}
 
@@ -551,9 +642,13 @@ async def select_tests(
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     if data.mode not in ("minimal", "standard", "comprehensive"):
         from fastapi import HTTPException
+
         raise HTTPException(status_code=422, detail=f"Invalid mode: {data.mode}")
     result = await code_graph_service.select_tests_for_changes(
-        db, project_id, data.changed_files, mode=data.mode,
+        db,
+        project_id,
+        data.changed_files,
+        mode=data.mode,
     )
     return result
 
@@ -576,7 +671,9 @@ async def get_code_intelligence_context(
     await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     changed = data.changed_files if data else None
     context = await code_graph_service.build_code_intelligence_context(
-        db, project_id, changed_files=changed,
+        db,
+        project_id,
+        changed_files=changed,
     )
     return context
 
@@ -603,8 +700,12 @@ async def plan_with_code_intelligence(
     """
     await check_project_permission(db, project_id, user_id, Action.PROJECT_EDIT)
     from app.services.planner_service import plan_with_code_intelligence as _plan_ci
+
     plan, audit_entry = await _plan_ci(
-        db, project_id, data.prompt, user_id,
+        db,
+        project_id,
+        data.prompt,
+        user_id,
         changed_files=data.changed_files,
     )
     return {"plan": plan, "decision_audit": audit_entry}
@@ -616,4 +717,5 @@ async def get_decision_audit_log(
 ):
     """FM-189: Retrieve the decision audit log for code intelligence influence."""
     from app.services.planner_service import get_decision_audit_log
+
     return {"entries": get_decision_audit_log()}

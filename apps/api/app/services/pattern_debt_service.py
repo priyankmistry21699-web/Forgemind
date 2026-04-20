@@ -117,8 +117,11 @@ async def scan_file_for_patterns(
 
     # FM-185: Auto-create knowledge base entries for significant patterns
     await _create_kb_entries_for_significant_patterns(
-        db, project_id=project_id, file_path=file_path,
-        occurrences=occurrences, rules=rules,
+        db,
+        project_id=project_id,
+        file_path=file_path,
+        occurrences=occurrences,
+        rules=rules,
     )
 
     return occurrences
@@ -201,9 +204,7 @@ async def get_pattern_occurrences(
     offset: int = 0,
 ) -> tuple[list[PatternOccurrence], int]:
     """List detected pattern occurrences with filters."""
-    query = select(PatternOccurrence).where(
-        PatternOccurrence.project_id == project_id
-    )
+    query = select(PatternOccurrence).where(PatternOccurrence.project_id == project_id)
     if rule_id:
         query = query.where(PatternOccurrence.rule_id == rule_id)
     if file_path:
@@ -213,9 +214,7 @@ async def get_pattern_occurrences(
     total = (await db.execute(count_q)).scalar_one()
 
     result = await db.execute(
-        query.order_by(PatternOccurrence.detected_at.desc())
-        .offset(offset)
-        .limit(limit)
+        query.order_by(PatternOccurrence.detected_at.desc()).offset(offset).limit(limit)
     )
     return list(result.scalars().all()), total
 
@@ -223,9 +222,7 @@ async def get_pattern_occurrences(
 # ── FM-186: Technical Debt Tracking ──────────────────────────────
 
 
-_DEBT_MARKERS = re.compile(
-    r"\b(TODO|FIXME|HACK|XXX|DEPRECATED)\b", re.IGNORECASE
-)
+_DEBT_MARKERS = re.compile(r"\b(TODO|FIXME|HACK|XXX|DEPRECATED)\b", re.IGNORECASE)
 
 DEBT_MARKER_SCORE: dict[str, float] = {
     "todo": 1.0,
@@ -465,7 +462,9 @@ async def scan_file_for_all_debt(
     # 1. Comment markers (TODO/FIXME/HACK)
     entries.extend(
         await scan_file_for_debt(
-            db, project_id=project_id, file_path=file_path,
+            db,
+            project_id=project_id,
+            file_path=file_path,
             source_code=source_code,
         )
     )
@@ -473,15 +472,20 @@ async def scan_file_for_all_debt(
     # 2. Pattern-based debt (from FM-185 PatternOccurrence)
     entries.extend(
         await scan_file_for_pattern_debt(
-            db, project_id=project_id, file_path=file_path,
+            db,
+            project_id=project_id,
+            file_path=file_path,
         )
     )
 
     # 3. Age-based debt
     entries.extend(
         await scan_file_for_age_debt(
-            db, project_id=project_id, file_path=file_path,
-            source_code=source_code, last_modified=last_modified,
+            db,
+            project_id=project_id,
+            file_path=file_path,
+            source_code=source_code,
+            last_modified=last_modified,
             age_threshold_days=age_threshold_days,
         )
     )
@@ -489,7 +493,9 @@ async def scan_file_for_all_debt(
     # 4. Complexity-based debt
     entries.extend(
         await scan_file_for_complexity_debt(
-            db, project_id=project_id, file_path=file_path,
+            db,
+            project_id=project_id,
+            file_path=file_path,
             source_code=source_code,
             complexity_threshold=complexity_threshold,
         )
@@ -562,7 +568,9 @@ async def take_debt_snapshot(
     )
     rows = (await db.execute(type_q)).all()
     breakdown = {
-        row.debt_type.value if hasattr(row.debt_type, 'value') else str(row.debt_type): {
+        row.debt_type.value
+        if hasattr(row.debt_type, "value")
+        else str(row.debt_type): {
             "count": row.count,
             "score": round(float(row.score or 0), 2),
         }
@@ -583,32 +591,76 @@ async def take_debt_snapshot(
 # ── FM-185: Built-in Pattern Rules ───────────────────────────────
 
 BUILTIN_RULES: list[dict[str, str]] = [
-    {"name": "bare-except", "rule_definition": r"except\s*:", "severity": "warning",
-     "description": "Bare except catches all exceptions including SystemExit/KeyboardInterrupt"},
-    {"name": "print-statement", "rule_definition": r"\bprint\s*\(", "severity": "info",
-     "description": "print() in production code; prefer logging"},
-    {"name": "hardcoded-password", "rule_definition": r"(?i)(password|secret|token)\s*=\s*['\"][^'\"]+['\"]",
-     "severity": "critical", "description": "Hardcoded credential in source code"},
-    {"name": "star-import", "rule_definition": r"from\s+\S+\s+import\s+\*", "severity": "warning",
-     "description": "Wildcard import pollutes namespace"},
-    {"name": "todo-without-ticket", "rule_definition": r"#\s*TODO(?!\s*\()", "severity": "info",
-     "description": "TODO comment without a ticket reference"},
-    {"name": "magic-number", "rule_definition": r"(?<!=)\s\b(?:[2-9]\d{2,}|[1-9]\d{3,})\b(?!\s*[=:])",
-     "severity": "info", "description": "Large literal number; consider named constant"},
-    {"name": "mutable-default-arg", "rule_definition": r"def\s+\w+\([^)]*(?:\[\]|\{\})\s*(?:,|\))",
-     "severity": "warning", "description": "Mutable default argument (list/dict)"},
-    {"name": "assert-in-production", "rule_definition": r"^\s*assert\s+", "severity": "warning",
-     "description": "assert statements are stripped with -O; use explicit checks"},
+    {
+        "name": "bare-except",
+        "rule_definition": r"except\s*:",
+        "severity": "warning",
+        "description": "Bare except catches all exceptions including SystemExit/KeyboardInterrupt",
+    },
+    {
+        "name": "print-statement",
+        "rule_definition": r"\bprint\s*\(",
+        "severity": "info",
+        "description": "print() in production code; prefer logging",
+    },
+    {
+        "name": "hardcoded-password",
+        "rule_definition": r"(?i)(password|secret|token)\s*=\s*['\"][^'\"]+['\"]",
+        "severity": "critical",
+        "description": "Hardcoded credential in source code",
+    },
+    {
+        "name": "star-import",
+        "rule_definition": r"from\s+\S+\s+import\s+\*",
+        "severity": "warning",
+        "description": "Wildcard import pollutes namespace",
+    },
+    {
+        "name": "todo-without-ticket",
+        "rule_definition": r"#\s*TODO(?!\s*\()",
+        "severity": "info",
+        "description": "TODO comment without a ticket reference",
+    },
+    {
+        "name": "magic-number",
+        "rule_definition": r"(?<!=)\s\b(?:[2-9]\d{2,}|[1-9]\d{3,})\b(?!\s*[=:])",
+        "severity": "info",
+        "description": "Large literal number; consider named constant",
+    },
+    {
+        "name": "mutable-default-arg",
+        "rule_definition": r"def\s+\w+\([^)]*(?:\[\]|\{\})\s*(?:,|\))",
+        "severity": "warning",
+        "description": "Mutable default argument (list/dict)",
+    },
+    {
+        "name": "assert-in-production",
+        "rule_definition": r"^\s*assert\s+",
+        "severity": "warning",
+        "description": "assert statements are stripped with -O; use explicit checks",
+    },
     # --- positive-pattern rules ---
-    {"name": "type-annotations", "pattern_type": "positive_pattern",
-     "rule_definition": r"def\s+\w+\([^)]*:\s*\w+", "severity": "info",
-     "description": "Function uses type annotations for parameters"},
-    {"name": "logging-usage", "pattern_type": "positive_pattern",
-     "rule_definition": r"logger\.\w+\(|logging\.\w+\(", "severity": "info",
-     "description": "Proper logging framework used instead of print()"},
-    {"name": "context-manager", "pattern_type": "positive_pattern",
-     "rule_definition": r"\bwith\s+\w+", "severity": "info",
-     "description": "Context manager used for resource management"},
+    {
+        "name": "type-annotations",
+        "pattern_type": "positive_pattern",
+        "rule_definition": r"def\s+\w+\([^)]*:\s*\w+",
+        "severity": "info",
+        "description": "Function uses type annotations for parameters",
+    },
+    {
+        "name": "logging-usage",
+        "pattern_type": "positive_pattern",
+        "rule_definition": r"logger\.\w+\(|logging\.\w+\(",
+        "severity": "info",
+        "description": "Proper logging framework used instead of print()",
+    },
+    {
+        "name": "context-manager",
+        "pattern_type": "positive_pattern",
+        "rule_definition": r"\bwith\s+\w+",
+        "severity": "info",
+        "description": "Context manager used for resource management",
+    },
 ]
 
 
@@ -667,5 +719,7 @@ async def check_debt_budget(
         "entry_count": summary["entry_count"],
         "threshold": score_threshold,
         "exceeded": exceeded,
-        "severity": "critical" if total >= score_threshold * 2 else ("warning" if exceeded else "ok"),
+        "severity": "critical"
+        if total >= score_threshold * 2
+        else ("warning" if exceeded else "ok"),
     }

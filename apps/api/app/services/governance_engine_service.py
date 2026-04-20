@@ -61,8 +61,7 @@ async def evaluate_policies(
         )
 
         enforced = (
-            result == PolicyEvalResult.FAIL
-            and policy.action == PolicyAction.BLOCK
+            result == PolicyEvalResult.FAIL and policy.action == PolicyAction.BLOCK
         )
 
         eval_record = GovernancePolicyEvaluation(

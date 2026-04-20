@@ -835,7 +835,8 @@ class TestGitHubClientCreatePR:
             from app.services.github_client import create_pull_request
 
             pr = await create_pull_request(
-                "test-org", "test-repo",
+                "test-org",
+                "test-repo",
                 title="feat: add feature",
                 head="feature-branch",
                 base="main",
@@ -870,7 +871,8 @@ class TestGitHubClientCreatePR:
 
             with pytest.raises(GitHubClientError) as exc_info:
                 await create_pull_request(
-                    "test-org", "test-repo",
+                    "test-org",
+                    "test-repo",
                     title="feat: add feature",
                     head="feature-branch",
                     base="main",
@@ -909,7 +911,9 @@ class TestGitHubClientRequestReviewers:
             from app.services.github_client import request_reviewers
 
             result = await request_reviewers(
-                "test-org", "test-repo", 42,
+                "test-org",
+                "test-repo",
+                42,
                 reviewers=["alice", "bob"],
                 team_reviewers=["backend-team"],
                 token="test-token-123",
@@ -924,7 +928,9 @@ class TestGitHubClientRequestReviewers:
 
         with pytest.raises(ValueError, match="At least one"):
             await request_reviewers(
-                "test-org", "test-repo", 42,
+                "test-org",
+                "test-repo",
+                42,
                 token="test-token-123",
             )
 
@@ -958,7 +964,8 @@ class TestGitHubClientCIPassRate:
             from app.services.github_client import get_ci_pass_rate
 
             result = await get_ci_pass_rate(
-                "test-org", "test-repo",
+                "test-org",
+                "test-repo",
                 branch="main",
                 token="test-token-123",
             )
@@ -986,7 +993,10 @@ class TestGitHubClientCIPassRate:
             from app.services.github_client import get_ci_pass_rate
 
             result = await get_ci_pass_rate(
-                "test-org", "test-repo", branch="main", token="test-token-123",
+                "test-org",
+                "test-repo",
+                branch="main",
+                token="test-token-123",
             )
             assert result["total_runs"] == 0
             assert result["pass_rate"] == 0.0

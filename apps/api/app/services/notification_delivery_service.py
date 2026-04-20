@@ -216,7 +216,8 @@ async def _deliver_email(
 
     logger.info(
         "Email delivery: to=%s status=%s",
-        email_addr, result.get("status"),
+        email_addr,
+        result.get("status"),
     )
     return {
         "channel": "email",

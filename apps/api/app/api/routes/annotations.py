@@ -31,7 +31,9 @@ async def create_annotation(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> AnnotationRead:
-    annotation = await run_annotation_service.create_annotation(db, run_id, data, user_id)
+    annotation = await run_annotation_service.create_annotation(
+        db, run_id, data, user_id
+    )
     return AnnotationRead.model_validate(annotation)
 
 
@@ -42,7 +44,9 @@ async def list_annotations(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> AnnotationList:
-    items, total = await run_annotation_service.list_annotations(db, run_id, annotation_type)
+    items, total = await run_annotation_service.list_annotations(
+        db, run_id, annotation_type
+    )
     return AnnotationList(
         items=[AnnotationRead.model_validate(a) for a in items],
         total=total,
@@ -56,7 +60,9 @@ async def update_annotation(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> AnnotationRead:
-    annotation = await run_annotation_service.update_annotation(db, annotation_id, data, user_id)
+    annotation = await run_annotation_service.update_annotation(
+        db, annotation_id, data, user_id
+    )
     return AnnotationRead.model_validate(annotation)
 
 

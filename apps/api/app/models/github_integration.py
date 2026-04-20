@@ -270,9 +270,9 @@ class IssueLinkStatus(str, enum.Enum):
 
 
 class IssueSyncDirection(str, enum.Enum):
-    INBOUND = "inbound"    # GitHub → ForgeMind
+    INBOUND = "inbound"  # GitHub → ForgeMind
     OUTBOUND = "outbound"  # ForgeMind → GitHub
-    BOTH = "both"          # Bidirectional
+    BOTH = "both"  # Bidirectional
 
 
 class IssueLink(Base):
