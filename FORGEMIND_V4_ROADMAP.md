@@ -7,6 +7,18 @@
 
 ---
 
+## V4 Closeout Status (2026-04-20, commit `7fc9ad5`)
+
+V4 is feature-complete through FM-210. Four QA hardening passes followed feature
+closure; post-hardening validation shows **backend 1551/1551 + frontend 231/231 + local CLI 61/61 passing**,
+frontend coverage at **stmts 51.00% / branches 55.57% / funcs 55.48% / lines 51.73%**,
+ESLint + `next build` clean, CI running 3 jobs (backend, frontend incl. coverage
+artifact, local-cli). See [docs/MILESTONE_SUMMARY.md](docs/MILESTONE_SUMMARY.md#qa-hardening-closeout--2026-04-20-commit-7fc9ad5)
+for pass-by-pass detail and honest residual-risk notes (Playwright / a11y /
+visual snapshots remain optional maturity work, not blockers).
+
+---
+
 ## 1. V4 Executive Summary
 
 ### What V4 Is

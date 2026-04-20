@@ -4,6 +4,34 @@
 
 ---
 
+## QA Hardening Closeout — 2026-04-20 (commit `7fc9ad5`)
+
+Four concentrated QA passes landed on top of the feature-complete FM-001→FM-210 tree:
+
+| Pass                 | Commit    | Focus                                                                                  |
+| -------------------- | --------- | -------------------------------------------------------------------------------------- |
+| High-priority        | `a84f793` | Behavioural gaps on dashboard / forms / operator polish                                |
+| Residual branches    | `01bf361` | Dashboard home, FM-035 polish, prompt intake / project create form edge branches        |
+| Medium-priority      | `b274442` | FE API-client tests (api/projects/approvals/planner/tasks/templates/dashboards/architecture), BE milestone-coded smoke (FM-001-010 / 011-020 / 021-030 / 031-045), Vitest v8 coverage wired into CI |
+| Low-priority cleanup | `7fc9ad5` | 15 lib API-client test files (+59), FM-070/190/200/209/210 aggregate smoke (+16), `next lint` → ESLint flat-config migration, architecture page testability refactor |
+
+**Current validated state:**
+
+- Backend pytest: **1551 / 1551** passing (full suite, ~7m21s).
+- Frontend Vitest: **231 / 231** across 37 files (~27s).
+- Local CLI pytest: **61 / 61**.
+- Frontend coverage: stmts **51.00%**, branches **55.57%**, functions **55.48%**, lines **51.73%** (v8 provider; soft thresholds).
+- ESLint + `next build` clean; CI has 3 jobs (backend / frontend-incl-coverage-artifact / local-cli).
+
+**Honest residual gaps (maturity, not regressions):**
+
+- Playwright / browser E2E still deferred.
+- axe-based a11y + stable visual snapshots still deferred.
+- Several lower-traffic `lib/*` modules still at 0% direct coverage (`auth-context.tsx`, `constitution`, `constitution-suggestions`, `council`, `escalations`, `governance`, `phase-profiles`, `project-members`, `stream`, `vault`, `hooks/use-stream`).
+- Full-stack operator exercise requires real Postgres + Redis + MinIO + `OPENAI_API_KEY`; the project-level end-to-end smoke scripted in [scripts/operator_exercise.py](../scripts/operator_exercise.py) validates health + project creation + `/planner/intake` acceptance against the in-process FastAPI app (aiosqlite), but LLM-backed plan bodies and authz-gated reads need the full runtime.
+
+---
+
 ## Current State
 
 **ForgeMind is an operator-centered AI execution platform with adaptive multi-agent orchestration, governance, cost tracking, trust scoring, execution replay, council decision-making, cross-run knowledge, external repo integration, production hardening, team collaboration, real-time streaming, code operations, a repo-aware code-change-capable execution engine, full frontend parity, real authentication with RBAC enforcement, CI/CD pipeline, observability, production deployment foundation, shared monorepo packages, an architecture intelligence subsystem with graph-based structural analysis, topology mapping, drift detection, rule enforcement, design doc synthesis, change impact analysis, refactor recommendations, architecture approval workflow, and structural health scoring, and an execution memory layer with persistent checkpoints, auto-checkpointing, resume semantics, delivery artifact generation, review packages, lifecycle traceability graphs, run memory enrichment, and explainable release confidence scoring.**

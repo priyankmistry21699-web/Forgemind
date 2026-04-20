@@ -1645,15 +1645,42 @@ cd apps/web && npm run format
 ### Testing
 
 ```bash
-# Python tests
+# Python tests (backend)
 cd apps/api && pytest -v
 
-# Frontend tests
+# Frontend tests (Vitest)
 cd apps/web && npm test
+
+# Frontend coverage
+cd apps/web && npm run test:coverage
+
+# Lint (ESLint flat config)
+cd apps/web && npm run lint
+
+# Local CLI tests
+cd apps/local && pytest -q
 
 # All tests
 make test
 ```
+
+### QA Posture (2026-04-20 closeout after commit `7fc9ad5`)
+
+| Surface             | Count                      | Notes                                                        |
+| ------------------- | -------------------------- | ------------------------------------------------------------ |
+| Backend pytest      | **1551 passed / 1551**     | Full suite, ~7m21s on reference workstation                  |
+| Frontend Vitest     | **231 passed / 231**       | 37 test files, ~27s                                          |
+| Local CLI pytest    | **61 passed / 61**         | CI-gated via `local-cli` job                                 |
+| Frontend coverage   | **51.0% stmts / 55.6% branches / 55.5% funcs / 51.7% lines** | v8 provider; soft thresholds in CI |
+| Lint (ESLint)       | Clean                      | Migrated off deprecated `next lint` to ESLint CLI flat config |
+| Build (`next build`)| Clean                      | Static + dynamic routes prerendered                          |
+| CI workflow         | 3 jobs                     | backend / frontend (typecheck→lint→test→coverage→build) / local-cli |
+
+**What is NOT yet present** (maturity opportunities, not regressions):
+
+- Playwright / browser E2E is deliberately deferred.
+- axe-based a11y assertions and visual snapshot guardrails are deferred.
+- Full runtime exercise (Postgres + Redis + MinIO + LLM key) requires docker-compose up; tests exercise the app via FastAPI + aiosqlite in-process.
 
 ---
 
