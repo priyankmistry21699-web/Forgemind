@@ -524,11 +524,11 @@ class TestWebhookDispatch:
         import httpx
         from unittest.mock import AsyncMock, patch
 
-        wh1 = await webhook_connector_service.create_webhook(
+        await webhook_connector_service.create_webhook(
             db_session, creator_id=STUB_USER_ID,
             url="https://a.com/hook", events=["run.completed"],
         )
-        wh2 = await webhook_connector_service.create_webhook(
+        await webhook_connector_service.create_webhook(
             db_session, creator_id=STUB_USER_ID,
             url="https://b.com/hook", events=["task.created"],
         )
@@ -559,7 +559,7 @@ class TestFireEventSecretFix:
         import httpx
         from unittest.mock import AsyncMock, patch
 
-        wh = await webhook_connector_service.create_webhook(
+        await webhook_connector_service.create_webhook(
             db_session, creator_id=STUB_USER_ID,
             url="https://example.com/signed", events=["deploy.started"],
             secret="my-secret-key",

@@ -7,12 +7,14 @@ FM-202: Rate limiting with sliding window per key/IP.
 import hashlib
 import logging
 import secrets
+import time
 import uuid
+from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, func as sa_func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.api_ecosystem import APIKey
@@ -193,9 +195,6 @@ async def list_api_keys(
 
 # In-memory sliding window rate limiter (per-process).
 # Production: swap for Redis-backed implementation.
-
-import time
-from collections import defaultdict
 
 _rate_limits: dict[str, list[float]] = defaultdict(list)
 

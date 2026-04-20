@@ -504,7 +504,6 @@ class TestAlertCooldown:
     @pytest.mark.asyncio
     async def test_cooldown_prevents_retrigger(self, db_session: AsyncSession):
         """Alert in cooldown should not fire even when condition is met."""
-        from datetime import datetime, timezone, timedelta
 
         alert = await dashboard_alert_service.create_metric_alert(
             db_session, name="Cooldown Test",
@@ -1066,7 +1065,7 @@ class TestTimeWindowFiltering:
 # ══════════════════════════════════════════════════════════════════
 
 
-class TestBudgetEnforcement:
+class TestBudgetEnforcementWiring:
     @pytest.mark.asyncio
     async def test_check_budget_no_config(
         self, db_session: AsyncSession, sample_project
@@ -1110,7 +1109,7 @@ class TestQualityGatesQuarantine:
 # ══════════════════════════════════════════════════════════════════
 
 
-class TestPortfolioSortFilter:
+class TestPortfolioSortFilterForwarding:
     @pytest.mark.asyncio
     async def test_portfolio_with_sort(self, db_session: AsyncSession, sample_project):
         """get_portfolio_summary accepts sort_by and sort_order."""
@@ -1342,7 +1341,7 @@ class TestConfigurableModelRates:
     def test_update_model_rates(self):
         """update_model_rates modifies the rate table."""
         from app.services import cost_tracking_service
-        original = cost_tracking_service.get_model_rates()
+        cost_tracking_service.get_model_rates()
         cost_tracking_service.update_model_rates({
             "test-model-xyz": {"prompt": 0.001, "completion": 0.002}
         })

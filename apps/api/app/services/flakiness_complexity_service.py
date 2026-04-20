@@ -64,7 +64,7 @@ async def get_flaky_tests(
     A test is flaky if it alternates between pass and fail across runs.
     Flip rate = (number of status changes) / (total runs - 1).
     """
-    from sqlalchemy import case, literal_column
+    from sqlalchemy import case
 
     # Get tests with enough history
     subq = (

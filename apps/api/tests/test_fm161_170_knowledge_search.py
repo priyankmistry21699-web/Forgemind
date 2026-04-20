@@ -835,7 +835,7 @@ class TestEdgeCases:
         db_session.add_all([t1, t2])
         await db_session.flush()
 
-        recs = await recommendation_service.generate_recommendations(
+        await recommendation_service.generate_recommendations(
             db_session, sample_project.id
         )
         await db_session.commit()
@@ -1125,7 +1125,7 @@ class TestBatchEmbeddingGeneration:
         async def mock_embed(text, model, dimensions):
             return [0.9] * dimensions  # Different vector
 
-        stats = await embedding_service.batch_generate_embeddings(
+        await embedding_service.batch_generate_embeddings(
             db_session,
             project_id=sample_project.id,
             dimensions=8,

@@ -828,7 +828,6 @@ class TestCognitiveMetricPersistence:
         )
         await db_session.commit()
 
-        from app.models.code_intelligence import MetricType
         cyclomatic = [m for m in metrics if m.metric_type == MetricType.CYCLOMATIC]
         cognitive = [m for m in metrics if m.metric_type == MetricType.COGNITIVE]
         assert len(cyclomatic) == 2  # 2 functions
@@ -844,7 +843,7 @@ class TestPatternDebt:
     @pytest.mark.asyncio
     async def test_scan_for_pattern_debt(self, db_session: AsyncSession, sample_project):
         """Pattern debt: create a pattern rule + occurrence, then scan_file_for_pattern_debt."""
-        from app.models.code_intelligence import DebtType, PatternType
+        from app.models.code_intelligence import PatternType
 
         rule = await pattern_debt_service.create_pattern_rule(
             db_session, name="Eval usage",
@@ -878,7 +877,6 @@ class TestAgeDebt:
     @pytest.mark.asyncio
     async def test_old_file_creates_debt(self, db_session: AsyncSession, sample_project):
         from datetime import datetime, timezone, timedelta
-        from app.models.code_intelligence import DebtType
 
         old_date = datetime.now(timezone.utc) - timedelta(days=365)
         entries = await pattern_debt_service.scan_file_for_age_debt(
@@ -916,7 +914,6 @@ class TestAgeDebt:
 class TestComplexityDebt:
     @pytest.mark.asyncio
     async def test_complex_function_creates_debt(self, db_session: AsyncSession, sample_project):
-        from app.models.code_intelligence import DebtType
 
         source = (
             "def mega(a, b, c, d, e):\n"
@@ -990,7 +987,6 @@ class TestAllDebtScan:
         )
         await db_session.commit()
 
-        from app.models.code_intelligence import DebtType
         types = {e.debt_type for e in entries}
         assert DebtType.COMMENT in types   # TODO marker
         assert DebtType.AGE in types        # Old file
