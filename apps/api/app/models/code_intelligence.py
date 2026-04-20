@@ -246,6 +246,12 @@ class DebtSnapshot(Base):
 
 
 class TestOutcome(str, enum.Enum):
+    # Pytest otherwise tries to collect this enum as a test class (because of
+    # the `Test*` prefix) and emits a PytestCollectionWarning when the enum
+    # is re-imported in a test module. Dunder attributes on enum classes are
+    # treated as metadata rather than members, so this is the safe opt-out.
+    __test__ = False
+
     PASSED = "passed"
     FAILED = "failed"
     SKIPPED = "skipped"
