@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔥 ForgeMind
+<img src="docs/assets/forgemind-logo.svg" alt="ForgeMind" width="480" />
 
 ### **An operator-centered, AI-native engineering platform**
 

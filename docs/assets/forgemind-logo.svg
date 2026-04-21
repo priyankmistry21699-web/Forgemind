@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 128" width="520" height="128" role="img" aria-label="ForgeMind logo">
+  <!--
+    ForgeMind horizontal lockup
+    Mark + wordmark. "Forge" in slate, "Mind" in forge-amber to signal the
+    forge (execution) + mind (planning / intelligence) duality.
+  -->
+  <defs>
+    <linearGradient id="fml-flame" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%"  stop-color="#b45309"/>
+      <stop offset="45%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+    <linearGradient id="fml-frame" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"  stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    <linearGradient id="fml-word-mind" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"  stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Mark (scaled copy of forgemind-mark.svg, positioned left) -->
+  <g transform="translate(4,0)">
+    <polygon points="64,6 115,34 115,94 64,122 13,94 13,34"
+             fill="none" stroke="url(#fml-frame)" stroke-width="6"
+             stroke-linejoin="round"/>
+    <rect x="28" y="90" width="72" height="6" rx="3" fill="#0f172a"/>
+    <path d="M32 90 L48 52 L56 72 L64 36 L72 72 L80 52 L96 90 Z"
+          fill="url(#fml-flame)" stroke="#7c2d12" stroke-width="2"
+          stroke-linejoin="round"/>
+    <line x1="48" y1="52" x2="64" y2="36" stroke="#f8fafc" stroke-width="2" stroke-linecap="round"/>
+    <line x1="64" y1="36" x2="80" y2="52" stroke="#f8fafc" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="48" cy="52" r="5" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+    <circle cx="80" cy="52" r="5" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+    <circle cx="64" cy="36" r="6" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+  </g>
+
+  <!-- Wordmark -->
+  <g font-family="'Segoe UI','Inter','Helvetica Neue',Arial,sans-serif"
+     font-weight="700" font-size="54" letter-spacing="-1">
+    <text x="140" y="72" fill="url(#fml-frame)">Forge</text>
+    <text x="295" y="72" fill="url(#fml-word-mind)">Mind</text>
+  </g>
+
+  <!-- Tagline -->
+  <text x="142" y="98"
+        font-family="'Segoe UI','Inter','Helvetica Neue',Arial,sans-serif"
+        font-size="14" letter-spacing="3" fill="#475569">
+    GOVERNED  AI  EXECUTION
+  </text>
+</svg>
