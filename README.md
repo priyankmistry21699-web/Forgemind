@@ -384,6 +384,7 @@ forgemind ask "where does X live?"
 | :-- | :-- |
 | 👥 A reviewer or stakeholder | this README → [docs/MILESTONE_SUMMARY.md](docs/MILESTONE_SUMMARY.md) |
 | 🧑‍💻 A new engineer joining the codebase | [docs/REPOSITORY_GUIDE.md](docs/REPOSITORY_GUIDE.md) → [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| 🤖 An agent / LLM onboarding to this repo | [docs/project-memory/](docs/project-memory/) — graph-style memory: backend · frontend · integrations · flows · change guide · milestone map |
 | 🛠️ About to run or modify the stack | [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md) |
 | 🚢 Deploying to production | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) |
 | 🔌 Integrating via the public API / webhooks | [docs/api-ecosystem.md](docs/api-ecosystem.md) |
