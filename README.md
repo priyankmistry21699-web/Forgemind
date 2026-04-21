@@ -1,3 +1,434 @@
+# ForgeMind
+
+> **An operator-centered, AI-native engineering platform.**
+> ForgeMind turns a natural-language goal into a governed, auditable, multi-agent execution plan — and runs that plan end-to-end with human approvals, cost tracking, code-change proposals, architecture intelligence, analytics, and a public API.
+
+**Status (2026-04-20):** V4 feature-complete. FM-001 → FM-210 closed. V4 tally **30 COMPLETE / 0 PARTIAL / 0 NOT STARTED**. Backend **1559 / 1559** pytest, frontend **231 / 231** Vitest across 37 files, local CLI **61 / 61** pytest, CI green on `main` (HEAD `2a4e8fc`).
+
+---
+
+## Table of Contents
+
+- [What is ForgeMind?](#what-is-forgemind)
+- [What problems it solves](#what-problems-it-solves)
+- [Core capabilities](#core-capabilities)
+- [V4 delivery summary](#v4-delivery-summary)
+- [Repository structure](#repository-structure)
+- [Architecture at a glance](#architecture-at-a-glance)
+- [Backend overview](#backend-overview)
+- [Frontend overview](#frontend-overview)
+- [API & SDK overview](#api--sdk-overview)
+- [How to run locally](#how-to-run-locally)
+- [Environment and setup notes](#environment-and-setup-notes)
+- [Testing and validation](#testing-and-validation)
+- [Documentation map](#documentation-map)
+- [Where to start in the codebase](#where-to-start-in-the-codebase)
+- [Current project status](#current-project-status)
+
+---
+
+## What is ForgeMind?
+
+ForgeMind is a multi-agent AI execution platform built for teams and operators who need **governed, observable, programmable delivery** — not a chat window that writes code and hopes.
+
+It does three things well:
+
+1. **Plans work** from a prompt. The planner service breaks a goal into a typed task DAG (planning, architecture, codegen, review, verification, testing, deployment) with agent hints and approval gates.
+2. **Executes work** through specialized agents (architect, coder, reviewer, tester) with capability-based composition, handoff context, adaptive retry, cost tracking, and deterministic replay snapshots.
+3. **Governs work** through approval inboxes, constitutional policies, trust scores, architecture rules, council deliberation, SSO/RBAC, audit exports, and enterprise compliance reports.
+
+Around that engine, V4 added a full **collaboration + integrations + intelligence + ecosystem** surface: workspaces, threaded comments, GitHub installs, saved views, code intelligence (dependency graph, impact analysis, coverage, flakiness, complexity), analytics (health, velocity, portfolio, custom dashboards, scheduled reports, executive summary narrative), a public versioned API with JWT + API keys + rate limiting, webhooks, Slack/email/PagerDuty connectors, and a standalone local CLI.
+
+---
+
+## What problems it solves
+
+| Problem | ForgeMind's answer |
+| ------- | ------------------ |
+| LLM output is unreviewable and unauditable | Every agent step produces a typed artifact, an execution event, and (optionally) a replay snapshot with a SHA-256 hash. Approvals are modeled as first-class records. |
+| Agentic systems skip oversight | Approval gates on architecture/review tasks, constitutional policies, trust scoring per entity, council sessions (consensus / majority / supermajority / weighted), architecture approvals for HIGH/CRITICAL blast radius. |
+| Costs run away | `cost_tracking_service` records every LLM call with tokens + USD, per-project budgets, and automatic alerts at configurable thresholds. |
+| Code changes happen outside the governed flow | Code-ops pipeline: patch proposals → annotation-based reviews → branch strategy → PR drafts → repo-action approval gates → bounded sandbox execution. |
+| Architecture drift is invisible | Topology mapper builds a directed graph, drift detection compares against snapshots, rule engine enforces dependency/layer/naming/size/circular rules, impact analysis computes BFS blast radius. |
+| Operators can't see what the team/system is doing | Activity feed, notifications, escalations, SSE streaming, execution timelines, run memory, executive summary narrative. |
+| Integrating is hard | Public `/api/v1/` with JWT + API keys, OpenAPI 3 spec, Python + TypeScript SDK clients, webhooks, Slack/GitHub/email/PagerDuty connectors. |
+| Developers want a local workflow | `forgemind` CLI with repo attach, indexing, Q&A, bounded exec, patch generation, PR preparation, IDE integration, offline snapshots. |
+
+---
+
+## Core capabilities
+
+**Planning & execution**
+Prompt intake → LLM planner → structured plan (overview, architecture summary, recommended stack, assumptions, next steps) → task DAG → adaptive orchestrator → agent dispatch with capability scoring → artifact creation → event logging.
+
+**Agents**
+Architect, coder, reviewer, tester. Each is a Python class in `apps/worker/worker/agents/` that receives a build-handoff-context packet of upstream artifacts. Capability scoring: 60% task-type match, 40% capability overlap; `agent_hint` wins when set.
+
+**Governance**
+Approval requests, project constitution (rules the agents must obey), constitution suggestions, council decision engine (4 methods, deadlock escalation), trust scoring (0-1 with LOW/MEDIUM/HIGH/CRITICAL risk levels), governance policies, enterprise governance (SSO, IP allowlists, compliance reports, data retention), audit exports (JSON/CSV).
+
+**Repo + code ops**
+External repo connections (GitHub, GitLab, Bitbucket, local), file tree browser with traversal protection, artifact-to-file mapping, patch proposals with readiness state, annotation-based code reviews, branch strategies, PR drafts, repo-action approval gates, sandbox execution with allowlist + blocked-pattern detection + timeout + resource capture.
+
+**Architecture intelligence**
+Components and dependencies stored as graph, snapshots, drift records, rule engine (5 categories), impact assessments with severity + blast radius, refactor recommendations, structural health score (0-100 + A-F).
+
+**Code intelligence (Wave 14)**
+Dependency graph (Python AST + TS regex parsers), impact analysis (BFS over imports), test coverage mapping, pattern/debt detection with automatic knowledge-base promotion, technical-debt scoring, flakiness tracker, complexity metrics, quarantine monitor.
+
+**Analytics & portfolio (Wave 15)**
+Execution metrics auto-captured via lifecycle hooks, composite health score (A-F), cost budgets + alerts, velocity + quality metrics, portfolio summary across projects, custom dashboards with 6 chart types (line/bar/pie/table/number/gauge) rendered as dependency-free SVG, cron-scheduled reports, metric alerts, executive summary with natural-language narrative.
+
+**API & ecosystem (Wave 16)**
+Versioned `/api/v1/` surface, JWT for browser sessions, API keys (SHA-256 hashed, read/write/admin scopes), sliding-window rate limiter with `X-RateLimit-*` headers, OpenAPI 3 spec (validated in tests), webhook connectors, Slack + GitHub + email + PagerDuty integrations.
+
+**Collaboration (Wave 10)**
+Workspaces, memberships with RBAC, threaded comments, mentions, saved views, unified activity feed, presence, SSE live updates.
+
+**GitHub integration (Wave 11)**
+GitHub App installation service, rate-limited client, issue sync, PR status pipeline, merge-readiness, diff intelligence, CI pipeline view, deployment readiness, rollback readiness, post-release checks.
+
+**Search, knowledge & memory (Wave 12)**
+Project knowledge base auto-extracted from runs, semantic search service + embeddings, convention service, recommendation engine, run memory enrichment, ADR tracking.
+
+**Enterprise governance (Wave 13)**
+SSO configuration, IP allowlists, governance engine, approval delegation, retention policies, compliance reports.
+
+**Local developer mode**
+Full `forgemind` CLI with 10 command groups, offline-first state with TTL cache + sync queue, handoff zip bundles, VS Code tasks.json generator.
+
+---
+
+## V4 delivery summary
+
+V4 ran from FM-141 to FM-210 in seven waves, on top of the V1-V3 foundation (FM-001 - FM-140).
+
+| Wave | Range | Theme | Status |
+| ---- | ----- | ----- | ------ |
+| 10 | FM-141 → FM-150 | Collaboration, UX & team coordination | 10 / 10 |
+| 11 | FM-151 → FM-160 | GitHub, CI/CD & developer tooling | 10 / 10 |
+| 12 | FM-161 → FM-170 | Search, knowledge & organizational memory | 10 / 10 |
+| 13 | FM-171 → FM-180 | Enterprise governance, permissions, compliance | 10 / 10 |
+| 14 | FM-181 → FM-190 | Code intelligence, change awareness, test intelligence | 10 / 10 |
+| 15 | FM-191 → FM-200 | Analytics, metrics, portfolio operations | 10 / 10 |
+| 16 | FM-201 → FM-210 | API, webhooks, ecosystem integrations | 10 / 10 |
+
+**V4 total:** 30 COMPLETE / 0 PARTIAL / 0 NOT STARTED (see [docs/MILESTONE_SUMMARY.md](docs/MILESTONE_SUMMARY.md)).
+
+After feature closure, four QA hardening passes landed (`a84f793`, `01bf361`, `b274442`, `7fc9ad5`) adding behavioural coverage, Vitest v8 coverage, ESLint flat-config migration, and smoke tests per milestone band. Subsequent repo-wide housekeeping: `8aae400` (ruff check cleanup), `5783be1` (TS narrow-cast), `55ef880` (ruff format sweep), `2a4e8fc` (alembic migration chain fix).
+
+---
+
+## Repository structure
+
+```
+Forgemind/
+├── apps/
+│   ├── api/                      FastAPI backend (Python 3.12, async)
+│   │   ├── app/
+│   │   │   ├── api/router.py     51 routers mounted
+│   │   │   ├── api/routes/       51 route files (see list below)
+│   │   │   ├── services/         103 service modules
+│   │   │   ├── models/           44 SQLAlchemy 2 models
+│   │   │   ├── schemas/          Pydantic v2 DTOs
+│   │   │   ├── core/             config, auth, authz, rate limit, logging, errors, metrics, llm
+│   │   │   ├── db/               session, base, base_class
+│   │   │   ├── sdk/              Python + TS clients + OpenAPI generator config
+│   │   │   └── main.py           FastAPI app + lifespan hooks
+│   │   ├── alembic/              migration chain (head: fm161_170_search_knowledge)
+│   │   └── tests/                1559 pytest tests
+│   ├── web/                      Next.js 15, React 19, TS strict, Tailwind 4
+│   │   ├── app/dashboard/        25 dashboard route folders
+│   │   ├── components/           domain-grouped React components
+│   │   ├── lib/                  34 API-client modules + hooks/
+│   │   └── __tests__ / app/__tests__  231 Vitest tests
+│   ├── worker/                   polling orchestrator + 4 agent implementations
+│   └── local/                    standalone forgemind CLI (61 pytest tests)
+│
+├── packages/                     shared monorepo packages
+│   ├── agents/  connectors/  core/  orchestrator/
+│   ├── schemas/  security/   utils/ verification/
+│
+├── docs/
+│   ├── ARCHITECTURE.md           system-level design reference
+│   ├── MILESTONE_SUMMARY.md      wave-by-wave delivery summary
+│   ├── DEVELOPMENT_WORKFLOW.md   local boot, tests, CI, conventions
+│   ├── REPOSITORY_GUIDE.md       "where do I add X?" map
+│   ├── code-intelligence.md      Wave 14 developer guide
+│   ├── analytics-portfolio.md    Wave 15 admin guide
+│   ├── api-ecosystem.md          Wave 16 developer guide
+│   ├── DEPLOYMENT.md             production deploy notes
+│   ├── TECHNICAL_DEBT.md         tracked debt
+│   └── agent-handoffs/           per-milestone implementation logs
+│
+├── scripts/                      operator exercise + data helpers
+├── docker-compose.yml            postgres 16, redis 7, minio, api, web, worker
+├── Makefile                      dev, test, lint, migrate shortcuts
+├── FORGEMIND_V4_ROADMAP.md       V4 planning doc (FM-141 → FM-210)
+├── FORGEMIND_ROADMAP.md          V1-V3 planning doc
+└── .github/workflows/ci.yml      3-job CI (backend / frontend / local-cli)
+```
+
+Counts are from the actual working tree as of commit `2a4e8fc`.
+
+---
+
+## Architecture at a glance
+
+```mermaid
+flowchart LR
+    U[Operator / Reviewer / API client] --> FE[Next.js 15 Dashboard<br/>25 route folders · 34 lib modules]
+    U --> SDK[Python / TS SDK<br/>apps/api/app/sdk]
+    FE -->|HTTP / SSE| API
+    SDK -->|/api/v1| API
+    API[FastAPI backend<br/>51 routers · 103 services · 44 models]
+    API --> PG[(PostgreSQL 16)]
+    API --> RD[(Redis 7)]
+    API --> S3[(MinIO / S3)]
+    API --> LLM[LiteLLM gateway<br/>OpenAI · Anthropic · Google · Ollama]
+    API --> WORK[Worker loop<br/>adaptive orchestrator]
+    WORK --> AG[architect · coder<br/>reviewer · tester]
+    WORK --> PG
+    API --> SCHED[Background scheduler<br/>cron reports · digests · health]
+```
+
+- **Frontend** renders and controls. It calls the backend over HTTP and subscribes to SSE streams.
+- **Backend** owns all business logic. Routes are thin — they validate, authorize, and delegate to services.
+- **Worker** is the runtime for async agent work: polls ready tasks, resolves the best agent, executes, persists artifacts, emits events.
+- **Scheduler** lives in the FastAPI lifespan and runs every 60s for scheduled reports, digest emails, health rollups, and cost-budget evaluations.
+- **Persistence:** PostgreSQL is the only relational source of truth. Redis is cache + queue. MinIO/S3 holds binary artifacts.
+
+Deeper detail — service-by-service, model-by-model, request flow diagrams — lives in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+---
+
+## Backend overview
+
+**Framework:** FastAPI, async throughout, Python 3.12+. SQLAlchemy 2 async ORM with asyncpg driver. Pydantic v2 for request/response DTOs. Alembic for migrations. LiteLLM for provider-agnostic LLM calls. `cryptography` (Fernet) for credential encryption.
+
+**Routes (51)** — all in [apps/api/app/api/routes/](apps/api/app/api/routes/) and wired in [apps/api/app/api/router.py](apps/api/app/api/router.py). Grouped:
+
+| Group | Route files |
+| ----- | ----------- |
+| Platform core | health, projects, planner, planner_results, tasks, runs, artifacts, agents, events |
+| Execution intelligence | chat, composition, memory, retry, run_lifecycle |
+| Governance | approvals, governance, audit, trust, costs, council, enterprise_governance |
+| Collaboration (Wave 10) | workspaces, members, streaming, notifications, escalation, activity, comments, saved_views, collaboration |
+| Code ops | repos, code_ops, annotations |
+| Security | auth, credential_vault, metrics |
+| Architecture intelligence | architecture |
+| Constitution / templates | constitution, constitution_suggestions, phase_agent_profiles, project_templates |
+| Lifecycle | checkpoints, delivery, release_ops, replay |
+| GitHub (Wave 11) | github_integration |
+| Search / knowledge (Wave 12) | search_knowledge, knowledge, connectors |
+| Code intelligence (Wave 14) | code_intelligence |
+| Analytics (Wave 15) | analytics |
+| Public ecosystem (Wave 16) | api_ecosystem |
+
+**Services (103)** — all in [apps/api/app/services/](apps/api/app/services/). These are the real business-logic core; route handlers stay thin. Highlights by theme:
+
+- Core delivery: `project_service`, `planner_service`, `task_service`, `execution_service`, `artifact_service`, `agent_service`, `event_service`.
+- Intelligence / composition: `chat_service`, `composition_service`, `run_memory_service`, `run_memory_enrichment_service`, `adaptive_retry_service`, `adaptive_orchestrator`.
+- Code ops: `code_ops_service`, `repo_service`, `pr_service`, `code_review_service`, `diff_intelligence_service`.
+- Architecture: `architecture_service`, `topology_mapper_service`, `drift_detection_service`, `architecture_rule_service`, `impact_analysis_service`, `refactor_recommendation_service`, `design_doc_service`, `structural_health_service`, `architecture_approval_service`, `convention_service`.
+- Code intelligence: `code_graph_service`, `pattern_debt_service`, `flakiness_complexity_service`.
+- Analytics: `execution_health_service`, `velocity_quality_service`, `dashboard_alert_service`, `project_overview_service`, `operational_timeline_service`.
+- Governance & enterprise: `governance_service`, `governance_engine_service`, `trust_scoring_service`, `cost_tracking_service`, `audit_export_service`, `audit_log_service`, `compliance_report_service`, `sso_configuration_service`, `ip_allowlist_service`, `retention_policy_service`, `spec_plan_approval_service`, `approval_enhanced_service`, `release_gate_service`.
+- Release lifecycle: `release_confidence_service`, `release_package_service`, `post_release_service`, `deployment_readiness_service`, `rollback_readiness_service`, `merge_readiness_service`.
+- Search & memory: `search_service`, `embedding_service`, `knowledge_service`, `adr_service`, `recommendation_service`, `traceability_service`.
+- Integrations: `github_client`, `github_installation_service`, `github_rate_limiter`, `webhook_service`, `webhook_connector_service`, `email_service`, `slash_command_service`, `issue_sync_service`, `integration_service`, `ci_pipeline_service`.
+- Collaboration: `workspace_service`, `membership_service`, `authz_service`, `stream_service`, `notification_service`, `notification_delivery_service`, `notification_digest_service`, `escalation_service`, `activity_service`, `unified_activity_service`, `user_activity_service`, `comment_service`, `mention_service`, `saved_view_service`, `task_assignment_service`.
+- Security: `api_key_service`, `encryption_service`, `credential_vault_service`.
+- Infrastructure: `background_scheduler`, `environment_service`.
+
+**Models (44)** — all in [apps/api/app/models/](apps/api/app/models/). Full inventory lives in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#data-model).
+
+**Core infrastructure** — in `apps/api/app/core/`: `config.py` (env settings), `auth.py` (JWT + dev stub), `authz_deps.py` (RBAC DI), `rate_limit.py` (per-IP token bucket + per-API-key sliding window), `logging_middleware.py`, `error_handlers.py`, `metrics.py` (Prometheus), `llm.py` (LiteLLM wrapper).
+
+**Migrations** — Alembic, chained. Head revision is `fm161_170_search_knowledge`. Tests do not run migrations; they use `Base.metadata.create_all()` in `conftest.py`. See [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md) for the migration notes (including the known `2026_04_03_0022_add_architecture_tables` duplicate-enum quirk and its `_bootstrap_schema.py` workaround for local runtime).
+
+---
+
+## Frontend overview
+
+**Framework:** Next.js 15.5.14 (App Router), React 19, TypeScript 5 (strict), Tailwind CSS 4, shadcn/ui, TanStack Query v5, Zustand, Socket.IO client, Monaco Editor, Mermaid.js, React Flow, Recharts, custom pure-SVG chart components for the analytics dashboard widgets.
+
+**Dashboard routes (25):** activity, agents, analytics, approvals, architecture, artifacts, audit, code-explorer, connectors, costs, council, escalations, governance, knowledge, notifications, projects, releases, replay, reviews, runs, sandbox, settings, trust, vault, workspaces. Each lives under [apps/web/app/dashboard/](apps/web/app/dashboard/).
+
+**Library (34 modules):** API-client wrappers in [apps/web/lib/](apps/web/lib/), one per backend domain. Examples: `projects.ts`, `runs.ts`, `tasks.ts`, `approvals.ts`, `architecture.ts`, `dashboards.ts`, `release-ops.ts`, `auth-context.tsx`, `stream.ts`, plus `hooks/use-stream` for SSE. Shared HTTP utilities in `lib/api.ts`.
+
+**Component structure:** `apps/web/components/` groups by domain (layout, projects, runs, artifacts, approvals, chat, events, tasks, reviews, dashboard/, analytics widgets). A pure-SVG chart set (no chart-library dependency) powers the custom dashboards feature from FM-197.
+
+**Tests:** Vitest + Testing Library, v8 coverage provider, 231 tests across 37 files. Coverage (current): stmts 51.00% / branches 55.57% / funcs 55.48% / lines 51.73%. Thresholds are soft; CI uploads the coverage artifact.
+
+---
+
+## API & SDK overview
+
+**Base URL:** `http://localhost:8000` (see `CORS_ORIGINS` for allowed frontends).
+
+**Versioned surface:** `/api/v1/` with JWT or API-key auth. The OpenAPI 3 spec is auto-generated by FastAPI and validated in `TestOpenAPISpecCompleteness` (schemas populated, every path has an operation, versioned tag applied, JSON-serializable).
+
+**Interactive docs:**
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
+- Raw spec: `http://localhost:8000/openapi.json`
+
+**Authentication:**
+- JWT tokens for browser sessions (see `apps/api/app/core/auth.py`).
+- API keys for programmatic access, created via `/api-keys`, hashed with SHA-256, scoped `read` / `write` / `admin`, rate-limited by tier.
+
+**Rate limiting:** sliding window per API key or per IP. Responses carry `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`. Excess requests get `429 Too Many Requests`.
+
+**SDK:** [apps/api/app/sdk/](apps/api/app/sdk/) ships a Python client (`python_client.py`), a TypeScript client (`typescript_client.ts`), an `openapi-generator-config.yaml` for regeneration, plus `pyproject.toml` and `package.json` for publishing. See [docs/api-ecosystem.md](docs/api-ecosystem.md) for the authoritative endpoint reference.
+
+**Webhooks & connectors:** `webhook_service` + `webhook_connector_service` provide configurable outbound webhooks. `integration_service` hosts Slack, email, PagerDuty, and generic HTTP connectors.
+
+---
+
+## How to run locally
+
+### Option 1 — Docker Compose (recommended)
+
+```bash
+git clone https://github.com/priyankmistry21699-web/Forgemind.git
+cd Forgemind
+cp .env.example .env
+# set ONE of OPENAI_API_KEY / ANTHROPIC_API_KEY / GOOGLE_API_KEY to enable real LLM
+docker compose up -d
+docker compose exec api alembic upgrade head
+# Frontend: http://localhost:3000
+# API docs: http://localhost:8000/docs
+# MinIO:    http://localhost:9001
+```
+
+### Option 2 — Hybrid local (services in Docker, API/web on host)
+
+```bash
+docker compose up -d postgres redis minio
+
+# Backend
+cd apps/api
+pip install -e ".[dev]"
+alembic upgrade head
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Worker (new terminal)
+cd apps/worker && python -m worker.main
+
+# Frontend (new terminal)
+cd apps/web && npm install && npm run dev
+```
+
+### Option 3 — Make
+
+```bash
+make install         # full install
+make dev             # API + web + infra
+make dev-worker      # worker only
+make migrate         # alembic upgrade head
+make test            # all test suites
+make lint && make format
+```
+
+### Known local-boot quirk
+
+Migration `2026_04_03_0022_add_architecture_tables.py` raises `DuplicateObjectError` on a fresh PostgreSQL when the `arch_node_type` enum already exists. Tests bypass Alembic (they use `Base.metadata.create_all()` in `conftest.py`), so CI has never caught it. The local-runtime workaround is a small bootstrap helper — [apps/api/_bootstrap_schema.py](apps/api/_bootstrap_schema.py) — that runs `Base.metadata.create_all()` against the configured database and then `alembic stamp heads`. See [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md) for the full procedure.
+
+---
+
+## Environment and setup notes
+
+| Variable | Default | Purpose |
+| -------- | ------- | ------- |
+| `APP_ENV` | `development` | environment mode |
+| `SECRET_KEY` | `change-me-...` | JWT + session signing |
+| `POSTGRES_HOST` / `PORT` / `DB` / `USER` / `PASSWORD` | local defaults | primary datastore |
+| `REDIS_HOST` / `PORT` | `localhost` / `6379` | cache + queue |
+| `MINIO_ENDPOINT` / `ACCESS_KEY` / `SECRET_KEY` | local defaults | object storage |
+| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `GOOGLE_API_KEY` | — | at least one enables real planning/execution |
+| `PLANNER_MODEL` | `gpt-4o` | LLM model for planner |
+| `WORKER_POLL_INTERVAL` | `5` | seconds between worker polls |
+| `WORKER_MAX_TASKS_PER_CYCLE` | `3` | concurrency cap per poll |
+| `CORS_ORIGINS` | `http://localhost:3000` | comma-separated allowlist |
+
+A complete, always-in-sync list lives in [.env.example](.env.example).
+
+**Prerequisites:** Docker + Docker Compose, Python 3.12+, Node.js 20+, Git.
+
+---
+
+## Testing and validation
+
+| Surface | Command | Count (HEAD `2a4e8fc`) |
+| ------- | ------- | ---------------------- |
+| Backend unit + integration | `cd apps/api && pytest` | **1559 / 1559 passing** |
+| Frontend Vitest | `cd apps/web && npm test` | **231 / 231 passing across 37 files** |
+| Frontend coverage (v8) | `npm run test:coverage` | stmts 51.00 % · branches 55.57 % · funcs 55.48 % · lines 51.73 % |
+| Local CLI | `cd apps/local && pytest` | **61 / 61 passing** |
+| Backend lint | `cd apps/api && ruff check .` | 0 errors |
+| Backend format | `cd apps/api && ruff format --check .` | clean |
+| Frontend lint | `cd apps/web && npm run lint` | clean (ESLint flat config) |
+| Frontend type-check | `cd apps/web && npx tsc --noEmit` | clean |
+| Frontend build | `cd apps/web && npm run build` | clean |
+
+**CI (`.github/workflows/ci.yml`) runs three jobs:**
+
+1. **backend** — ruff check + ruff format --check + pytest against apps/api.
+2. **frontend** — tsc, ESLint, Vitest with coverage, next build. Uploads coverage artifact.
+3. **local-cli** — pytest against apps/local.
+
+Playwright browser E2E and axe-based a11y checks are deferred; they are explicitly tracked as maturity work in [docs/MILESTONE_SUMMARY.md](docs/MILESTONE_SUMMARY.md#honest-residual-gaps).
+
+---
+
+## Documentation map
+
+Entry points by audience:
+
+| If you are... | Start here |
+| -------------| ---------- |
+| A reviewer or stakeholder wanting context | this README, then [docs/MILESTONE_SUMMARY.md](docs/MILESTONE_SUMMARY.md) |
+| A new engineer joining the codebase | [docs/REPOSITORY_GUIDE.md](docs/REPOSITORY_GUIDE.md) then [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| About to run or modify the stack | [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md) |
+| Deploying to production | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) |
+| Integrating via the public API or webhooks | [docs/api-ecosystem.md](docs/api-ecosystem.md) |
+| Building dashboards / alerts / reports | [docs/analytics-portfolio.md](docs/analytics-portfolio.md) |
+| Working on code intelligence / dependency graph | [docs/code-intelligence.md](docs/code-intelligence.md) |
+| Auditing tech debt | [docs/TECHNICAL_DEBT.md](docs/TECHNICAL_DEBT.md) |
+| Tracing one milestone end-to-end | [docs/agent-handoffs/](docs/agent-handoffs/) — per-task implementation logs |
+| Reading the V4 product plan | [FORGEMIND_V4_ROADMAP.md](FORGEMIND_V4_ROADMAP.md) |
+| Reading the V1-V3 history | [FORGEMIND_ROADMAP.md](FORGEMIND_ROADMAP.md) |
+
+---
+
+## Where to start in the codebase
+
+| Goal | Open first |
+| ---- | ---------- |
+| Add a new backend endpoint | a sibling file in [apps/api/app/api/routes/](apps/api/app/api/routes/) → include it in [apps/api/app/api/router.py](apps/api/app/api/router.py) → delegate to a service in [apps/api/app/services/](apps/api/app/services/) |
+| Add a new service | [apps/api/app/services/](apps/api/app/services/) — keep all DB + LLM + external I/O here, never in routes |
+| Add a new SQLAlchemy model | a new file in [apps/api/app/models/](apps/api/app/models/) → import in `apps/api/app/db/base.py` → write an Alembic migration in [apps/api/alembic/versions/](apps/api/alembic/versions/) with `down_revision` pointing to the current head |
+| Add a new dashboard page | `apps/web/app/dashboard/<name>/page.tsx` plus an API-client module in `apps/web/lib/<name>.ts`; reuse the layout shell in `apps/web/components/layout/` |
+| Add a new agent | subclass `BaseAgent` in [apps/worker/worker/agents/](apps/worker/worker/agents/) and register it in `registry.py` |
+| Add an LLM call | use `apps/api/app/core/llm.py` (the LiteLLM wrapper) so cost tracking, rate limiting, and replay snapshots apply |
+| Add a migration | always derive `down_revision` from `alembic heads` — the `fm161_170_search_knowledge` breakage showed what happens when a revision sets `down_revision = None` |
+| Add a CLI command to `forgemind` | extend [apps/local/forgemind_local/cli.py](apps/local/forgemind_local/cli.py) + a module in `forgemind_local/` + a test in `apps/local/tests/` |
+| Add a webhook or external integration | [apps/api/app/services/webhook_connector_service.py](apps/api/app/services/webhook_connector_service.py) or a new peer under `services/` + route under `api/routes/api_ecosystem.py` |
+
+---
+
+## Current project status
+
+- **HEAD:** `main` at commit `2a4e8fc` (fix: alembic migration chain).
+- **Functional scope:** FM-001 → FM-210 complete. V4 final tally **30 / 0 / 0**.
+- **Validated tests:** BE 1559, FE 231 / 37 files, local CLI 61 — all passing.
+- **Lint / format / typecheck / build:** clean on all surfaces.
+- **CI:** 3-job pipeline (backend / frontend-with-coverage / local-cli) green on main.
+- **Runtime:** Docker stack + direct-process stack both boot. Smoke validated at `GET /health`, `POST /api/v1/projects`, `GET /dashboard`, `GET /dashboard/projects/<id>`, `GET /dashboard/approvals`.
+- **Known quirks:** migration 0022 duplicate-enum on fresh Postgres (workaround documented in [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md)); Playwright / a11y / visual snapshots remain deferred maturity work.
+
+ForgeMind is ready for: reviewer / stakeholder inspection, new-engineer onboarding, external integration work via the public API, and V5 (FM-211 → FM-250) scoping.
 <div align="center">
 
 # 🔥 ForgeMind
