@@ -20,7 +20,7 @@ export interface TriggerRule {
 }
 
 export async function listSchedules(projectId: string): Promise<CronTrigger[]> {
-  const data = await apiFetch(`/projects/${projectId}/schedules`);
+  const data = await apiFetch<{ items: CronTrigger[] }>(`/projects/${projectId}/schedules`);
   return data.items ?? [];
 }
 
@@ -43,6 +43,6 @@ export async function resumeSchedule(projectId: string, triggerId: string): Prom
 }
 
 export async function listTriggerRules(projectId: string): Promise<TriggerRule[]> {
-  const data = await apiFetch(`/projects/${projectId}/trigger-rules`);
+  const data = await apiFetch<{ items: TriggerRule[] }>(`/projects/${projectId}/trigger-rules`);
   return data.items ?? [];
 }

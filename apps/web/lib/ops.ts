@@ -53,7 +53,7 @@ export interface SecurityFinding {
 }
 
 export async function fetchQueryStats(limit = 20): Promise<QueryStat[]> {
-  const data = await apiFetch(`/admin/query-stats?limit=${limit}`);
+  const data = await apiFetch<{ queries: QueryStat[] }>(`/admin/query-stats?limit=${limit}`);
   return data.queries ?? [];
 }
 
@@ -66,7 +66,7 @@ export async function flushCache(): Promise<void> {
 }
 
 export async function fetchJobs(): Promise<JobInfo[]> {
-  const data = await apiFetch("/admin/jobs");
+  const data = await apiFetch<{ jobs: JobInfo[] }>("/admin/jobs");
   return data.jobs ?? [];
 }
 
@@ -89,7 +89,7 @@ export async function fetchSecurityFindings(
   const params = new URLSearchParams();
   if (opts?.severity) params.set("severity", opts.severity);
   if (opts?.resolved !== undefined) params.set("resolved", String(opts.resolved));
-  const data = await apiFetch(
+  const data = await apiFetch<{ items: SecurityFinding[] }>(
     `/projects/${projectId}/security-findings?${params.toString()}`
   );
   return data.items ?? [];

@@ -25,7 +25,7 @@ export interface SLOResult {
 }
 
 export async function listSLOs(projectId: string): Promise<SLOSummary[]> {
-  const data = await apiFetch(`/projects/${projectId}/slos`);
+  const data = await apiFetch<{ items: SLOSummary[] }>(`/projects/${projectId}/slos`);
   return data.items ?? [];
 }
 
@@ -48,7 +48,7 @@ export async function listAnomalies(
   resolved?: boolean
 ): Promise<unknown[]> {
   const params = resolved !== undefined ? `?resolved=${resolved}` : "";
-  const data = await apiFetch(`/projects/${projectId}/anomalies${params}`);
+  const data = await apiFetch<{ items: unknown[] }>(`/projects/${projectId}/anomalies${params}`);
   return data.items ?? [];
 }
 
