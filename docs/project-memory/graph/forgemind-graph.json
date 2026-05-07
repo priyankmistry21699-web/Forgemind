@@ -7,6 +7,18 @@
       "path": "apps/api/app/api/routes/activity.py"
     },
     {
+      "id": "route:admin",
+      "label": "admin",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/admin.py"
+    },
+    {
+      "id": "route:agent_intelligence",
+      "label": "agent_intelligence",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/agent_intelligence.py"
+    },
+    {
       "id": "route:agents",
       "label": "agents",
       "kind": "Route",
@@ -229,6 +241,18 @@
       "path": "apps/api/app/api/routes/planner_results.py"
     },
     {
+      "id": "route:platform_intelligence",
+      "label": "platform_intelligence",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/platform_intelligence.py"
+    },
+    {
+      "id": "route:platform_ops",
+      "label": "platform_ops",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/platform_ops.py"
+    },
+    {
       "id": "route:project_templates",
       "label": "project_templates",
       "kind": "Route",
@@ -281,6 +305,12 @@
       "label": "saved_views",
       "kind": "Route",
       "path": "apps/api/app/api/routes/saved_views.py"
+    },
+    {
+      "id": "route:scheduling",
+      "label": "scheduling",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/scheduling.py"
     },
     {
       "id": "route:search_knowledge",
@@ -337,10 +367,34 @@
       "path": "apps/api/app/services/adr_service.py"
     },
     {
+      "id": "service:agent_memory_service",
+      "label": "agent_memory_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/agent_memory_service.py"
+    },
+    {
+      "id": "service:agent_performance_service",
+      "label": "agent_performance_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/agent_performance_service.py"
+    },
+    {
       "id": "service:agent_service",
       "label": "agent_service",
       "kind": "Service",
       "path": "apps/api/app/services/agent_service.py"
+    },
+    {
+      "id": "service:agent_stream_service",
+      "label": "agent_stream_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/agent_stream_service.py"
+    },
+    {
+      "id": "service:anomaly_service",
+      "label": "anomaly_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/anomaly_service.py"
     },
     {
       "id": "service:api_key_service",
@@ -485,6 +539,12 @@
       "label": "convention_service",
       "kind": "Service",
       "path": "apps/api/app/services/convention_service.py"
+    },
+    {
+      "id": "service:cost_forecast_service",
+      "label": "cost_forecast_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/cost_forecast_service.py"
     },
     {
       "id": "service:cost_tracking_service",
@@ -661,6 +721,12 @@
       "path": "apps/api/app/services/knowledge_service.py"
     },
     {
+      "id": "service:llm_cost_service",
+      "label": "llm_cost_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/llm_cost_service.py"
+    },
+    {
       "id": "service:membership_service",
       "label": "membership_service",
       "kind": "Service",
@@ -715,6 +781,12 @@
       "path": "apps/api/app/services/phase_agent_profile_service.py"
     },
     {
+      "id": "service:pii_service",
+      "label": "pii_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/pii_service.py"
+    },
+    {
       "id": "service:plan_artifact_service",
       "label": "plan_artifact_service",
       "kind": "Service",
@@ -725,6 +797,12 @@
       "label": "planner_service",
       "kind": "Service",
       "path": "apps/api/app/services/planner_service.py"
+    },
+    {
+      "id": "service:platform_admin_service",
+      "label": "platform_admin_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/platform_admin_service.py"
     },
     {
       "id": "service:post_release_service",
@@ -755,6 +833,18 @@
       "label": "project_template_service",
       "kind": "Service",
       "path": "apps/api/app/services/project_template_service.py"
+    },
+    {
+      "id": "service:prompt_version_service",
+      "label": "prompt_version_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/prompt_version_service.py"
+    },
+    {
+      "id": "service:quota_service",
+      "label": "quota_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/quota_service.py"
     },
     {
       "id": "service:recommendation_service",
@@ -847,6 +937,12 @@
       "path": "apps/api/app/services/saved_view_service.py"
     },
     {
+      "id": "service:schedule_service",
+      "label": "schedule_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/schedule_service.py"
+    },
+    {
       "id": "service:search_service",
       "label": "search_service",
       "kind": "Service",
@@ -857,6 +953,12 @@
       "label": "slash_command_service",
       "kind": "Service",
       "path": "apps/api/app/services/slash_command_service.py"
+    },
+    {
+      "id": "service:slo_service",
+      "label": "slo_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/slo_service.py"
     },
     {
       "id": "service:spec_plan_approval_service",
@@ -881,6 +983,12 @@
       "label": "sso_configuration_service",
       "kind": "Service",
       "path": "apps/api/app/services/sso_configuration_service.py"
+    },
+    {
+      "id": "service:storage_service",
+      "label": "storage_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/storage_service.py"
     },
     {
       "id": "service:stream_service",
@@ -977,6 +1085,12 @@
       "label": "agent",
       "kind": "Model",
       "path": "apps/api/app/models/agent.py"
+    },
+    {
+      "id": "model:agent_intelligence",
+      "label": "agent_intelligence",
+      "kind": "Model",
+      "path": "apps/api/app/models/agent_intelligence.py"
     },
     {
       "id": "model:analytics_metrics",
@@ -1123,6 +1237,18 @@
       "path": "apps/api/app/models/planner_result.py"
     },
     {
+      "id": "model:platform_intelligence",
+      "label": "platform_intelligence",
+      "kind": "Model",
+      "path": "apps/api/app/models/platform_intelligence.py"
+    },
+    {
+      "id": "model:platform_ops",
+      "label": "platform_ops",
+      "kind": "Model",
+      "path": "apps/api/app/models/platform_ops.py"
+    },
+    {
       "id": "model:project",
       "label": "project",
       "kind": "Model",
@@ -1187,6 +1313,12 @@
       "label": "saved_view",
       "kind": "Model",
       "path": "apps/api/app/models/saved_view.py"
+    },
+    {
+      "id": "model:scheduling",
+      "label": "scheduling",
+      "kind": "Model",
+      "path": "apps/api/app/models/scheduling.py"
     },
     {
       "id": "model:search_knowledge",
@@ -1525,6 +1657,12 @@
       "path": "apps/web/lib/constitution.ts"
     },
     {
+      "id": "lib:cost-attribution",
+      "label": "cost-attribution",
+      "kind": "LibClient",
+      "path": "apps/web/lib/cost-attribution.ts"
+    },
+    {
       "id": "lib:costs",
       "label": "costs",
       "kind": "LibClient",
@@ -1573,6 +1711,12 @@
       "path": "apps/web/lib/notifications.ts"
     },
     {
+      "id": "lib:ops",
+      "label": "ops",
+      "kind": "LibClient",
+      "path": "apps/web/lib/ops.ts"
+    },
+    {
       "id": "lib:phase-profiles",
       "label": "phase-profiles",
       "kind": "LibClient",
@@ -1613,6 +1757,18 @@
       "label": "runs",
       "kind": "LibClient",
       "path": "apps/web/lib/runs.ts"
+    },
+    {
+      "id": "lib:schedules",
+      "label": "schedules",
+      "kind": "LibClient",
+      "path": "apps/web/lib/schedules.ts"
+    },
+    {
+      "id": "lib:slos",
+      "label": "slos",
+      "kind": "LibClient",
+      "path": "apps/web/lib/slos.ts"
     },
     {
       "id": "lib:stream",
@@ -1705,6 +1861,12 @@
       "path": "apps/web/app/dashboard/connectors"
     },
     {
+      "id": "page:cost-analysis",
+      "label": "cost-analysis",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/cost-analysis"
+    },
+    {
       "id": "page:costs",
       "label": "costs",
       "kind": "Page",
@@ -1715,12 +1877,6 @@
       "label": "council",
       "kind": "Page",
       "path": "apps/web/app/dashboard/council"
-    },
-    {
-      "id": "page:dashboard",
-      "label": "dashboard",
-      "kind": "Page",
-      "path": "apps/web/app/dashboard"
     },
     {
       "id": "page:escalations",
@@ -1745,6 +1901,12 @@
       "label": "notifications",
       "kind": "Page",
       "path": "apps/web/app/dashboard/notifications"
+    },
+    {
+      "id": "page:ops",
+      "label": "ops",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/ops"
     },
     {
       "id": "page:projects",
@@ -1783,10 +1945,22 @@
       "path": "apps/web/app/dashboard/sandbox"
     },
     {
+      "id": "page:schedules",
+      "label": "schedules",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/schedules"
+    },
+    {
       "id": "page:settings",
       "label": "settings",
       "kind": "Page",
       "path": "apps/web/app/dashboard/settings"
+    },
+    {
+      "id": "page:slos",
+      "label": "slos",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/slos"
     },
     {
       "id": "page:trust",
@@ -1817,6 +1991,36 @@
       "source": "route:activity",
       "target": "schema:activity",
       "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:agent_intelligence",
+      "target": "service:agent_stream_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:agent_intelligence",
+      "target": "service:llm_cost_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:agent_intelligence",
+      "target": "model:agent_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:agent_intelligence",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:agent_intelligence",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:agent_intelligence",
+      "target": "model:task",
+      "kind": "PERSISTS"
     },
     {
       "source": "route:agents",
@@ -1860,6 +2064,11 @@
     },
     {
       "source": "route:approvals",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:approvals",
       "target": "model:approval_request",
       "kind": "PERSISTS"
     },
@@ -1870,12 +2079,12 @@
     },
     {
       "source": "route:architecture",
-      "target": "schema:architecture",
+      "target": "schema:approval",
       "kind": "VALIDATES_WITH"
     },
     {
       "source": "route:architecture",
-      "target": "schema:approval",
+      "target": "schema:architecture",
       "kind": "VALIDATES_WITH"
     },
     {
@@ -1885,8 +2094,18 @@
     },
     {
       "source": "route:artifacts",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:artifacts",
       "target": "schema:artifact",
       "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:artifacts",
+      "target": "model:run",
+      "kind": "PERSISTS"
     },
     {
       "source": "route:audit",
@@ -1980,12 +2199,12 @@
     },
     {
       "source": "route:connectors",
-      "target": "model:run",
+      "target": "model:planner_result",
       "kind": "PERSISTS"
     },
     {
       "source": "route:connectors",
-      "target": "model:planner_result",
+      "target": "model:run",
       "kind": "PERSISTS"
     },
     {
@@ -2085,12 +2304,12 @@
     },
     {
       "source": "route:enterprise_governance",
-      "target": "model:enterprise_governance",
+      "target": "model:workspace",
       "kind": "PERSISTS"
     },
     {
       "source": "route:enterprise_governance",
-      "target": "model:workspace",
+      "target": "model:enterprise_governance",
       "kind": "PERSISTS"
     },
     {
@@ -2115,6 +2334,11 @@
     },
     {
       "source": "route:github_integration",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:github_integration",
       "target": "service:github_client",
       "kind": "CALLS"
     },
@@ -2126,6 +2350,16 @@
     {
       "source": "route:github_integration",
       "target": "model:github_integration",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:github_integration",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:github_integration",
+      "target": "model:project",
       "kind": "PERSISTS"
     },
     {
@@ -2200,12 +2434,92 @@
     },
     {
       "source": "route:planner_results",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:planner_results",
       "target": "schema:planner_result",
       "kind": "VALIDATES_WITH"
     },
     {
       "source": "route:planner_results",
       "target": "model:planner_result",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:planner_results",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:platform_intelligence",
+      "target": "service:agent_performance_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:platform_intelligence",
+      "target": "service:slo_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:platform_intelligence",
+      "target": "service:anomaly_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:platform_intelligence",
+      "target": "service:cost_forecast_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:platform_intelligence",
+      "target": "service:prompt_version_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:platform_intelligence",
+      "target": "model:platform_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:platform_intelligence",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:platform_intelligence",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:platform_ops",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:platform_ops",
+      "target": "service:quota_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:platform_ops",
+      "target": "service:platform_admin_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:platform_ops",
+      "target": "service:pii_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:platform_ops",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:platform_ops",
+      "target": "model:enterprise_governance",
       "kind": "PERSISTS"
     },
     {
@@ -2279,6 +2593,21 @@
       "kind": "CALLS"
     },
     {
+      "source": "route:retry",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:retry",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:retry",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
       "source": "route:run_lifecycle",
       "target": "service:authz_service",
       "kind": "CALLS"
@@ -2314,6 +2643,11 @@
       "kind": "VALIDATES_WITH"
     },
     {
+      "source": "route:scheduling",
+      "target": "model:scheduling",
+      "kind": "PERSISTS"
+    },
+    {
       "source": "route:search_knowledge",
       "target": "service:authz_service",
       "kind": "CALLS"
@@ -2325,17 +2659,27 @@
     },
     {
       "source": "route:search_knowledge",
-      "target": "model:project_knowledge",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "route:search_knowledge",
       "target": "model:search_knowledge",
       "kind": "PERSISTS"
     },
     {
       "source": "route:search_knowledge",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:search_knowledge",
       "target": "model:project_template",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:search_knowledge",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:search_knowledge",
+      "target": "model:project_knowledge",
       "kind": "PERSISTS"
     },
     {
@@ -2385,7 +2729,17 @@
     },
     {
       "source": "service:adaptive_orchestrator",
+      "target": "model:agent_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:adaptive_orchestrator",
       "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:adaptive_orchestrator",
+      "target": "model:run",
       "kind": "PERSISTS"
     },
     {
@@ -2395,12 +2749,17 @@
     },
     {
       "source": "service:adaptive_orchestrator",
-      "target": "model:run",
+      "target": "model:execution_event",
       "kind": "PERSISTS"
     },
     {
-      "source": "service:adaptive_orchestrator",
+      "source": "service:adaptive_retry_service",
       "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:adaptive_retry_service",
+      "target": "model:run",
       "kind": "PERSISTS"
     },
     {
@@ -2409,23 +2768,58 @@
       "kind": "PERSISTS"
     },
     {
-      "source": "service:adaptive_retry_service",
-      "target": "model:run",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:adaptive_retry_service",
-      "target": "model:execution_event",
-      "kind": "PERSISTS"
-    },
-    {
       "source": "service:adr_service",
       "target": "model:architecture",
       "kind": "PERSISTS"
     },
     {
+      "source": "service:agent_memory_service",
+      "target": "model:agent_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:agent_performance_service",
+      "target": "model:platform_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:agent_performance_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:agent_performance_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:agent_performance_service",
+      "target": "model:agent_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
       "source": "service:agent_service",
       "target": "model:agent",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:anomaly_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:anomaly_service",
+      "target": "model:platform_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:anomaly_service",
+      "target": "model:agent_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:anomaly_service",
+      "target": "model:run",
       "kind": "PERSISTS"
     },
     {
@@ -2435,7 +2829,7 @@
     },
     {
       "source": "service:approval_enhanced_service",
-      "target": "model:approval_request",
+      "target": "model:approval_delegation",
       "kind": "PERSISTS"
     },
     {
@@ -2445,13 +2839,18 @@
     },
     {
       "source": "service:approval_enhanced_service",
-      "target": "model:approval_delegation",
+      "target": "model:approval_request",
       "kind": "PERSISTS"
     },
     {
       "source": "service:approval_service",
       "target": "service:stream_service",
       "kind": "DEPENDS_ON"
+    },
+    {
+      "source": "service:approval_service",
+      "target": "model:membership",
+      "kind": "PERSISTS"
     },
     {
       "source": "service:approval_service",
@@ -2505,22 +2904,22 @@
     },
     {
       "source": "service:authz_service",
-      "target": "model:enterprise_governance",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:authz_service",
       "target": "model:membership",
       "kind": "PERSISTS"
     },
     {
-      "source": "service:background_scheduler",
-      "target": "model:workspace",
+      "source": "service:authz_service",
+      "target": "model:enterprise_governance",
       "kind": "PERSISTS"
     },
     {
       "source": "service:background_scheduler",
       "target": "model:analytics_metrics",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:background_scheduler",
+      "target": "model:workspace",
       "kind": "PERSISTS"
     },
     {
@@ -2555,7 +2954,7 @@
     },
     {
       "source": "service:compliance_report_service",
-      "target": "model:enterprise_governance",
+      "target": "model:project",
       "kind": "PERSISTS"
     },
     {
@@ -2570,12 +2969,7 @@
     },
     {
       "source": "service:compliance_report_service",
-      "target": "model:project",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:composition_service",
-      "target": "model:phase_agent_profile",
+      "target": "model:enterprise_governance",
       "kind": "PERSISTS"
     },
     {
@@ -2584,8 +2978,13 @@
       "kind": "PERSISTS"
     },
     {
+      "source": "service:composition_service",
+      "target": "model:phase_agent_profile",
+      "kind": "PERSISTS"
+    },
+    {
       "source": "service:connector_service",
-      "target": "model:connector",
+      "target": "model:project_connector_link",
       "kind": "PERSISTS"
     },
     {
@@ -2595,12 +2994,7 @@
     },
     {
       "source": "service:connector_service",
-      "target": "model:project_connector_link",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:constitution_service",
-      "target": "model:execution_event",
+      "target": "model:connector",
       "kind": "PERSISTS"
     },
     {
@@ -2609,13 +3003,18 @@
       "kind": "PERSISTS"
     },
     {
-      "source": "service:constitution_suggestion_service",
-      "target": "model:task",
+      "source": "service:constitution_service",
+      "target": "model:execution_event",
       "kind": "PERSISTS"
     },
     {
       "source": "service:constitution_suggestion_service",
       "target": "model:project_knowledge",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:constitution_suggestion_service",
+      "target": "model:task",
       "kind": "PERSISTS"
     },
     {
@@ -2630,7 +3029,7 @@
     },
     {
       "source": "service:convention_service",
-      "target": "model:task",
+      "target": "model:search_knowledge",
       "kind": "PERSISTS"
     },
     {
@@ -2645,7 +3044,22 @@
     },
     {
       "source": "service:convention_service",
-      "target": "model:search_knowledge",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:cost_forecast_service",
+      "target": "model:platform_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:cost_forecast_service",
+      "target": "model:agent_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:cost_forecast_service",
+      "target": "model:run",
       "kind": "PERSISTS"
     },
     {
@@ -2680,12 +3094,7 @@
     },
     {
       "source": "service:delivery_artifact_service",
-      "target": "model:approval_request",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:delivery_artifact_service",
-      "target": "model:run",
+      "target": "model:artifact",
       "kind": "PERSISTS"
     },
     {
@@ -2695,7 +3104,12 @@
     },
     {
       "source": "service:delivery_artifact_service",
-      "target": "model:artifact",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:delivery_artifact_service",
+      "target": "model:approval_request",
       "kind": "PERSISTS"
     },
     {
@@ -2705,22 +3119,7 @@
     },
     {
       "source": "service:deployment_readiness_service",
-      "target": "model:approval_request",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:deployment_readiness_service",
-      "target": "model:release_ops",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:deployment_readiness_service",
-      "target": "model:run",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:deployment_readiness_service",
-      "target": "model:task",
+      "target": "model:execution_checkpoint",
       "kind": "PERSISTS"
     },
     {
@@ -2730,7 +3129,22 @@
     },
     {
       "source": "service:deployment_readiness_service",
-      "target": "model:execution_checkpoint",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:deployment_readiness_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:deployment_readiness_service",
+      "target": "model:release_ops",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:deployment_readiness_service",
+      "target": "model:task",
       "kind": "PERSISTS"
     },
     {
@@ -2741,6 +3155,16 @@
     {
       "source": "service:drift_detection_service",
       "target": "model:architecture",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:email_service",
+      "target": "model:notification",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:email_service",
+      "target": "model:user",
       "kind": "PERSISTS"
     },
     {
@@ -2770,22 +3194,7 @@
     },
     {
       "source": "service:execution_checkpoint_service",
-      "target": "model:approval_request",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:execution_checkpoint_service",
-      "target": "model:run",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:execution_checkpoint_service",
-      "target": "model:task",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:execution_checkpoint_service",
-      "target": "model:artifact",
+      "target": "model:execution_checkpoint",
       "kind": "PERSISTS"
     },
     {
@@ -2795,7 +3204,22 @@
     },
     {
       "source": "service:execution_checkpoint_service",
-      "target": "model:execution_checkpoint",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_checkpoint_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_checkpoint_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_checkpoint_service",
+      "target": "model:task",
       "kind": "PERSISTS"
     },
     {
@@ -2805,27 +3229,22 @@
     },
     {
       "source": "service:execution_health_service",
-      "target": "model:code_intelligence",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:execution_health_service",
-      "target": "model:run",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:execution_health_service",
       "target": "model:analytics_metrics",
       "kind": "PERSISTS"
     },
     {
-      "source": "service:execution_service",
+      "source": "service:execution_health_service",
       "target": "model:run",
       "kind": "PERSISTS"
     },
     {
+      "source": "service:execution_health_service",
+      "target": "model:code_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
       "source": "service:execution_service",
-      "target": "model:task",
+      "target": "model:execution_checkpoint",
       "kind": "PERSISTS"
     },
     {
@@ -2835,12 +3254,17 @@
     },
     {
       "source": "service:execution_service",
-      "target": "model:execution_event",
+      "target": "model:task",
       "kind": "PERSISTS"
     },
     {
       "source": "service:execution_service",
-      "target": "model:execution_checkpoint",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_service",
+      "target": "model:execution_event",
       "kind": "PERSISTS"
     },
     {
@@ -2860,17 +3284,17 @@
     },
     {
       "source": "service:governance_engine_service",
-      "target": "model:enterprise_governance",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:governance_engine_service",
       "target": "model:governance_policy",
       "kind": "PERSISTS"
     },
     {
       "source": "service:governance_engine_service",
       "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:governance_engine_service",
+      "target": "model:enterprise_governance",
       "kind": "PERSISTS"
     },
     {
@@ -2885,17 +3309,17 @@
     },
     {
       "source": "service:integration_service",
-      "target": "model:task",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:integration_service",
       "target": "model:run",
       "kind": "PERSISTS"
     },
     {
       "source": "service:integration_service",
       "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:integration_service",
+      "target": "model:task",
       "kind": "PERSISTS"
     },
     {
@@ -2910,12 +3334,7 @@
     },
     {
       "source": "service:knowledge_service",
-      "target": "model:task",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:knowledge_service",
-      "target": "model:project_knowledge",
+      "target": "model:planner_result",
       "kind": "PERSISTS"
     },
     {
@@ -2925,7 +3344,17 @@
     },
     {
       "source": "service:knowledge_service",
-      "target": "model:planner_result",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:knowledge_service",
+      "target": "model:project_knowledge",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:llm_cost_service",
+      "target": "model:agent_intelligence",
       "kind": "PERSISTS"
     },
     {
@@ -2950,17 +3379,17 @@
     },
     {
       "source": "service:merge_readiness_service",
-      "target": "model:task",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:merge_readiness_service",
       "target": "model:github_integration",
       "kind": "PERSISTS"
     },
     {
       "source": "service:merge_readiness_service",
       "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:merge_readiness_service",
+      "target": "model:task",
       "kind": "PERSISTS"
     },
     {
@@ -2980,17 +3409,7 @@
     },
     {
       "source": "service:operational_timeline_service",
-      "target": "model:approval_request",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:operational_timeline_service",
-      "target": "model:release_ops",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:operational_timeline_service",
-      "target": "model:run",
+      "target": "model:execution_checkpoint",
       "kind": "PERSISTS"
     },
     {
@@ -3000,12 +3419,22 @@
     },
     {
       "source": "service:operational_timeline_service",
-      "target": "model:execution_event",
+      "target": "model:approval_request",
       "kind": "PERSISTS"
     },
     {
       "source": "service:operational_timeline_service",
-      "target": "model:execution_checkpoint",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:operational_timeline_service",
+      "target": "model:release_ops",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:operational_timeline_service",
+      "target": "model:execution_event",
       "kind": "PERSISTS"
     },
     {
@@ -3020,12 +3449,22 @@
     },
     {
       "source": "service:phase_agent_profile_service",
-      "target": "model:phase_agent_profile",
+      "target": "model:agent",
       "kind": "PERSISTS"
     },
     {
       "source": "service:phase_agent_profile_service",
-      "target": "model:agent",
+      "target": "model:phase_agent_profile",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:pii_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:pii_service",
+      "target": "model:platform_ops",
       "kind": "PERSISTS"
     },
     {
@@ -3040,12 +3479,12 @@
     },
     {
       "source": "service:plan_artifact_service",
-      "target": "model:execution_event",
+      "target": "model:project",
       "kind": "PERSISTS"
     },
     {
       "source": "service:plan_artifact_service",
-      "target": "model:project",
+      "target": "model:execution_event",
       "kind": "PERSISTS"
     },
     {
@@ -3055,7 +3494,7 @@
     },
     {
       "source": "service:planner_service",
-      "target": "model:run",
+      "target": "model:artifact",
       "kind": "PERSISTS"
     },
     {
@@ -3065,22 +3504,67 @@
     },
     {
       "source": "service:planner_service",
+      "target": "model:planner_result",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:planner_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:planner_service",
       "target": "model:task",
       "kind": "PERSISTS"
     },
     {
-      "source": "service:planner_service",
+      "source": "service:platform_admin_service",
+      "target": "model:agent_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:platform_admin_service",
+      "target": "model:user",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:platform_admin_service",
+      "target": "model:workspace",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:platform_admin_service",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:platform_admin_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:post_release_service",
+      "target": "model:execution_checkpoint",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:post_release_service",
       "target": "model:artifact",
       "kind": "PERSISTS"
     },
     {
-      "source": "service:planner_service",
-      "target": "model:planner_result",
+      "source": "service:post_release_service",
+      "target": "model:task",
       "kind": "PERSISTS"
     },
     {
       "source": "service:post_release_service",
       "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:post_release_service",
+      "target": "model:run",
       "kind": "PERSISTS"
     },
     {
@@ -3090,27 +3574,7 @@
     },
     {
       "source": "service:post_release_service",
-      "target": "model:run",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:post_release_service",
-      "target": "model:task",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:post_release_service",
-      "target": "model:artifact",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:post_release_service",
       "target": "model:execution_event",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:post_release_service",
-      "target": "model:execution_checkpoint",
       "kind": "PERSISTS"
     },
     {
@@ -3120,12 +3584,12 @@
     },
     {
       "source": "service:project_overview_service",
-      "target": "model:approval_request",
+      "target": "model:membership",
       "kind": "PERSISTS"
     },
     {
       "source": "service:project_overview_service",
-      "target": "model:membership",
+      "target": "model:project",
       "kind": "PERSISTS"
     },
     {
@@ -3135,7 +3599,7 @@
     },
     {
       "source": "service:project_overview_service",
-      "target": "model:project",
+      "target": "model:approval_request",
       "kind": "PERSISTS"
     },
     {
@@ -3150,17 +3614,57 @@
     },
     {
       "source": "service:project_service",
-      "target": "model:membership",
+      "target": "model:project",
       "kind": "PERSISTS"
     },
     {
       "source": "service:project_service",
-      "target": "model:project",
+      "target": "model:membership",
       "kind": "PERSISTS"
     },
     {
       "source": "service:project_template_service",
       "target": "model:project_template",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:prompt_version_service",
+      "target": "model:platform_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:quota_service",
+      "target": "model:platform_ops",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:quota_service",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:quota_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:recommendation_service",
+      "target": "model:search_knowledge",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:recommendation_service",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:recommendation_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:recommendation_service",
+      "target": "model:run",
       "kind": "PERSISTS"
     },
     {
@@ -3174,43 +3678,13 @@
       "kind": "PERSISTS"
     },
     {
-      "source": "service:recommendation_service",
-      "target": "model:search_knowledge",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:recommendation_service",
-      "target": "model:run",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:recommendation_service",
-      "target": "model:project",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:recommendation_service",
-      "target": "model:task",
-      "kind": "PERSISTS"
-    },
-    {
       "source": "service:refactor_recommendation_service",
       "target": "model:architecture",
       "kind": "PERSISTS"
     },
     {
       "source": "service:release_confidence_service",
-      "target": "model:approval_request",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:release_confidence_service",
-      "target": "model:run",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:release_confidence_service",
-      "target": "model:task",
+      "target": "model:execution_checkpoint",
       "kind": "PERSISTS"
     },
     {
@@ -3220,12 +3694,37 @@
     },
     {
       "source": "service:release_confidence_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_confidence_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_confidence_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_gate_service",
       "target": "model:execution_checkpoint",
       "kind": "PERSISTS"
     },
     {
       "source": "service:release_gate_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_gate_service",
       "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_gate_service",
+      "target": "model:run",
       "kind": "PERSISTS"
     },
     {
@@ -3235,22 +3734,22 @@
     },
     {
       "source": "service:release_gate_service",
-      "target": "model:run",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:release_gate_service",
       "target": "model:task",
       "kind": "PERSISTS"
     },
     {
-      "source": "service:release_gate_service",
+      "source": "service:release_package_service",
+      "target": "model:execution_checkpoint",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_package_service",
       "target": "model:artifact",
       "kind": "PERSISTS"
     },
     {
-      "source": "service:release_gate_service",
-      "target": "model:execution_checkpoint",
+      "source": "service:release_package_service",
+      "target": "model:run",
       "kind": "PERSISTS"
     },
     {
@@ -3260,22 +3759,7 @@
     },
     {
       "source": "service:release_package_service",
-      "target": "model:run",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:release_package_service",
       "target": "model:task",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:release_package_service",
-      "target": "model:artifact",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:release_package_service",
-      "target": "model:execution_checkpoint",
       "kind": "PERSISTS"
     },
     {
@@ -3290,22 +3774,12 @@
     },
     {
       "source": "service:retention_policy_service",
-      "target": "model:enterprise_governance",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:retention_policy_service",
-      "target": "model:notification",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:retention_policy_service",
       "target": "model:membership",
       "kind": "PERSISTS"
     },
     {
       "source": "service:retention_policy_service",
-      "target": "model:run",
+      "target": "model:artifact",
       "kind": "PERSISTS"
     },
     {
@@ -3315,17 +3789,27 @@
     },
     {
       "source": "service:retention_policy_service",
-      "target": "model:artifact",
+      "target": "model:notification",
       "kind": "PERSISTS"
     },
     {
-      "source": "service:rollback_readiness_service",
-      "target": "model:release_ops",
+      "source": "service:retention_policy_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:retention_policy_service",
+      "target": "model:enterprise_governance",
       "kind": "PERSISTS"
     },
     {
       "source": "service:rollback_readiness_service",
       "target": "model:execution_checkpoint",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:rollback_readiness_service",
+      "target": "model:release_ops",
       "kind": "PERSISTS"
     },
     {
@@ -3335,11 +3819,6 @@
     },
     {
       "source": "service:run_comparison_service",
-      "target": "model:task",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:run_comparison_service",
       "target": "model:artifact",
       "kind": "PERSISTS"
     },
@@ -3349,23 +3828,8 @@
       "kind": "PERSISTS"
     },
     {
-      "source": "service:run_lifecycle_service",
-      "target": "model:run",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:run_lifecycle_service",
+      "source": "service:run_comparison_service",
       "target": "model:task",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:run_lifecycle_service",
-      "target": "model:artifact",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:run_lifecycle_service",
-      "target": "model:execution_event",
       "kind": "PERSISTS"
     },
     {
@@ -3374,27 +3838,22 @@
       "kind": "PERSISTS"
     },
     {
-      "source": "service:run_memory_enrichment_service",
-      "target": "model:approval_request",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:run_memory_enrichment_service",
-      "target": "model:run",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:run_memory_enrichment_service",
-      "target": "model:task",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:run_memory_enrichment_service",
+      "source": "service:run_lifecycle_service",
       "target": "model:artifact",
       "kind": "PERSISTS"
     },
     {
-      "source": "service:run_memory_enrichment_service",
+      "source": "service:run_lifecycle_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_lifecycle_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_lifecycle_service",
       "target": "model:execution_event",
       "kind": "PERSISTS"
     },
@@ -3404,13 +3863,33 @@
       "kind": "PERSISTS"
     },
     {
-      "source": "service:run_memory_service",
+      "source": "service:run_memory_enrichment_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_memory_enrichment_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_memory_enrichment_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_memory_enrichment_service",
       "target": "model:approval_request",
       "kind": "PERSISTS"
     },
     {
+      "source": "service:run_memory_enrichment_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
       "source": "service:run_memory_service",
-      "target": "model:run",
+      "target": "model:artifact",
       "kind": "PERSISTS"
     },
     {
@@ -3420,7 +3899,12 @@
     },
     {
       "source": "service:run_memory_service",
-      "target": "model:artifact",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_memory_service",
+      "target": "model:approval_request",
       "kind": "PERSISTS"
     },
     {
@@ -3434,13 +3918,13 @@
       "kind": "PERSISTS"
     },
     {
-      "source": "service:search_service",
-      "target": "model:approval_request",
+      "source": "service:schedule_service",
+      "target": "model:scheduling",
       "kind": "PERSISTS"
     },
     {
       "source": "service:search_service",
-      "target": "model:project_knowledge",
+      "target": "model:comment",
       "kind": "PERSISTS"
     },
     {
@@ -3450,27 +3934,17 @@
     },
     {
       "source": "service:search_service",
-      "target": "model:membership",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:search_service",
-      "target": "model:run",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:search_service",
-      "target": "model:project",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:search_service",
       "target": "model:run_annotation",
       "kind": "PERSISTS"
     },
     {
       "source": "service:search_service",
-      "target": "model:task",
+      "target": "model:membership",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:search_service",
+      "target": "model:project_knowledge",
       "kind": "PERSISTS"
     },
     {
@@ -3480,7 +3954,27 @@
     },
     {
       "source": "service:search_service",
-      "target": "model:comment",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:search_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:search_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:search_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:slash_command_service",
+      "target": "model:run",
       "kind": "PERSISTS"
     },
     {
@@ -3489,8 +3983,28 @@
       "kind": "PERSISTS"
     },
     {
-      "source": "service:slash_command_service",
+      "source": "service:slo_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:slo_service",
+      "target": "model:platform_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:slo_service",
       "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:slo_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:spec_plan_approval_service",
+      "target": "model:artifact",
       "kind": "PERSISTS"
     },
     {
@@ -3499,11 +4013,6 @@
       "kind": "PERSISTS"
     },
     {
-      "source": "service:spec_plan_approval_service",
-      "target": "model:artifact",
-      "kind": "PERSISTS"
-    },
-    {
       "source": "service:spec_service",
       "target": "model:artifact",
       "kind": "PERSISTS"
@@ -3515,22 +4024,22 @@
     },
     {
       "source": "service:spec_service",
-      "target": "model:execution_event",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:spec_service",
       "target": "model:project",
       "kind": "PERSISTS"
     },
     {
-      "source": "service:sso_configuration_service",
-      "target": "model:workspace",
+      "source": "service:spec_service",
+      "target": "model:execution_event",
       "kind": "PERSISTS"
     },
     {
       "source": "service:sso_configuration_service",
       "target": "model:sso_configuration",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:sso_configuration_service",
+      "target": "model:workspace",
       "kind": "PERSISTS"
     },
     {
@@ -3545,21 +4054,16 @@
     },
     {
       "source": "service:task_assignment_service",
-      "target": "model:task",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:task_assignment_service",
-      "target": "model:run",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:task_assignment_service",
       "target": "model:execution_event",
       "kind": "PERSISTS"
     },
     {
-      "source": "service:task_service",
+      "source": "service:task_assignment_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:task_assignment_service",
       "target": "model:task",
       "kind": "PERSISTS"
     },
@@ -3569,8 +4073,13 @@
       "kind": "PERSISTS"
     },
     {
+      "source": "service:task_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
       "source": "service:template_inheritance_service",
-      "target": "model:phase_agent_profile",
+      "target": "model:project_template",
       "kind": "PERSISTS"
     },
     {
@@ -3585,7 +4094,7 @@
     },
     {
       "source": "service:template_inheritance_service",
-      "target": "model:project_template",
+      "target": "model:phase_agent_profile",
       "kind": "PERSISTS"
     },
     {
@@ -3595,12 +4104,7 @@
     },
     {
       "source": "service:traceability_service",
-      "target": "model:run",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:traceability_service",
-      "target": "model:task",
+      "target": "model:execution_checkpoint",
       "kind": "PERSISTS"
     },
     {
@@ -3615,11 +4119,11 @@
     },
     {
       "source": "service:traceability_service",
-      "target": "model:execution_checkpoint",
+      "target": "model:run",
       "kind": "PERSISTS"
     },
     {
-      "source": "service:trust_scoring_service",
+      "source": "service:traceability_service",
       "target": "model:task",
       "kind": "PERSISTS"
     },
@@ -3631,6 +4135,11 @@
     {
       "source": "service:trust_scoring_service",
       "target": "model:trust_score",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:trust_scoring_service",
+      "target": "model:task",
       "kind": "PERSISTS"
     },
     {
@@ -3650,22 +4159,12 @@
     },
     {
       "source": "service:velocity_quality_service",
-      "target": "model:approval_request",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:velocity_quality_service",
       "target": "model:analytics_metrics",
       "kind": "PERSISTS"
     },
     {
       "source": "service:velocity_quality_service",
-      "target": "model:run",
-      "kind": "PERSISTS"
-    },
-    {
-      "source": "service:velocity_quality_service",
-      "target": "model:task",
+      "target": "model:code_intelligence",
       "kind": "PERSISTS"
     },
     {
@@ -3675,7 +4174,17 @@
     },
     {
       "source": "service:velocity_quality_service",
-      "target": "model:code_intelligence",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:velocity_quality_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:velocity_quality_service",
+      "target": "model:task",
       "kind": "PERSISTS"
     },
     {
@@ -3859,6 +4368,16 @@
       "kind": "USES"
     },
     {
+      "source": "page:ops",
+      "target": "lib:ops",
+      "kind": "USES"
+    },
+    {
+      "source": "page:ops",
+      "target": "lib:ops",
+      "kind": "USES"
+    },
+    {
       "source": "page:projects",
       "target": "lib:projects",
       "kind": "USES"
@@ -3891,6 +4410,26 @@
     {
       "source": "page:runs",
       "target": "lib:runs",
+      "kind": "USES"
+    },
+    {
+      "source": "page:schedules",
+      "target": "lib:schedules",
+      "kind": "USES"
+    },
+    {
+      "source": "page:schedules",
+      "target": "lib:schedules",
+      "kind": "USES"
+    },
+    {
+      "source": "page:slos",
+      "target": "lib:slos",
+      "kind": "USES"
+    },
+    {
+      "source": "page:slos",
+      "target": "lib:slos",
       "kind": "USES"
     },
     {
@@ -3931,16 +4470,6 @@
     {
       "source": "page:workspaces",
       "target": "lib:workspaces",
-      "kind": "USES"
-    },
-    {
-      "source": "page:dashboard",
-      "target": "lib:projects",
-      "kind": "USES"
-    },
-    {
-      "source": "page:dashboard",
-      "target": "lib:approvals",
       "kind": "USES"
     },
     {
@@ -4125,20 +4654,20 @@
     }
   ],
   "counts": {
-    "nodes": 300,
-    "edges": 461,
+    "nodes": 330,
+    "edges": 534,
     "by_kind": {
-      "LibClient": 33,
-      "Model": 43,
-      "Page": 25,
-      "Route": 52,
+      "LibClient": 37,
+      "Model": 47,
+      "Page": 29,
+      "Route": 57,
       "Schema": 38,
-      "Service": 109,
-      "edge:CALLS": 37,
+      "Service": 122,
+      "edge:CALLS": 52,
       "edge:DEPENDS_ON": 7,
       "edge:HITS": 36,
-      "edge:PERSISTS": 295,
-      "edge:USES": 47,
+      "edge:PERSISTS": 347,
+      "edge:USES": 53,
       "edge:VALIDATES_WITH": 39
     }
   }

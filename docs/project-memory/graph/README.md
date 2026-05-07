@@ -18,12 +18,12 @@ All three are kept in sync by the same generator.
 
 | Label | Count | Source |
 | :-- | --: | :-- |
-| `Route` | 52 | `apps/api/app/api/routes/*.py` |
-| `Service` | 109 | `apps/api/app/services/*.py` |
-| `Model` | 43 | `apps/api/app/models/*.py` |
+| `Route` | 57 | `apps/api/app/api/routes/*.py` |
+| `Service` | 122 | `apps/api/app/services/*.py` |
+| `Model` | 47 | `apps/api/app/models/*.py` |
 | `Schema` | 38 | `apps/api/app/schemas/*.py` |
-| `Page` | 26 | `apps/web/app/dashboard/*/` |
-| `LibClient` | 33 | `apps/web/lib/*.ts(x)` |
+| `Page` | 29 | `apps/web/app/dashboard/*/` |
+| `LibClient` | 37 | `apps/web/lib/*.ts(x)` |
 
 Every node carries `id`, `label`, `path`, `forgemind: true`.
 
@@ -38,7 +38,7 @@ Every node carries `id`, `label`, `path`, `forgemind: true`.
 | `USES` | Page → LibClient | folder-name / client-name match (best-effort) |
 | `HITS` | LibClient → Route | client-name → route-name with alias table |
 
-Edge counts at last generation: **CALLS 37 · DEPENDS_ON 7 · PERSISTS 295 · VALIDATES_WITH 39 · USES 49 · HITS 36** (total **463**).
+Edge counts at last generation: **CALLS 52 · DEPENDS_ON 7 · PERSISTS 347 · VALIDATES_WITH 39 · USES 53 · HITS 36** (total **534**).
 
 > The generator surfaces **only import-visible** relationships. Dynamic / DI / facade calls are not captured. Treat this as a *high-confidence subset*, not an exhaustive call graph.
 
@@ -94,21 +94,9 @@ Install the extension **"Graphviz Interactive Preview"** or **"Graph Visualizati
 
 Paste the Cypher file into Neo4j's free sandbox at https://sandbox.neo4j.com (or use the Neo4j Aura free tier) and run the same queries.
 
-## Security context — FM-211 (pending)
+## Security context — FM-211 (resolved)
 
-A security audit identified routes that are **missing `authz_service` CALLS edges** in the current code (i.e. they have no authorization check). These are accurate gaps in the graph — the edges are absent because the imports are absent:
-
-| Route node | Vulnerability | Expected edge after FM-211 |
-| :-- | :-- | :-- |
-| `route:credential_vault` | IDOR — no project scope on GET /vault/credentials | `CALLS → authz_service` |
-| `route:enterprise_governance` | Priv-esc on PATCH /custom-roles, missing auth on GET /custom-roles + SSO URL | `CALLS → authz_service` |
-| `route:github_integration` | No project auth on outbound actions; webhook replay unguarded | `CALLS → authz_service` |
-| `route:metrics` | Prometheus endpoint unauthenticated | `CALLS → authz_service` |
-| `route:search_knowledge` | Run compare + artifact tag + convention mutations unguarded | `CALLS → authz_service` |
-| `route:code_ops` | Null project_id bypass on approvals + sandbox run | `CALLS → authz_service` |
-| `route:approvals` | Null project_id bypass + IDOR via run_id | `CALLS → authz_service` |
-
-After FM-211 is merged, regenerate the graph — the CALLS edge count will increase from 37 to approximately 44.
+FM-211 security audit identified 13 vulnerabilities (VULN-1–13). All have been patched as of the V5 release. The CALLS edge count grew from 37 to **52** reflecting the new `authz_service` imports in the repaired routes (`planner_results`, `retry`, `artifacts`, `platform_ops`).
 
 ## Regenerating
 

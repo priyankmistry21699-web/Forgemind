@@ -134,8 +134,8 @@ Versioned `/api/v1/` · JWT + API keys (read/write/admin scopes) · sliding-wind
 ```
 Forgemind/
 ├── 📦 apps/
-│   ├── api/       FastAPI backend  — 54 routers · 115 services · 56 models · 1691 tests
-│   ├── web/       Next.js 15 frontend — 28 dashboard routes · 37 lib modules · 254 tests
+│   ├── api/       FastAPI backend  — 57 routers · 122 services · 47 models · 1691 tests
+│   ├── web/       Next.js 15 frontend — 29 dashboard routes · 37 lib modules · 254 tests
 │   ├── worker/    async agent loop (architect · coder · reviewer · tester)
 │   └── local/     forgemind standalone CLI — 61 tests
 │
@@ -172,7 +172,7 @@ flowchart LR
     FE -->|HTTP · SSE| API
     SDK -->|/api/v1| API
 
-    API["⚙️ FastAPI backend<br/>54 routers · 115 services · 56 models<br/>JWT + API keys + rate limit"]
+    API["⚙️ FastAPI backend<br/>57 routers · 122 services · 47 models<br/>JWT + API keys + rate limit"]
 
     API --> PG[("🐘 PostgreSQL 16")]
     API --> RD[("🟥 Redis 7")]
@@ -203,10 +203,10 @@ A strict **routes → services → models** layering, with thin routes, fat serv
 ```mermaid
 flowchart TD
     Client["🌐 Client<br/>(Web / SDK / CLI)"] --> MW["🔒 Middleware<br/>request ID · logging · rate limit · auth"]
-    MW --> Router["🛣️ Routers (54)<br/>apps/api/app/api/routes/"]
+    MW --> Router["🛣️ Routers (57)<br/>apps/api/app/api/routes/"]
     Router --> Schema["📐 Schemas (Pydantic v2)<br/>apps/api/app/schemas/"]
-    Schema --> Service["🧠 Services (115)<br/>apps/api/app/services/"]
-    Service --> Model["🧱 Models (56)<br/>apps/api/app/models/"]
+    Schema --> Service["🧠 Services (122)<br/>apps/api/app/services/"]
+    Service --> Model["🧱 Models (47)<br/>apps/api/app/models/"]
     Service --> LLM["🧠 core/llm.py<br/>LiteLLM wrapper"]
     Service --> Event["📝 event_service<br/>audit_log_service"]
     Service --> Stream["📡 stream_service<br/>SSE broadcast"]
@@ -254,7 +254,7 @@ flowchart TD
 
 **Organization:**
 
-- **28 dashboard routes** under [`apps/web/app/dashboard/`](apps/web/app/dashboard/) — one folder per domain (projects, runs, approvals, analytics, architecture, schedules, slos, cost-analysis, …).
+- **29 dashboard routes** under [`apps/web/app/dashboard/`](apps/web/app/dashboard/) — one folder per domain (projects, runs, approvals, analytics, architecture, schedules, slos, cost-analysis, …).
 - **37 `lib/` modules** under [`apps/web/lib/`](apps/web/lib/) — one typed API client per backend domain, plus [`hooks/use-stream.ts`](apps/web/lib/hooks/use-stream.ts) for live SSE subscriptions.
 - **Components** grouped by concern under [`apps/web/components/`](apps/web/components/): `ui/` (shadcn primitives), `layout/`, and domain widgets (chat, tasks, artifacts, dashboard, analytics, …).
 - **Charts** are **dependency-free pure SVG** — no chart library. See [`apps/web/components/dashboard/charts/`](apps/web/components/dashboard/charts/).
