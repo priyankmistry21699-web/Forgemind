@@ -127,7 +127,7 @@ async def fire_matching_rules(
         select(TriggerRule).where(
             TriggerRule.project_id == project_id,
             TriggerRule.event_type == event_type,
-            TriggerRule.enabled == True,
+            TriggerRule.enabled.is_(True),
         )
     )
     rules = list(result.scalars().all())

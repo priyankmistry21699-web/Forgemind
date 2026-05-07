@@ -6,10 +6,12 @@ Falls back to logging in development when no SMTP is configured.
 """
 
 import logging
+import os as _os
 import smtplib
 from datetime import datetime, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from pathlib import Path as _Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -281,9 +283,6 @@ def unsubscribe(email: str, category: str) -> None:
 
 
 # ── FM-219: Jinja2 HTML templates + async DB-aware sender ────────
-
-import os as _os
-from pathlib import Path as _Path
 
 _JINJA_TEMPLATE_DIR = _Path(__file__).parent.parent / "templates" / "email"
 _jinja2_env = None

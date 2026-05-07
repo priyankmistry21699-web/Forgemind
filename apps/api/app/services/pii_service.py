@@ -48,7 +48,7 @@ async def scan_content(
 ) -> dict[str, Any]:
     """Scan content for PII. Returns findings and optionally masked content."""
     result = await db.execute(
-        select(PIIPattern).where(PIIPattern.enabled == True)
+        select(PIIPattern).where(PIIPattern.enabled.is_(True))
     )
     patterns = list(result.scalars().all())
 

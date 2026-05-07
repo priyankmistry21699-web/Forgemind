@@ -239,7 +239,9 @@ class TestWebhookIngestion:
 
     @pytest.mark.asyncio
     async def test_webhook_http(self, client: AsyncClient, monkeypatch):
-        import hmac, hashlib, json as _json
+        import hashlib
+        import hmac
+        import json as _json
         from app.core import config as cfg
 
         secret = "test-webhook-secret"

@@ -13,7 +13,6 @@ Configure via environment variables:
 from __future__ import annotations
 
 import logging
-import uuid
 from typing import TYPE_CHECKING
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -32,10 +31,7 @@ _OTEL_AVAILABLE = False
 _tracer = None
 
 try:
-    from opentelemetry import trace
-    from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-    from opentelemetry.sdk.resources import Resource, SERVICE_NAME
+    import opentelemetry  # noqa: F401
 
     _OTEL_AVAILABLE = True
 except ImportError:

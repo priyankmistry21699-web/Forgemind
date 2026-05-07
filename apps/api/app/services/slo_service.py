@@ -44,7 +44,7 @@ async def list_slos(
 ) -> list[SLOTarget]:
     result = await db.execute(
         select(SLOTarget)
-        .where(SLOTarget.project_id == project_id, SLOTarget.enabled == True)
+        .where(SLOTarget.project_id == project_id, SLOTarget.enabled.is_(True))
         .order_by(SLOTarget.created_at.desc())
     )
     return list(result.scalars().all())
@@ -102,7 +102,7 @@ async def compute_slo_attainment(
         approvals_q = select(ApprovalRequest).where(
             ApprovalRequest.project_id == slo.project_id,
             ApprovalRequest.created_at >= window_start,
-            ApprovalRequest.decided_at != None,
+            ApprovalRequest.decided_at.isnot(None),
         )
         result = await db.execute(approvals_q)
         approvals = result.scalars().all()

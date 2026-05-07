@@ -24,7 +24,6 @@ import os
 import uuid
 from datetime import timedelta
 from pathlib import Path
-from typing import AsyncGenerator
 
 logger = logging.getLogger(__name__)
 

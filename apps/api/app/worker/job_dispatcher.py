@@ -75,7 +75,6 @@ async def _job_send_notification(**kwargs: Any) -> None:
     """Deliver a single notification via all enabled channels."""
     from app.db.session import async_session_factory
     from app.services import notification_service
-    from app.services.email_service import send_notification_email
 
     user_id_str = kwargs.get("user_id")
     notification_id_str = kwargs.get("notification_id")

@@ -62,13 +62,13 @@ async def get_platform_stats(db: AsyncSession) -> dict[str, Any]:
     # Security
     open_findings = int(
         (await db.execute(
-            select(sa_func.count(SecurityFinding.id)).where(SecurityFinding.resolved == False)
+            select(sa_func.count(SecurityFinding.id)).where(SecurityFinding.resolved.is_(False))
         )).scalar_one() or 0
     )
     critical_findings = int(
         (await db.execute(
             select(sa_func.count(SecurityFinding.id)).where(
-                SecurityFinding.resolved == False,
+                SecurityFinding.resolved.is_(False),
                 SecurityFinding.severity == "critical",
             )
         )).scalar_one() or 0

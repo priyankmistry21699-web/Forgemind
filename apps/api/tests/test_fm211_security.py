@@ -6,7 +6,6 @@ Each test class maps to a requirement from the FM-211 spec.
 import uuid
 
 import pytest
-import pytest_asyncio
 from fastapi import HTTPException
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -216,7 +215,7 @@ class TestSandboxPathTraversal:
     ):
         """No working_directory → defaults to SANDBOX_BASE_DIR, no traversal error."""
         from app.models.code_ops import SandboxExecution, SandboxStatus
-        from app.services.code_ops_service import run_sandbox_execution, SANDBOX_BASE_DIR
+        from app.services.code_ops_service import run_sandbox_execution
 
         exe = SandboxExecution(
             project_id=sample_project.id,
@@ -343,7 +342,8 @@ class TestJWTErrorNormalization:
     @pytest.mark.asyncio
     async def test_expired_like_token_returns_uniform_401(self, client: AsyncClient, sample_project):
         # A well-formed but wrong-key JWT triggers the same error path
-        import base64, json as _json
+        import base64
+        import json as _json
         header = base64.urlsafe_b64encode(
             _json.dumps({"alg": "HS256", "typ": "JWT"}).encode()
         ).rstrip(b"=").decode()
@@ -491,8 +491,6 @@ class TestSafetyGateCoversNonProd:
     """Settings safety gate now fires for staging and test, not just production."""
 
     def test_staging_with_default_secret_raises(self):
-        import os
-        from pydantic_settings import BaseSettings
         from app.core.config import Settings
 
         with pytest.raises(RuntimeError, match="SECRET_KEY"):

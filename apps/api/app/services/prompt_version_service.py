@@ -24,7 +24,7 @@ async def create_version(
         select(PromptVersion).where(
             PromptVersion.project_id == project_id,
             PromptVersion.role == role,
-            PromptVersion.is_active == True,
+            PromptVersion.is_active.is_(True),
         )
     )
     for prev in result.scalars().all():
@@ -62,7 +62,7 @@ async def get_active_version(
         select(PromptVersion).where(
             PromptVersion.project_id == project_id,
             PromptVersion.role == role,
-            PromptVersion.is_active == True,
+            PromptVersion.is_active.is_(True),
         )
     )
     return result.scalar_one_or_none()
@@ -97,7 +97,7 @@ async def rollback_to_version(
         select(PromptVersion).where(
             PromptVersion.project_id == target.project_id,
             PromptVersion.role == target.role,
-            PromptVersion.is_active == True,
+            PromptVersion.is_active.is_(True),
         )
     )
     for prev in result.scalars().all():
