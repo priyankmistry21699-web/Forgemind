@@ -299,29 +299,29 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
     expect(mocks.fetchApprovals).not.toHaveBeenCalled();
   });
 
-  it("never shows the Quick Actions pill badge because pendingApprovals is always 0", async () => {
+  it("stat card links to /dashboard/approvals and shows count 0 (Quick Actions section removed)", async () => {
     mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
 
     await act(async () => {
       render(<DashboardPage />);
     });
 
-    const reviewLinks = screen
+    const approvalLinks = screen
       .getAllByRole("link")
       .filter((a) => a.getAttribute("href") === "/dashboard/approvals");
-    // Two links point to /dashboard/approvals: the stat card + quick actions.
-    expect(reviewLinks.length).toBeGreaterThanOrEqual(2);
+    // Only the stat card links to /dashboard/approvals (Quick Actions section removed).
+    expect(approvalLinks.length).toBeGreaterThanOrEqual(1);
 
-    const quickActionsLink = reviewLinks.find((a) =>
-      a.textContent?.includes("Review Approvals"),
+    const statCard = approvalLinks.find((a) =>
+      a.textContent?.includes("Pending Approvals"),
     );
-    expect(quickActionsLink).toBeDefined();
-    // No pill badge — pendingApprovals is always 0 (requires per-project scoping)
-    const badge = quickActionsLink?.querySelector("span.rounded-full");
+    expect(statCard).toBeDefined();
+    // pendingApprovals is always 0 — no numeric pill anywhere
+    const badge = statCard?.querySelector("span.rounded-full");
     expect(badge).toBeNull();
   });
 
-  it("hides the quick-actions approval pill badge when pendingApprovals is 0", async () => {
+  it("approvals stat card shows 'All clear' when pendingApprovals is 0", async () => {
     mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
     mocks.fetchApprovals.mockResolvedValue({ items: [], total: 0 });
 
@@ -329,16 +329,17 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
       render(<DashboardPage />);
     });
 
-    const quickActionsLink = screen
+    const statCard = screen
       .getAllByRole("link")
       .find(
         (a) =>
           a.getAttribute("href") === "/dashboard/approvals" &&
-          a.textContent?.includes("Review Approvals"),
+          a.textContent?.includes("Pending Approvals"),
       );
-    expect(quickActionsLink).toBeDefined();
+    expect(statCard).toBeDefined();
+    expect(statCard?.textContent).toContain("All clear");
     // No numeric pill when the count is zero.
-    const span = quickActionsLink?.querySelector("span.rounded-full");
+    const span = statCard?.querySelector("span.rounded-full");
     expect(span).toBeNull();
   });
 
