@@ -83,7 +83,9 @@ class TestFM028ApprovalsListRoute:
         assert "total" in body
 
     async def test_get_approvals_filter_by_status_pending(self, client, sample_project):
-        r = await client.get(f"/approvals?project_id={sample_project.id}&status=pending")
+        r = await client.get(
+            f"/approvals?project_id={sample_project.id}&status=pending"
+        )
         assert r.status_code == 200
         body = r.json()
         assert body["total"] == 0
@@ -102,10 +104,14 @@ class TestFM029ApprovalDecideRoute:
 
 # ── FM-030: Dashboard cross-linked approval counter ───────────────
 class TestFM030DashboardApprovalCounter:
-    async def test_pending_filter_returns_envelope_with_total(self, client, sample_project):
+    async def test_pending_filter_returns_envelope_with_total(
+        self, client, sample_project
+    ):
         """Dashboard home card reads `total` to render the pending-approval
         count; this must be a stable contract."""
-        r = await client.get(f"/approvals?project_id={sample_project.id}&status=pending")
+        r = await client.get(
+            f"/approvals?project_id={sample_project.id}&status=pending"
+        )
         assert r.status_code == 200
         body = r.json()
         # Contract: empty pending set yields total=0, items=[].

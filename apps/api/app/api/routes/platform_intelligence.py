@@ -195,9 +195,15 @@ async def bulk_decide_approvals(
     from datetime import datetime, timezone
 
     if body.decision not in ("approved", "rejected"):
-        raise HTTPException(status_code=422, detail="decision must be 'approved' or 'rejected'")
+        raise HTTPException(
+            status_code=422, detail="decision must be 'approved' or 'rejected'"
+        )
 
-    new_status = ApprovalStatus.APPROVED if body.decision == "approved" else ApprovalStatus.REJECTED
+    new_status = (
+        ApprovalStatus.APPROVED
+        if body.decision == "approved"
+        else ApprovalStatus.REJECTED
+    )
     updated = 0
     now = datetime.now(timezone.utc)
 

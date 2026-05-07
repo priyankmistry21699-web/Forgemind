@@ -68,7 +68,9 @@ MAX_SANDBOX_TIMEOUT = 300
 # C-4: All sandbox working directories must be under this base path
 SANDBOX_BASE_DIR = "/tmp/forgemind_sandbox"
 os.makedirs(SANDBOX_BASE_DIR, exist_ok=True)
-_SANDBOX_REAL = os.path.realpath(SANDBOX_BASE_DIR)  # resolved once; handles Windows drive letters
+_SANDBOX_REAL = os.path.realpath(
+    SANDBOX_BASE_DIR
+)  # resolved once; handles Windows drive letters
 
 
 # ── Code Mappings (FM-061) ──────────────────────────────────────

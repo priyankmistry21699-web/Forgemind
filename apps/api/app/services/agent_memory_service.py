@@ -111,7 +111,9 @@ async def store_memory(
 
     await db.flush()
     await db.refresh(entry)
-    logger.debug("agent_memory: stored key=%s project=%s agent=%s", key, project_id, agent_type)
+    logger.debug(
+        "agent_memory: stored key=%s project=%s agent=%s", key, project_id, agent_type
+    )
     return entry
 
 
@@ -158,9 +160,7 @@ async def list_memories(
     limit: int = 50,
 ) -> list[AgentMemoryEntry]:
     """List all memory entries for a project, optionally filtered by agent type."""
-    query = select(AgentMemoryEntry).where(
-        AgentMemoryEntry.project_id == project_id
-    )
+    query = select(AgentMemoryEntry).where(AgentMemoryEntry.project_id == project_id)
     if agent_type:
         query = query.where(AgentMemoryEntry.agent_type == agent_type)
     query = query.order_by(AgentMemoryEntry.updated_at.desc()).limit(limit)

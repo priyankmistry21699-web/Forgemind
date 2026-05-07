@@ -219,9 +219,7 @@ def upgrade() -> None:
     op.create_index(
         "ix_security_findings_project_id", "security_findings", ["project_id"]
     )
-    op.create_index(
-        "ix_security_findings_severity", "security_findings", ["severity"]
-    )
+    op.create_index("ix_security_findings_severity", "security_findings", ["severity"])
 
     # --- artifact additions (FM-218) ---
     op.add_column("artifacts", sa.Column("storage_key", sa.String(500), nullable=True))

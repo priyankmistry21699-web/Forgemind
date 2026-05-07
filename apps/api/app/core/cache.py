@@ -36,7 +36,9 @@ _MAX_LOCAL_SIZE: int = int(os.getenv("CACHE_LOCAL_MAX_SIZE", "512"))
 # In-process LRU cache
 # ---------------------------------------------------------------------------
 
-_local_cache: OrderedDict[str, tuple[Any, float]] = OrderedDict()  # key → (value, expires_at)
+_local_cache: OrderedDict[str, tuple[Any, float]] = (
+    OrderedDict()
+)  # key → (value, expires_at)
 _stats: dict[str, int] = {"hits": 0, "misses": 0, "sets": 0, "evictions": 0}
 
 

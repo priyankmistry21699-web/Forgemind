@@ -21,7 +21,9 @@ async def _resolve_task_project(db, task_id: uuid.UUID) -> uuid.UUID:
     from sqlalchemy import select
 
     row = await db.execute(
-        select(Run.project_id).join(Task, Task.run_id == Run.id).where(Task.id == task_id)
+        select(Run.project_id)
+        .join(Task, Task.run_id == Run.id)
+        .where(Task.id == task_id)
     )
     project_id = row.scalar_one_or_none()
     if project_id is None:

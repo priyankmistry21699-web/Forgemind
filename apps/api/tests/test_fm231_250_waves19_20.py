@@ -70,7 +70,10 @@ async def test_pause_resume_cron_trigger(db_session: AsyncSession, sample_projec
     from app.models.scheduling import CronTriggerStatus
 
     trigger = await schedule_service.create_cron_trigger(
-        db_session, project_id=sample_project.id, name="Pauseable", cron_expression="0 * * * *"
+        db_session,
+        project_id=sample_project.id,
+        name="Pauseable",
+        cron_expression="0 * * * *",
     )
     await db_session.flush()
 
@@ -91,7 +94,10 @@ async def test_record_cron_fire(db_session: AsyncSession, sample_project):
     from app.services import schedule_service
 
     trigger = await schedule_service.create_cron_trigger(
-        db_session, project_id=sample_project.id, name="Fired", cron_expression="* * * * *"
+        db_session,
+        project_id=sample_project.id,
+        name="Fired",
+        cron_expression="* * * * *",
     )
     await db_session.flush()
 
@@ -182,7 +188,9 @@ async def test_fire_matching_rules_no_match(db_session: AsyncSession, sample_pro
 
 
 @pytest.mark.asyncio
-async def test_prompt_version_create_increments(db_session: AsyncSession, sample_project):
+async def test_prompt_version_create_increments(
+    db_session: AsyncSession, sample_project
+):
     from app.services.prompt_version_service import create_version, list_versions
 
     v1 = await create_version(
@@ -302,14 +310,26 @@ async def test_run_cost_attribution(
     from app.models.agent_intelligence import LLMCallLog
     from app.services.cost_forecast_service import get_run_cost_attribution
 
-    db_session.add(LLMCallLog(
-        run_id=sample_run.id, model="claude", task_type="codegen",
-        prompt_tokens=100, completion_tokens=50, cost_usd=0.05,
-    ))
-    db_session.add(LLMCallLog(
-        run_id=sample_run.id, model="claude", task_type="review",
-        prompt_tokens=80, completion_tokens=30, cost_usd=0.03,
-    ))
+    db_session.add(
+        LLMCallLog(
+            run_id=sample_run.id,
+            model="claude",
+            task_type="codegen",
+            prompt_tokens=100,
+            completion_tokens=50,
+            cost_usd=0.05,
+        )
+    )
+    db_session.add(
+        LLMCallLog(
+            run_id=sample_run.id,
+            model="claude",
+            task_type="review",
+            prompt_tokens=80,
+            completion_tokens=30,
+            cost_usd=0.03,
+        )
+    )
     await db_session.flush()
 
     attribution = await get_run_cost_attribution(db_session, sample_run.id)
@@ -436,13 +456,19 @@ async def test_anomaly_scan_error_rate(
 
     await db_session.flush()
 
-    anomalies = await run_anomaly_scan(db_session, sample_project.id, window_hours=24 * 365)
+    anomalies = await run_anomaly_scan(
+        db_session, sample_project.id, window_hours=24 * 365
+    )
     assert any(a.anomaly_type.value == "error_rate_jump" for a in anomalies)
 
 
 @pytest.mark.asyncio
 async def test_list_anomalies(db_session: AsyncSession, sample_project):
-    from app.models.platform_intelligence import AnomalyEvent, AnomalyType, AnomalySeverity
+    from app.models.platform_intelligence import (
+        AnomalyEvent,
+        AnomalyType,
+        AnomalySeverity,
+    )
     from app.services.anomaly_service import list_anomalies
 
     event = AnomalyEvent(
@@ -483,9 +509,7 @@ async def test_upsert_quota(db_session: AsyncSession):
     assert quota.max_concurrent_runs == 5
 
     # Second call updates
-    quota2 = await upsert_quota(
-        db_session, ws_id, max_concurrent_runs=10
-    )
+    quota2 = await upsert_quota(db_session, ws_id, max_concurrent_runs=10)
     assert quota2.id == quota.id
     assert quota2.max_concurrent_runs == 10
 
@@ -499,7 +523,9 @@ async def test_quota_no_violations(db_session: AsyncSession, sample_project):
     db_session.add(workspace)
     await db_session.flush()
 
-    await upsert_quota(db_session, workspace.id, max_concurrent_runs=10, max_projects=50)
+    await upsert_quota(
+        db_session, workspace.id, max_concurrent_runs=10, max_projects=50
+    )
     await db_session.flush()
 
     result = await check_quota_violations(db_session, workspace.id)
@@ -615,9 +641,7 @@ async def test_scan_artifact_not_found(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_scan_artifact_with_content(
-    db_session: AsyncSession, sample_artifact
-):
+async def test_scan_artifact_with_content(db_session: AsyncSession, sample_artifact):
     from app.services.pii_service import seed_builtin_patterns, scan_artifact
 
     await seed_builtin_patterns(db_session)
@@ -718,7 +742,11 @@ async def test_api_create_list_prompt_versions(client: AsyncClient, sample_proje
 
     r = await client.post(
         f"/projects/{project_id}/prompt-versions",
-        json={"role": "planner", "content": "You are a planner.", "change_summary": "init"},
+        json={
+            "role": "planner",
+            "content": "You are a planner.",
+            "change_summary": "init",
+        },
     )
     assert r.status_code == 201
     data = r.json()
@@ -855,7 +883,11 @@ async def test_api_compute_slo(client: AsyncClient, sample_project):
     project_id = str(sample_project.id)
     create_r = await client.post(
         f"/projects/{project_id}/slos",
-        json={"name": "SLO compute test", "metric": "run_success_rate", "threshold": 0.9},
+        json={
+            "name": "SLO compute test",
+            "metric": "run_success_rate",
+            "threshold": 0.9,
+        },
     )
     slo_id = create_r.json()["id"]
 

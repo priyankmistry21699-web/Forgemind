@@ -107,12 +107,17 @@ async def delete_code_mapping(
     # FM-212: check entity existence first so 404 is returned for unknown IDs;
     # NULL project_id then raises 403 instead of bypassing the auth check.
     from sqlalchemy import select as _select
-    exists = (await db.execute(_select(CodeMapping.id).where(CodeMapping.id == mapping_id))).scalar_one_or_none()
+
+    exists = (
+        await db.execute(_select(CodeMapping.id).where(CodeMapping.id == mapping_id))
+    ).scalar_one_or_none()
     if exists is None:
         raise HTTPException(status_code=404, detail="Mapping not found")
     proj_id = await resolve_project_for_entity(db, CodeMapping, mapping_id)
     if proj_id is None:
-        raise HTTPException(status_code=403, detail="Cannot determine project for this mapping")
+        raise HTTPException(
+            status_code=403, detail="Cannot determine project for this mapping"
+        )
     await check_project_permission(db, proj_id, user_id, Action.PROJECT_UPDATE)
     deleted = await code_ops_service.delete_code_mapping(db, mapping_id)
     if not deleted:
@@ -189,7 +194,9 @@ async def get_patch(
         raise HTTPException(status_code=404, detail="Patch not found")
     # FM-212: NULL project_id must never bypass the auth check
     if p.project_id is None:
-        raise HTTPException(status_code=403, detail="Cannot determine project for this patch")
+        raise HTTPException(
+            status_code=403, detail="Cannot determine project for this patch"
+        )
     await check_project_permission(db, p.project_id, user_id, Action.PROJECT_VIEW)
     return PatchProposalRead.model_validate(p)
 
@@ -206,7 +213,9 @@ async def update_patch(
         raise HTTPException(status_code=404, detail="Patch not found")
     # FM-212: NULL project_id must never bypass the auth check
     if existing.project_id is None:
-        raise HTTPException(status_code=403, detail="Cannot determine project for this patch")
+        raise HTTPException(
+            status_code=403, detail="Cannot determine project for this patch"
+        )
     await check_project_permission(
         db, existing.project_id, user_id, Action.PROJECT_EXECUTE_CODE
     )
@@ -420,7 +429,9 @@ async def get_pr_draft(
         raise HTTPException(status_code=404, detail="PR draft not found")
     # FM-212: NULL project_id must never bypass the auth check
     if pr.project_id is None:
-        raise HTTPException(status_code=403, detail="Cannot determine project for this PR draft")
+        raise HTTPException(
+            status_code=403, detail="Cannot determine project for this PR draft"
+        )
     await check_project_permission(db, pr.project_id, user_id, Action.PROJECT_VIEW)
     return PRDraftRead.model_validate(pr)
 
@@ -437,7 +448,9 @@ async def update_pr_draft(
         raise HTTPException(status_code=404, detail="PR draft not found")
     # FM-212: NULL project_id must never bypass the auth check
     if existing.project_id is None:
-        raise HTTPException(status_code=403, detail="Cannot determine project for this PR draft")
+        raise HTTPException(
+            status_code=403, detail="Cannot determine project for this PR draft"
+        )
     await check_project_permission(
         db, existing.project_id, user_id, Action.PROJECT_EXECUTE_CODE
     )
@@ -515,7 +528,9 @@ async def decide_repo_approval(
     # C-3: null project_id must never bypass the auth check
     proj_id = await resolve_project_for_entity(db, RepoActionApproval, approval_id)
     if proj_id is None:
-        raise HTTPException(status_code=403, detail="Cannot determine project for this approval")
+        raise HTTPException(
+            status_code=403, detail="Cannot determine project for this approval"
+        )
     await check_project_permission(db, proj_id, user_id, Action.PROJECT_APPROVE)
     a = await code_ops_service.decide_repo_action(
         db,
@@ -597,7 +612,9 @@ async def get_sandbox_execution(
         raise HTTPException(status_code=404, detail="Execution not found")
     # FM-212: NULL project_id must never bypass the auth check
     if s.project_id is None:
-        raise HTTPException(status_code=403, detail="Cannot determine project for this execution")
+        raise HTTPException(
+            status_code=403, detail="Cannot determine project for this execution"
+        )
     await check_project_permission(db, s.project_id, user_id, Action.PROJECT_VIEW)
     return SandboxExecutionRead.model_validate(s)
 
@@ -659,6 +676,7 @@ async def run_sandbox(
     # C-3: null project_id must never bypass the auth check
     # Check entity existence first so an unknown ID returns 404, not 403
     from sqlalchemy import select as _select
+
     exists_result = await db.execute(
         _select(SandboxExecution.id).where(SandboxExecution.id == data.execution_id)
     )
@@ -666,10 +684,10 @@ async def run_sandbox(
         raise HTTPException(status_code=404, detail="Execution not found")
     proj_id = await resolve_project_for_entity(db, SandboxExecution, data.execution_id)
     if proj_id is None:
-        raise HTTPException(status_code=403, detail="Cannot determine project for this execution")
-    await check_project_permission(
-        db, proj_id, user_id, Action.PROJECT_EXECUTE_CODE
-    )
+        raise HTTPException(
+            status_code=403, detail="Cannot determine project for this execution"
+        )
+    await check_project_permission(db, proj_id, user_id, Action.PROJECT_EXECUTE_CODE)
     s = await code_ops_service.run_sandbox_execution(db, data.execution_id)
     if s is None:
         raise HTTPException(status_code=404, detail="Execution not found")

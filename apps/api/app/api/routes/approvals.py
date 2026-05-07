@@ -77,7 +77,9 @@ async def get_approval(
             status_code=http_status.HTTP_403_FORBIDDEN,
             detail="Cannot determine project for this approval",
         )
-    await check_project_permission(db, approval.project_id, user_id, Action.PROJECT_VIEW)
+    await check_project_permission(
+        db, approval.project_id, user_id, Action.PROJECT_VIEW
+    )
     return ApprovalRead.model_validate(approval)
 
 

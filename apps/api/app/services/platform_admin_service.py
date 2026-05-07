@@ -23,55 +23,94 @@ async def get_platform_stats(db: AsyncSession) -> dict[str, Any]:
     last_7 = now - timedelta(days=7)
 
     # Counts
-    user_count = int((await db.execute(select(sa_func.count(User.id)))).scalar_one() or 0)
-    workspace_count = int((await db.execute(select(sa_func.count(Workspace.id)))).scalar_one() or 0)
-    project_count = int((await db.execute(select(sa_func.count(Project.id)))).scalar_one() or 0)
+    user_count = int(
+        (await db.execute(select(sa_func.count(User.id)))).scalar_one() or 0
+    )
+    workspace_count = int(
+        (await db.execute(select(sa_func.count(Workspace.id)))).scalar_one() or 0
+    )
+    project_count = int(
+        (await db.execute(select(sa_func.count(Project.id)))).scalar_one() or 0
+    )
 
     # Run stats
-    total_runs = int((await db.execute(select(sa_func.count(Run.id)))).scalar_one() or 0)
+    total_runs = int(
+        (await db.execute(select(sa_func.count(Run.id)))).scalar_one() or 0
+    )
     active_runs = int(
-        (await db.execute(
-            select(sa_func.count(Run.id)).where(Run.status.in_([RunStatus.RUNNING, RunStatus.PLANNING]))
-        )).scalar_one() or 0
+        (
+            await db.execute(
+                select(sa_func.count(Run.id)).where(
+                    Run.status.in_([RunStatus.RUNNING, RunStatus.PLANNING])
+                )
+            )
+        ).scalar_one()
+        or 0
     )
     runs_last_7d = int(
-        (await db.execute(
-            select(sa_func.count(Run.id)).where(Run.created_at >= last_7)
-        )).scalar_one() or 0
+        (
+            await db.execute(
+                select(sa_func.count(Run.id)).where(Run.created_at >= last_7)
+            )
+        ).scalar_one()
+        or 0
     )
 
     # Cost
     total_cost_30d = float(
-        (await db.execute(
-            select(sa_func.sum(LLMCallLog.cost_usd)).where(LLMCallLog.created_at >= last_30)
-        )).scalar_one() or 0.0
+        (
+            await db.execute(
+                select(sa_func.sum(LLMCallLog.cost_usd)).where(
+                    LLMCallLog.created_at >= last_30
+                )
+            )
+        ).scalar_one()
+        or 0.0
     )
     total_cost_7d = float(
-        (await db.execute(
-            select(sa_func.sum(LLMCallLog.cost_usd)).where(LLMCallLog.created_at >= last_7)
-        )).scalar_one() or 0.0
+        (
+            await db.execute(
+                select(sa_func.sum(LLMCallLog.cost_usd)).where(
+                    LLMCallLog.created_at >= last_7
+                )
+            )
+        ).scalar_one()
+        or 0.0
     )
 
     # LLM call counts
     llm_calls_30d = int(
-        (await db.execute(
-            select(sa_func.count(LLMCallLog.id)).where(LLMCallLog.created_at >= last_30)
-        )).scalar_one() or 0
+        (
+            await db.execute(
+                select(sa_func.count(LLMCallLog.id)).where(
+                    LLMCallLog.created_at >= last_30
+                )
+            )
+        ).scalar_one()
+        or 0
     )
 
     # Security
     open_findings = int(
-        (await db.execute(
-            select(sa_func.count(SecurityFinding.id)).where(SecurityFinding.resolved.is_(False))
-        )).scalar_one() or 0
+        (
+            await db.execute(
+                select(sa_func.count(SecurityFinding.id)).where(
+                    SecurityFinding.resolved.is_(False)
+                )
+            )
+        ).scalar_one()
+        or 0
     )
     critical_findings = int(
-        (await db.execute(
-            select(sa_func.count(SecurityFinding.id)).where(
-                SecurityFinding.resolved.is_(False),
-                SecurityFinding.severity == "critical",
+        (
+            await db.execute(
+                select(sa_func.count(SecurityFinding.id)).where(
+                    SecurityFinding.resolved.is_(False),
+                    SecurityFinding.severity == "critical",
+                )
             )
-        )).scalar_one() or 0
+        ).scalar_one()
+        or 0
     )
 
     # Top projects by cost

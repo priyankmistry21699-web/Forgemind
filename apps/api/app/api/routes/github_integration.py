@@ -586,7 +586,9 @@ async def post_pr_comment(
         raise HTTPException(status_code=404, detail="Repository link not found")
 
     # H-9: verify caller has execute permission on the project that owns this repo
-    await check_project_permission(db, repo.project_id, user_id, Action.PROJECT_EXECUTE_CODE)
+    await check_project_permission(
+        db, repo.project_id, user_id, Action.PROJECT_EXECUTE_CODE
+    )
 
     # Parse owner/repo from full_name (e.g. "owner/repo")
     parts = repo.full_name.split("/", 1)
@@ -642,7 +644,9 @@ async def create_commit_status(
         raise HTTPException(status_code=404, detail="Repository link not found")
 
     # H-9: verify caller has execute permission on the owning project
-    await check_project_permission(db, repo.project_id, user_id, Action.PROJECT_EXECUTE_CODE)
+    await check_project_permission(
+        db, repo.project_id, user_id, Action.PROJECT_EXECUTE_CODE
+    )
 
     parts = repo.full_name.split("/", 1)
     if len(parts) != 2:
@@ -711,7 +715,9 @@ async def create_pull_request(
         raise HTTPException(status_code=404, detail="Repository link not found")
 
     # H-9: verify execute permission on the project that owns this repository
-    await check_project_permission(db, repo.project_id, user_id, Action.PROJECT_EXECUTE_CODE)
+    await check_project_permission(
+        db, repo.project_id, user_id, Action.PROJECT_EXECUTE_CODE
+    )
 
     parts = repo.full_name.split("/", 1)
     if len(parts) != 2:
@@ -800,7 +806,9 @@ async def request_pr_reviewers(
         raise HTTPException(status_code=404, detail="Repository link not found")
 
     # H-9: verify execute permission on the project that owns this repo
-    await check_project_permission(db, repo.project_id, user_id, Action.PROJECT_EXECUTE_CODE)
+    await check_project_permission(
+        db, repo.project_id, user_id, Action.PROJECT_EXECUTE_CODE
+    )
 
     parts = repo.full_name.split("/", 1)
     if len(parts) != 2:
@@ -988,7 +996,9 @@ async def auto_create_branch(
         raise HTTPException(status_code=404, detail="Repository link not found")
 
     # H-9: verify execute permission on the project that owns this repository
-    await check_project_permission(db, repo_link.project_id, user_id, Action.PROJECT_EXECUTE_CODE)
+    await check_project_permission(
+        db, repo_link.project_id, user_id, Action.PROJECT_EXECUTE_CODE
+    )
 
     token = settings.github_api_token or ""
     if not token:

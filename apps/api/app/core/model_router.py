@@ -128,7 +128,12 @@ def select_model(
 
 
 def _log_selection(task_type: str, model: str, reason: str) -> None:
-    entry = {"task_type": task_type, "model": model, "reason": reason, "ts": time.time()}
+    entry = {
+        "task_type": task_type,
+        "model": model,
+        "reason": reason,
+        "ts": time.time(),
+    }
     _selection_log.append(entry)
     if len(_selection_log) > 200:
         _selection_log.pop(0)
@@ -138,11 +143,7 @@ def get_router_status() -> dict[str, Any]:
     """Return current routing config and recent selections for /admin/model-router/status."""
     cfg = _get_config()
     recent_selections = list(reversed(_selection_log[-20:]))
-    unhealthy = {
-        m: len(errs)
-        for m, errs in _provider_errors.items()
-        if errs
-    }
+    unhealthy = {m: len(errs) for m, errs in _provider_errors.items() if errs}
     return {
         "config": cfg,
         "unhealthy_models": unhealthy,

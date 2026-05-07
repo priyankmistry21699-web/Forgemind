@@ -31,6 +31,7 @@ class TriggerRuleIn(BaseModel):
 
 # --- Cron triggers ---
 
+
 @router.get("/projects/{project_id}/schedules")
 async def list_schedules(
     project_id: uuid.UUID,
@@ -46,7 +47,9 @@ async def list_schedules(
                 "cron_expression": t.cron_expression,
                 "status": t.status.value,
                 "fire_count": t.fire_count,
-                "last_fired_at": t.last_fired_at.isoformat() if t.last_fired_at else None,
+                "last_fired_at": t.last_fired_at.isoformat()
+                if t.last_fired_at
+                else None,
                 "created_at": t.created_at.isoformat(),
             }
             for t in triggers
@@ -107,6 +110,7 @@ async def resume_schedule(
 
 
 # --- Trigger rules ---
+
 
 @router.get("/projects/{project_id}/trigger-rules")
 async def list_trigger_rules(

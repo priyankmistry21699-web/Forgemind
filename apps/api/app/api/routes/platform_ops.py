@@ -92,7 +92,11 @@ async def upsert_quota(
         enforce=body.enforce,
     )
     await db.commit()
-    return {"workspace_id": str(workspace_id), "id": str(quota.id), "enforce": quota.enforce}
+    return {
+        "workspace_id": str(workspace_id),
+        "id": str(quota.id),
+        "enforce": quota.enforce,
+    }
 
 
 @router.get("/workspaces/{workspace_id}/quotas/check")
@@ -162,15 +166,23 @@ async def export_audit_log(
     else:
         lines = []
         for log in logs:
-            lines.append(json.dumps({
-                "timestamp": log.created_at.isoformat(),
-                "action": log.action,
-                "actor_id": str(log.actor_id) if log.actor_id else None,
-                "resource_type": log.resource_type,
-                "resource_id": str(log.resource_id) if log.resource_id else None,
-                "workspace_id": str(log.workspace_id) if log.workspace_id else None,
-                "details": log.details,
-            }))
+            lines.append(
+                json.dumps(
+                    {
+                        "timestamp": log.created_at.isoformat(),
+                        "action": log.action,
+                        "actor_id": str(log.actor_id) if log.actor_id else None,
+                        "resource_type": log.resource_type,
+                        "resource_id": str(log.resource_id)
+                        if log.resource_id
+                        else None,
+                        "workspace_id": str(log.workspace_id)
+                        if log.workspace_id
+                        else None,
+                        "details": log.details,
+                    }
+                )
+            )
         content = "\n".join(lines)
         media_type = "application/x-ndjson"
         filename = "audit_export.jsonl"
@@ -200,7 +212,9 @@ async def pii_scan_artifact(
     artifact = await db.get(Artifact, artifact_id)
     if artifact is None:
         return {"error": "Artifact not found"}
-    await check_project_permission(db, artifact.project_id, user_id, Action.PROJECT_VIEW)
+    await check_project_permission(
+        db, artifact.project_id, user_id, Action.PROJECT_VIEW
+    )
 
     from app.services.pii_service import scan_artifact
 

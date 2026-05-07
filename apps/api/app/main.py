@@ -19,11 +19,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 
     # FM-213: configure structured logging early
     from app.core.structured_logging import configure_logging
+
     configure_logging()
 
     # M-21: fail fast when encryption key is missing or malformed
     if settings.app_env not in ("development", "test"):
         from app.services.encryption_service import validate_encryption_key
+
         validate_encryption_key()
 
     # Startup — seed default agents
@@ -82,6 +84,7 @@ def create_app() -> FastAPI:
 
     # FM-212: optional OpenTelemetry tracing
     from app.core.telemetry import setup_telemetry
+
     setup_telemetry(app)
 
     # Middleware stack (order matters: last added = first executed)
@@ -107,10 +110,12 @@ def create_app() -> FastAPI:
 
     # FM-212: Trace-ID propagation
     from app.core.telemetry import TraceIDMiddleware
+
     app.add_middleware(TraceIDMiddleware)
 
     # FM-213: structured logging request correlation
     from app.core.structured_logging import StructuredLoggingMiddleware
+
     app.add_middleware(StructuredLoggingMiddleware)
 
     # Mount routers

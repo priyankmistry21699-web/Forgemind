@@ -28,9 +28,14 @@ class CronTrigger(Base):
 
     __tablename__ = "cron_triggers"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     project_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     cron_expression: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -40,12 +45,23 @@ class CronTrigger(Base):
         default=CronTriggerStatus.ACTIVE,
         nullable=False,
     )
-    last_fired_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    next_fire_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_fired_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    next_fire_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     fire_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     created_by: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     def __repr__(self) -> str:
         return f"<CronTrigger {self.name} {self.cron_expression}>"
@@ -66,9 +82,14 @@ class TriggerRule(Base):
 
     __tablename__ = "trigger_rules"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     project_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     event_type: Mapped[TriggerRuleEvent] = mapped_column(
@@ -78,8 +99,12 @@ class TriggerRule(Base):
     action_prompt: Mapped[str | None] = mapped_column(Text, nullable=True)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     fire_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    last_fired_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    last_fired_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     def __repr__(self) -> str:
         return f"<TriggerRule {self.name} on={self.event_type.value}>"

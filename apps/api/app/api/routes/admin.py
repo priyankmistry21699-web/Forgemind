@@ -30,7 +30,9 @@ async def get_query_stats(
     entries = get_slow_queries(limit=limit)
     return {
         "count": len(entries),
-        "threshold_ms": float(__import__("os").getenv("SLOW_QUERY_THRESHOLD_MS", "500")),
+        "threshold_ms": float(
+            __import__("os").getenv("SLOW_QUERY_THRESHOLD_MS", "500")
+        ),
         "entries": entries,
     }
 

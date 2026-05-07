@@ -75,10 +75,13 @@ async def compute_slo_attainment(
                 Run.status == RunStatus.COMPLETED,
             )
             compliant_events = int((await db.execute(ok_q)).scalar_one() or 0)
-            values = [1.0] * compliant_events + [0.0] * (total_events - compliant_events)
+            values = [1.0] * compliant_events + [0.0] * (
+                total_events - compliant_events
+            )
 
     elif slo.metric == SLOMetric.TASK_LATENCY_MS:
         from app.models.run import Run as R
+
         tasks_q = (
             select(Task)
             .join(R, Task.run_id == R.id)

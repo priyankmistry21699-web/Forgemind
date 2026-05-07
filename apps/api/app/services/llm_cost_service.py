@@ -40,7 +40,9 @@ _DEFAULT_COST = (0.001, 0.003)
 def estimate_cost(model: str, prompt_tokens: int, completion_tokens: int) -> float:
     """Return estimated USD cost for a single LLM call."""
     input_rate, output_rate = _COST_TABLE.get(model, _DEFAULT_COST)
-    return (prompt_tokens / 1000 * input_rate) + (completion_tokens / 1000 * output_rate)
+    return (prompt_tokens / 1000 * input_rate) + (
+        completion_tokens / 1000 * output_rate
+    )
 
 
 async def log_llm_call(

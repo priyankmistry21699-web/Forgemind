@@ -72,7 +72,9 @@ def setup_telemetry(app: "FastAPI | None" = None) -> None:
             )
             from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-            exporter = OTLPSpanExporter(endpoint=f"{otlp_endpoint.rstrip('/')}/v1/traces")
+            exporter = OTLPSpanExporter(
+                endpoint=f"{otlp_endpoint.rstrip('/')}/v1/traces"
+            )
             provider.add_span_processor(BatchSpanProcessor(exporter))
             logger.info("telemetry: OTLP exporter → %s", otlp_endpoint)
         except ImportError:

@@ -52,10 +52,13 @@ async def llm_completion(
     else:
         try:
             from app.core.model_router import select_model
+
             resolved_model = select_model(
                 task_type=task_type,
                 budget_used_pct=budget_used_pct,
-                preferred_model=settings.planner_model if settings.planner_model != "gpt-4o" else None,
+                preferred_model=settings.planner_model
+                if settings.planner_model != "gpt-4o"
+                else None,
             )
         except Exception:
             resolved_model = settings.planner_model
@@ -89,6 +92,7 @@ async def llm_completion(
         # FM-221: record provider error for routing health tracking
         try:
             from app.core.model_router import record_provider_error
+
             record_provider_error(resolved_model)
         except Exception:
             pass

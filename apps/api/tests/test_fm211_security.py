@@ -18,8 +18,10 @@ from tests.conftest import STUB_USER_ID
 
 def _unauth_override():
     """Dependency override that simulates an unauthenticated request."""
+
     async def _raise():
         raise HTTPException(status_code=401, detail="Authentication required")
+
     return _raise
 
 
@@ -37,7 +39,9 @@ class TestCredentialVaultIDOR:
         assert resp.status_code == 422
 
     @pytest.mark.asyncio
-    async def test_no_auth_returns_401(self, client: AsyncClient, sample_project, db_session):
+    async def test_no_auth_returns_401(
+        self, client: AsyncClient, sample_project, db_session
+    ):
         from app.main import create_app
         from app.db.session import get_db
         from app.core.auth import get_current_user_id
@@ -47,12 +51,17 @@ class TestCredentialVaultIDOR:
         app.dependency_overrides[get_current_user_id] = _unauth_override()
 
         from httpx import ASGITransport
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as ac:
             resp = await ac.get(f"/vault/credentials?project_id={sample_project.id}")
         assert resp.status_code == 401
 
     @pytest.mark.asyncio
-    async def test_valid_auth_and_project_id_returns_200(self, client: AsyncClient, sample_project):
+    async def test_valid_auth_and_project_id_returns_200(
+        self, client: AsyncClient, sample_project
+    ):
         resp = await client.get(f"/vault/credentials?project_id={sample_project.id}")
         assert resp.status_code == 200
 
@@ -77,8 +86,13 @@ class TestCustomRolePrivEsc:
         app.dependency_overrides[get_current_user_id] = _unauth_override()
 
         from httpx import ASGITransport
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-            resp = await ac.patch(f"/custom-roles/{fake_role_id}", json={"name": "evil"})
+
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as ac:
+            resp = await ac.patch(
+                f"/custom-roles/{fake_role_id}", json={"name": "evil"}
+            )
         assert resp.status_code == 401
 
     @pytest.mark.asyncio
@@ -88,7 +102,9 @@ class TestCustomRolePrivEsc:
         assert resp.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_workspace_admin_can_update_own_role(self, client: AsyncClient, db_session):
+    async def test_workspace_admin_can_update_own_role(
+        self, client: AsyncClient, db_session
+    ):
         """Workspace OWNER can update roles in their own workspace."""
         from app.models.enterprise_governance import CustomRole
         from app.models.workspace import Workspace
@@ -125,7 +141,9 @@ class TestNullProjectIdBypass:
     """All three bypass locations now raise 403 when project is unresolvable."""
 
     @pytest.mark.asyncio
-    async def test_approval_decide_with_unknown_id_returns_403_or_404(self, client: AsyncClient):
+    async def test_approval_decide_with_unknown_id_returns_403_or_404(
+        self, client: AsyncClient
+    ):
         fake_id = uuid.uuid4()
         resp = await client.post(
             f"/api/v1/approvals/{fake_id}/decide",
@@ -135,7 +153,9 @@ class TestNullProjectIdBypass:
         assert resp.status_code in (403, 404)
 
     @pytest.mark.asyncio
-    async def test_repo_approval_decide_with_unknown_id_returns_403_or_404(self, client: AsyncClient):
+    async def test_repo_approval_decide_with_unknown_id_returns_403_or_404(
+        self, client: AsyncClient
+    ):
         fake_id = uuid.uuid4()
         resp = await client.post(
             f"/api/v1/repo-approvals/{fake_id}/decide",
@@ -144,9 +164,13 @@ class TestNullProjectIdBypass:
         assert resp.status_code in (403, 404)
 
     @pytest.mark.asyncio
-    async def test_sandbox_run_with_unknown_execution_returns_403_or_404(self, client: AsyncClient):
+    async def test_sandbox_run_with_unknown_execution_returns_403_or_404(
+        self, client: AsyncClient
+    ):
         fake_id = uuid.uuid4()
-        resp = await client.post("/api/v1/sandbox/run", json={"execution_id": str(fake_id)})
+        resp = await client.post(
+            "/api/v1/sandbox/run", json={"execution_id": str(fake_id)}
+        )
         assert resp.status_code in (403, 404)
 
     @pytest.mark.asyncio
@@ -173,7 +197,10 @@ class TestSandboxPathTraversal:
     @pytest.mark.asyncio
     async def test_traversal_path_fails(self, db_session: AsyncSession, sample_project):
         from app.models.code_ops import SandboxExecution, SandboxStatus
-        from app.services.code_ops_service import run_sandbox_execution, SANDBOX_BASE_DIR
+        from app.services.code_ops_service import (
+            run_sandbox_execution,
+            SANDBOX_BASE_DIR,
+        )
 
         exe = SandboxExecution(
             project_id=sample_project.id,
@@ -243,12 +270,14 @@ class TestActionProjectEditEnum:
 
     def test_project_edit_enum_exists(self):
         from app.services.authz_service import Action
+
         assert hasattr(Action, "PROJECT_EDIT")
         assert Action.PROJECT_EDIT.value == "project:edit"
 
     def test_project_write_role_has_project_edit(self):
         from app.services.authz_service import Action, PROJECT_PERMISSIONS
         from app.models.membership import ProjectRole
+
         allowed = PROJECT_PERMISSIONS.get(Action.PROJECT_EDIT, set())
         assert ProjectRole.LEAD in allowed
         assert ProjectRole.OPERATOR in allowed
@@ -331,7 +360,9 @@ class TestJWTErrorNormalization:
     """All JWT failures must return the same generic 401 message."""
 
     @pytest.mark.asyncio
-    async def test_garbage_token_returns_uniform_401(self, client: AsyncClient, sample_project):
+    async def test_garbage_token_returns_uniform_401(
+        self, client: AsyncClient, sample_project
+    ):
         resp = await client.get(
             f"/vault/credentials?project_id={sample_project.id}",
             headers={"Authorization": "Bearer notavalidtoken"},
@@ -340,16 +371,27 @@ class TestJWTErrorNormalization:
         assert resp.json()["detail"] == "Could not validate credentials"
 
     @pytest.mark.asyncio
-    async def test_expired_like_token_returns_uniform_401(self, client: AsyncClient, sample_project):
+    async def test_expired_like_token_returns_uniform_401(
+        self, client: AsyncClient, sample_project
+    ):
         # A well-formed but wrong-key JWT triggers the same error path
         import base64
         import json as _json
-        header = base64.urlsafe_b64encode(
-            _json.dumps({"alg": "HS256", "typ": "JWT"}).encode()
-        ).rstrip(b"=").decode()
-        payload = base64.urlsafe_b64encode(
-            _json.dumps({"sub": str(uuid.uuid4()), "exp": 1000000}).encode()
-        ).rstrip(b"=").decode()
+
+        header = (
+            base64.urlsafe_b64encode(
+                _json.dumps({"alg": "HS256", "typ": "JWT"}).encode()
+            )
+            .rstrip(b"=")
+            .decode()
+        )
+        payload = (
+            base64.urlsafe_b64encode(
+                _json.dumps({"sub": str(uuid.uuid4()), "exp": 1000000}).encode()
+            )
+            .rstrip(b"=")
+            .decode()
+        )
         fake_token = f"{header}.{payload}.invalidsignature"
         resp = await client.get(
             f"/vault/credentials?project_id={sample_project.id}",
@@ -417,6 +459,7 @@ class TestGithubWebhookSecretRequired:
     @pytest.mark.asyncio
     async def test_empty_secret_returns_503(self, client: AsyncClient, monkeypatch):
         from app.core import config as cfg
+
         monkeypatch.setattr(cfg.settings, "github_webhook_secret", "")
         resp = await client.post(
             "/github/webhooks",
@@ -428,6 +471,7 @@ class TestGithubWebhookSecretRequired:
     @pytest.mark.asyncio
     async def test_wrong_signature_returns_401(self, client: AsyncClient, monkeypatch):
         from app.core import config as cfg
+
         monkeypatch.setattr(cfg.settings, "github_webhook_secret", "some-secret")
         resp = await client.post(
             "/github/webhooks",
@@ -503,6 +547,7 @@ class TestSafetyGateCoversNonProd:
     def test_test_env_with_default_secret_raises(self):
         with pytest.raises(RuntimeError, match="SECRET_KEY"):
             from app.core.config import Settings
+
             Settings(
                 APP_ENV="test",
                 SECRET_KEY="change-me-to-a-random-secret",
@@ -511,6 +556,7 @@ class TestSafetyGateCoversNonProd:
 
     def test_development_with_default_secret_ok(self):
         from app.core.config import Settings
+
         # development env should NOT raise with default secret
         s = Settings(APP_ENV="development", _env_file=None)
         assert s.app_env == "development"
@@ -565,6 +611,7 @@ class TestTokenTTL:
 
     def test_token_expire_hours_is_one(self):
         from app.core.auth import _TOKEN_EXPIRE_HOURS
+
         assert _TOKEN_EXPIRE_HOURS == 1
 
 
@@ -584,7 +631,9 @@ class TestCustomRolesListAuth:
         assert resp.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_member_can_list_roles(self, client: AsyncClient, db_session: AsyncSession):
+    async def test_member_can_list_roles(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
         from app.models.workspace import Workspace
         from app.models.membership import WorkspaceMember, WorkspaceRole
 

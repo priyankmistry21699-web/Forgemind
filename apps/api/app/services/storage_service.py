@@ -52,7 +52,9 @@ def _get_minio():
     try:
         from minio import Minio
 
-        client = Minio(_ENDPOINT, access_key=_ACCESS_KEY, secret_key=_SECRET_KEY, secure=_SECURE)
+        client = Minio(
+            _ENDPOINT, access_key=_ACCESS_KEY, secret_key=_SECRET_KEY, secure=_SECURE
+        )
         # Ensure bucket exists
         if not client.bucket_exists(_BUCKET):
             client.make_bucket(_BUCKET)
@@ -75,7 +77,9 @@ def _local_path(storage_key: str) -> Path:
     return p
 
 
-async def upload_artifact(content: str | bytes, *, content_type: str = "text/plain") -> str:
+async def upload_artifact(
+    content: str | bytes, *, content_type: str = "text/plain"
+) -> str:
     """Upload content and return a storage_key.
 
     The key is <uuid4>/<uuid4> to avoid hot-spot prefixes.
@@ -102,7 +106,9 @@ async def upload_artifact(content: str | bytes, *, content_type: str = "text/pla
             logger.debug("storage: uploaded %s (%d bytes)", storage_key, len(data))
             return storage_key
         except Exception as exc:
-            logger.warning("storage: MinIO upload failed (%s) — falling back to FS", exc)
+            logger.warning(
+                "storage: MinIO upload failed (%s) — falling back to FS", exc
+            )
 
     # Local FS fallback
     _local_path(storage_key).write_bytes(data)

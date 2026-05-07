@@ -859,6 +859,7 @@ async def update_role(
     """Update a custom role (FM-172)."""
     # C-2: resolve workspace from role and check WORKSPACE_MANAGE_MEMBERS
     from app.services.authz_service import get_custom_role as _get_role
+
     existing = await _get_role(db, role_id)
     if existing is None:
         raise HTTPException(status_code=404, detail="Custom role not found")
@@ -1043,9 +1044,15 @@ async def get_sso_login_url(
     # H-5: require auth; validate redirect_uri to prevent open-redirect OAuth abuse
     if not redirect_uri.startswith("/"):
         from urllib.parse import urlparse
+
         parsed = urlparse(redirect_uri)
         from app.core.config import settings
-        allowed_origins = {urlparse(o.strip()).netloc for o in settings.cors_origins.split(",") if o.strip()}
+
+        allowed_origins = {
+            urlparse(o.strip()).netloc
+            for o in settings.cors_origins.split(",")
+            if o.strip()
+        }
         if parsed.netloc not in allowed_origins:
             raise HTTPException(
                 status_code=400,

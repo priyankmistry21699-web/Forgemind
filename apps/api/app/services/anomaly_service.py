@@ -47,16 +47,20 @@ async def run_anomaly_scan(
     if baseline_avg_cost > 0 and window_avg_cost > 0:
         deviation = (window_avg_cost - baseline_avg_cost) / baseline_avg_cost
         if deviation > 2.0:
-            anomalies.append(_make_anomaly(
-                project_id=project_id,
-                anomaly_type=AnomalyType.COST_SPIKE,
-                severity=AnomalySeverity.HIGH if deviation > 5 else AnomalySeverity.MEDIUM,
-                title=f"Cost spike: {deviation:.0%} above baseline",
-                description=f"Daily spend ${window_avg_cost:.2f} vs baseline ${baseline_avg_cost:.2f}",
-                metric_value=window_avg_cost,
-                baseline_value=baseline_avg_cost,
-                deviation_pct=deviation * 100,
-            ))
+            anomalies.append(
+                _make_anomaly(
+                    project_id=project_id,
+                    anomaly_type=AnomalyType.COST_SPIKE,
+                    severity=AnomalySeverity.HIGH
+                    if deviation > 5
+                    else AnomalySeverity.MEDIUM,
+                    title=f"Cost spike: {deviation:.0%} above baseline",
+                    description=f"Daily spend ${window_avg_cost:.2f} vs baseline ${baseline_avg_cost:.2f}",
+                    metric_value=window_avg_cost,
+                    baseline_value=baseline_avg_cost,
+                    deviation_pct=deviation * 100,
+                )
+            )
 
     # --- Error rate jump ---
     current_run_q = select(sa_func.count(Run.id)).where(
@@ -72,16 +76,20 @@ async def run_anomaly_scan(
     if current_total > 2:
         error_rate = current_failed / current_total
         if error_rate > 0.5:
-            anomalies.append(_make_anomaly(
-                project_id=project_id,
-                anomaly_type=AnomalyType.ERROR_RATE_JUMP,
-                severity=AnomalySeverity.HIGH if error_rate > 0.8 else AnomalySeverity.MEDIUM,
-                title=f"High run error rate: {error_rate:.0%}",
-                description=f"{current_failed}/{current_total} runs failed in last {window_hours}h",
-                metric_value=error_rate,
-                baseline_value=None,
-                deviation_pct=None,
-            ))
+            anomalies.append(
+                _make_anomaly(
+                    project_id=project_id,
+                    anomaly_type=AnomalyType.ERROR_RATE_JUMP,
+                    severity=AnomalySeverity.HIGH
+                    if error_rate > 0.8
+                    else AnomalySeverity.MEDIUM,
+                    title=f"High run error rate: {error_rate:.0%}",
+                    description=f"{current_failed}/{current_total} runs failed in last {window_hours}h",
+                    metric_value=error_rate,
+                    baseline_value=None,
+                    deviation_pct=None,
+                )
+            )
 
     # --- Security finding surge ---
     recent_findings_q = select(sa_func.count(SecurityFinding.id)).where(
@@ -90,16 +98,18 @@ async def run_anomaly_scan(
     )
     recent_findings = int((await db.execute(recent_findings_q)).scalar_one() or 0)
     if recent_findings >= 10:
-        anomalies.append(_make_anomaly(
-            project_id=project_id,
-            anomaly_type=AnomalyType.SECURITY_FINDING_SURGE,
-            severity=AnomalySeverity.HIGH,
-            title=f"Security finding surge: {recent_findings} in {window_hours}h",
-            description="Unusually high number of security findings detected",
-            metric_value=float(recent_findings),
-            baseline_value=None,
-            deviation_pct=None,
-        ))
+        anomalies.append(
+            _make_anomaly(
+                project_id=project_id,
+                anomaly_type=AnomalyType.SECURITY_FINDING_SURGE,
+                severity=AnomalySeverity.HIGH,
+                title=f"Security finding surge: {recent_findings} in {window_hours}h",
+                description="Unusually high number of security findings detected",
+                metric_value=float(recent_findings),
+                baseline_value=None,
+                deviation_pct=None,
+            )
+        )
 
     # --- Approval rejection surge ---
     rejection_q = select(sa_func.count(ApprovalRequest.id)).where(
@@ -109,16 +119,18 @@ async def run_anomaly_scan(
     )
     rejections = int((await db.execute(rejection_q)).scalar_one() or 0)
     if rejections >= 5:
-        anomalies.append(_make_anomaly(
-            project_id=project_id,
-            anomaly_type=AnomalyType.APPROVAL_REJECTION_SURGE,
-            severity=AnomalySeverity.MEDIUM,
-            title=f"Approval rejection surge: {rejections} in {window_hours}h",
-            description="Multiple approvals have been rejected recently",
-            metric_value=float(rejections),
-            baseline_value=None,
-            deviation_pct=None,
-        ))
+        anomalies.append(
+            _make_anomaly(
+                project_id=project_id,
+                anomaly_type=AnomalyType.APPROVAL_REJECTION_SURGE,
+                severity=AnomalySeverity.MEDIUM,
+                title=f"Approval rejection surge: {rejections} in {window_hours}h",
+                description="Multiple approvals have been rejected recently",
+                metric_value=float(rejections),
+                baseline_value=None,
+                deviation_pct=None,
+            )
+        )
 
     for a in anomalies:
         db.add(a)

@@ -86,7 +86,9 @@ async def _job_send_notification(**kwargs: Any) -> None:
 
     async with async_session_factory() as db:
         notif = await db.get(
-            __import__("app.models.notification", fromlist=["Notification"]).Notification,
+            __import__(
+                "app.models.notification", fromlist=["Notification"]
+            ).Notification,
             notification_id,
         )
         if notif is None:
@@ -97,6 +99,7 @@ async def _job_send_notification(**kwargs: Any) -> None:
         if not allowed:
             return
         from app.services.email_service import send_notification_email_async
+
         await send_notification_email_async(db, notif)
         await db.commit()
 

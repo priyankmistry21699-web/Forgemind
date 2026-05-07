@@ -67,7 +67,9 @@ async def get_artifact(
     """Get a single artifact by ID."""
     # VULN-4 fix: verify the caller belongs to the artifact's project
     artifact = await artifact_service.get_artifact(db, artifact_id)
-    await check_project_permission(db, artifact.project_id, user_id, Action.PROJECT_VIEW)
+    await check_project_permission(
+        db, artifact.project_id, user_id, Action.PROJECT_VIEW
+    )
     return ArtifactRead.model_validate(artifact)
 
 
@@ -81,7 +83,9 @@ async def update_artifact(
     """Update an artifact's title, content, or metadata. Bumps version on content changes."""
     # VULN-5 fix: verify project membership before mutation
     artifact = await artifact_service.get_artifact(db, artifact_id)
-    await check_project_permission(db, artifact.project_id, user_id, Action.PROJECT_EDIT)
+    await check_project_permission(
+        db, artifact.project_id, user_id, Action.PROJECT_EDIT
+    )
     artifact = await artifact_service.update_artifact(db, artifact_id, data)
     await db.commit()
     return ArtifactRead.model_validate(artifact)
@@ -96,7 +100,9 @@ async def delete_artifact(
     """Delete an artifact."""
     # VULN-6 fix: verify project membership before deletion
     artifact = await artifact_service.get_artifact(db, artifact_id)
-    await check_project_permission(db, artifact.project_id, user_id, Action.PROJECT_EDIT)
+    await check_project_permission(
+        db, artifact.project_id, user_id, Action.PROJECT_EDIT
+    )
     await artifact_service.delete_artifact(db, artifact_id)
     await db.commit()
 

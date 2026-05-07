@@ -211,7 +211,9 @@ class ReviewComment(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<ReviewComment {self.severity.value} {self.file_path}:{self.line_number}>"
+        return (
+            f"<ReviewComment {self.severity.value} {self.file_path}:{self.line_number}>"
+        )
 
 
 # ---------------------------------------------------------------------------

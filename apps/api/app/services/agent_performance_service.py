@@ -28,15 +28,16 @@ async def compute_snapshot(
     # Task counts
     q = select(
         sa_func.count(Task.id).label("total"),
-        sa_func.sum(
-            sa_func.cast(Task.status == TaskStatus.COMPLETED, "integer")
-        ).label("completed"),
-        sa_func.sum(
-            sa_func.cast(Task.status == TaskStatus.FAILED, "integer")
-        ).label("failed"),
+        sa_func.sum(sa_func.cast(Task.status == TaskStatus.COMPLETED, "integer")).label(
+            "completed"
+        ),
+        sa_func.sum(sa_func.cast(Task.status == TaskStatus.FAILED, "integer")).label(
+            "failed"
+        ),
     ).where(Task.assigned_agent_slug == agent_slug)
     if project_id:
         from app.models.run import Run
+
         q = q.join(Run, Task.run_id == Run.id).where(Run.project_id == project_id)
 
     result = await db.execute(q)

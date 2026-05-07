@@ -9,7 +9,12 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.scheduling import CronTrigger, CronTriggerStatus, TriggerRule, TriggerRuleEvent
+from app.models.scheduling import (
+    CronTrigger,
+    CronTriggerStatus,
+    TriggerRule,
+    TriggerRuleEvent,
+)
 
 
 # ---------------------------------------------------------------------------

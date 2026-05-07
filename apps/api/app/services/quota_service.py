@@ -61,7 +61,11 @@ async def check_quota_violations(
     """Return current usage vs quota limits for a workspace."""
     quota = await get_quota(db, workspace_id)
     if quota is None:
-        return {"workspace_id": str(workspace_id), "quota_defined": False, "violations": []}
+        return {
+            "workspace_id": str(workspace_id),
+            "quota_defined": False,
+            "violations": [],
+        }
 
     violations = []
     usage: dict[str, Any] = {}
@@ -77,7 +81,11 @@ async def check_quota_violations(
     usage["active_runs"] = active_runs
     if quota.max_concurrent_runs and active_runs >= quota.max_concurrent_runs:
         violations.append(
-            {"limit": "max_concurrent_runs", "limit_value": quota.max_concurrent_runs, "current": active_runs}
+            {
+                "limit": "max_concurrent_runs",
+                "limit_value": quota.max_concurrent_runs,
+                "current": active_runs,
+            }
         )
 
     # Project count
@@ -88,7 +96,11 @@ async def check_quota_violations(
     usage["project_count"] = project_count
     if quota.max_projects and project_count >= quota.max_projects:
         violations.append(
-            {"limit": "max_projects", "limit_value": quota.max_projects, "current": project_count}
+            {
+                "limit": "max_projects",
+                "limit_value": quota.max_projects,
+                "current": project_count,
+            }
         )
 
     return {

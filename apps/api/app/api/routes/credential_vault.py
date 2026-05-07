@@ -50,9 +50,7 @@ async def create_credential(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="project_id is required",
         )
-    await check_project_permission(
-        db, body.project_id, user_id, Action.PROJECT_UPDATE
-    )
+    await check_project_permission(db, body.project_id, user_id, Action.PROJECT_UPDATE)
     credential = await credential_vault_service.create_credential(
         db,
         name=body.name,
@@ -115,7 +113,9 @@ async def get_credential(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot determine project for this credential",
         )
-    await check_project_permission(db, credential.project_id, user_id, Action.PROJECT_VIEW)
+    await check_project_permission(
+        db, credential.project_id, user_id, Action.PROJECT_VIEW
+    )
     slug = await _resolve_connector_slug(db, credential.connector_id)
     return CredentialVaultRead(
         **credential_vault_service.build_credential_read(credential, slug)
@@ -145,7 +145,9 @@ async def update_credential(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot determine project for this credential",
         )
-    await check_project_permission(db, existing.project_id, user_id, Action.PROJECT_UPDATE)
+    await check_project_permission(
+        db, existing.project_id, user_id, Action.PROJECT_UPDATE
+    )
     update_data = body.model_dump(exclude_unset=True)
     credential = await credential_vault_service.update_credential(
         db, credential_id, **update_data
@@ -183,7 +185,9 @@ async def delete_credential(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot determine project for this credential",
         )
-    await check_project_permission(db, existing.project_id, user_id, Action.PROJECT_UPDATE)
+    await check_project_permission(
+        db, existing.project_id, user_id, Action.PROJECT_UPDATE
+    )
     deleted = await credential_vault_service.delete_credential(db, credential_id)
     if not deleted:
         raise HTTPException(

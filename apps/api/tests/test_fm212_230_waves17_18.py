@@ -389,10 +389,10 @@ async def test_code_review_agent_persist_comments(
     from sqlalchemy import select
 
     llm_response = (
-        '```json\n'
+        "```json\n"
         '[{"file_path":"src/api.py","line_number":10,"severity":"warning",'
         '"category":"security","body":"Input not validated"}]\n'
-        '```\n\n## Summary\nOne issue found.'
+        "```\n\n## Summary\nOne issue found."
     )
     count = await _persist_review_comments(db_session, sample_task, llm_response)
     await db_session.flush()
@@ -522,7 +522,9 @@ async def test_security_scan_agent_npm_parse():
             "vulnerabilities": {
                 "lodash": {
                     "severity": "critical",
-                    "via": [{"title": "Prototype pollution", "cve": ["CVE-2021-23337"]}],
+                    "via": [
+                        {"title": "Prototype pollution", "cve": ["CVE-2021-23337"]}
+                    ],
                 }
             }
         }
@@ -588,9 +590,7 @@ async def test_store_and_list_memory(
     data = resp.json()
     assert "id" in data
 
-    resp2 = await client.get(
-        f"/projects/{sample_project.id}/memory?agent_type=coder"
-    )
+    resp2 = await client.get(f"/projects/{sample_project.id}/memory?agent_type=coder")
     assert resp2.status_code == 200
     assert len(resp2.json()["items"]) >= 1
 

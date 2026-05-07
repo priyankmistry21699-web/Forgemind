@@ -15,7 +15,17 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -26,15 +36,21 @@ from app.db.base_class import Base
 # FM-233: Agent performance snapshots
 # ---------------------------------------------------------------------------
 
+
 class AgentPerformanceSnapshot(Base):
     """Rolling daily performance rollup per agent slug."""
 
     __tablename__ = "agent_performance_snapshots"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     agent_slug: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     project_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
     )
     period_date: Mapped[str] = mapped_column(String(10), nullable=False)  # YYYY-MM-DD
     tasks_completed: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
@@ -43,7 +59,9 @@ class AgentPerformanceSnapshot(Base):
     p95_latency_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
     total_cost_usd: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     success_rate: Mapped[float | None] = mapped_column(Float, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     def __repr__(self) -> str:
         return f"<AgentPerfSnapshot {self.agent_slug} {self.period_date}>"
@@ -53,14 +71,20 @@ class AgentPerformanceSnapshot(Base):
 # FM-234: Prompt versioning
 # ---------------------------------------------------------------------------
 
+
 class PromptVersion(Base):
     """Versioned prompt template for a project agent role."""
 
     __tablename__ = "prompt_versions"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     project_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     role: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     version: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -68,7 +92,9 @@ class PromptVersion(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     change_summary: Mapped[str | None] = mapped_column(String(500), nullable=True)
     created_by: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     def __repr__(self) -> str:
         return f"<PromptVersion {self.role} v{self.version}>"
@@ -78,14 +104,20 @@ class PromptVersion(Base):
 # FM-235: Model experiment A/B tracking
 # ---------------------------------------------------------------------------
 
+
 class ModelExperiment(Base):
     """Records an A/B comparison between two models on the same task."""
 
     __tablename__ = "model_experiments"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     project_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
     )
     run_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("runs.id", ondelete="SET NULL"), nullable=True
@@ -99,9 +131,13 @@ class ModelExperiment(Base):
     latency_b_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     quality_score_a: Mapped[float | None] = mapped_column(Float, nullable=True)
     quality_score_b: Mapped[float | None] = mapped_column(Float, nullable=True)
-    winner: Mapped[str | None] = mapped_column(String(10), nullable=True)  # "a" | "b" | "tie"
+    winner: Mapped[str | None] = mapped_column(
+        String(10), nullable=True
+    )  # "a" | "b" | "tie"
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     def __repr__(self) -> str:
         return f"<ModelExperiment {self.model_a} vs {self.model_b}>"
@@ -111,25 +147,37 @@ class ModelExperiment(Base):
 # FM-236: Budget forecasting
 # ---------------------------------------------------------------------------
 
+
 class BudgetForecast(Base):
     """Monthly budget forecast generated for a project."""
 
     __tablename__ = "budget_forecasts"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     project_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     forecast_month: Mapped[str] = mapped_column(String(7), nullable=False)  # YYYY-MM
     actual_spend_usd: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
-    forecasted_spend_usd: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    forecasted_spend_usd: Mapped[float] = mapped_column(
+        Float, default=0.0, nullable=False
+    )
     budget_usd: Mapped[float | None] = mapped_column(Float, nullable=True)
     burn_rate_usd_per_day: Mapped[float | None] = mapped_column(Float, nullable=True)
     days_remaining: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    will_exceed_budget: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    will_exceed_budget: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
     confidence: Mapped[float | None] = mapped_column(Float, nullable=True)  # 0.0–1.0
     breakdown_by_agent: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    generated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     def __repr__(self) -> str:
         return f"<BudgetForecast {self.project_id} {self.forecast_month}>"
@@ -138,6 +186,7 @@ class BudgetForecast(Base):
 # ---------------------------------------------------------------------------
 # FM-239: SLO tracking
 # ---------------------------------------------------------------------------
+
 
 class SLOMetric(str, enum.Enum):
     PLAN_LATENCY_MS = "plan_latency_ms"
@@ -152,17 +201,26 @@ class SLOTarget(Base):
 
     __tablename__ = "slo_targets"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     project_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     name: Mapped[str] = mapped_column(String(200), nullable=False)
-    metric: Mapped[SLOMetric] = mapped_column(Enum(SLOMetric, name="slo_metric"), nullable=False)
+    metric: Mapped[SLOMetric] = mapped_column(
+        Enum(SLOMetric, name="slo_metric"), nullable=False
+    )
     threshold: Mapped[float] = mapped_column(Float, nullable=False)
     target_pct: Mapped[float] = mapped_column(Float, default=0.99, nullable=False)
     window_days: Mapped[int] = mapped_column(Integer, default=30, nullable=False)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     def __repr__(self) -> str:
         return f"<SLOTarget {self.name} {self.metric.value}<={self.threshold}>"
@@ -173,12 +231,21 @@ class SLOPeriodResult(Base):
 
     __tablename__ = "slo_period_results"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    slo_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("slo_targets.id", ondelete="CASCADE"), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    period_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    period_end: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    slo_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("slo_targets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    period_start: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    period_end: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
     total_events: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     compliant_events: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     attainment_pct: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
@@ -186,7 +253,9 @@ class SLOPeriodResult(Base):
     p50: Mapped[float | None] = mapped_column(Float, nullable=True)
     p95: Mapped[float | None] = mapped_column(Float, nullable=True)
     p99: Mapped[float | None] = mapped_column(Float, nullable=True)
-    computed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    computed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     def __repr__(self) -> str:
         return f"<SLOPeriodResult slo={self.slo_id} att={self.attainment_pct:.2%}>"
@@ -195,6 +264,7 @@ class SLOPeriodResult(Base):
 # ---------------------------------------------------------------------------
 # FM-240: Anomaly detection
 # ---------------------------------------------------------------------------
+
 
 class AnomalySeverity(str, enum.Enum):
     LOW = "low"
@@ -216,9 +286,14 @@ class AnomalyEvent(Base):
 
     __tablename__ = "anomaly_events"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     project_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     anomaly_type: Mapped[AnomalyType] = mapped_column(
         Enum(AnomalyType, name="anomaly_type"), nullable=False, index=True
@@ -233,7 +308,9 @@ class AnomalyEvent(Base):
     deviation_pct: Mapped[float | None] = mapped_column(Float, nullable=True)
     resolved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     raw_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    detected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    detected_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     def __repr__(self) -> str:
         return f"<AnomalyEvent {self.anomaly_type.value} {self.severity.value}>"

@@ -28,7 +28,7 @@ def validate_encryption_key() -> None:
     if not raw:
         raise RuntimeError(
             f"{_KEY_ENV} is not set. "
-            "Generate a key with: python -c \"from app.services.encryption_service import generate_key_hex; print(generate_key_hex())\""
+            'Generate a key with: python -c "from app.services.encryption_service import generate_key_hex; print(generate_key_hex())"'
         )
     try:
         key = binascii.unhexlify(raw)

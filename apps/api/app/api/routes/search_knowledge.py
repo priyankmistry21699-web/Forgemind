@@ -375,13 +375,21 @@ async def compare_runs(
 ) -> RunComparisonSummary:
     """Compare two runs side-by-side."""
     # H-12: verify caller can view both runs' projects
-    run_a = (await db.execute(select(Run).where(Run.id == run_a_id))).scalar_one_or_none()
-    run_b = (await db.execute(select(Run).where(Run.id == run_b_id))).scalar_one_or_none()
+    run_a = (
+        await db.execute(select(Run).where(Run.id == run_a_id))
+    ).scalar_one_or_none()
+    run_b = (
+        await db.execute(select(Run).where(Run.id == run_b_id))
+    ).scalar_one_or_none()
     if run_a is None or run_b is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="One or both runs not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="One or both runs not found"
+        )
     await check_project_permission(db, run_a.project_id, user_id, Action.PROJECT_VIEW)
     if run_b.project_id != run_a.project_id:
-        await check_project_permission(db, run_b.project_id, user_id, Action.PROJECT_VIEW)
+        await check_project_permission(
+            db, run_b.project_id, user_id, Action.PROJECT_VIEW
+        )
 
     result = await run_comparison_service.compare_runs(db, run_a_id, run_b_id)
     if not result:
@@ -460,11 +468,15 @@ async def update_convention(
 ) -> ConventionRead:
     """Update a convention."""
     # M-18: verify caller has edit permission on the convention's project
-    existing = (await db.execute(select(Convention).where(Convention.id == convention_id))).scalar_one_or_none()
+    existing = (
+        await db.execute(select(Convention).where(Convention.id == convention_id))
+    ).scalar_one_or_none()
     if not existing:
         raise HTTPException(status_code=404, detail="Convention not found")
     if existing.project_id is not None:
-        await check_project_permission(db, existing.project_id, user_id, Action.PROJECT_EDIT)
+        await check_project_permission(
+            db, existing.project_id, user_id, Action.PROJECT_EDIT
+        )
     conv = await convention_service.update_convention(
         db,
         convention_id,
@@ -484,11 +496,15 @@ async def delete_convention(
 ):
     """Delete a convention."""
     # M-18: verify caller has edit permission on the convention's project
-    existing = (await db.execute(select(Convention).where(Convention.id == convention_id))).scalar_one_or_none()
+    existing = (
+        await db.execute(select(Convention).where(Convention.id == convention_id))
+    ).scalar_one_or_none()
     if not existing:
         raise HTTPException(status_code=404, detail="Convention not found")
     if existing.project_id is not None:
-        await check_project_permission(db, existing.project_id, user_id, Action.PROJECT_EDIT)
+        await check_project_permission(
+            db, existing.project_id, user_id, Action.PROJECT_EDIT
+        )
     deleted = await convention_service.delete_convention(db, convention_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Convention not found")
@@ -522,7 +538,9 @@ async def check_conventions(
     # H-12: verify caller can view the run's project
     run = (await db.execute(select(Run).where(Run.id == run_id))).scalar_one_or_none()
     if run is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Run not found"
+        )
     await check_project_permission(db, run.project_id, user_id, Action.PROJECT_VIEW)
     result = await convention_service.check_conventions_compliance(db, run_id)
     return ComplianceCheckResult(**result)
@@ -539,10 +557,14 @@ async def get_artifact_versions(
 ) -> ArtifactVersionHistory:
     """Get version history for an artifact."""
     # M-16: verify caller can view the artifact's project
-    artifact = (await db.execute(select(Artifact).where(Artifact.id == artifact_id))).scalar_one_or_none()
+    artifact = (
+        await db.execute(select(Artifact).where(Artifact.id == artifact_id))
+    ).scalar_one_or_none()
     if artifact is None:
         raise HTTPException(status_code=404, detail="Artifact not found")
-    await check_project_permission(db, artifact.project_id, user_id, Action.PROJECT_VIEW)
+    await check_project_permission(
+        db, artifact.project_id, user_id, Action.PROJECT_VIEW
+    )
     versions = await artifact_version_service.get_version_history(db, artifact_id)
     if not versions:
         raise HTTPException(status_code=404, detail="Artifact not found")
@@ -574,10 +596,14 @@ async def get_artifact_diff(
 ) -> ArtifactDiff:
     """Compute diff between two versions of an artifact."""
     # M-16: verify caller can view the artifact's project
-    artifact = (await db.execute(select(Artifact).where(Artifact.id == artifact_id))).scalar_one_or_none()
+    artifact = (
+        await db.execute(select(Artifact).where(Artifact.id == artifact_id))
+    ).scalar_one_or_none()
     if artifact is None:
         raise HTTPException(status_code=404, detail="Artifact not found")
-    await check_project_permission(db, artifact.project_id, user_id, Action.PROJECT_VIEW)
+    await check_project_permission(
+        db, artifact.project_id, user_id, Action.PROJECT_VIEW
+    )
     result = await artifact_version_service.diff_versions(
         db, artifact_id, version_a, version_b
     )
@@ -598,10 +624,14 @@ async def tag_artifact_version(
 ) -> dict:
     """Tag an artifact version."""
     # M-16: verify caller can edit the artifact's project
-    artifact = (await db.execute(select(Artifact).where(Artifact.id == artifact_id))).scalar_one_or_none()
+    artifact = (
+        await db.execute(select(Artifact).where(Artifact.id == artifact_id))
+    ).scalar_one_or_none()
     if artifact is None:
         raise HTTPException(status_code=404, detail="Artifact not found")
-    await check_project_permission(db, artifact.project_id, user_id, Action.PROJECT_EDIT)
+    await check_project_permission(
+        db, artifact.project_id, user_id, Action.PROJECT_EDIT
+    )
     art = await artifact_version_service.tag_version(db, artifact_id, body.version_tag)
     if not art:
         raise HTTPException(status_code=404, detail="Artifact not found")
@@ -667,7 +697,11 @@ async def dismiss_recommendation(
 ) -> dict:
     """Dismiss a recommendation with optional feedback."""
     # M-17: verify caller has edit permission on the recommendation's project
-    rec_obj = (await db.execute(select(Recommendation).where(Recommendation.id == recommendation_id))).scalar_one_or_none()
+    rec_obj = (
+        await db.execute(
+            select(Recommendation).where(Recommendation.id == recommendation_id)
+        )
+    ).scalar_one_or_none()
     if not rec_obj:
         raise HTTPException(status_code=404, detail="Recommendation not found")
     await check_project_permission(db, rec_obj.project_id, user_id, Action.PROJECT_EDIT)
