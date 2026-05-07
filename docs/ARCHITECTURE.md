@@ -1,6 +1,6 @@
 # ForgeMind — System Architecture
 
-> **Last updated:** 2026-04-20 (V4 closure — FM-181 → FM-210 delivered; V4 total 30 / 0 / 0).
+> **Last updated:** 2026-05-07 (V5 closure — FM-211 → FM-250 delivered; Waves 17–20 complete).
 > **Scope:** this document is the authoritative architectural reference for the ForgeMind platform. It complements the product-framing in [../README.md](../README.md) and the wave-by-wave delivery log in [MILESTONE_SUMMARY.md](MILESTONE_SUMMARY.md).
 
 ---
@@ -21,8 +21,8 @@ Plus shared code under [`packages/`](../packages/) (`agents`, `connectors`, `cor
 ```
 ┌────────────────────────┐   HTTP / SSE   ┌──────────────────────────────────┐
 │   Next.js 15 Dashboard │◄──────────────►│   FastAPI Backend (apps/api)     │
-│   25 dashboard routes  │                │   51 routers · 103 services      │
-│   34 lib modules       │                │   44 SQLAlchemy 2 models         │
+│   25 dashboard routes  │                │   65 routers · 123 services      │
+│   34 lib modules       │                │   48 SQLAlchemy 2 model files    │
 └────────────────────────┘                │   JWT + API keys + rate limit    │
                                           │   Background scheduler (cron 60s)│
 ┌────────────────────────┐   /api/v1      └──────────────┬───────────────────┘
@@ -43,6 +43,8 @@ Plus shared code under [`packages/`](../packages/) (`agents`, `connectors`, `cor
                │   16    │ │ cache /  │ │ S3 files │     │ OpenAI · Claude │
                │         │ │ queues   │ │          │     │ Gemini · Ollama │
                └─────────┘ └──────────┘ └──────────┘     └─────────────────┘
+
+Confirmed working local model: Ollama/Mistral-7B (port 11435, PLANNER_MODEL=ollama/mistral).
 ```
 
 Boundaries to keep in mind:
@@ -89,30 +91,33 @@ apps/api/app/
 └── alembic/versions/    Append-only migration chain
 ```
 
-### 2.2 Route organization (51 routers)
+### 2.2 Route organization (65 routers)
 
 All routers are registered in [apps/api/app/api/router.py](../apps/api/app/api/router.py) and mounted as a single `api_router` in `main.py`.
 
-| Group                        | Routers                                                                                                                     |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Platform core                | `health`, `projects`, `planner`, `planner_results`, `tasks`, `runs`, `artifacts`, `agents`, `events`                        |
-| Execution intelligence       | `chat`, `composition`, `memory`, `retry`, `run_lifecycle`                                                                   |
-| Governance                   | `approvals`, `governance`, `audit`, `trust`, `costs`, `council`, `enterprise_governance`                                    |
-| Collaboration (Wave 10)      | `workspaces`, `members`, `streaming`, `notifications`, `escalation`, `activity`, `comments`, `saved_views`, `collaboration` |
-| Code ops                     | `repos`, `code_ops`, `annotations`                                                                                          |
-| Security                     | `auth`, `credential_vault`, `metrics`                                                                                       |
-| Architecture intelligence    | `architecture`                                                                                                              |
-| Constitution / templates     | `constitution`, `constitution_suggestions`, `phase_agent_profiles`, `project_templates`                                     |
-| Lifecycle                    | `checkpoints`, `delivery`, `release_ops`, `replay`                                                                          |
-| GitHub (Wave 11)             | `github_integration`                                                                                                        |
-| Search / knowledge (Wave 12) | `search_knowledge`, `knowledge`, `connectors`                                                                               |
-| Code intelligence (Wave 14)  | `code_intelligence`                                                                                                         |
-| Analytics (Wave 15)          | `analytics`                                                                                                                 |
-| Public ecosystem (Wave 16)   | `api_ecosystem`                                                                                                             |
+| Group                         | Routers                                                                                                                     |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Platform core                 | `health`, `projects`, `planner`, `planner_results`, `tasks`, `runs`, `artifacts`, `agents`, `events`                        |
+| Execution intelligence        | `chat`, `composition`, `memory`, `retry`, `run_lifecycle`                                                                   |
+| Governance                    | `approvals`, `governance`, `audit`, `trust`, `costs`, `council`, `enterprise_governance`                                    |
+| Collaboration (Wave 10)       | `workspaces`, `members`, `streaming`, `notifications`, `escalation`, `activity`, `comments`, `saved_views`, `collaboration` |
+| Code ops                      | `repos`, `code_ops`, `annotations`                                                                                          |
+| Security                      | `auth`, `credential_vault`, `metrics`                                                                                       |
+| Architecture intelligence     | `architecture`                                                                                                              |
+| Constitution / templates      | `constitution`, `constitution_suggestions`, `phase_agent_profiles`, `project_templates`                                     |
+| Lifecycle                     | `checkpoints`, `delivery`, `release_ops`, `replay`                                                                          |
+| GitHub (Wave 11)              | `github_integration`                                                                                                        |
+| Search / knowledge (Wave 12)  | `search_knowledge`, `knowledge`, `connectors`                                                                               |
+| Code intelligence (Wave 14)   | `code_intelligence`                                                                                                         |
+| Analytics (Wave 15)           | `analytics`                                                                                                                 |
+| Public ecosystem (Wave 16)    | `api_ecosystem`                                                                                                             |
+| Observability (Wave 17–18)    | `telemetry`, `slow_query`, `cache_admin`, `model_router`, `agent_memory`, `llm_cost`, `stream_output`, `tool_registry`      |
+| Platform intelligence (W19–20)| `slo_targets`, `anomaly_events`, `agent_performance`, `model_experiments`, `budget_forecasts`, `cron_triggers`              |
+| Platform ops (Wave 19–20)     | `resource_quotas`, `digest_schedules`, `pii_patterns`                                                                       |
 
-Health is mounted at the root (`/health`, `/health/ready`). Everything else is either mounted at the module's own prefix or under `/api/v1/` for the Wave 16 public surface. The OpenAPI spec is validated for completeness in `TestOpenAPISpecCompleteness` (schemas populated, every path has an operation, `api-v1` tag present on versioned routes, spec fully JSON-serializable).
+Health is mounted at the root (`/health`, `/health/ready`, `/health/live`, `/health/dependencies`). Everything else is either mounted at the module's own prefix or under `/api/v1/` for the Wave 16+ public surface. The OpenAPI spec is validated for completeness in `TestOpenAPISpecCompleteness` (schemas populated, every path has an operation, `api-v1` tag present on versioned routes, spec fully JSON-serializable).
 
-### 2.3 Service layer (103 services)
+### 2.3 Service layer (123 services)
 
 Services are the real business-logic core. They are pure Python classes/functions that take an `AsyncSession` and return domain objects or DTOs. Grouped by theme:
 
@@ -142,7 +147,13 @@ Services are the real business-logic core. They are pure Python classes/function
 
 **Infrastructure** — `background_scheduler` (cron runner inside FastAPI lifespan), `connector_service`, `phase_agent_profile_service`, `project_template_service`, `template_inheritance_service`, `constitution_service`, `constitution_suggestion_service`.
 
-### 2.4 Data / persistence model (44 models)
+**Observability (Wave 17–18)** — `telemetry_service` (OpenTelemetry tracing, X-Trace-ID middleware), `slow_query_service` (slow-query ring-buffer logger), `cache_service` (Redis hot-path caching layer), `model_router` (multi-model LLM routing with fallback chain), `agent_memory_service` (AgentMemoryEntry long-term memory), `llm_cost_service` (per-run LLM call cost summary), `stream_output_service` (SSE Redis pub/sub agent output), `tool_registry` (WebSearch / ReadFile / WriteFile / RunCommand tools).
+
+**Platform intelligence (Wave 19–20)** — `slo_service` (SLOTarget + SLOPeriodResult — track compliance windows), `anomaly_service` (AnomalyEvent detection with severity/type enums), `agent_performance_service` (AgentPerformanceSnapshot — period-based agent stats), `model_experiment_service` (ModelExperiment — A/B cost and quality scoring), `budget_forecast_service` (BudgetForecast — burn-rate projection and confidence), `cron_trigger_service` (CronTrigger + CronTriggerLog — scheduled pipeline execution).
+
+**Platform ops (Wave 19–20)** — `resource_quota_service` (ResourceQuota — per-workspace limits: runs, projects, cost, API calls, storage), `digest_schedule_service` (DigestSchedule — user daily/weekly summary config), `pii_detection_service` (PIIPattern — regex/keyword/ML artifact scanning).
+
+### 2.4 Data / persistence model (48 model files)
 
 Models live in [`apps/api/app/models/`](../apps/api/app/models/). Every model must be imported in [`apps/api/app/db/base.py`](../apps/api/app/db/base.py) so `Base.metadata` sees it (both Alembic autogenerate and the test-suite `create_all()` depend on this).
 
@@ -170,11 +181,24 @@ Models live in [`apps/api/app/models/`](../apps/api/app/models/). Every model mu
 
 **Replay** — `replay_snapshot`.
 
+**Agent intelligence (Wave 17–18)** — `agent_intelligence` (AgentMemoryEntry for long-term cross-run memory; LLMCallLog for per-call cost tracking; PlanRevision for autonomous re-plan history; ReviewComment for inline PR review annotations; SecurityFinding for agent-detected security issues).
+
+**Scheduling (Wave 19–20)** — `scheduling` (CronTrigger — workspace-scoped scheduled pipelines with cron expressions; CronTriggerLog — per-execution log with status, run linkage, error capture).
+
+**Platform intelligence (Wave 19–20)** — `platform_intelligence` (SLOTarget — per-metric SLO with threshold/window/enabled; SLOPeriodResult — computed compliance over a window; AnomalyEvent — typed/severity anomaly records with raw_data JSON; AgentPerformanceSnapshot — period-based agent stats including tasks_completed, p95_latency, success_rate; ModelExperiment — A/B experiment with cost_a/b, latency_a/b, quality scores, winner; BudgetForecast — burn-rate projection with days_remaining and confidence).
+
+**Platform ops (Wave 19–20)** — `platform_ops` (ResourceQuota — per-workspace limits for concurrent runs, projects, monthly cost, API rate, storage; DigestSchedule — per-user daily/weekly digest with include flags for costs/approvals/security; PIIPattern — regex/keyword/ML scan rules with category, severity, enabled).
+
 ### 2.5 Migrations
 
-Alembic chain lives in [`apps/api/alembic/versions/`](../apps/api/alembic/versions/). The current head is `fm161_170_search_knowledge` (chained from `0026_add_collaboration_github_tables`; the `down_revision=None` bug that broke `alembic upgrade heads` was fixed in commit `2a4e8fc`).
+Alembic chain lives in [`apps/api/alembic/versions/`](../apps/api/alembic/versions/). The current head is `wave19_20_platform_intelligence` (chained from `wave17_18_agent_intelligence` → `fm161_170_search_knowledge`).
 
-Tests **do not** run migrations. `tests/conftest.py` calls `Base.metadata.create_all()` against an in-memory SQLite, which is why the CI stayed green through the multi-head break. See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md#migrations) for the local-runtime bootstrap workaround for migration `0022_add_architecture_tables`'s duplicate-enum quirk.
+**Critical migration notes:**
+- All UUID primary keys and foreign keys must use `postgresql.UUID(as_uuid=True)` — not `sa.String(36)`. Mixing types causes `DatatypeMismatchError` on FK creation.
+- SQLAlchemy Enum types must be declared explicitly in migrations as `sa.Enum("val1","val2", name="type_name")` — not the Python Enum class directly.
+- The Wave 19–20 migration (`2026_05_07_0031`) was a full rewrite to fix 12+ column/type mismatches between the original migration and the authoritative models. Models are always the source of truth.
+
+Tests **do not** run migrations. `tests/conftest.py` calls `Base.metadata.create_all()` against an in-memory SQLite, which is why CI stays green through migration issues. See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md#migrations) for the local-runtime bootstrap workaround.
 
 ### 2.6 Middleware stack
 
@@ -307,7 +331,7 @@ Extracting code into `packages/` is the preferred pattern once a module needs to
 
 | Integration          | Service                                                                                                            | Notes                                                                                      |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| LLM providers        | `core/llm.py` (LiteLLM)                                                                                            | Any OpenAI / Anthropic / Google / Ollama / Azure-compatible model. Cost recorded per call. |
+| LLM providers        | `core/llm.py` (LiteLLM)                                                                                            | Any OpenAI / Anthropic / Google / Ollama / Azure-compatible model. Cost recorded per call. Set `PLANNER_MODEL=ollama/mistral` + `OLLAMA_API_BASE=http://127.0.0.1:11435` for local Mistral. |
 | GitHub               | `github_client`, `github_installation_service`, `github_rate_limiter`, `issue_sync_service`, `ci_pipeline_service` | GitHub App installs, rate-limited client, issue sync, PR status pipeline.                  |
 | Slack                | `integration_service` + webhook connectors                                                                         | Outbound notifications via `notification_delivery_service`.                                |
 | Email                | `email_service`                                                                                                    | Digest delivery + escalation notifications.                                                |
@@ -401,7 +425,7 @@ CI → POST /api/v1/code-intelligence/{project_id}/scan { files: [...] }
             └─ CRITICAL/WARNING patterns auto-promoted to ProjectKnowledge
 ```
 
-### 10.4 Scheduled report
+### 10.4 Scheduled analytics report
 
 ```
 background_scheduler (FastAPI lifespan, tick every 60s):
@@ -411,7 +435,22 @@ background_scheduler (FastAPI lifespan, tick every 60s):
        └─ Mark last_run_at
 ```
 
-### 10.5 Architecture impact analysis
+### 10.5 Cron-triggered pipeline (Wave 19–20)
+
+```
+CronTrigger fires (background_scheduler tick every 60s, matches cron_expression):
+  └─ cron_trigger_service.fire(db, trigger)
+       ├─ Resolve project_id + prompt from trigger config
+       ├─ planner_service.plan_from_prompt(db, prompt, owner_id)
+       │    ├─ _generate_plan() → LLM or stub
+       │    ├─ Create Project + ProjectMember(LEAD) + Run + Tasks
+       │    └─ Create PlannerResult
+       └─ CronTriggerLog(status="success", run_id=run.id)
+```
+
+> **Note (2026-05-07 fix):** `plan_from_prompt` previously skipped the `ProjectMember` enrollment step, causing every downstream run/task lookup to return "Not a member of this project". Fixed in `apps/api/app/services/planner_service.py` — the `ProjectMember(role=LEAD)` row is now inserted immediately after the project flush, mirroring `project_service.create_project()`.
+
+### 10.7 Architecture impact analysis
 
 ```
 Operator POST /architecture/impact { target_node_id, scope }
@@ -438,8 +477,8 @@ Operator POST /architecture/impact { target_node_id, scope }
 
 | Layer                       | Tool                                        | Count                      | Notes                                                                    |
 | --------------------------- | ------------------------------------------- | -------------------------- | ------------------------------------------------------------------------ |
-| Backend unit + integration  | pytest + pytest-asyncio + httpx.AsyncClient | **1559 passing**           | aiosqlite in-memory DB per test via `conftest.py`; no migrations run.    |
-| Frontend unit + integration | Vitest + Testing Library + jsdom            | **231 passing / 37 files** | v8 coverage provider; thresholds soft; coverage artifact uploaded by CI. |
+| Backend unit + integration  | pytest + pytest-asyncio + httpx.AsyncClient | **1,691 passing**          | aiosqlite in-memory DB per test via `conftest.py`; no migrations run.    |
+| Frontend unit + integration | Vitest + Testing Library + jsdom            | **254 passing / 37 files** | v8 coverage provider; thresholds soft; coverage artifact uploaded by CI. |
 | Local CLI                   | pytest                                      | **61 passing**             | Standalone; validates `forgemind` commands end to end.                   |
 | Lint                        | ruff (BE) / ESLint flat config (FE)         | clean                      | `ruff check .` + `ruff format --check .` on every PR.                    |
 | Type check                  | `tsc --noEmit` (FE)                         | clean                      | TS strict.                                                               |

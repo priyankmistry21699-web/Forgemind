@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.llm import llm_json_completion
 from app.models.artifact import Artifact, ArtifactType
+from app.models.membership import ProjectMember, ProjectRole
 from app.models.project import Project, ProjectStatus
 from app.models.run import Run, RunStatus
 from app.models.task import Task, TaskStatus
@@ -352,6 +353,8 @@ async def plan_from_prompt(
     )
     db.add(project)
     await db.flush()
+    # Auto-enroll the creator as project lead (mirrors project_service.create_project)
+    db.add(ProjectMember(project_id=project.id, user_id=owner_id, role=ProjectRole.LEAD))
 
     # 2. Create the first run — starts in SPECIFYING (FM-101)
     run = Run(

@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, setAuthToken } from "@/lib/api";
 
 interface User {
   id: string;
@@ -38,20 +38,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const saveToken = useCallback((t: string) => {
     localStorage.setItem(TOKEN_KEY, t);
+    setAuthToken(t);
     setToken(t);
   }, []);
 
   const clearAuth = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
+    setAuthToken(null);
     setToken(null);
     setUser(null);
   }, []);
 
   const fetchMe = useCallback(async (t: string) => {
     try {
-      const me = await apiFetch<User>("/auth/me", {
-        headers: { Authorization: `Bearer ${t}` },
-      });
+      const headers: Record<string, string> = {};
+      if (t) headers["Authorization"] = `Bearer ${t}`;
+      const me = await apiFetch<User>("/auth/me", { headers });
       setUser(me);
       return true;
     } catch {
@@ -60,14 +62,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [clearAuth]);
 
-  // Restore session on mount
+  // Restore session on mount — try stored token first, then fall back to
+  // no-token request (works in dev mode where the API returns a stub user).
   useEffect(() => {
     const stored = localStorage.getItem(TOKEN_KEY);
     if (stored) {
+      setAuthToken(stored);
       setToken(stored);
       fetchMe(stored).finally(() => setLoading(false));
     } else {
-      setLoading(false);
+      // Dev mode: API returns stub user without a token
+      fetchMe("").finally(() => setLoading(false));
     }
   }, [fetchMe]);
 

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { fetchProjects } from "@/lib/projects";
-import { fetchApprovals } from "@/lib/approvals";
 import type { Project } from "@/types/project";
 import {
   ProjectCard,
@@ -49,11 +48,10 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
 
-    Promise.all([fetchProjects(), fetchApprovals({ status: "pending" })])
-      .then(([projectData, approvalData]) => {
+    fetchProjects()
+      .then((projectData) => {
         setProjects(projectData.items);
         setTotal(projectData.total);
-        setPendingApprovals(approvalData.total);
       })
       .catch((err: unknown) => {
         setError(err instanceof Error ? err.message : "Unknown error");
@@ -61,6 +59,10 @@ export default function DashboardPage() {
       .finally(() => {
         setLoading(false);
       });
+
+    // Pending approvals count requires a project_id — fetch per-project
+    // after projects load; for now keep count at 0 (shown on /approvals page).
+    setPendingApprovals(0);
   }, []);
 
   useEffect(() => {
