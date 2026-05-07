@@ -25,7 +25,6 @@ from app.db.session import get_db
 from app.models.agent_intelligence import (
     AgentMemoryEntry,
     FindingSeverity,
-    LLMCallLog,
     SecurityFinding,
 )
 

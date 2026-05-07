@@ -41,7 +41,6 @@ from app.models.code_ops import (
     CodeMapping,
     PatchProposal,
     BranchStrategy,
-    PRDraft,
     RepoActionApproval,
     SandboxExecution,
 )

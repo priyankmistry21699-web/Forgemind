@@ -19,7 +19,6 @@ Covers:
 """
 
 import uuid
-from datetime import datetime, timezone
 
 import pytest
 from httpx import AsyncClient
@@ -367,7 +366,7 @@ async def test_compute_slo_attainment_no_data(db_session: AsyncSession, sample_p
 async def test_compute_slo_attainment_with_runs(
     db_session: AsyncSession, sample_project, sample_run
 ):
-    from app.models.run import Run, RunStatus
+    from app.models.run import RunStatus
     from app.services.slo_service import create_slo, compute_slo_attainment
     from app.models.platform_intelligence import SLOMetric
 
@@ -427,7 +426,7 @@ async def test_anomaly_scan_error_rate(
     db_session: AsyncSession, sample_project, sample_run
 ):
     from app.models.run import Run, RunStatus
-    from app.services.anomaly_service import run_anomaly_scan, list_anomalies
+    from app.services.anomaly_service import run_anomaly_scan
 
     # Create 3 more runs: 3 failed out of 4 total (75% error rate → > 50% threshold)
     for _ in range(3):
@@ -469,7 +468,7 @@ async def test_list_anomalies(db_session: AsyncSession, sample_project):
 
 @pytest.mark.asyncio
 async def test_upsert_quota(db_session: AsyncSession):
-    from app.services.quota_service import upsert_quota, get_quota
+    from app.services.quota_service import upsert_quota
 
     ws_id = uuid.uuid4()
     quota = await upsert_quota(
@@ -620,7 +619,6 @@ async def test_scan_artifact_with_content(
     db_session: AsyncSession, sample_artifact
 ):
     from app.services.pii_service import seed_builtin_patterns, scan_artifact
-    from app.models.artifact import Artifact
 
     await seed_builtin_patterns(db_session)
     await db_session.flush()

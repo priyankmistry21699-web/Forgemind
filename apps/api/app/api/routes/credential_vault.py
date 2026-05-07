@@ -15,8 +15,6 @@ from app.schemas.credential_vault import (
 )
 from app.services import credential_vault_service
 from app.services.authz_service import check_project_permission, Action
-from app.core.authz_deps import resolve_project_for_entity
-from app.models.credential_vault import CredentialVault
 from app.models.connector import Connector
 from sqlalchemy import select
 
