@@ -13,11 +13,9 @@ import type { DashboardLayout } from "@/types/dashboard";
 // Stub the widget renderer so this test is truly a layout test, not a
 // data-fetch test. We render a minimal marker that records the widget id.
 vi.mock("../widget-renderer", () => ({
-  WidgetRenderer: ({
-    widget,
-  }: {
-    widget: { id: string; title?: string };
-  }) => <div data-testid={`widget-${widget.id}`}>{widget.title ?? widget.id}</div>,
+  WidgetRenderer: ({ widget }: { widget: { id: string; title?: string } }) => (
+    <div data-testid={`widget-${widget.id}`}>{widget.title ?? widget.id}</div>
+  ),
 }));
 
 import { DashboardGrid } from "../dashboard-grid";
@@ -25,9 +23,7 @@ import { DashboardGrid } from "../dashboard-grid";
 describe("DashboardGrid", () => {
   it("renders the empty-state when layout has no widgets", () => {
     const layout: DashboardLayout = { widgets: [] };
-    render(
-      <DashboardGrid dashboardId="d1" projectId="p1" layout={layout} />,
-    );
+    render(<DashboardGrid dashboardId="d1" projectId="p1" layout={layout} />);
     expect(
       screen.getByText(/this dashboard has no widgets yet/i),
     ).toBeInTheDocument();
@@ -36,9 +32,7 @@ describe("DashboardGrid", () => {
   it("treats missing widgets array as empty", () => {
     // widgets is explicitly missing to exercise the `?? []` branch.
     const layout = {} as DashboardLayout;
-    render(
-      <DashboardGrid dashboardId="d1" projectId="p1" layout={layout} />,
-    );
+    render(<DashboardGrid dashboardId="d1" projectId="p1" layout={layout} />);
     expect(
       screen.getByText(/this dashboard has no widgets yet/i),
     ).toBeInTheDocument();
@@ -72,9 +66,7 @@ describe("DashboardGrid", () => {
         },
       ],
     };
-    render(
-      <DashboardGrid dashboardId="d1" projectId="p1" layout={layout} />,
-    );
+    render(<DashboardGrid dashboardId="d1" projectId="p1" layout={layout} />);
 
     const a = screen.getByTestId("widget-a").parentElement as HTMLElement;
     const b = screen.getByTestId("widget-b").parentElement as HTMLElement;
@@ -102,9 +94,7 @@ describe("DashboardGrid", () => {
         },
       ],
     };
-    render(
-      <DashboardGrid dashboardId="d1" projectId="p1" layout={layout} />,
-    );
+    render(<DashboardGrid dashboardId="d1" projectId="p1" layout={layout} />);
     const el = screen.getByTestId("widget-broken").parentElement as HTMLElement;
     expect(el.style.gridColumn).toBe("1 / span 1");
     expect(el.style.gridRow).toBe("1 / span 1");

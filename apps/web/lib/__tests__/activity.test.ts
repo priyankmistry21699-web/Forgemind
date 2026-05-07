@@ -61,9 +61,7 @@ describe("activity client", () => {
   it("fetchPresences + fetchUserPresence + fetchUserContext hit expected URLs", async () => {
     mocks.apiFetch.mockResolvedValue({ items: [], total: 0 });
     await fetchPresences();
-    expect(mocks.apiFetch).toHaveBeenCalledWith(
-      "/presence?offset=0&limit=100",
-    );
+    expect(mocks.apiFetch).toHaveBeenCalledWith("/presence?offset=0&limit=100");
 
     mocks.apiFetch.mockResolvedValue({ status: "online" });
     await fetchUserPresence("u-1");

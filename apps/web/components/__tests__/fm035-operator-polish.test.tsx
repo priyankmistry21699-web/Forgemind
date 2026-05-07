@@ -72,9 +72,7 @@ function makeApproval(overrides: Partial<Approval> = {}): Approval {
 describe("ArtifactListSection (FM-035 polish)", () => {
   it("renders the dashed empty-state card when there are no artifacts", () => {
     render(<ArtifactListSection artifacts={[]} />);
-    expect(
-      screen.getByText("No artifacts produced yet"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("No artifacts produced yet")).toBeInTheDocument();
   });
 
   it("cross-links each artifact row to /dashboard/artifacts/:id", () => {

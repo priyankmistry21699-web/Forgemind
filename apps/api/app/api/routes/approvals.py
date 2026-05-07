@@ -2,12 +2,14 @@
 
 import uuid
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status as http_status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.core.auth import get_current_user_id
 from app.models.approval_request import ApprovalStatus
+from app.models.run import Run
 from app.schemas.approval import ApprovalRead, ApprovalList, ApprovalDecision
 from app.services import approval_service
 from app.services.authz_service import check_project_permission, Action
@@ -27,9 +29,26 @@ async def list_approvals(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ApprovalList:
-    """List approval requests with optional filters."""
-    if project_id is not None:
-        await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    """List approval requests. At least one of project_id or run_id is required."""
+    # H-11: at least one scope qualifier required to prevent cross-project IDOR
+    if project_id is None and run_id is None:
+        raise HTTPException(
+            status_code=http_status.HTTP_400_BAD_REQUEST,
+            detail="At least one of project_id or run_id must be provided",
+        )
+
+    # Resolve project_id from the run when not supplied directly
+    if project_id is None and run_id is not None:
+        result = await db.execute(select(Run).where(Run.id == run_id))
+        run = result.scalar_one_or_none()
+        if run is None:
+            raise HTTPException(
+                status_code=http_status.HTTP_404_NOT_FOUND,
+                detail="Run not found",
+            )
+        project_id = run.project_id
+
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     approvals, total = await approval_service.list_approvals(
         db,
         project_id=project_id,
@@ -51,10 +70,14 @@ async def get_approval(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ApprovalRead:
     """Get a single approval request."""
-    proj_id = await resolve_project_for_entity(db, ApprovalRequest, approval_id)
-    if proj_id is not None:
-        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
+    # Service raises 404 if not found; then C-3 check guards NULL project_id
     approval = await approval_service.get_approval(db, approval_id)
+    if approval.project_id is None:
+        raise HTTPException(
+            status_code=http_status.HTTP_403_FORBIDDEN,
+            detail="Cannot determine project for this approval",
+        )
+    await check_project_permission(db, approval.project_id, user_id, Action.PROJECT_VIEW)
     return ApprovalRead.model_validate(approval)
 
 
@@ -66,8 +89,17 @@ async def decide_approval(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ApprovalRead:
     """Approve or reject a pending approval request."""
+    # C-3: null project_id must never bypass the auth check
+    # resolve_project_for_entity returns None both for "not found" and "no project";
+    # we deliberately return 403 for both to avoid leaking existence.
     proj_id = await resolve_project_for_entity(db, ApprovalRequest, approval_id)
-    if proj_id is not None:
-        await check_project_permission(db, proj_id, user_id, Action.PROJECT_APPROVE)
-    approval = await approval_service.resolve_approval(db, approval_id, data)
+    if proj_id is None:
+        raise HTTPException(
+            status_code=http_status.HTTP_403_FORBIDDEN,
+            detail="Cannot determine project for this approval",
+        )
+    await check_project_permission(db, proj_id, user_id, Action.PROJECT_APPROVE)
+    approval = await approval_service.resolve_approval(
+        db, approval_id, data, user_id=user_id
+    )
     return ApprovalRead.model_validate(approval)

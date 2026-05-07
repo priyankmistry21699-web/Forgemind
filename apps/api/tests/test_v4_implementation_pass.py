@@ -581,19 +581,16 @@ class TestWebhookSignatureVerification:
 
     @pytest.mark.asyncio
     async def test_webhook_skips_verification_when_no_secret(self, client: AsyncClient):
-        """When GITHUB_WEBHOOK_SECRET is empty, webhooks pass without signature."""
-        with patch("app.core.config.settings") as mock_settings:
-            mock_settings.github_webhook_secret = ""
-
-            resp = await client.post(
-                "/github/webhooks",
-                content=b'{"action": "opened"}',
-                headers={
-                    "X-GitHub-Event": "ping",
-                    "Content-Type": "application/json",
-                },
-            )
-            assert resp.status_code == 201
+        """When GITHUB_WEBHOOK_SECRET is empty, webhook returns 503 (secret required)."""
+        resp = await client.post(
+            "/github/webhooks",
+            content=b'{"action": "opened"}',
+            headers={
+                "X-GitHub-Event": "ping",
+                "Content-Type": "application/json",
+            },
+        )
+        assert resp.status_code == 503
 
 
 # =====================================================================
@@ -791,10 +788,11 @@ class TestGitHubClient:
 
     @pytest.mark.asyncio
     async def test_commit_status_route_not_found(self, client: AsyncClient):
-        """Test commit status route with nonexistent repo."""
+        """Test commit status route with nonexistent repo and valid SHA format."""
         fake_id = uuid.uuid4()
+        valid_sha = "a" * 40
         resp = await client.post(
-            f"/github/repos/{fake_id}/statuses/abc123",
+            f"/github/repos/{fake_id}/statuses/{valid_sha}",
             json={"state": "success"},
         )
         assert resp.status_code == 404

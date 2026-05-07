@@ -47,11 +47,12 @@ export function GaugeChart({
   // Color ramp: green → amber → red as frac grows toward 1.
   // This matches conventions for both health scores (invert visually via
   // client choice of min/max) and load/error metrics.
-  const color = frac < 0.5
-    ? "var(--color-success)"
-    : frac < 0.8
-      ? "var(--color-warning)"
-      : "var(--color-danger)";
+  const color =
+    frac < 0.5
+      ? "var(--color-success)"
+      : frac < 0.8
+        ? "var(--color-warning)"
+        : "var(--color-danger)";
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-1 p-3">

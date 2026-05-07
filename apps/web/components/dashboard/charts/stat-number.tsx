@@ -7,7 +7,12 @@ interface StatNumberProps {
 }
 
 /** Large single-number widget with optional label + delta indicator. */
-export function StatNumber({ value, label, unit = "", delta }: StatNumberProps) {
+export function StatNumber({
+  value,
+  label,
+  unit = "",
+  delta,
+}: StatNumberProps) {
   if (value === null || !Number.isFinite(value)) {
     return (
       <div className="flex h-full w-full items-center justify-center text-xs text-[var(--color-text-dim)]">

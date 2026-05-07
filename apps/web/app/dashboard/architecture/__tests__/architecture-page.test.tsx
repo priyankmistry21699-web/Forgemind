@@ -203,7 +203,9 @@ describe("ArchitectureDashboard (FM-085)", () => {
       render(<Page />);
     });
 
-    expect(screen.getByText("Architecture Review Workspace")).toBeInTheDocument();
+    expect(
+      screen.getByText("Architecture Review Workspace"),
+    ).toBeInTheDocument();
     // Health score bubble
     expect(screen.getByText("72")).toBeInTheDocument();
     // Drift row

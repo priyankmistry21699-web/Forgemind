@@ -36,9 +36,7 @@ describe("costs client", () => {
   it("fetchProjectCostSummary hits /costs/projects/:id/summary", async () => {
     mocks.apiFetch.mockResolvedValue({ total_tokens: 0 });
     await fetchProjectCostSummary("p-1");
-    expect(mocks.apiFetch).toHaveBeenCalledWith(
-      "/costs/projects/p-1/summary",
-    );
+    expect(mocks.apiFetch).toHaveBeenCalledWith("/costs/projects/p-1/summary");
   });
 
   it("fetchCostBreakdown hits /costs/breakdown", async () => {

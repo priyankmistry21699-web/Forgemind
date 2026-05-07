@@ -19,6 +19,16 @@ dependencies = [
     "forgemind-utils",
     "forgemind-core",
     "forgemind-security",
+    # FM-213: structured logging
+    "structlog>=24.0.0",
+    # FM-216/224: Redis caching + SSE pub/sub
+    "redis>=5.0.0",
+    # FM-219: email templates
+    "jinja2>=3.1.0",
+    # FM-218: object storage
+    "minio>=7.2.0",
+    # FM-225: sandbox HTTP tool
+    "httpx>=0.28.0",
 ]
 
 [project.optional-dependencies]
@@ -28,6 +38,10 @@ dev = [
     "httpx>=0.28.0",
     "ruff>=0.8.0",
     "aiosqlite>=0.20.0",
+]
+otel = [
+    "opentelemetry-sdk>=1.25.0",
+    "opentelemetry-instrumentation-fastapi>=0.46b0",
 ]
 
 [tool.pytest.ini_options]

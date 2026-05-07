@@ -93,7 +93,10 @@ describe("WidgetRenderer", () => {
       <WidgetRenderer
         dashboardId="dash-1"
         projectId="proj-1"
-        widget={makeWidget({ title: undefined, widget_type: "execution_metrics" })}
+        widget={makeWidget({
+          title: undefined,
+          widget_type: "execution_metrics",
+        })}
       />,
     );
     expect(await screen.findByText("Execution Metrics")).toBeInTheDocument();
@@ -111,9 +114,7 @@ describe("WidgetRenderer", () => {
       />,
     );
     expect(await screen.findByText(/failed to load/i)).toBeInTheDocument();
-    expect(
-      screen.getByText(/503:/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/503:/)).toBeInTheDocument();
   });
 
   it("renders a fallback error message when a plain Error is thrown", async () => {
@@ -160,9 +161,7 @@ describe("WidgetRenderer", () => {
           total_debt_items: 4,
           by_type: { critical: 1, high: 3 },
           total_flaky: 2,
-          flaky_tests: [
-            { name: "t1", failure_rate: 12.3, runs: 10 },
-          ],
+          flaky_tests: [{ name: "t1", failure_rate: 12.3, runs: 10 }],
         },
       });
       render(
@@ -184,9 +183,7 @@ describe("WidgetRenderer", () => {
         ),
       );
       // No "Failed to load" text should appear on any valid dispatch.
-      expect(
-        screen.queryByText(/failed to load/i),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/failed to load/i)).not.toBeInTheDocument();
     },
   );
 

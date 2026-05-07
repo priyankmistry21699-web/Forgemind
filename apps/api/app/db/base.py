@@ -134,3 +134,33 @@ from app.models.api_ecosystem import (  # noqa: F401
     WebhookDelivery,
     ConnectorRegistry,
 )
+
+# FM-222–230: Agent intelligence (memory, cost, review, security)
+from app.models.agent_intelligence import (  # noqa: F401
+    AgentMemoryEntry,
+    LLMCallLog,
+    PlanRevision,
+    ReviewComment,
+    SecurityFinding,
+)
+
+# FM-231/232: Scheduled and event-driven triggers
+from app.models.scheduling import CronTrigger, TriggerRule  # noqa: F401
+
+# FM-233–240: Platform intelligence (perf, prompts, experiments, SLOs, anomalies)
+from app.models.platform_intelligence import (  # noqa: F401
+    AgentPerformanceSnapshot,
+    PromptVersion,
+    ModelExperiment,
+    BudgetForecast,
+    SLOTarget,
+    SLOPeriodResult,
+    AnomalyEvent,
+)
+
+# FM-241/246/247: Platform ops (quotas, digests, PII patterns)
+from app.models.platform_ops import (  # noqa: F401
+    ResourceQuota,
+    DigestSchedule,
+    PIIPattern,
+)

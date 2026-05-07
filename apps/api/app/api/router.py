@@ -52,6 +52,11 @@ from app.api.routes.collaboration import router as collaboration_router
 from app.api.routes.code_intelligence import router as code_intelligence_router
 from app.api.routes.analytics import router as analytics_router
 from app.api.routes.api_ecosystem import router as api_ecosystem_router
+from app.api.routes.admin import router as admin_router
+from app.api.routes.agent_intelligence import router as agent_intelligence_router
+from app.api.routes.scheduling import router as scheduling_router
+from app.api.routes.platform_intelligence import router as platform_intelligence_router
+from app.api.routes.platform_ops import router as platform_ops_router
 from app.services import api_key_service
 
 api_router = APIRouter()
@@ -273,3 +278,18 @@ api_router.include_router(
 api_router.include_router(
     api_ecosystem_router, tags=["api-keys", "webhooks", "connectors", "ecosystem"]
 )
+
+# Admin operations (FM-215/216/217/221)
+api_router.include_router(admin_router, tags=["admin"])
+
+# Agent intelligence: memory, cost, stream, docs, security (FM-222–230)
+api_router.include_router(agent_intelligence_router, tags=["agent-intelligence"])
+
+# Scheduling & event-driven triggers (FM-231/232)
+api_router.include_router(scheduling_router, tags=["scheduling"])
+
+# Platform intelligence: perf, prompts, experiments, SLOs, anomalies (FM-233–240)
+api_router.include_router(platform_intelligence_router, tags=["platform-intelligence"])
+
+# Platform ops: quotas, audit export, PII, admin stats (FM-241–248)
+api_router.include_router(platform_ops_router, tags=["platform-ops"])

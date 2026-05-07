@@ -18,6 +18,26 @@ _KEY_ENV = "FORGEMIND_ENCRYPTION_KEY"
 _NONCE_SIZE = 12
 
 
+def validate_encryption_key() -> None:
+    """M-21: Call at startup to fail fast when the encryption key is absent or weak.
+
+    Raises RuntimeError rather than letting a missing key cause silent plaintext
+    storage later when encrypt() is called mid-request.
+    """
+    raw = os.environ.get(_KEY_ENV, "")
+    if not raw:
+        raise RuntimeError(
+            f"{_KEY_ENV} is not set. "
+            "Generate a key with: python -c \"from app.services.encryption_service import generate_key_hex; print(generate_key_hex())\""
+        )
+    try:
+        key = binascii.unhexlify(raw)
+    except (ValueError, binascii.Error):
+        raise RuntimeError(f"{_KEY_ENV} must be a valid hex string")
+    if len(key) != 32:
+        raise RuntimeError(f"{_KEY_ENV} must be exactly 32 bytes (64 hex chars)")
+
+
 def _get_key() -> bytes:
     """Load the 256-bit master key from the environment."""
     raw = os.environ.get(_KEY_ENV, "")

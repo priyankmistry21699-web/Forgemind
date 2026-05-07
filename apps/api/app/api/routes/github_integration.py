@@ -9,8 +9,11 @@ from fastapi import APIRouter, Depends, Request, HTTPException
 from pydantic import BaseModel as _BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import re
+
 from app.db.session import get_db
 from app.core.auth import get_current_user_id
+from app.services.authz_service import check_project_permission, Action
 from app.schemas.github_integration import (
     GitHubInstallationCreate,
     GitHubInstallationRead,
@@ -33,6 +36,58 @@ from app.services import (
 )
 
 router = APIRouter(prefix="/github")
+
+
+# FM-212: helpers — resolve a project_id from a github resource and enforce permission
+async def _authz_repo(
+    db: AsyncSession,
+    repo_link_id: uuid.UUID,
+    user_id: uuid.UUID,
+    action,
+) -> uuid.UUID:
+    """Resolve repo_link_id → project_id and check permission. Returns project_id."""
+    from app.models.github_integration import RepositoryLink
+
+    repo = await db.get(RepositoryLink, repo_link_id)
+    if repo is None:
+        raise HTTPException(status_code=404, detail="Repository link not found")
+    await check_project_permission(db, repo.project_id, user_id, action)
+    return repo.project_id
+
+
+async def _authz_run(
+    db: AsyncSession,
+    run_id: uuid.UUID,
+    user_id: uuid.UUID,
+    action,
+) -> uuid.UUID:
+    """Resolve run_id → project_id and check permission. Returns project_id."""
+    from app.models.run import Run
+
+    run = await db.get(Run, run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+    await check_project_permission(db, run.project_id, user_id, action)
+    return run.project_id
+
+
+async def _authz_issue_link(
+    db: AsyncSession,
+    issue_link_id: uuid.UUID,
+    user_id: uuid.UUID,
+    action,
+) -> uuid.UUID:
+    """Resolve issue_link_id → repo_link → project_id and check permission."""
+    from app.models.github_integration import IssueLink, RepositoryLink
+
+    issue = await db.get(IssueLink, issue_link_id)
+    if issue is None:
+        raise HTTPException(status_code=404, detail="Issue link not found")
+    repo = await db.get(RepositoryLink, issue.repository_link_id)
+    if repo is None:
+        raise HTTPException(status_code=404, detail="Repository link not found")
+    await check_project_permission(db, repo.project_id, user_id, action)
+    return repo.project_id
 
 
 # ---------------------------------------------------------------------------
@@ -59,17 +114,25 @@ async def register_installation(
 @router.get("/installations", response_model=list[GitHubInstallationRead])
 async def list_installations(
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
-    return await github_installation_service.list_installations(db)
+    # FM-212: only return installations the caller connected. Cross-tenant
+    # enumeration of GitHub installations is not allowed.
+    return await github_installation_service.list_installations(
+        db, connected_by=user_id
+    )
 
 
 @router.post("/repos", response_model=RepositoryLinkRead)
 async def link_repo(
     body: RepositoryLinkCreate,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
+    # FM-212: caller must have execute permission on the target project
+    await check_project_permission(
+        db, body.project_id, user_id, Action.PROJECT_EXECUTE_CODE
+    )
     return await github_installation_service.link_repository(
         db,
         installation_id=body.installation_id,
@@ -84,8 +147,10 @@ async def link_repo(
 async def list_project_repos(
     project_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
+    # FM-212: enforce project membership before listing repos
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     return await github_installation_service.list_repos_for_project(db, project_id)
 
 
@@ -93,8 +158,10 @@ async def list_project_repos(
 async def unlink_repo(
     link_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
+    # FM-212: require project-level execute permission to unlink a repo
+    await _authz_repo(db, link_id, user_id, Action.PROJECT_EXECUTE_CODE)
     await github_installation_service.unlink_repository(db, link_id)
 
 
@@ -110,19 +177,26 @@ async def receive_webhook(
 ):
     """Receive GitHub webhook events.
 
-    Verifies HMAC-SHA256 signature when GITHUB_WEBHOOK_SECRET is configured.
+    Verifies HMAC-SHA256 signature. Requires GITHUB_WEBHOOK_SECRET to be
+    configured — endpoint returns 503 when secret is absent (H-6).
     """
     from app.core.config import settings
 
     payload_bytes = await request.body()
 
-    # Enforce signature verification when a webhook secret is configured
-    if settings.github_webhook_secret:
-        signature = request.headers.get("X-Hub-Signature-256", "")
-        if not webhook_service.verify_github_signature(
-            payload_bytes, signature, settings.github_webhook_secret
-        ):
-            raise HTTPException(status_code=401, detail="Invalid webhook signature")
+    # H-6: reject all webhook requests when secret is unconfigured — an absent
+    # secret must never be treated as "verification not required".
+    if not settings.github_webhook_secret:
+        raise HTTPException(
+            status_code=503,
+            detail="Webhook endpoint not available: GITHUB_WEBHOOK_SECRET not configured",
+        )
+
+    signature = request.headers.get("X-Hub-Signature-256", "")
+    if not webhook_service.verify_github_signature(
+        payload_bytes, signature, settings.github_webhook_secret
+    ):
+        raise HTTPException(status_code=401, detail="Invalid webhook signature")
 
     event_type = request.headers.get("X-GitHub-Event", "ping")
     delivery_id = request.headers.get("X-GitHub-Delivery")
@@ -158,8 +232,10 @@ async def receive_webhook(
 async def list_run_prs(
     run_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
+    # FM-212: caller must have view permission on the run's project
+    await _authz_run(db, run_id, user_id, Action.PROJECT_VIEW)
     return await pr_service.list_prs_for_run(db, run_id)
 
 
@@ -167,8 +243,10 @@ async def list_run_prs(
 async def list_repo_prs(
     repo_link_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
+    # FM-212: caller must have view permission on the repo's project
+    await _authz_repo(db, repo_link_id, user_id, Action.PROJECT_VIEW)
     return await pr_service.list_prs_for_repo(db, repo_link_id)
 
 
@@ -181,8 +259,10 @@ async def list_repo_prs(
 async def list_ci_runs(
     repo_link_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
+    # FM-212: caller must have view permission on the repo's project
+    await _authz_repo(db, repo_link_id, user_id, Action.PROJECT_VIEW)
     return await ci_pipeline_service.list_pipelines_for_repo(db, repo_link_id)
 
 
@@ -191,8 +271,10 @@ async def latest_ci_run(
     repo_link_id: uuid.UUID,
     branch: str | None = None,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
+    # FM-212: caller must have view permission on the repo's project
+    await _authz_repo(db, repo_link_id, user_id, Action.PROJECT_VIEW)
     return await ci_pipeline_service.get_latest_pipeline(
         db, repo_link_id, branch=branch
     )
@@ -207,8 +289,10 @@ async def latest_ci_run(
 async def list_project_issues(
     project_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
+    # FM-212: enforce project membership
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     return await issue_sync_service.list_issues_for_project(db, project_id)
 
 
@@ -225,9 +309,11 @@ async def export_issue(
     project_id: uuid.UUID,
     body: _ExportIssueBody,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Export (create) an issue from ForgeMind to GitHub (FM-155)."""
+    # FM-212: enforce project execute permission for outbound mutations
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_EXECUTE_CODE)
     issue = await issue_sync_service.export_issue_to_github(
         db,
         project_id=project_id,
@@ -248,7 +334,7 @@ async def sync_issue_status_to_github(
     issue_link_id: uuid.UUID,
     body: _SyncStatusBody,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Push a ForgeMind issue status change to GitHub (FM-155).
 
@@ -256,6 +342,9 @@ async def sync_issue_status_to_github(
     Without a configured github_client, updates local state only.
     """
     from app.models.github_integration import IssueLinkStatus
+
+    # FM-212: resolve issue → repo → project and require execute permission
+    await _authz_issue_link(db, issue_link_id, user_id, Action.PROJECT_EXECUTE_CODE)
 
     try:
         new_status = IssueLinkStatus(body.status)
@@ -286,8 +375,10 @@ async def sync_issue_status_to_github(
 async def sync_pending_exports(
     project_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
+    # FM-212: enforce project execute permission for batch outbound sync
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_EXECUTE_CODE)
     """Batch-export all pending issues to GitHub (FM-155).
 
     Returns the list of pending issues. Without a live GitHub client,
@@ -316,8 +407,10 @@ async def sync_pending_exports(
 async def upsert_code_owner(
     body: CodeOwnershipCreate,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
+    # FM-212: enforce project execute permission via the repo link
+    await _authz_repo(db, body.repository_link_id, user_id, Action.PROJECT_EXECUTE_CODE)
     return await code_review_service.upsert_ownership_rule(
         db,
         repository_link_id=body.repository_link_id,
@@ -332,8 +425,10 @@ async def match_code_owners(
     repo_link_id: uuid.UUID,
     file_paths: list[str],
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
+    # FM-212: enforce project view permission via the repo link
+    await _authz_repo(db, repo_link_id, user_id, Action.PROJECT_VIEW)
     return await code_review_service.get_owners_for_files(db, repo_link_id, file_paths)
 
 
@@ -348,8 +443,10 @@ async def suggest_reviewers(
     repo_link_id: uuid.UUID,
     body: _SuggestReviewersBody,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
+    # FM-212: enforce project view permission via the repo link
+    await _authz_repo(db, repo_link_id, user_id, Action.PROJECT_VIEW)
     """Suggest ranked reviewers for changed files based on code ownership.
 
     Uses CODEOWNERS patterns to score reviewers by coverage breadth and
@@ -373,9 +470,16 @@ async def suggest_reviewers(
 async def get_merge_readiness(
     pr_link_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Evaluate whether a PR is ready to merge."""
+    # FM-212: resolve pr_link → repo → project and require view permission
+    from app.models.github_integration import PullRequestLink
+
+    pr = await db.get(PullRequestLink, pr_link_id)
+    if pr is None:
+        raise HTTPException(status_code=404, detail="PR link not found")
+    await _authz_repo(db, pr.repository_link_id, user_id, Action.PROJECT_VIEW)
     result = await merge_readiness_service.evaluate_merge_readiness(db, pr_link_id)
     return {
         "ready": result.ready,
@@ -395,14 +499,33 @@ async def get_merge_readiness(
 async def replay_webhook(
     event_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Re-process a stored webhook event (admin/debug tool)."""
-    from app.models.github_integration import ExternalEvent
+    from app.models.github_integration import ExternalEvent, RepositoryLink
+    from app.models.project import Project
+    from app.services.authz_service import check_workspace_permission, Action
 
     event = await db.get(ExternalEvent, event_id)
     if event is None:
         raise HTTPException(status_code=404, detail="Event not found")
+
+    # H-10: resolve workspace from event → repo link → project, then check governance perm
+    workspace_id = None
+    if event.repository_link_id:
+        repo = await db.get(RepositoryLink, event.repository_link_id)
+        if repo is not None:
+            project = await db.get(Project, repo.project_id)
+            if project is not None:
+                workspace_id = project.workspace_id
+    if workspace_id is None:
+        raise HTTPException(
+            status_code=403,
+            detail="Cannot determine workspace for this event",
+        )
+    await check_workspace_permission(
+        db, workspace_id, user_id, Action.WORKSPACE_MANAGE_GOVERNANCE
+    )
 
     # Re-process based on event type
     result = None
@@ -442,7 +565,7 @@ async def post_pr_comment(
     pr_link_id: uuid.UUID,
     body: _PRCommentBody,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Post a comment on a GitHub PR via the outbound API.
 
@@ -461,6 +584,9 @@ async def post_pr_comment(
     repo = await db.get(RepositoryLink, pr.repository_link_id)
     if repo is None:
         raise HTTPException(status_code=404, detail="Repository link not found")
+
+    # H-9: verify caller has execute permission on the project that owns this repo
+    await check_project_permission(db, repo.project_id, user_id, Action.PROJECT_EXECUTE_CODE)
 
     # Parse owner/repo from full_name (e.g. "owner/repo")
     parts = repo.full_name.split("/", 1)
@@ -490,15 +616,22 @@ async def post_pr_comment(
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
+_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+
+
 @router.post("/repos/{repo_link_id}/statuses/{sha}")
 async def create_commit_status(
     repo_link_id: uuid.UUID,
     sha: str,
     body: _CommitStatusBody,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Create a commit status on GitHub (pending/success/failure/error)."""
+    # L-25: reject malformed SHAs before they reach the GitHub API
+    if not _SHA_RE.match(sha):
+        raise HTTPException(status_code=400, detail="Invalid commit SHA")
+
     from app.models.github_integration import RepositoryLink
     from app.services.github_client import create_commit_status as gh_create_status
     from app.services.github_client import GitHubClientError
@@ -507,6 +640,9 @@ async def create_commit_status(
     repo = await db.get(RepositoryLink, repo_link_id)
     if repo is None:
         raise HTTPException(status_code=404, detail="Repository link not found")
+
+    # H-9: verify caller has execute permission on the owning project
+    await check_project_permission(db, repo.project_id, user_id, Action.PROJECT_EXECUTE_CODE)
 
     parts = repo.full_name.split("/", 1)
     if len(parts) != 2:
@@ -559,7 +695,7 @@ async def create_pull_request(
     repo_link_id: uuid.UUID,
     body: _CreatePRBody,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Create a pull request on GitHub and record the link locally.
 
@@ -573,6 +709,9 @@ async def create_pull_request(
     repo = await db.get(RepositoryLink, repo_link_id)
     if repo is None:
         raise HTTPException(status_code=404, detail="Repository link not found")
+
+    # H-9: verify execute permission on the project that owns this repository
+    await check_project_permission(db, repo.project_id, user_id, Action.PROJECT_EXECUTE_CODE)
 
     parts = repo.full_name.split("/", 1)
     if len(parts) != 2:
@@ -634,7 +773,7 @@ async def request_pr_reviewers(
     pr_link_id: uuid.UUID,
     body: _ReviewerRequestBody,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Request reviewers on a GitHub pull request.
 
@@ -659,6 +798,9 @@ async def request_pr_reviewers(
     repo = await db.get(RepositoryLink, pr.repository_link_id)
     if repo is None:
         raise HTTPException(status_code=404, detail="Repository link not found")
+
+    # H-9: verify execute permission on the project that owns this repo
+    await check_project_permission(db, repo.project_id, user_id, Action.PROJECT_EXECUTE_CODE)
 
     parts = repo.full_name.split("/", 1)
     if len(parts) != 2:
@@ -700,7 +842,7 @@ async def get_ci_pass_rate(
     repo_link_id: uuid.UUID,
     branch: str = "main",
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Get CI pass rate for a repo branch from recent GitHub Actions runs."""
     from app.models.github_integration import RepositoryLink
@@ -711,6 +853,9 @@ async def get_ci_pass_rate(
     repo = await db.get(RepositoryLink, repo_link_id)
     if repo is None:
         raise HTTPException(status_code=404, detail="Repository link not found")
+
+    # FM-212: enforce project view permission
+    await check_project_permission(db, repo.project_id, user_id, Action.PROJECT_VIEW)
 
     parts = repo.full_name.split("/", 1)
     if len(parts) != 2:
@@ -741,7 +886,7 @@ async def get_ci_readiness(
     threshold: float = 70.0,
     window: int = 20,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Evaluate CI readiness gate for a repository.
 
@@ -754,6 +899,9 @@ async def get_ci_readiness(
     repo = await db.get(RepositoryLink, repo_link_id)
     if repo is None:
         raise HTTPException(status_code=404, detail="Repository link not found")
+
+    # FM-212: enforce project view permission
+    await check_project_permission(db, repo.project_id, user_id, Action.PROJECT_VIEW)
 
     return await merge_readiness_service.evaluate_ci_readiness(
         db,
@@ -839,6 +987,9 @@ async def auto_create_branch(
     if repo_link is None:
         raise HTTPException(status_code=404, detail="Repository link not found")
 
+    # H-9: verify execute permission on the project that owns this repository
+    await check_project_permission(db, repo_link.project_id, user_id, Action.PROJECT_EXECUTE_CODE)
+
     token = settings.github_api_token or ""
     if not token:
         raise HTTPException(
@@ -863,13 +1014,27 @@ async def auto_create_branch(
 # ---------------------------------------------------------------------------
 
 
+async def _authz_installation(
+    db: AsyncSession, installation_id: uuid.UUID, user_id: uuid.UUID
+) -> None:
+    """FM-212: only the user who connected an installation may inspect/manage it."""
+    from app.models.github_integration import GitHubInstallation
+
+    inst = await db.get(GitHubInstallation, installation_id)
+    if inst is None:
+        raise HTTPException(status_code=404, detail="Installation not found")
+    if inst.connected_by != user_id:
+        raise HTTPException(status_code=403, detail="Not the installation owner")
+
+
 @router.get("/installations/{installation_id}/token-status")
 async def installation_token_status(
     installation_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Check health/token status of a GitHub installation (FM-151)."""
+    await _authz_installation(db, installation_id, user_id)
     return await github_installation_service.validate_installation(db, installation_id)
 
 
@@ -877,12 +1042,13 @@ async def installation_token_status(
 async def refresh_installation_token(
     installation_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Trigger token refresh for a GitHub installation (FM-151).
 
     Without a configured GitHub App client, returns current token status.
     """
+    await _authz_installation(db, installation_id, user_id)
     token = await github_installation_service.get_or_refresh_token(
         db,
         installation_id,
@@ -899,9 +1065,10 @@ async def refresh_installation_token(
 async def deactivate_installation(
     installation_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    _user_id: uuid.UUID = Depends(get_current_user_id),
+    user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Deactivate a GitHub installation (FM-151)."""
+    await _authz_installation(db, installation_id, user_id)
     inst = await github_installation_service.deactivate_installation(
         db, installation_id
     )

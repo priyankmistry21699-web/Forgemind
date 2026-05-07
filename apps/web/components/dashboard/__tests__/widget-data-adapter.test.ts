@@ -52,10 +52,9 @@ describe("normalizeWidgetData — boundary inputs", () => {
   });
 
   it("returns EMPTY for an unknown widget_type (forward-compat guard)", () => {
-    const out = normalizeWidgetData(
-      "not_a_real_widget" as WidgetType,
-      { foo: 1 },
-    );
+    const out = normalizeWidgetData("not_a_real_widget" as WidgetType, {
+      foo: 1,
+    });
     expect(out).toEqual({
       scalar: null,
       series: [],

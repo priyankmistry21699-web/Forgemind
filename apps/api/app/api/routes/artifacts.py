@@ -13,6 +13,7 @@ from app.schemas.artifact import (
     ArtifactUpdate,
 )
 from app.services import artifact_service, plan_artifact_service
+from app.services.authz_service import check_project_permission, Action
 
 router = APIRouter()
 
@@ -64,7 +65,9 @@ async def get_artifact(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ArtifactRead:
     """Get a single artifact by ID."""
+    # VULN-4 fix: verify the caller belongs to the artifact's project
     artifact = await artifact_service.get_artifact(db, artifact_id)
+    await check_project_permission(db, artifact.project_id, user_id, Action.PROJECT_VIEW)
     return ArtifactRead.model_validate(artifact)
 
 
@@ -76,6 +79,9 @@ async def update_artifact(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ArtifactRead:
     """Update an artifact's title, content, or metadata. Bumps version on content changes."""
+    # VULN-5 fix: verify project membership before mutation
+    artifact = await artifact_service.get_artifact(db, artifact_id)
+    await check_project_permission(db, artifact.project_id, user_id, Action.PROJECT_EDIT)
     artifact = await artifact_service.update_artifact(db, artifact_id, data)
     await db.commit()
     return ArtifactRead.model_validate(artifact)
@@ -88,6 +94,9 @@ async def delete_artifact(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> None:
     """Delete an artifact."""
+    # VULN-6 fix: verify project membership before deletion
+    artifact = await artifact_service.get_artifact(db, artifact_id)
+    await check_project_permission(db, artifact.project_id, user_id, Action.PROJECT_EDIT)
     await artifact_service.delete_artifact(db, artifact_id)
     await db.commit()
 
@@ -100,6 +109,14 @@ async def export_plan(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Export the PLAN (with linked SPEC) as markdown or JSON metadata."""
+    # VULN-11 fix: verify caller is a project member before exporting plan data
+    from app.models.run import Run
+    from fastapi import HTTPException
+
+    run = await db.get(Run, run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+    await check_project_permission(db, run.project_id, user_id, Action.PROJECT_VIEW)
     data = await plan_artifact_service.get_plan_export_data(db, run_id)
     return data
 
@@ -111,10 +128,16 @@ async def export_plan_markdown(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ):
     """Download the PLAN as a markdown file."""
+    # VULN-11 fix: verify caller is a project member
+    from app.models.run import Run
+    from fastapi import HTTPException
+
+    run = await db.get(Run, run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+    await check_project_permission(db, run.project_id, user_id, Action.PROJECT_VIEW)
     md = await plan_artifact_service.export_plan_markdown(db, run_id)
     if md is None:
-        from fastapi import HTTPException
-
         raise HTTPException(status_code=404, detail="No PLAN artifact found")
     return PlainTextResponse(
         content=md,

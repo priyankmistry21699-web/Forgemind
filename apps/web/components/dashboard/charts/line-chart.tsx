@@ -53,11 +53,7 @@ export function LineChart({ data, unit = "" }: LineChartProps) {
         role="img"
         aria-label={`Line chart with ${data.length} points`}
       >
-        <path
-          d={areaPath}
-          fill="var(--color-accent-glow)"
-          stroke="none"
-        />
+        <path d={areaPath} fill="var(--color-accent-glow)" stroke="none" />
         <path
           d={path}
           fill="none"

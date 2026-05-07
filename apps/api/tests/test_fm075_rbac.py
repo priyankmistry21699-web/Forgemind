@@ -388,14 +388,14 @@ class TestRouteAuthEnforcement:
         assert resp.status_code == 200
 
     async def test_vault_endpoints_have_auth(self, client: AsyncClient):
-        """Vault endpoints should succeed with stub auth."""
+        """Vault endpoints should not return 401 (auth passes, project_id is now required)."""
         resp = await client.get("/vault/credentials")
-        assert resp.status_code == 200
+        assert resp.status_code != 401  # 422 = missing required param, auth passed
 
     async def test_approvals_endpoints_have_auth(self, client: AsyncClient):
-        """Approvals endpoints should succeed with stub auth."""
+        """Approvals endpoints should not return 401 (auth passes, filter is now required)."""
         resp = await client.get("/approvals")
-        assert resp.status_code == 200
+        assert resp.status_code != 401  # 400 = missing filter, auth passed
 
     async def test_agents_endpoints_have_auth(self, client: AsyncClient):
         """Agents endpoints should succeed with stub auth."""

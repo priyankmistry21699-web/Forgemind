@@ -34,9 +34,7 @@ describe("ReleasesPage (FM-138)", () => {
     render(<ReleasesPage />);
 
     expect(screen.getByText("Release Operations")).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("Enter Project ID"),
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Enter Project ID")).toBeInTheDocument();
     expect(mocks.fetchProjectReleasePackages).not.toHaveBeenCalled();
   });
 
@@ -77,9 +75,7 @@ describe("ReleasesPage (FM-138)", () => {
       enterProjectId("proj-empty");
     });
 
-    expect(
-      screen.getByText("No release packages found."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("No release packages found.")).toBeInTheDocument();
   });
 
   it("surfaces the error banner when the fetch rejects", async () => {

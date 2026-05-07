@@ -828,6 +828,10 @@ async def list_roles(
     db: AsyncSession = Depends(get_db),
 ):
     """List all custom roles in a workspace (FM-172)."""
+    # H-7: verify caller is a workspace member before exposing role configs
+    await check_workspace_permission(
+        db, workspace_id, current_user_id, Action.WORKSPACE_VIEW
+    )
     roles = await list_custom_roles(db, workspace_id)
     return {
         "items": [
@@ -853,6 +857,14 @@ async def update_role(
     db: AsyncSession = Depends(get_db),
 ):
     """Update a custom role (FM-172)."""
+    # C-2: resolve workspace from role and check WORKSPACE_MANAGE_MEMBERS
+    from app.services.authz_service import get_custom_role as _get_role
+    existing = await _get_role(db, role_id)
+    if existing is None:
+        raise HTTPException(status_code=404, detail="Custom role not found")
+    await check_workspace_permission(
+        db, existing.workspace_id, current_user_id, Action.WORKSPACE_MANAGE_MEMBERS
+    )
     try:
         role = await update_custom_role(
             db,
@@ -1020,6 +1032,7 @@ async def check_sso_enforcement(
 async def get_sso_login_url(
     workspace_id: uuid.UUID,
     redirect_uri: str,
+    _current_user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
     """Get the SSO login redirect URL for a workspace (FM-175).
@@ -1027,6 +1040,17 @@ async def get_sso_login_url(
     For OIDC providers, returns the authorization URL.
     For SAML providers, returns the IdP SSO URL.
     """
+    # H-5: require auth; validate redirect_uri to prevent open-redirect OAuth abuse
+    if not redirect_uri.startswith("/"):
+        from urllib.parse import urlparse
+        parsed = urlparse(redirect_uri)
+        from app.core.config import settings
+        allowed_origins = {urlparse(o.strip()).netloc for o in settings.cors_origins.split(",") if o.strip()}
+        if parsed.netloc not in allowed_origins:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid redirect URI — must be a relative path or match an allowed origin",
+            )
     config = await sso_configuration_service.get_active_sso_for_workspace(
         db,
         workspace_id,

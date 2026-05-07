@@ -21,7 +21,7 @@ impact_severity
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import JSON, UUID
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum, JSON, UUID
 
 revision = "0022"
 down_revision = "0021"
@@ -29,9 +29,16 @@ branch_labels = None
 depends_on = None
 
 
+# Enums use ``create_type=False`` so the implicit creation triggered by
+# ``op.create_table`` does NOT re-issue ``CREATE TYPE`` (which would fail on
+# fresh Postgres with DuplicateObjectError because the explicit
+# ``.create(..., checkfirst=True)`` call has already created the type).
+# The explicit creation below remains the only place enums are created.
+
+
 def upgrade() -> None:
     # ── New enum types ───────────────────────────────────────────
-    arch_node_type = sa.Enum(
+    arch_node_type = PgEnum(
         "workspace",
         "project",
         "repository",
@@ -45,10 +52,11 @@ def upgrade() -> None:
         "resource",
         "external_dependency",
         name="arch_node_type",
+        create_type=False,
     )
     arch_node_type.create(op.get_bind(), checkfirst=True)
 
-    arch_edge_type = sa.Enum(
+    arch_edge_type = PgEnum(
         "depends_on",
         "calls",
         "owns",
@@ -60,82 +68,92 @@ def upgrade() -> None:
         "emits_event_to",
         "consumes_event_from",
         name="arch_edge_type",
+        create_type=False,
     )
     arch_edge_type.create(op.get_bind(), checkfirst=True)
 
-    arch_source_type = sa.Enum(
+    arch_source_type = PgEnum(
         "inferred",
         "declared",
         "imported",
         name="arch_source_type",
+        create_type=False,
     )
     arch_source_type.create(op.get_bind(), checkfirst=True)
 
-    arch_edge_source_type = sa.Enum(
+    arch_edge_source_type = PgEnum(
         "inferred",
         "declared",
         "imported",
         name="arch_edge_source_type",
+        create_type=False,
     )
     arch_edge_source_type.create(op.get_bind(), checkfirst=True)
 
-    arch_node_status = sa.Enum(
+    arch_node_status = PgEnum(
         "active",
         "deprecated",
         "removed",
         name="arch_node_status",
+        create_type=False,
     )
     arch_node_status.create(op.get_bind(), checkfirst=True)
 
-    drift_severity = sa.Enum(
+    drift_severity = PgEnum(
         "low",
         "medium",
         "high",
         "critical",
         name="drift_severity",
+        create_type=False,
     )
     drift_severity.create(op.get_bind(), checkfirst=True)
 
-    drift_status = sa.Enum(
+    drift_status = PgEnum(
         "open",
         "resolved",
         "ignored",
         name="drift_status",
+        create_type=False,
     )
     drift_status.create(op.get_bind(), checkfirst=True)
 
-    arch_rule_category = sa.Enum(
+    arch_rule_category = PgEnum(
         "import",
         "layer",
         "ownership",
         "dependency",
         "boundary",
         name="arch_rule_category",
+        create_type=False,
     )
     arch_rule_category.create(op.get_bind(), checkfirst=True)
 
-    arch_rule_severity = sa.Enum(
+    arch_rule_severity = PgEnum(
         "low",
         "medium",
         "high",
         "critical",
         name="arch_rule_severity",
+        create_type=False,
     )
     arch_rule_severity.create(op.get_bind(), checkfirst=True)
 
-    arch_rule_result_status = sa.Enum(
+    arch_rule_result_status = PgEnum(
         "pass",
         "violation",
         name="arch_rule_result_status",
+        create_type=False,
     )
     arch_rule_result_status.create(op.get_bind(), checkfirst=True)
 
-    impact_severity = sa.Enum(
+    impact_severity = PgEnum(
         "low",
         "medium",
         "high",
         "critical",
         name="impact_severity",
+        create_type=False,
     )
     impact_severity.create(op.get_bind(), checkfirst=True)
 

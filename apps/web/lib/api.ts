@@ -18,19 +18,35 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * VULN-12 fix: store the auth token in a module-level variable (memory only)
+ * instead of localStorage. localStorage is readable by any JavaScript running
+ * on the page, making tokens trivially exfiltrable via XSS. An in-memory store
+ * is cleared on page refresh, which is acceptable for short-lived JWTs (1h).
+ *
+ * For production deployments the preferred approach is httpOnly Secure cookies
+ * set by the API server — the server-side auth route should do that and this
+ * client should send credentials: "include" instead.
+ */
+let _memoryToken: string | null = null;
+
+export function setAuthToken(token: string | null): void {
+  _memoryToken = token;
+}
+
+export function getAuthToken(): string | null {
+  return _memoryToken;
+}
+
 export async function apiFetch<T>(
   path: string,
   options?: RequestInit,
 ): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
 
-  // Attach stored auth token if available
   const authHeaders: Record<string, string> = {};
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("forgemind_token");
-    if (token) {
-      authHeaders["Authorization"] = `Bearer ${token}`;
-    }
+  if (_memoryToken) {
+    authHeaders["Authorization"] = `Bearer ${_memoryToken}`;
   }
 
   const res = await fetch(url, {

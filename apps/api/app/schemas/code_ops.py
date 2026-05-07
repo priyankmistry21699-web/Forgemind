@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.models.code_ops import (
     PatchStatus,
@@ -305,6 +305,13 @@ class SandboxExecutionRead(BaseModel):
     completed_at: datetime | None
 
     model_config = {"from_attributes": True}
+
+    @model_validator(mode="after")
+    def _mask_env_values(self) -> "SandboxExecutionRead":
+        # H-14: env var values must never be returned in API responses
+        if self.environment:
+            self.environment = {k: "***" for k in self.environment}
+        return self
 
 
 class SandboxExecutionList(BaseModel):

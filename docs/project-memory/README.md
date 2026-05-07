@@ -14,6 +14,7 @@ Read these in order on your first pass:
 | 6 | [REQUEST_FLOWS.md](REQUEST_FLOWS.md) | End-to-end traces for the 7 most important flows |
 | 7 | [CHANGE_GUIDE.md](CHANGE_GUIDE.md) | "If you need to change X, start here" recipes |
 | 8 | [MILESTONE_TO_CODE_MAP.md](MILESTONE_TO_CODE_MAP.md) | FM-xxx milestones → concrete files |
+| 9 | [graph/](graph/) | **Neo4j / yEd / Cytoscape property-graph export** — auto-generated Cypher · GraphML · JSON |
 
 ## Conventions used in these docs
 

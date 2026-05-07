@@ -112,17 +112,14 @@ function adaptVelocity(data: Record<string, unknown>): NormalizedWidget {
     toNumber(data.throughput_7d) ??
     toNumber(data.runs_completed) ??
     toNumber(data.velocity_score);
-  const series = numericFieldsAsSeries(
-    data,
-    [
-      "throughput_1d",
-      "throughput_7d",
-      "throughput_30d",
-      "runs_completed",
-      "runs_failed",
-      "approvals_completed",
-    ],
-  );
+  const series = numericFieldsAsSeries(data, [
+    "throughput_1d",
+    "throughput_7d",
+    "throughput_30d",
+    "runs_completed",
+    "runs_failed",
+    "approvals_completed",
+  ]);
   return {
     scalar,
     scalarLabel: "Throughput (7d)",

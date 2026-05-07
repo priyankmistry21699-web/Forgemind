@@ -148,7 +148,9 @@ function WidgetBody({
         />
       );
     default:
-      return <Placeholder message={`Unsupported chart: ${widget.chart_type}`} />;
+      return (
+        <Placeholder message={`Unsupported chart: ${widget.chart_type}`} />
+      );
   }
 }
 

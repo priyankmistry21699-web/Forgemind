@@ -69,9 +69,7 @@ vi.mock("@/components/projects/phase-profile-editor", () => ({
   PhaseProfileEditor: () => <div data-testid="phase-profile-editor" />,
 }));
 vi.mock("@/components/projects/constitution-suggestions", () => ({
-  ConstitutionSuggestions: () => (
-    <div data-testid="constitution-suggestions" />
-  ),
+  ConstitutionSuggestions: () => <div data-testid="constitution-suggestions" />,
 }));
 
 import ProjectDetailPage from "../page";

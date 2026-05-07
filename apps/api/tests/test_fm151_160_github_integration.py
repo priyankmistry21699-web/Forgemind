@@ -238,13 +238,26 @@ class TestWebhookIngestion:
         assert issue.labels == ["bug"]
 
     @pytest.mark.asyncio
-    async def test_webhook_http(self, client: AsyncClient):
+    async def test_webhook_http(self, client: AsyncClient, monkeypatch):
+        import hmac, hashlib, json as _json
+        from app.core import config as cfg
+
+        secret = "test-webhook-secret"
+        monkeypatch.setattr(cfg.settings, "github_webhook_secret", secret)
+
+        payload = _json.dumps(
+            {"ref": "refs/heads/main", "repository": {"full_name": "x/y"}}
+        ).encode()
+        sig = "sha256=" + hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
+
         resp = await client.post(
             "/github/webhooks",
-            json={"ref": "refs/heads/main", "repository": {"full_name": "x/y"}},
+            content=payload,
             headers={
                 "X-GitHub-Event": "push",
                 "X-GitHub-Delivery": "http-del-001",
+                "X-Hub-Signature-256": sig,
+                "Content-Type": "application/json",
             },
         )
         assert resp.status_code == 201
@@ -795,10 +808,9 @@ class TestWebhookReplay:
         await db_session.commit()
 
         resp = await client.post(f"/github/webhooks/replay/{event.id}")
-        assert resp.status_code == 200
-        body = resp.json()
-        assert body["status"] == "replayed"
-        assert body["event_type"] == "push"
+        # H-10: replay now requires workspace membership resolved from event's repo_link.
+        # An event with no repository_link_id cannot be authorized → 403.
+        assert resp.status_code == 403
 
 
 # =====================================================================

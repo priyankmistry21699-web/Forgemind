@@ -22,11 +22,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
     include: ["**/__tests__/**/*.{test,spec}.{ts,tsx}"],
-    exclude: [
-      "node_modules/**",
-      ".next/**",
-      "dist/**",
-    ],
+    exclude: ["node_modules/**", ".next/**", "dist/**"],
     css: false,
     coverage: {
       // v8 is the default provider in Vitest 3+ and doesn't require an

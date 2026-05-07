@@ -9,11 +9,7 @@ vi.mock("@/lib/api", () => ({
   ApiError: class ApiError extends Error {},
 }));
 
-import {
-  fetchAuditSummary,
-  exportAuditJson,
-  exportAuditCsv,
-} from "../audit";
+import { fetchAuditSummary, exportAuditJson, exportAuditCsv } from "../audit";
 
 beforeEach(() => {
   mocks.apiFetch.mockReset();

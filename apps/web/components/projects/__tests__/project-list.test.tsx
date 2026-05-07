@@ -96,9 +96,7 @@ describe("ProjectListEmpty", () => {
   it("renders the empty-state guidance copy", () => {
     render(<ProjectListEmpty />);
     expect(screen.getByText("No projects yet")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Create your first project/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Create your first project/i)).toBeInTheDocument();
   });
 });
 

@@ -16,6 +16,46 @@ from app.models.execution_event import EventType
 logger = logging.getLogger(__name__)
 
 
+async def _notify_project_reviewers(
+    db: AsyncSession,
+    project_id: uuid.UUID,
+    notification_type: str,
+    title: str,
+    priority: str,
+    body: str | None,
+    resource_id: uuid.UUID,
+) -> None:
+    """Send notification to all LEAD/REVIEWER members of the project.
+
+    M-19: Approval notifications must go to real users, not to project_id.
+    """
+    try:
+        from app.services import notification_service
+        from app.models.membership import ProjectMember, ProjectRole
+
+        result = await db.execute(
+            select(ProjectMember).where(
+                ProjectMember.project_id == project_id,
+                ProjectMember.role.in_([ProjectRole.LEAD, ProjectRole.REVIEWER]),
+            )
+        )
+        for member in result.scalars().all():
+            await notification_service.create_notification(
+                db,
+                user_id=member.user_id,
+                notification_type=notification_type,
+                title=title,
+                priority=priority,
+                body=body,
+                resource_type="approval",
+                resource_id=resource_id,
+            )
+    except Exception:
+        logger.warning(
+            "Failed to create notifications for approval %s", resource_id, exc_info=True
+        )
+
+
 async def create_approval(
     db: AsyncSession,
     data: ApprovalCreate,
@@ -34,24 +74,16 @@ async def create_approval(
     await db.flush()
     await db.refresh(approval)
 
-    # FM-055: Create notification for approval request
-    try:
-        from app.services import notification_service
-
-        await notification_service.create_notification(
-            db,
-            user_id=approval.project_id,  # placeholder - should route to project reviewers
-            notification_type="approval_required",
-            title=f"Approval required: {approval.title}",
-            priority="high",
-            body=approval.description,
-            resource_type="approval",
-            resource_id=approval.id,
-        )
-    except Exception:
-        logger.warning(
-            "Failed to create notification for approval %s", approval.id, exc_info=True
-        )
+    # FM-055 / M-19: notify project reviewers (not project_id as a fake user)
+    await _notify_project_reviewers(
+        db,
+        project_id=approval.project_id,
+        notification_type="approval_required",
+        title=f"Approval required: {approval.title}",
+        priority="high",
+        body=approval.description,
+        resource_id=approval.id,
+    )
 
     # FM-054: Publish stream event
     try:
@@ -123,8 +155,16 @@ async def resolve_approval(
     db: AsyncSession,
     approval_id: uuid.UUID,
     decision: ApprovalDecision,
+    *,
+    user_id: uuid.UUID | None = None,
 ) -> ApprovalRequest:
-    """Approve or reject a pending approval request."""
+    """Approve or reject a pending approval request.
+
+    The authenticated ``user_id`` (when supplied by a route handler) is the
+    authoritative identity recorded in the audit log. Any ``decided_by``
+    value in the request body is ignored when ``user_id`` is provided, so
+    callers cannot impersonate other reviewers.
+    """
     approval = await get_approval(db, approval_id)
 
     if approval.status != ApprovalStatus.PENDING:
@@ -139,8 +179,14 @@ async def resolve_approval(
             detail="Decision must be 'approved' or 'rejected'",
         )
 
+    # Authoritative identity: prefer the authenticated user over the
+    # client-supplied ``decided_by`` field. Falling back to the request
+    # value preserves backward compatibility for internal callers (worker,
+    # scheduled jobs) that pass through the service layer directly.
+    resolved_decided_by = str(user_id) if user_id is not None else decision.decided_by
+
     approval.status = decision.status
-    approval.decided_by = decision.decided_by
+    approval.decided_by = resolved_decided_by
     approval.decision_comment = decision.decision_comment
     approval.decided_at = datetime.now(timezone.utc)
 
@@ -150,7 +196,7 @@ async def resolve_approval(
     await event_service.emit_event(
         db,
         event_type=EventType.APPROVAL_RESOLVED,
-        summary=f"Approval '{approval.title}' {decision.status.value} by {decision.decided_by or 'unknown'}",
+        summary=f"Approval '{approval.title}' {decision.status.value} by {resolved_decided_by or 'unknown'}",
         project_id=approval.project_id,
         run_id=approval.run_id,
         task_id=approval.task_id,
@@ -161,31 +207,21 @@ async def resolve_approval(
         },
     )
 
-    # FM-055: Notify about resolution
-    try:
-        from app.services import notification_service
-
-        ntype = (
-            "approval_granted"
-            if decision.status == ApprovalStatus.APPROVED
-            else "approval_denied"
-        )
-        await notification_service.create_notification(
-            db,
-            user_id=approval.project_id,  # placeholder
-            notification_type=ntype,
-            title=f"Approval {decision.status.value}: {approval.title}",
-            priority="normal",
-            body=decision.decision_comment,
-            resource_type="approval",
-            resource_id=approval.id,
-        )
-    except Exception:
-        logger.warning(
-            "Failed to create notification for resolved approval %s",
-            approval.id,
-            exc_info=True,
-        )
+    # FM-055 / M-19: notify project reviewers (not project_id as a fake user)
+    ntype = (
+        "approval_granted"
+        if decision.status == ApprovalStatus.APPROVED
+        else "approval_denied"
+    )
+    await _notify_project_reviewers(
+        db,
+        project_id=approval.project_id,
+        notification_type=ntype,
+        title=f"Approval {decision.status.value}: {approval.title}",
+        priority="normal",
+        body=decision.decision_comment,
+        resource_id=approval.id,
+    )
 
     # FM-054: Publish stream event
     try:

@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Escalation Alert</h2>
+<p>An approval in <strong>{{ project_name }}</strong> has been automatically escalated.</p>
+<p><strong>{{ title }}</strong> — escalated after {{ hours_overdue }} hours overdue.</p>
+<a href="{{ action_url }}" class="btn">View Escalation</a>
+{% endblock %}

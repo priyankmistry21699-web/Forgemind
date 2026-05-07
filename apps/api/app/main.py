@@ -17,8 +17,17 @@ from app.core.error_handlers import register_error_handlers
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     import asyncio
 
+    # FM-213: configure structured logging early
+    from app.core.structured_logging import configure_logging
+    configure_logging()
+
+    # M-21: fail fast when encryption key is missing or malformed
+    if settings.app_env not in ("development", "test"):
+        from app.services.encryption_service import validate_encryption_key
+        validate_encryption_key()
+
     # Startup — seed default agents
-    from app.db.session import async_session_factory
+    from app.db.session import async_session_factory, engine
     from app.services.agent_service import seed_default_agents
     from app.services.project_template_service import seed_builtin_templates
     from app.services.background_scheduler import (
@@ -26,6 +35,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         retention_loop,
         scheduled_report_loop,
     )
+    from app.core.slow_query import install_slow_query_listener
+
+    install_slow_query_listener(engine)
 
     async with async_session_factory() as session:
         await seed_default_agents(session)
@@ -52,9 +64,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         except asyncio.CancelledError:
             pass
 
-    from app.db.session import engine
+    from app.db.session import engine as _engine
 
-    await engine.dispose()
+    await _engine.dispose()
 
 
 def create_app() -> FastAPI:
@@ -68,6 +80,10 @@ def create_app() -> FastAPI:
     # Global error handlers (FM-050)
     register_error_handlers(app)
 
+    # FM-212: optional OpenTelemetry tracing
+    from app.core.telemetry import setup_telemetry
+    setup_telemetry(app)
+
     # Middleware stack (order matters: last added = first executed)
     app.add_middleware(
         CORSMiddleware,
@@ -77,9 +93,8 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Rate limiting (FM-050) — only in non-debug mode
-    if not settings.debug:
-        app.add_middleware(RateLimitMiddleware, rate_limit=100, window_seconds=60)
+    # Rate limiting (FM-050/H-15) — always active regardless of debug flag
+    app.add_middleware(RateLimitMiddleware, rate_limit=100, window_seconds=60)
 
     # Request logging (FM-050)
     app.add_middleware(RequestLoggingMiddleware)
@@ -89,6 +104,14 @@ def create_app() -> FastAPI:
 
     # IP allowlist enforcement (FM-178) — checks workspace governance_settings
     app.add_middleware(IPAllowlistMiddleware)
+
+    # FM-212: Trace-ID propagation
+    from app.core.telemetry import TraceIDMiddleware
+    app.add_middleware(TraceIDMiddleware)
+
+    # FM-213: structured logging request correlation
+    from app.core.structured_logging import StructuredLoggingMiddleware
+    app.add_middleware(StructuredLoggingMiddleware)
 
     # Mount routers
     app.include_router(api_router)

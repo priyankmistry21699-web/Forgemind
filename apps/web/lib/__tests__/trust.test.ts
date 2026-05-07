@@ -35,8 +35,6 @@ describe("trust client", () => {
   it("fetchRunRiskSummary hits /trust/runs/:id/risk-summary", async () => {
     mocks.apiFetch.mockResolvedValue({ risk_level: "low" });
     await fetchRunRiskSummary("r-1");
-    expect(mocks.apiFetch).toHaveBeenCalledWith(
-      "/trust/runs/r-1/risk-summary",
-    );
+    expect(mocks.apiFetch).toHaveBeenCalledWith("/trust/runs/r-1/risk-summary");
   });
 });

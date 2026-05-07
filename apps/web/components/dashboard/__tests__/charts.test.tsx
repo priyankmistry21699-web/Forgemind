@@ -121,9 +121,7 @@ describe("DataTable", () => {
   });
 
   it("renders gracefully with empty rows", () => {
-    const { container } = render(
-      <DataTable columns={["A", "B"]} rows={[]} />,
-    );
+    const { container } = render(<DataTable columns={["A", "B"]} rows={[]} />);
     expect(container).toBeTruthy();
   });
 });

@@ -103,6 +103,10 @@ class Artifact(Base):
         nullable=False,
     )
 
+    # FM-218: Object storage offload
+    storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    storage_size_bytes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
     # FM-176: Retention archive marker
     archived_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None

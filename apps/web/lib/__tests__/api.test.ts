@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { apiFetch, ApiError } from "../api";
+import { apiFetch, ApiError, setAuthToken } from "../api";
 
 const originalFetch = globalThis.fetch;
 
@@ -28,11 +28,7 @@ function jsonResponseFactory(status: number, body: unknown) {
 
 beforeEach(() => {
   // Wipe any token between tests.
-  try {
-    localStorage.removeItem("forgemind_token");
-  } catch {
-    /* jsdom always provides it */
-  }
+  setAuthToken(null);
 });
 
 afterEach(() => {
@@ -65,8 +61,8 @@ describe("apiFetch()", () => {
     expect(headers["X-Trace-Id"]).toBe("t-1");
   });
 
-  it("attaches the Bearer token from localStorage when present", async () => {
-    localStorage.setItem("forgemind_token", "tok-abc");
+  it("attaches the Bearer token from memory store when present", async () => {
+    setAuthToken("tok-abc");
     const fn = mockFetch(jsonResponseFactory(200, {}));
     await apiFetch("/me");
     const [, init] = fn.mock.calls[0];

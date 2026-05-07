@@ -80,11 +80,7 @@ vi.mock("@/components/planner/prompt-intake-form", () => ({
   ),
 }));
 vi.mock("@/components/planner/planning-result-card", () => ({
-  PlanningResultCard: ({
-    onDismiss,
-  }: {
-    onDismiss: () => void;
-  }) => (
+  PlanningResultCard: ({ onDismiss }: { onDismiss: () => void }) => (
     <div data-testid="planning-result-card">
       <button onClick={onDismiss}>dismiss</button>
     </div>
@@ -117,7 +113,9 @@ beforeEach(() => {
   mocks.fetchProjects.mockReset();
   mocks.fetchApprovals.mockReset();
   // Provide a stable scrollIntoView since the page calls it on form open
-  (Element.prototype as unknown as { scrollIntoView: () => void }).scrollIntoView = () => {};
+  (
+    Element.prototype as unknown as { scrollIntoView: () => void }
+  ).scrollIntoView = () => {};
 });
 
 describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
@@ -127,9 +125,9 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
 
     const { container } = render(<DashboardPage />);
     // stat cards show "—" while loading
-    expect(
-      container.querySelectorAll(".animate-pulse").length,
-    ).toBeGreaterThan(0);
+    expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThan(
+      0,
+    );
     expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(2);
   });
 

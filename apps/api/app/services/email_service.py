@@ -278,3 +278,85 @@ def is_category_enabled(email: str, category: str) -> bool:
 def unsubscribe(email: str, category: str) -> None:
     """Unsubscribe an email from a notification category."""
     set_email_preference(email, category, False)
+
+
+# ── FM-219: Jinja2 HTML templates + async DB-aware sender ────────
+
+import os as _os
+from pathlib import Path as _Path
+
+_JINJA_TEMPLATE_DIR = _Path(__file__).parent.parent / "templates" / "email"
+_jinja2_env = None
+
+
+def _get_jinja2_env():
+    global _jinja2_env
+    if _jinja2_env is not None:
+        return _jinja2_env
+    try:
+        from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+        _jinja2_env = Environment(
+            loader=FileSystemLoader(str(_JINJA_TEMPLATE_DIR)),
+            autoescape=select_autoescape(["html"]),
+        )
+    except ImportError:
+        pass
+    return _jinja2_env
+
+
+def render_jinja_template(template_name: str, context: dict) -> str:
+    """Render a Jinja2 HTML email template.  Falls back to plain text."""
+    env = _get_jinja2_env()
+    if env is None:
+        return f"{context.get('title', '')}\n\n{context.get('description', '')}"
+    try:
+        return env.get_template(template_name).render(**context)
+    except Exception as exc:
+        logger.warning("render_jinja_template failed (%s)", exc)
+        return str(context)
+
+
+_APP_BASE_URL = _os.getenv("APP_BASE_URL", "http://localhost:3000")
+
+
+async def send_notification_email_async(db: object, notif: object) -> bool:
+    """FM-219: Async email sender driven by a Notification ORM object.
+
+    Looks up the recipient User, picks the right Jinja2 template, renders
+    it, and delivers via send_email (or logs in dev mode).
+    """
+    from app.models.user import User
+    from app.models.notification import NotificationType
+
+    user = await db.get(User, notif.user_id)  # type: ignore[union-attr]
+    if user is None or not getattr(user, "email", None):
+        return False
+
+    ntype_val = (
+        notif.notification_type.value  # type: ignore[union-attr]
+        if hasattr(notif.notification_type, "value")
+        else str(notif.notification_type)
+    )
+
+    template_map = {
+        NotificationType.APPROVAL_REQUIRED.value: "approval_required.html",
+        NotificationType.RUN_COMPLETED.value: "run_completed.html",
+        NotificationType.RUN_FAILED.value: "run_completed.html",
+        NotificationType.ESCALATION.value: "escalation.html",
+    }
+    template_name = template_map.get(ntype_val, "base.html")
+
+    ctx = {
+        "subject": notif.title,  # type: ignore[union-attr]
+        "title": notif.title,  # type: ignore[union-attr]
+        "description": notif.body or "",  # type: ignore[union-attr]
+        "action_url": f"{_APP_BASE_URL}/dashboard",
+        "project_name": "ForgeMind",
+        "status": "completed",
+        "run_number": "—",
+        "hours_overdue": 0,
+    }
+    html = render_jinja_template(template_name, ctx)
+    result = send_email(user.email, notif.title, html)  # type: ignore[union-attr]
+    return result.get("status") in ("sent", "logged")

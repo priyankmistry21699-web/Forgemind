@@ -244,6 +244,26 @@ async def sample_approval(
 
 
 @pytest_asyncio.fixture
+async def sample_workspace(db_session: AsyncSession):
+    """Create a workspace with the stub user as an owner."""
+    from app.models.workspace import Workspace
+    from app.models.membership import WorkspaceMember, WorkspaceRole
+
+    ws = Workspace(name="Test Workspace", slug="test-workspace", owner_id=STUB_USER_ID)
+    db_session.add(ws)
+    await db_session.flush()
+    await db_session.refresh(ws)
+    member = WorkspaceMember(
+        workspace_id=ws.id,
+        user_id=STUB_USER_ID,
+        role=WorkspaceRole.OWNER,
+    )
+    db_session.add(member)
+    await db_session.flush()
+    return ws
+
+
+@pytest_asyncio.fixture
 async def sample_planner_result(db_session: AsyncSession, sample_run):
     """Create and return a planner result for tests."""
     from app.models.planner_result import PlannerResult

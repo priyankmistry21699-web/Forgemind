@@ -7,6 +7,7 @@ repo action approvals, and sandbox execution with safety controls.
 import asyncio
 import logging
 import os
+import shlex
 import time
 import uuid
 from datetime import datetime, timezone
@@ -63,6 +64,11 @@ SANDBOX_COMMAND_ALLOWLIST = {
 
 # FM-069: Max sandbox execution time (seconds)
 MAX_SANDBOX_TIMEOUT = 300
+
+# C-4: All sandbox working directories must be under this base path
+SANDBOX_BASE_DIR = "/tmp/forgemind_sandbox"
+os.makedirs(SANDBOX_BASE_DIR, exist_ok=True)
+_SANDBOX_REAL = os.path.realpath(SANDBOX_BASE_DIR)  # resolved once; handles Windows drive letters
 
 
 # ── Code Mappings (FM-061) ──────────────────────────────────────
@@ -496,13 +502,16 @@ async def create_sandbox_execution(
     resource_limits: dict | None = None,
     isolated: bool = True,
 ) -> SandboxExecution:
+    # H-14: never persist env var values — store only keys so secrets do not
+    # leak through GET /sandbox/{id} responses even with PROJECT_VIEW access.
+    safe_env = {k: None for k in environment} if environment else None
     s = SandboxExecution(
         project_id=project_id,
         task_id=task_id,
         patch_id=patch_id,
         command=command,
         working_directory=working_directory,
-        environment=environment,
+        environment=safe_env,
         timeout_seconds=min(timeout_seconds, MAX_SANDBOX_TIMEOUT),
         allowed_commands=allowed_commands,
         resource_limits=resource_limits,
@@ -668,8 +677,21 @@ async def check_approval_gate(
 
 
 def _validate_command(command: str, allowed: list[str] | None = None) -> str | None:
-    """Validate a command against the allowlist. Returns error message or None."""
-    parts = command.strip().split()
+    """Validate a command against the allowlist. Returns error message or None.
+
+    Defence in depth: even though the executor uses ``create_subprocess_exec``
+    (no /bin/sh interpretation), we keep a denylist of shell metacharacters
+    so that operators get a clear "Dangerous pattern" error rather than a
+    confusing literal-argument execution.
+    """
+    if not command or not command.strip():
+        return "Empty command"
+
+    try:
+        parts = shlex.split(command)
+    except ValueError as exc:
+        return f"Command parse error: {exc}"
+
     if not parts:
         return "Empty command"
 
@@ -679,10 +701,32 @@ def _validate_command(command: str, allowed: list[str] | None = None) -> str | N
     if base_cmd not in effective_allowlist:
         return f"Command '{base_cmd}' not in allowlist"
 
-    dangerous_patterns = ["&&", "||", ";", "|", "`", "$(", "${", ">>", ">"]
+    # Shell-metacharacter denylist. ``\n`` and ``<`` were missing from the
+    # original list and allowed line-injection / arbitrary-read bypasses.
+    dangerous_patterns = [
+        "&&",
+        "||",
+        ";",
+        "|",
+        "`",
+        "$(",
+        "${",
+        ">>",
+        ">",
+        "<",
+        "\n",
+        "\r",
+    ]
     for pattern in dangerous_patterns:
         if pattern in command:
-            return f"Dangerous pattern '{pattern}' detected in command"
+            display = pattern.replace("\n", "\\n").replace("\r", "\\r")
+            return f"Dangerous pattern '{display}' detected in command"
+
+    # Refuse interpreter "-c"/"-e" eval flags that would let an allowlisted
+    # binary (python, node, ...) execute arbitrary code.
+    eval_flags = {"-c", "-e", "--command", "--exec", "--eval"}
+    if any(arg in eval_flags for arg in parts[1:]):
+        return "Inline-eval flag (-c / -e / --eval) is not permitted"
 
     return None
 
@@ -712,15 +756,20 @@ async def run_sandbox_execution(
         await db.refresh(s)
         return s
 
-    cwd = s.working_directory
-    if cwd and not os.path.isdir(cwd):
+    # C-4: Enforce sandbox base directory — reject any path outside it
+    requested_dir = s.working_directory or ""
+    cwd = os.path.realpath(os.path.join(SANDBOX_BASE_DIR, requested_dir))
+    if cwd != _SANDBOX_REAL and not cwd.startswith(_SANDBOX_REAL + os.sep):
         s.status = SandboxStatus.FAILED
-        s.stderr = f"Working directory not found: {cwd}"
+        s.stderr = f"Invalid working directory (must be within {SANDBOX_BASE_DIR})"
         s.exit_code = -1
         s.completed_at = datetime.now(timezone.utc)
         await db.flush()
         await db.refresh(s)
         return s
+
+    if not os.path.isdir(cwd):
+        os.makedirs(cwd, exist_ok=True)
 
     s.status = SandboxStatus.RUNNING
     await db.flush()
@@ -729,8 +778,9 @@ async def run_sandbox_execution(
     timeout = min(s.timeout_seconds, MAX_SANDBOX_TIMEOUT)
 
     try:
-        proc = await asyncio.create_subprocess_shell(
-            s.command,
+        argv = shlex.split(s.command)
+        proc = await asyncio.create_subprocess_exec(
+            *argv,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             cwd=cwd,

@@ -1,0 +1,2903 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns">
+  <key id="k_kind" for="node" attr.name="kind" attr.type="string" />
+  <key id="k_label" for="node" attr.name="label" attr.type="string" />
+  <key id="k_path" for="node" attr.name="path" attr.type="string" />
+  <key id="e_kind" for="edge" attr.name="kind" attr.type="string" />
+  <graph id="ForgeMind" edgedefault="directed">
+    <node id="route:activity">
+      <data key="k_kind">Route</data>
+      <data key="k_label">activity</data>
+      <data key="k_path">apps/api/app/api/routes/activity.py</data>
+    </node>
+    <node id="route:agents">
+      <data key="k_kind">Route</data>
+      <data key="k_label">agents</data>
+      <data key="k_path">apps/api/app/api/routes/agents.py</data>
+    </node>
+    <node id="route:analytics">
+      <data key="k_kind">Route</data>
+      <data key="k_label">analytics</data>
+      <data key="k_path">apps/api/app/api/routes/analytics.py</data>
+    </node>
+    <node id="route:annotations">
+      <data key="k_kind">Route</data>
+      <data key="k_label">annotations</data>
+      <data key="k_path">apps/api/app/api/routes/annotations.py</data>
+    </node>
+    <node id="route:api_ecosystem">
+      <data key="k_kind">Route</data>
+      <data key="k_label">api_ecosystem</data>
+      <data key="k_path">apps/api/app/api/routes/api_ecosystem.py</data>
+    </node>
+    <node id="route:approvals">
+      <data key="k_kind">Route</data>
+      <data key="k_label">approvals</data>
+      <data key="k_path">apps/api/app/api/routes/approvals.py</data>
+    </node>
+    <node id="route:architecture">
+      <data key="k_kind">Route</data>
+      <data key="k_label">architecture</data>
+      <data key="k_path">apps/api/app/api/routes/architecture.py</data>
+    </node>
+    <node id="route:artifacts">
+      <data key="k_kind">Route</data>
+      <data key="k_label">artifacts</data>
+      <data key="k_path">apps/api/app/api/routes/artifacts.py</data>
+    </node>
+    <node id="route:audit">
+      <data key="k_kind">Route</data>
+      <data key="k_label">audit</data>
+      <data key="k_path">apps/api/app/api/routes/audit.py</data>
+    </node>
+    <node id="route:auth">
+      <data key="k_kind">Route</data>
+      <data key="k_label">auth</data>
+      <data key="k_path">apps/api/app/api/routes/auth.py</data>
+    </node>
+    <node id="route:chat">
+      <data key="k_kind">Route</data>
+      <data key="k_label">chat</data>
+      <data key="k_path">apps/api/app/api/routes/chat.py</data>
+    </node>
+    <node id="route:checkpoints">
+      <data key="k_kind">Route</data>
+      <data key="k_label">checkpoints</data>
+      <data key="k_path">apps/api/app/api/routes/checkpoints.py</data>
+    </node>
+    <node id="route:code_intelligence">
+      <data key="k_kind">Route</data>
+      <data key="k_label">code_intelligence</data>
+      <data key="k_path">apps/api/app/api/routes/code_intelligence.py</data>
+    </node>
+    <node id="route:code_ops">
+      <data key="k_kind">Route</data>
+      <data key="k_label">code_ops</data>
+      <data key="k_path">apps/api/app/api/routes/code_ops.py</data>
+    </node>
+    <node id="route:collaboration">
+      <data key="k_kind">Route</data>
+      <data key="k_label">collaboration</data>
+      <data key="k_path">apps/api/app/api/routes/collaboration.py</data>
+    </node>
+    <node id="route:comments">
+      <data key="k_kind">Route</data>
+      <data key="k_label">comments</data>
+      <data key="k_path">apps/api/app/api/routes/comments.py</data>
+    </node>
+    <node id="route:composition">
+      <data key="k_kind">Route</data>
+      <data key="k_label">composition</data>
+      <data key="k_path">apps/api/app/api/routes/composition.py</data>
+    </node>
+    <node id="route:connectors">
+      <data key="k_kind">Route</data>
+      <data key="k_label">connectors</data>
+      <data key="k_path">apps/api/app/api/routes/connectors.py</data>
+    </node>
+    <node id="route:constitution">
+      <data key="k_kind">Route</data>
+      <data key="k_label">constitution</data>
+      <data key="k_path">apps/api/app/api/routes/constitution.py</data>
+    </node>
+    <node id="route:constitution_suggestions">
+      <data key="k_kind">Route</data>
+      <data key="k_label">constitution_suggestions</data>
+      <data key="k_path">apps/api/app/api/routes/constitution_suggestions.py</data>
+    </node>
+    <node id="route:costs">
+      <data key="k_kind">Route</data>
+      <data key="k_label">costs</data>
+      <data key="k_path">apps/api/app/api/routes/costs.py</data>
+    </node>
+    <node id="route:council">
+      <data key="k_kind">Route</data>
+      <data key="k_label">council</data>
+      <data key="k_path">apps/api/app/api/routes/council.py</data>
+    </node>
+    <node id="route:credential_vault">
+      <data key="k_kind">Route</data>
+      <data key="k_label">credential_vault</data>
+      <data key="k_path">apps/api/app/api/routes/credential_vault.py</data>
+    </node>
+    <node id="route:delivery">
+      <data key="k_kind">Route</data>
+      <data key="k_label">delivery</data>
+      <data key="k_path">apps/api/app/api/routes/delivery.py</data>
+    </node>
+    <node id="route:enterprise_governance">
+      <data key="k_kind">Route</data>
+      <data key="k_label">enterprise_governance</data>
+      <data key="k_path">apps/api/app/api/routes/enterprise_governance.py</data>
+    </node>
+    <node id="route:escalation">
+      <data key="k_kind">Route</data>
+      <data key="k_label">escalation</data>
+      <data key="k_path">apps/api/app/api/routes/escalation.py</data>
+    </node>
+    <node id="route:events">
+      <data key="k_kind">Route</data>
+      <data key="k_label">events</data>
+      <data key="k_path">apps/api/app/api/routes/events.py</data>
+    </node>
+    <node id="route:github_integration">
+      <data key="k_kind">Route</data>
+      <data key="k_label">github_integration</data>
+      <data key="k_path">apps/api/app/api/routes/github_integration.py</data>
+    </node>
+    <node id="route:governance">
+      <data key="k_kind">Route</data>
+      <data key="k_label">governance</data>
+      <data key="k_path">apps/api/app/api/routes/governance.py</data>
+    </node>
+    <node id="route:health">
+      <data key="k_kind">Route</data>
+      <data key="k_label">health</data>
+      <data key="k_path">apps/api/app/api/routes/health.py</data>
+    </node>
+    <node id="route:knowledge">
+      <data key="k_kind">Route</data>
+      <data key="k_label">knowledge</data>
+      <data key="k_path">apps/api/app/api/routes/knowledge.py</data>
+    </node>
+    <node id="route:members">
+      <data key="k_kind">Route</data>
+      <data key="k_label">members</data>
+      <data key="k_path">apps/api/app/api/routes/members.py</data>
+    </node>
+    <node id="route:memory">
+      <data key="k_kind">Route</data>
+      <data key="k_label">memory</data>
+      <data key="k_path">apps/api/app/api/routes/memory.py</data>
+    </node>
+    <node id="route:metrics">
+      <data key="k_kind">Route</data>
+      <data key="k_label">metrics</data>
+      <data key="k_path">apps/api/app/api/routes/metrics.py</data>
+    </node>
+    <node id="route:notifications">
+      <data key="k_kind">Route</data>
+      <data key="k_label">notifications</data>
+      <data key="k_path">apps/api/app/api/routes/notifications.py</data>
+    </node>
+    <node id="route:phase_agent_profiles">
+      <data key="k_kind">Route</data>
+      <data key="k_label">phase_agent_profiles</data>
+      <data key="k_path">apps/api/app/api/routes/phase_agent_profiles.py</data>
+    </node>
+    <node id="route:planner">
+      <data key="k_kind">Route</data>
+      <data key="k_label">planner</data>
+      <data key="k_path">apps/api/app/api/routes/planner.py</data>
+    </node>
+    <node id="route:planner_results">
+      <data key="k_kind">Route</data>
+      <data key="k_label">planner_results</data>
+      <data key="k_path">apps/api/app/api/routes/planner_results.py</data>
+    </node>
+    <node id="route:project_templates">
+      <data key="k_kind">Route</data>
+      <data key="k_label">project_templates</data>
+      <data key="k_path">apps/api/app/api/routes/project_templates.py</data>
+    </node>
+    <node id="route:projects">
+      <data key="k_kind">Route</data>
+      <data key="k_label">projects</data>
+      <data key="k_path">apps/api/app/api/routes/projects.py</data>
+    </node>
+    <node id="route:release_ops">
+      <data key="k_kind">Route</data>
+      <data key="k_label">release_ops</data>
+      <data key="k_path">apps/api/app/api/routes/release_ops.py</data>
+    </node>
+    <node id="route:replay">
+      <data key="k_kind">Route</data>
+      <data key="k_label">replay</data>
+      <data key="k_path">apps/api/app/api/routes/replay.py</data>
+    </node>
+    <node id="route:repos">
+      <data key="k_kind">Route</data>
+      <data key="k_label">repos</data>
+      <data key="k_path">apps/api/app/api/routes/repos.py</data>
+    </node>
+    <node id="route:retry">
+      <data key="k_kind">Route</data>
+      <data key="k_label">retry</data>
+      <data key="k_path">apps/api/app/api/routes/retry.py</data>
+    </node>
+    <node id="route:run_lifecycle">
+      <data key="k_kind">Route</data>
+      <data key="k_label">run_lifecycle</data>
+      <data key="k_path">apps/api/app/api/routes/run_lifecycle.py</data>
+    </node>
+    <node id="route:runs">
+      <data key="k_kind">Route</data>
+      <data key="k_label">runs</data>
+      <data key="k_path">apps/api/app/api/routes/runs.py</data>
+    </node>
+    <node id="route:saved_views">
+      <data key="k_kind">Route</data>
+      <data key="k_label">saved_views</data>
+      <data key="k_path">apps/api/app/api/routes/saved_views.py</data>
+    </node>
+    <node id="route:search_knowledge">
+      <data key="k_kind">Route</data>
+      <data key="k_label">search_knowledge</data>
+      <data key="k_path">apps/api/app/api/routes/search_knowledge.py</data>
+    </node>
+    <node id="route:streaming">
+      <data key="k_kind">Route</data>
+      <data key="k_label">streaming</data>
+      <data key="k_path">apps/api/app/api/routes/streaming.py</data>
+    </node>
+    <node id="route:tasks">
+      <data key="k_kind">Route</data>
+      <data key="k_label">tasks</data>
+      <data key="k_path">apps/api/app/api/routes/tasks.py</data>
+    </node>
+    <node id="route:trust">
+      <data key="k_kind">Route</data>
+      <data key="k_label">trust</data>
+      <data key="k_path">apps/api/app/api/routes/trust.py</data>
+    </node>
+    <node id="route:workspaces">
+      <data key="k_kind">Route</data>
+      <data key="k_label">workspaces</data>
+      <data key="k_path">apps/api/app/api/routes/workspaces.py</data>
+    </node>
+    <node id="service:activity_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">activity_service</data>
+      <data key="k_path">apps/api/app/services/activity_service.py</data>
+    </node>
+    <node id="service:adaptive_orchestrator">
+      <data key="k_kind">Service</data>
+      <data key="k_label">adaptive_orchestrator</data>
+      <data key="k_path">apps/api/app/services/adaptive_orchestrator.py</data>
+    </node>
+    <node id="service:adaptive_retry_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">adaptive_retry_service</data>
+      <data key="k_path">apps/api/app/services/adaptive_retry_service.py</data>
+    </node>
+    <node id="service:adr_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">adr_service</data>
+      <data key="k_path">apps/api/app/services/adr_service.py</data>
+    </node>
+    <node id="service:agent_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">agent_service</data>
+      <data key="k_path">apps/api/app/services/agent_service.py</data>
+    </node>
+    <node id="service:api_key_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">api_key_service</data>
+      <data key="k_path">apps/api/app/services/api_key_service.py</data>
+    </node>
+    <node id="service:approval_enhanced_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">approval_enhanced_service</data>
+      <data key="k_path">apps/api/app/services/approval_enhanced_service.py</data>
+    </node>
+    <node id="service:approval_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">approval_service</data>
+      <data key="k_path">apps/api/app/services/approval_service.py</data>
+    </node>
+    <node id="service:architecture_approval_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">architecture_approval_service</data>
+      <data key="k_path">apps/api/app/services/architecture_approval_service.py</data>
+    </node>
+    <node id="service:architecture_rule_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">architecture_rule_service</data>
+      <data key="k_path">apps/api/app/services/architecture_rule_service.py</data>
+    </node>
+    <node id="service:architecture_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">architecture_service</data>
+      <data key="k_path">apps/api/app/services/architecture_service.py</data>
+    </node>
+    <node id="service:artifact_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">artifact_service</data>
+      <data key="k_path">apps/api/app/services/artifact_service.py</data>
+    </node>
+    <node id="service:artifact_version_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">artifact_version_service</data>
+      <data key="k_path">apps/api/app/services/artifact_version_service.py</data>
+    </node>
+    <node id="service:audit_export_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">audit_export_service</data>
+      <data key="k_path">apps/api/app/services/audit_export_service.py</data>
+    </node>
+    <node id="service:audit_log_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">audit_log_service</data>
+      <data key="k_path">apps/api/app/services/audit_log_service.py</data>
+    </node>
+    <node id="service:authz_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">authz_service</data>
+      <data key="k_path">apps/api/app/services/authz_service.py</data>
+    </node>
+    <node id="service:background_scheduler">
+      <data key="k_kind">Service</data>
+      <data key="k_label">background_scheduler</data>
+      <data key="k_path">apps/api/app/services/background_scheduler.py</data>
+    </node>
+    <node id="service:chat_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">chat_service</data>
+      <data key="k_path">apps/api/app/services/chat_service.py</data>
+    </node>
+    <node id="service:ci_pipeline_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">ci_pipeline_service</data>
+      <data key="k_path">apps/api/app/services/ci_pipeline_service.py</data>
+    </node>
+    <node id="service:code_graph_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">code_graph_service</data>
+      <data key="k_path">apps/api/app/services/code_graph_service.py</data>
+    </node>
+    <node id="service:code_ops_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">code_ops_service</data>
+      <data key="k_path">apps/api/app/services/code_ops_service.py</data>
+    </node>
+    <node id="service:code_review_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">code_review_service</data>
+      <data key="k_path">apps/api/app/services/code_review_service.py</data>
+    </node>
+    <node id="service:comment_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">comment_service</data>
+      <data key="k_path">apps/api/app/services/comment_service.py</data>
+    </node>
+    <node id="service:compliance_report_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">compliance_report_service</data>
+      <data key="k_path">apps/api/app/services/compliance_report_service.py</data>
+    </node>
+    <node id="service:composition_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">composition_service</data>
+      <data key="k_path">apps/api/app/services/composition_service.py</data>
+    </node>
+    <node id="service:connector_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">connector_service</data>
+      <data key="k_path">apps/api/app/services/connector_service.py</data>
+    </node>
+    <node id="service:constitution_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">constitution_service</data>
+      <data key="k_path">apps/api/app/services/constitution_service.py</data>
+    </node>
+    <node id="service:constitution_suggestion_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">constitution_suggestion_service</data>
+      <data key="k_path">apps/api/app/services/constitution_suggestion_service.py</data>
+    </node>
+    <node id="service:convention_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">convention_service</data>
+      <data key="k_path">apps/api/app/services/convention_service.py</data>
+    </node>
+    <node id="service:cost_tracking_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">cost_tracking_service</data>
+      <data key="k_path">apps/api/app/services/cost_tracking_service.py</data>
+    </node>
+    <node id="service:council_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">council_service</data>
+      <data key="k_path">apps/api/app/services/council_service.py</data>
+    </node>
+    <node id="service:credential_vault_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">credential_vault_service</data>
+      <data key="k_path">apps/api/app/services/credential_vault_service.py</data>
+    </node>
+    <node id="service:dashboard_alert_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">dashboard_alert_service</data>
+      <data key="k_path">apps/api/app/services/dashboard_alert_service.py</data>
+    </node>
+    <node id="service:delivery_artifact_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">delivery_artifact_service</data>
+      <data key="k_path">apps/api/app/services/delivery_artifact_service.py</data>
+    </node>
+    <node id="service:deployment_readiness_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">deployment_readiness_service</data>
+      <data key="k_path">apps/api/app/services/deployment_readiness_service.py</data>
+    </node>
+    <node id="service:design_doc_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">design_doc_service</data>
+      <data key="k_path">apps/api/app/services/design_doc_service.py</data>
+    </node>
+    <node id="service:diff_intelligence_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">diff_intelligence_service</data>
+      <data key="k_path">apps/api/app/services/diff_intelligence_service.py</data>
+    </node>
+    <node id="service:drift_detection_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">drift_detection_service</data>
+      <data key="k_path">apps/api/app/services/drift_detection_service.py</data>
+    </node>
+    <node id="service:email_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">email_service</data>
+      <data key="k_path">apps/api/app/services/email_service.py</data>
+    </node>
+    <node id="service:embedding_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">embedding_service</data>
+      <data key="k_path">apps/api/app/services/embedding_service.py</data>
+    </node>
+    <node id="service:encryption_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">encryption_service</data>
+      <data key="k_path">apps/api/app/services/encryption_service.py</data>
+    </node>
+    <node id="service:environment_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">environment_service</data>
+      <data key="k_path">apps/api/app/services/environment_service.py</data>
+    </node>
+    <node id="service:escalation_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">escalation_service</data>
+      <data key="k_path">apps/api/app/services/escalation_service.py</data>
+    </node>
+    <node id="service:event_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">event_service</data>
+      <data key="k_path">apps/api/app/services/event_service.py</data>
+    </node>
+    <node id="service:execution_checkpoint_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">execution_checkpoint_service</data>
+      <data key="k_path">apps/api/app/services/execution_checkpoint_service.py</data>
+    </node>
+    <node id="service:execution_health_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">execution_health_service</data>
+      <data key="k_path">apps/api/app/services/execution_health_service.py</data>
+    </node>
+    <node id="service:execution_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">execution_service</data>
+      <data key="k_path">apps/api/app/services/execution_service.py</data>
+    </node>
+    <node id="service:flakiness_complexity_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">flakiness_complexity_service</data>
+      <data key="k_path">apps/api/app/services/flakiness_complexity_service.py</data>
+    </node>
+    <node id="service:github_client">
+      <data key="k_kind">Service</data>
+      <data key="k_label">github_client</data>
+      <data key="k_path">apps/api/app/services/github_client.py</data>
+    </node>
+    <node id="service:github_installation_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">github_installation_service</data>
+      <data key="k_path">apps/api/app/services/github_installation_service.py</data>
+    </node>
+    <node id="service:github_rate_limiter">
+      <data key="k_kind">Service</data>
+      <data key="k_label">github_rate_limiter</data>
+      <data key="k_path">apps/api/app/services/github_rate_limiter.py</data>
+    </node>
+    <node id="service:governance_engine_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">governance_engine_service</data>
+      <data key="k_path">apps/api/app/services/governance_engine_service.py</data>
+    </node>
+    <node id="service:governance_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">governance_service</data>
+      <data key="k_path">apps/api/app/services/governance_service.py</data>
+    </node>
+    <node id="service:impact_analysis_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">impact_analysis_service</data>
+      <data key="k_path">apps/api/app/services/impact_analysis_service.py</data>
+    </node>
+    <node id="service:integration_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">integration_service</data>
+      <data key="k_path">apps/api/app/services/integration_service.py</data>
+    </node>
+    <node id="service:ip_allowlist_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">ip_allowlist_service</data>
+      <data key="k_path">apps/api/app/services/ip_allowlist_service.py</data>
+    </node>
+    <node id="service:issue_sync_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">issue_sync_service</data>
+      <data key="k_path">apps/api/app/services/issue_sync_service.py</data>
+    </node>
+    <node id="service:knowledge_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">knowledge_service</data>
+      <data key="k_path">apps/api/app/services/knowledge_service.py</data>
+    </node>
+    <node id="service:membership_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">membership_service</data>
+      <data key="k_path">apps/api/app/services/membership_service.py</data>
+    </node>
+    <node id="service:mention_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">mention_service</data>
+      <data key="k_path">apps/api/app/services/mention_service.py</data>
+    </node>
+    <node id="service:merge_readiness_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">merge_readiness_service</data>
+      <data key="k_path">apps/api/app/services/merge_readiness_service.py</data>
+    </node>
+    <node id="service:notification_delivery_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">notification_delivery_service</data>
+      <data key="k_path">apps/api/app/services/notification_delivery_service.py</data>
+    </node>
+    <node id="service:notification_digest_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">notification_digest_service</data>
+      <data key="k_path">apps/api/app/services/notification_digest_service.py</data>
+    </node>
+    <node id="service:notification_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">notification_service</data>
+      <data key="k_path">apps/api/app/services/notification_service.py</data>
+    </node>
+    <node id="service:operational_timeline_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">operational_timeline_service</data>
+      <data key="k_path">apps/api/app/services/operational_timeline_service.py</data>
+    </node>
+    <node id="service:pattern_debt_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">pattern_debt_service</data>
+      <data key="k_path">apps/api/app/services/pattern_debt_service.py</data>
+    </node>
+    <node id="service:phase_agent_profile_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">phase_agent_profile_service</data>
+      <data key="k_path">apps/api/app/services/phase_agent_profile_service.py</data>
+    </node>
+    <node id="service:plan_artifact_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">plan_artifact_service</data>
+      <data key="k_path">apps/api/app/services/plan_artifact_service.py</data>
+    </node>
+    <node id="service:planner_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">planner_service</data>
+      <data key="k_path">apps/api/app/services/planner_service.py</data>
+    </node>
+    <node id="service:post_release_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">post_release_service</data>
+      <data key="k_path">apps/api/app/services/post_release_service.py</data>
+    </node>
+    <node id="service:pr_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">pr_service</data>
+      <data key="k_path">apps/api/app/services/pr_service.py</data>
+    </node>
+    <node id="service:project_overview_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">project_overview_service</data>
+      <data key="k_path">apps/api/app/services/project_overview_service.py</data>
+    </node>
+    <node id="service:project_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">project_service</data>
+      <data key="k_path">apps/api/app/services/project_service.py</data>
+    </node>
+    <node id="service:project_template_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">project_template_service</data>
+      <data key="k_path">apps/api/app/services/project_template_service.py</data>
+    </node>
+    <node id="service:recommendation_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">recommendation_service</data>
+      <data key="k_path">apps/api/app/services/recommendation_service.py</data>
+    </node>
+    <node id="service:refactor_recommendation_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">refactor_recommendation_service</data>
+      <data key="k_path">apps/api/app/services/refactor_recommendation_service.py</data>
+    </node>
+    <node id="service:release_confidence_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">release_confidence_service</data>
+      <data key="k_path">apps/api/app/services/release_confidence_service.py</data>
+    </node>
+    <node id="service:release_gate_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">release_gate_service</data>
+      <data key="k_path">apps/api/app/services/release_gate_service.py</data>
+    </node>
+    <node id="service:release_package_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">release_package_service</data>
+      <data key="k_path">apps/api/app/services/release_package_service.py</data>
+    </node>
+    <node id="service:replay_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">replay_service</data>
+      <data key="k_path">apps/api/app/services/replay_service.py</data>
+    </node>
+    <node id="service:repo_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">repo_service</data>
+      <data key="k_path">apps/api/app/services/repo_service.py</data>
+    </node>
+    <node id="service:retention_policy_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">retention_policy_service</data>
+      <data key="k_path">apps/api/app/services/retention_policy_service.py</data>
+    </node>
+    <node id="service:rollback_readiness_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">rollback_readiness_service</data>
+      <data key="k_path">apps/api/app/services/rollback_readiness_service.py</data>
+    </node>
+    <node id="service:run_annotation_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">run_annotation_service</data>
+      <data key="k_path">apps/api/app/services/run_annotation_service.py</data>
+    </node>
+    <node id="service:run_comparison_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">run_comparison_service</data>
+      <data key="k_path">apps/api/app/services/run_comparison_service.py</data>
+    </node>
+    <node id="service:run_lifecycle_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">run_lifecycle_service</data>
+      <data key="k_path">apps/api/app/services/run_lifecycle_service.py</data>
+    </node>
+    <node id="service:run_memory_enrichment_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">run_memory_enrichment_service</data>
+      <data key="k_path">apps/api/app/services/run_memory_enrichment_service.py</data>
+    </node>
+    <node id="service:run_memory_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">run_memory_service</data>
+      <data key="k_path">apps/api/app/services/run_memory_service.py</data>
+    </node>
+    <node id="service:saved_view_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">saved_view_service</data>
+      <data key="k_path">apps/api/app/services/saved_view_service.py</data>
+    </node>
+    <node id="service:search_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">search_service</data>
+      <data key="k_path">apps/api/app/services/search_service.py</data>
+    </node>
+    <node id="service:slash_command_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">slash_command_service</data>
+      <data key="k_path">apps/api/app/services/slash_command_service.py</data>
+    </node>
+    <node id="service:spec_plan_approval_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">spec_plan_approval_service</data>
+      <data key="k_path">apps/api/app/services/spec_plan_approval_service.py</data>
+    </node>
+    <node id="service:spec_plan_validation_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">spec_plan_validation_service</data>
+      <data key="k_path">apps/api/app/services/spec_plan_validation_service.py</data>
+    </node>
+    <node id="service:spec_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">spec_service</data>
+      <data key="k_path">apps/api/app/services/spec_service.py</data>
+    </node>
+    <node id="service:sso_configuration_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">sso_configuration_service</data>
+      <data key="k_path">apps/api/app/services/sso_configuration_service.py</data>
+    </node>
+    <node id="service:stream_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">stream_service</data>
+      <data key="k_path">apps/api/app/services/stream_service.py</data>
+    </node>
+    <node id="service:structural_health_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">structural_health_service</data>
+      <data key="k_path">apps/api/app/services/structural_health_service.py</data>
+    </node>
+    <node id="service:task_assignment_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">task_assignment_service</data>
+      <data key="k_path">apps/api/app/services/task_assignment_service.py</data>
+    </node>
+    <node id="service:task_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">task_service</data>
+      <data key="k_path">apps/api/app/services/task_service.py</data>
+    </node>
+    <node id="service:template_inheritance_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">template_inheritance_service</data>
+      <data key="k_path">apps/api/app/services/template_inheritance_service.py</data>
+    </node>
+    <node id="service:topology_mapper_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">topology_mapper_service</data>
+      <data key="k_path">apps/api/app/services/topology_mapper_service.py</data>
+    </node>
+    <node id="service:traceability_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">traceability_service</data>
+      <data key="k_path">apps/api/app/services/traceability_service.py</data>
+    </node>
+    <node id="service:trust_scoring_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">trust_scoring_service</data>
+      <data key="k_path">apps/api/app/services/trust_scoring_service.py</data>
+    </node>
+    <node id="service:unified_activity_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">unified_activity_service</data>
+      <data key="k_path">apps/api/app/services/unified_activity_service.py</data>
+    </node>
+    <node id="service:user_activity_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">user_activity_service</data>
+      <data key="k_path">apps/api/app/services/user_activity_service.py</data>
+    </node>
+    <node id="service:velocity_quality_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">velocity_quality_service</data>
+      <data key="k_path">apps/api/app/services/velocity_quality_service.py</data>
+    </node>
+    <node id="service:webhook_connector_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">webhook_connector_service</data>
+      <data key="k_path">apps/api/app/services/webhook_connector_service.py</data>
+    </node>
+    <node id="service:webhook_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">webhook_service</data>
+      <data key="k_path">apps/api/app/services/webhook_service.py</data>
+    </node>
+    <node id="service:workspace_service">
+      <data key="k_kind">Service</data>
+      <data key="k_label">workspace_service</data>
+      <data key="k_path">apps/api/app/services/workspace_service.py</data>
+    </node>
+    <node id="model:activity">
+      <data key="k_kind">Model</data>
+      <data key="k_label">activity</data>
+      <data key="k_path">apps/api/app/models/activity.py</data>
+    </node>
+    <node id="model:agent">
+      <data key="k_kind">Model</data>
+      <data key="k_label">agent</data>
+      <data key="k_path">apps/api/app/models/agent.py</data>
+    </node>
+    <node id="model:analytics_metrics">
+      <data key="k_kind">Model</data>
+      <data key="k_label">analytics_metrics</data>
+      <data key="k_path">apps/api/app/models/analytics_metrics.py</data>
+    </node>
+    <node id="model:api_ecosystem">
+      <data key="k_kind">Model</data>
+      <data key="k_label">api_ecosystem</data>
+      <data key="k_path">apps/api/app/models/api_ecosystem.py</data>
+    </node>
+    <node id="model:approval_delegation">
+      <data key="k_kind">Model</data>
+      <data key="k_label">approval_delegation</data>
+      <data key="k_path">apps/api/app/models/approval_delegation.py</data>
+    </node>
+    <node id="model:approval_request">
+      <data key="k_kind">Model</data>
+      <data key="k_label">approval_request</data>
+      <data key="k_path">apps/api/app/models/approval_request.py</data>
+    </node>
+    <node id="model:architecture">
+      <data key="k_kind">Model</data>
+      <data key="k_label">architecture</data>
+      <data key="k_path">apps/api/app/models/architecture.py</data>
+    </node>
+    <node id="model:artifact">
+      <data key="k_kind">Model</data>
+      <data key="k_label">artifact</data>
+      <data key="k_path">apps/api/app/models/artifact.py</data>
+    </node>
+    <node id="model:code_intelligence">
+      <data key="k_kind">Model</data>
+      <data key="k_label">code_intelligence</data>
+      <data key="k_path">apps/api/app/models/code_intelligence.py</data>
+    </node>
+    <node id="model:code_ops">
+      <data key="k_kind">Model</data>
+      <data key="k_label">code_ops</data>
+      <data key="k_path">apps/api/app/models/code_ops.py</data>
+    </node>
+    <node id="model:comment">
+      <data key="k_kind">Model</data>
+      <data key="k_label">comment</data>
+      <data key="k_path">apps/api/app/models/comment.py</data>
+    </node>
+    <node id="model:connector">
+      <data key="k_kind">Model</data>
+      <data key="k_label">connector</data>
+      <data key="k_path">apps/api/app/models/connector.py</data>
+    </node>
+    <node id="model:constitution_suggestion">
+      <data key="k_kind">Model</data>
+      <data key="k_label">constitution_suggestion</data>
+      <data key="k_path">apps/api/app/models/constitution_suggestion.py</data>
+    </node>
+    <node id="model:cost_record">
+      <data key="k_kind">Model</data>
+      <data key="k_label">cost_record</data>
+      <data key="k_path">apps/api/app/models/cost_record.py</data>
+    </node>
+    <node id="model:council">
+      <data key="k_kind">Model</data>
+      <data key="k_label">council</data>
+      <data key="k_path">apps/api/app/models/council.py</data>
+    </node>
+    <node id="model:credential_vault">
+      <data key="k_kind">Model</data>
+      <data key="k_label">credential_vault</data>
+      <data key="k_path">apps/api/app/models/credential_vault.py</data>
+    </node>
+    <node id="model:enterprise_governance">
+      <data key="k_kind">Model</data>
+      <data key="k_label">enterprise_governance</data>
+      <data key="k_path">apps/api/app/models/enterprise_governance.py</data>
+    </node>
+    <node id="model:escalation">
+      <data key="k_kind">Model</data>
+      <data key="k_label">escalation</data>
+      <data key="k_path">apps/api/app/models/escalation.py</data>
+    </node>
+    <node id="model:execution_checkpoint">
+      <data key="k_kind">Model</data>
+      <data key="k_label">execution_checkpoint</data>
+      <data key="k_path">apps/api/app/models/execution_checkpoint.py</data>
+    </node>
+    <node id="model:execution_event">
+      <data key="k_kind">Model</data>
+      <data key="k_label">execution_event</data>
+      <data key="k_path">apps/api/app/models/execution_event.py</data>
+    </node>
+    <node id="model:github_integration">
+      <data key="k_kind">Model</data>
+      <data key="k_label">github_integration</data>
+      <data key="k_path">apps/api/app/models/github_integration.py</data>
+    </node>
+    <node id="model:governance_policy">
+      <data key="k_kind">Model</data>
+      <data key="k_label">governance_policy</data>
+      <data key="k_path">apps/api/app/models/governance_policy.py</data>
+    </node>
+    <node id="model:membership">
+      <data key="k_kind">Model</data>
+      <data key="k_label">membership</data>
+      <data key="k_path">apps/api/app/models/membership.py</data>
+    </node>
+    <node id="model:notification">
+      <data key="k_kind">Model</data>
+      <data key="k_label">notification</data>
+      <data key="k_path">apps/api/app/models/notification.py</data>
+    </node>
+    <node id="model:phase_agent_profile">
+      <data key="k_kind">Model</data>
+      <data key="k_label">phase_agent_profile</data>
+      <data key="k_path">apps/api/app/models/phase_agent_profile.py</data>
+    </node>
+    <node id="model:planner_result">
+      <data key="k_kind">Model</data>
+      <data key="k_label">planner_result</data>
+      <data key="k_path">apps/api/app/models/planner_result.py</data>
+    </node>
+    <node id="model:project">
+      <data key="k_kind">Model</data>
+      <data key="k_label">project</data>
+      <data key="k_path">apps/api/app/models/project.py</data>
+    </node>
+    <node id="model:project_connector_link">
+      <data key="k_kind">Model</data>
+      <data key="k_label">project_connector_link</data>
+      <data key="k_path">apps/api/app/models/project_connector_link.py</data>
+    </node>
+    <node id="model:project_constitution">
+      <data key="k_kind">Model</data>
+      <data key="k_label">project_constitution</data>
+      <data key="k_path">apps/api/app/models/project_constitution.py</data>
+    </node>
+    <node id="model:project_knowledge">
+      <data key="k_kind">Model</data>
+      <data key="k_label">project_knowledge</data>
+      <data key="k_path">apps/api/app/models/project_knowledge.py</data>
+    </node>
+    <node id="model:project_template">
+      <data key="k_kind">Model</data>
+      <data key="k_label">project_template</data>
+      <data key="k_path">apps/api/app/models/project_template.py</data>
+    </node>
+    <node id="model:release_ops">
+      <data key="k_kind">Model</data>
+      <data key="k_label">release_ops</data>
+      <data key="k_path">apps/api/app/models/release_ops.py</data>
+    </node>
+    <node id="model:replay_snapshot">
+      <data key="k_kind">Model</data>
+      <data key="k_label">replay_snapshot</data>
+      <data key="k_path">apps/api/app/models/replay_snapshot.py</data>
+    </node>
+    <node id="model:repo_connection">
+      <data key="k_kind">Model</data>
+      <data key="k_label">repo_connection</data>
+      <data key="k_path">apps/api/app/models/repo_connection.py</data>
+    </node>
+    <node id="model:run">
+      <data key="k_kind">Model</data>
+      <data key="k_label">run</data>
+      <data key="k_path">apps/api/app/models/run.py</data>
+    </node>
+    <node id="model:run_annotation">
+      <data key="k_kind">Model</data>
+      <data key="k_label">run_annotation</data>
+      <data key="k_path">apps/api/app/models/run_annotation.py</data>
+    </node>
+    <node id="model:saved_view">
+      <data key="k_kind">Model</data>
+      <data key="k_label">saved_view</data>
+      <data key="k_path">apps/api/app/models/saved_view.py</data>
+    </node>
+    <node id="model:search_knowledge">
+      <data key="k_kind">Model</data>
+      <data key="k_label">search_knowledge</data>
+      <data key="k_path">apps/api/app/models/search_knowledge.py</data>
+    </node>
+    <node id="model:sso_configuration">
+      <data key="k_kind">Model</data>
+      <data key="k_label">sso_configuration</data>
+      <data key="k_path">apps/api/app/models/sso_configuration.py</data>
+    </node>
+    <node id="model:task">
+      <data key="k_kind">Model</data>
+      <data key="k_label">task</data>
+      <data key="k_path">apps/api/app/models/task.py</data>
+    </node>
+    <node id="model:trust_score">
+      <data key="k_kind">Model</data>
+      <data key="k_label">trust_score</data>
+      <data key="k_path">apps/api/app/models/trust_score.py</data>
+    </node>
+    <node id="model:user">
+      <data key="k_kind">Model</data>
+      <data key="k_label">user</data>
+      <data key="k_path">apps/api/app/models/user.py</data>
+    </node>
+    <node id="model:workspace">
+      <data key="k_kind">Model</data>
+      <data key="k_label">workspace</data>
+      <data key="k_path">apps/api/app/models/workspace.py</data>
+    </node>
+    <node id="schema:activity">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">activity</data>
+      <data key="k_path">apps/api/app/schemas/activity.py</data>
+    </node>
+    <node id="schema:agent">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">agent</data>
+      <data key="k_path">apps/api/app/schemas/agent.py</data>
+    </node>
+    <node id="schema:approval">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">approval</data>
+      <data key="k_path">apps/api/app/schemas/approval.py</data>
+    </node>
+    <node id="schema:architecture">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">architecture</data>
+      <data key="k_path">apps/api/app/schemas/architecture.py</data>
+    </node>
+    <node id="schema:artifact">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">artifact</data>
+      <data key="k_path">apps/api/app/schemas/artifact.py</data>
+    </node>
+    <node id="schema:auth">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">auth</data>
+      <data key="k_path">apps/api/app/schemas/auth.py</data>
+    </node>
+    <node id="schema:code_ops">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">code_ops</data>
+      <data key="k_path">apps/api/app/schemas/code_ops.py</data>
+    </node>
+    <node id="schema:comment">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">comment</data>
+      <data key="k_path">apps/api/app/schemas/comment.py</data>
+    </node>
+    <node id="schema:connector">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">connector</data>
+      <data key="k_path">apps/api/app/schemas/connector.py</data>
+    </node>
+    <node id="schema:constitution">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">constitution</data>
+      <data key="k_path">apps/api/app/schemas/constitution.py</data>
+    </node>
+    <node id="schema:constitution_suggestion">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">constitution_suggestion</data>
+      <data key="k_path">apps/api/app/schemas/constitution_suggestion.py</data>
+    </node>
+    <node id="schema:cost">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">cost</data>
+      <data key="k_path">apps/api/app/schemas/cost.py</data>
+    </node>
+    <node id="schema:council">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">council</data>
+      <data key="k_path">apps/api/app/schemas/council.py</data>
+    </node>
+    <node id="schema:credential_vault">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">credential_vault</data>
+      <data key="k_path">apps/api/app/schemas/credential_vault.py</data>
+    </node>
+    <node id="schema:enterprise_governance">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">enterprise_governance</data>
+      <data key="k_path">apps/api/app/schemas/enterprise_governance.py</data>
+    </node>
+    <node id="schema:escalation">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">escalation</data>
+      <data key="k_path">apps/api/app/schemas/escalation.py</data>
+    </node>
+    <node id="schema:execution_checkpoint">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">execution_checkpoint</data>
+      <data key="k_path">apps/api/app/schemas/execution_checkpoint.py</data>
+    </node>
+    <node id="schema:execution_event">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">execution_event</data>
+      <data key="k_path">apps/api/app/schemas/execution_event.py</data>
+    </node>
+    <node id="schema:github_integration">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">github_integration</data>
+      <data key="k_path">apps/api/app/schemas/github_integration.py</data>
+    </node>
+    <node id="schema:governance">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">governance</data>
+      <data key="k_path">apps/api/app/schemas/governance.py</data>
+    </node>
+    <node id="schema:knowledge">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">knowledge</data>
+      <data key="k_path">apps/api/app/schemas/knowledge.py</data>
+    </node>
+    <node id="schema:membership">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">membership</data>
+      <data key="k_path">apps/api/app/schemas/membership.py</data>
+    </node>
+    <node id="schema:notification">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">notification</data>
+      <data key="k_path">apps/api/app/schemas/notification.py</data>
+    </node>
+    <node id="schema:phase_agent_profile">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">phase_agent_profile</data>
+      <data key="k_path">apps/api/app/schemas/phase_agent_profile.py</data>
+    </node>
+    <node id="schema:planner_result">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">planner_result</data>
+      <data key="k_path">apps/api/app/schemas/planner_result.py</data>
+    </node>
+    <node id="schema:project">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">project</data>
+      <data key="k_path">apps/api/app/schemas/project.py</data>
+    </node>
+    <node id="schema:project_template">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">project_template</data>
+      <data key="k_path">apps/api/app/schemas/project_template.py</data>
+    </node>
+    <node id="schema:prompt_intake">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">prompt_intake</data>
+      <data key="k_path">apps/api/app/schemas/prompt_intake.py</data>
+    </node>
+    <node id="schema:release_ops">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">release_ops</data>
+      <data key="k_path">apps/api/app/schemas/release_ops.py</data>
+    </node>
+    <node id="schema:replay">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">replay</data>
+      <data key="k_path">apps/api/app/schemas/replay.py</data>
+    </node>
+    <node id="schema:repo">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">repo</data>
+      <data key="k_path">apps/api/app/schemas/repo.py</data>
+    </node>
+    <node id="schema:run">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">run</data>
+      <data key="k_path">apps/api/app/schemas/run.py</data>
+    </node>
+    <node id="schema:run_annotation">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">run_annotation</data>
+      <data key="k_path">apps/api/app/schemas/run_annotation.py</data>
+    </node>
+    <node id="schema:saved_view">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">saved_view</data>
+      <data key="k_path">apps/api/app/schemas/saved_view.py</data>
+    </node>
+    <node id="schema:search_knowledge">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">search_knowledge</data>
+      <data key="k_path">apps/api/app/schemas/search_knowledge.py</data>
+    </node>
+    <node id="schema:task">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">task</data>
+      <data key="k_path">apps/api/app/schemas/task.py</data>
+    </node>
+    <node id="schema:trust">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">trust</data>
+      <data key="k_path">apps/api/app/schemas/trust.py</data>
+    </node>
+    <node id="schema:workspace">
+      <data key="k_kind">Schema</data>
+      <data key="k_label">workspace</data>
+      <data key="k_path">apps/api/app/schemas/workspace.py</data>
+    </node>
+    <node id="lib:activity">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">activity</data>
+      <data key="k_path">apps/web/lib/activity.ts</data>
+    </node>
+    <node id="lib:agents">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">agents</data>
+      <data key="k_path">apps/web/lib/agents.ts</data>
+    </node>
+    <node id="lib:api">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">api</data>
+      <data key="k_path">apps/web/lib/api.ts</data>
+    </node>
+    <node id="lib:approvals">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">approvals</data>
+      <data key="k_path">apps/web/lib/approvals.ts</data>
+    </node>
+    <node id="lib:architecture">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">architecture</data>
+      <data key="k_path">apps/web/lib/architecture.ts</data>
+    </node>
+    <node id="lib:artifacts">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">artifacts</data>
+      <data key="k_path">apps/web/lib/artifacts.ts</data>
+    </node>
+    <node id="lib:audit">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">audit</data>
+      <data key="k_path">apps/web/lib/audit.ts</data>
+    </node>
+    <node id="lib:auth-context">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">auth-context</data>
+      <data key="k_path">apps/web/lib/auth-context.tsx</data>
+    </node>
+    <node id="lib:chat">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">chat</data>
+      <data key="k_path">apps/web/lib/chat.ts</data>
+    </node>
+    <node id="lib:connectors">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">connectors</data>
+      <data key="k_path">apps/web/lib/connectors.ts</data>
+    </node>
+    <node id="lib:constitution-suggestions">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">constitution-suggestions</data>
+      <data key="k_path">apps/web/lib/constitution-suggestions.ts</data>
+    </node>
+    <node id="lib:constitution">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">constitution</data>
+      <data key="k_path">apps/web/lib/constitution.ts</data>
+    </node>
+    <node id="lib:costs">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">costs</data>
+      <data key="k_path">apps/web/lib/costs.ts</data>
+    </node>
+    <node id="lib:council">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">council</data>
+      <data key="k_path">apps/web/lib/council.ts</data>
+    </node>
+    <node id="lib:dashboards">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">dashboards</data>
+      <data key="k_path">apps/web/lib/dashboards.ts</data>
+    </node>
+    <node id="lib:escalations">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">escalations</data>
+      <data key="k_path">apps/web/lib/escalations.ts</data>
+    </node>
+    <node id="lib:events">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">events</data>
+      <data key="k_path">apps/web/lib/events.ts</data>
+    </node>
+    <node id="lib:governance">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">governance</data>
+      <data key="k_path">apps/web/lib/governance.ts</data>
+    </node>
+    <node id="lib:knowledge">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">knowledge</data>
+      <data key="k_path">apps/web/lib/knowledge.ts</data>
+    </node>
+    <node id="lib:notifications">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">notifications</data>
+      <data key="k_path">apps/web/lib/notifications.ts</data>
+    </node>
+    <node id="lib:phase-profiles">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">phase-profiles</data>
+      <data key="k_path">apps/web/lib/phase-profiles.ts</data>
+    </node>
+    <node id="lib:planner">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">planner</data>
+      <data key="k_path">apps/web/lib/planner.ts</data>
+    </node>
+    <node id="lib:project-members">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">project-members</data>
+      <data key="k_path">apps/web/lib/project-members.ts</data>
+    </node>
+    <node id="lib:projects">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">projects</data>
+      <data key="k_path">apps/web/lib/projects.ts</data>
+    </node>
+    <node id="lib:release-ops">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">release-ops</data>
+      <data key="k_path">apps/web/lib/release-ops.ts</data>
+    </node>
+    <node id="lib:replay">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">replay</data>
+      <data key="k_path">apps/web/lib/replay.ts</data>
+    </node>
+    <node id="lib:runs">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">runs</data>
+      <data key="k_path">apps/web/lib/runs.ts</data>
+    </node>
+    <node id="lib:stream">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">stream</data>
+      <data key="k_path">apps/web/lib/stream.ts</data>
+    </node>
+    <node id="lib:tasks">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">tasks</data>
+      <data key="k_path">apps/web/lib/tasks.ts</data>
+    </node>
+    <node id="lib:templates">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">templates</data>
+      <data key="k_path">apps/web/lib/templates.ts</data>
+    </node>
+    <node id="lib:trust">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">trust</data>
+      <data key="k_path">apps/web/lib/trust.ts</data>
+    </node>
+    <node id="lib:vault">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">vault</data>
+      <data key="k_path">apps/web/lib/vault.ts</data>
+    </node>
+    <node id="lib:workspaces">
+      <data key="k_kind">LibClient</data>
+      <data key="k_label">workspaces</data>
+      <data key="k_path">apps/web/lib/workspaces.ts</data>
+    </node>
+    <node id="page:activity">
+      <data key="k_kind">Page</data>
+      <data key="k_label">activity</data>
+      <data key="k_path">apps/web/app/dashboard/activity</data>
+    </node>
+    <node id="page:agents">
+      <data key="k_kind">Page</data>
+      <data key="k_label">agents</data>
+      <data key="k_path">apps/web/app/dashboard/agents</data>
+    </node>
+    <node id="page:analytics">
+      <data key="k_kind">Page</data>
+      <data key="k_label">analytics</data>
+      <data key="k_path">apps/web/app/dashboard/analytics</data>
+    </node>
+    <node id="page:approvals">
+      <data key="k_kind">Page</data>
+      <data key="k_label">approvals</data>
+      <data key="k_path">apps/web/app/dashboard/approvals</data>
+    </node>
+    <node id="page:architecture">
+      <data key="k_kind">Page</data>
+      <data key="k_label">architecture</data>
+      <data key="k_path">apps/web/app/dashboard/architecture</data>
+    </node>
+    <node id="page:artifacts">
+      <data key="k_kind">Page</data>
+      <data key="k_label">artifacts</data>
+      <data key="k_path">apps/web/app/dashboard/artifacts</data>
+    </node>
+    <node id="page:audit">
+      <data key="k_kind">Page</data>
+      <data key="k_label">audit</data>
+      <data key="k_path">apps/web/app/dashboard/audit</data>
+    </node>
+    <node id="page:code-explorer">
+      <data key="k_kind">Page</data>
+      <data key="k_label">code-explorer</data>
+      <data key="k_path">apps/web/app/dashboard/code-explorer</data>
+    </node>
+    <node id="page:connectors">
+      <data key="k_kind">Page</data>
+      <data key="k_label">connectors</data>
+      <data key="k_path">apps/web/app/dashboard/connectors</data>
+    </node>
+    <node id="page:costs">
+      <data key="k_kind">Page</data>
+      <data key="k_label">costs</data>
+      <data key="k_path">apps/web/app/dashboard/costs</data>
+    </node>
+    <node id="page:council">
+      <data key="k_kind">Page</data>
+      <data key="k_label">council</data>
+      <data key="k_path">apps/web/app/dashboard/council</data>
+    </node>
+    <node id="page:escalations">
+      <data key="k_kind">Page</data>
+      <data key="k_label">escalations</data>
+      <data key="k_path">apps/web/app/dashboard/escalations</data>
+    </node>
+    <node id="page:governance">
+      <data key="k_kind">Page</data>
+      <data key="k_label">governance</data>
+      <data key="k_path">apps/web/app/dashboard/governance</data>
+    </node>
+    <node id="page:knowledge">
+      <data key="k_kind">Page</data>
+      <data key="k_label">knowledge</data>
+      <data key="k_path">apps/web/app/dashboard/knowledge</data>
+    </node>
+    <node id="page:notifications">
+      <data key="k_kind">Page</data>
+      <data key="k_label">notifications</data>
+      <data key="k_path">apps/web/app/dashboard/notifications</data>
+    </node>
+    <node id="page:projects">
+      <data key="k_kind">Page</data>
+      <data key="k_label">projects</data>
+      <data key="k_path">apps/web/app/dashboard/projects</data>
+    </node>
+    <node id="page:releases">
+      <data key="k_kind">Page</data>
+      <data key="k_label">releases</data>
+      <data key="k_path">apps/web/app/dashboard/releases</data>
+    </node>
+    <node id="page:replay">
+      <data key="k_kind">Page</data>
+      <data key="k_label">replay</data>
+      <data key="k_path">apps/web/app/dashboard/replay</data>
+    </node>
+    <node id="page:reviews">
+      <data key="k_kind">Page</data>
+      <data key="k_label">reviews</data>
+      <data key="k_path">apps/web/app/dashboard/reviews</data>
+    </node>
+    <node id="page:runs">
+      <data key="k_kind">Page</data>
+      <data key="k_label">runs</data>
+      <data key="k_path">apps/web/app/dashboard/runs</data>
+    </node>
+    <node id="page:sandbox">
+      <data key="k_kind">Page</data>
+      <data key="k_label">sandbox</data>
+      <data key="k_path">apps/web/app/dashboard/sandbox</data>
+    </node>
+    <node id="page:settings">
+      <data key="k_kind">Page</data>
+      <data key="k_label">settings</data>
+      <data key="k_path">apps/web/app/dashboard/settings</data>
+    </node>
+    <node id="page:trust">
+      <data key="k_kind">Page</data>
+      <data key="k_label">trust</data>
+      <data key="k_path">apps/web/app/dashboard/trust</data>
+    </node>
+    <node id="page:vault">
+      <data key="k_kind">Page</data>
+      <data key="k_label">vault</data>
+      <data key="k_path">apps/web/app/dashboard/vault</data>
+    </node>
+    <node id="page:workspaces">
+      <data key="k_kind">Page</data>
+      <data key="k_label">workspaces</data>
+      <data key="k_path">apps/web/app/dashboard/workspaces</data>
+    </node>
+    <node id="page:dashboard">
+      <data key="k_kind">Page</data>
+      <data key="k_label">dashboard</data>
+      <data key="k_path">apps/web/app/dashboard</data>
+    </node>
+    <edge id="e0" source="route:activity" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e1" source="route:activity" target="schema:activity">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e2" source="route:agents" target="schema:agent">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e3" source="route:analytics" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e4" source="route:analytics" target="model:analytics_metrics">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e5" source="route:annotations" target="schema:run_annotation">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e6" source="route:annotations" target="model:run_annotation">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e7" source="route:api_ecosystem" target="model:api_ecosystem">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e8" source="route:approvals" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e9" source="route:approvals" target="schema:approval">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e10" source="route:approvals" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e11" source="route:architecture" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e12" source="route:architecture" target="schema:architecture">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e13" source="route:architecture" target="schema:approval">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e14" source="route:architecture" target="model:architecture">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e15" source="route:artifacts" target="schema:artifact">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e16" source="route:audit" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e17" source="route:audit" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e18" source="route:auth" target="schema:auth">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e19" source="route:auth" target="model:user">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e20" source="route:checkpoints" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e21" source="route:checkpoints" target="schema:execution_checkpoint">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e22" source="route:checkpoints" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e23" source="route:code_intelligence" target="service:planner_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e24" source="route:code_intelligence" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e25" source="route:code_intelligence" target="model:code_intelligence">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e26" source="route:code_ops" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e27" source="route:code_ops" target="schema:code_ops">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e28" source="route:code_ops" target="model:code_ops">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e29" source="route:collaboration" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e30" source="route:comments" target="schema:comment">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e31" source="route:comments" target="model:comment">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e32" source="route:composition" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e33" source="route:connectors" target="schema:connector">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e34" source="route:connectors" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e35" source="route:connectors" target="model:planner_result">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e36" source="route:connectors" target="model:project">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e37" source="route:constitution" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e38" source="route:constitution" target="schema:constitution">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e39" source="route:constitution_suggestions" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e40" source="route:constitution_suggestions" target="schema:constitution_suggestion">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e41" source="route:constitution_suggestions" target="model:constitution_suggestion">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e42" source="route:costs" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e43" source="route:costs" target="schema:cost">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e44" source="route:council" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e45" source="route:council" target="schema:council">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e46" source="route:council" target="model:council">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e47" source="route:credential_vault" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e48" source="route:credential_vault" target="schema:credential_vault">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e49" source="route:credential_vault" target="model:credential_vault">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e50" source="route:credential_vault" target="model:connector">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e51" source="route:delivery" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e52" source="route:delivery" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e53" source="route:enterprise_governance" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e54" source="route:enterprise_governance" target="schema:enterprise_governance">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e55" source="route:enterprise_governance" target="model:enterprise_governance">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e56" source="route:enterprise_governance" target="model:workspace">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e57" source="route:escalation" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e58" source="route:escalation" target="schema:escalation">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e59" source="route:escalation" target="model:escalation">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e60" source="route:events" target="schema:execution_event">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e61" source="route:github_integration" target="service:github_client">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e62" source="route:github_integration" target="schema:github_integration">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e63" source="route:github_integration" target="model:github_integration">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e64" source="route:governance" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e65" source="route:governance" target="schema:governance">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e66" source="route:governance" target="model:governance_policy">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e67" source="route:knowledge" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e68" source="route:knowledge" target="schema:knowledge">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e69" source="route:knowledge" target="model:project_knowledge">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e70" source="route:members" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e71" source="route:members" target="schema:membership">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e72" source="route:notifications" target="schema:notification">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e73" source="route:phase_agent_profiles" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e74" source="route:phase_agent_profiles" target="schema:phase_agent_profile">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e75" source="route:phase_agent_profiles" target="model:phase_agent_profile">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e76" source="route:planner" target="service:planner_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e77" source="route:planner" target="schema:prompt_intake">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e78" source="route:planner_results" target="schema:planner_result">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e79" source="route:planner_results" target="model:planner_result">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e80" source="route:project_templates" target="schema:project_template">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e81" source="route:projects" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e82" source="route:projects" target="schema:project">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e83" source="route:release_ops" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e84" source="route:release_ops" target="schema:release_ops">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e85" source="route:release_ops" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e86" source="route:release_ops" target="model:release_ops">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e87" source="route:replay" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e88" source="route:replay" target="schema:replay">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e89" source="route:replay" target="model:replay_snapshot">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e90" source="route:repos" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e91" source="route:repos" target="schema:repo">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e92" source="route:repos" target="model:repo_connection">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e93" source="route:retry" target="service:task_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e94" source="route:run_lifecycle" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e95" source="route:run_lifecycle" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e96" source="route:runs" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e97" source="route:runs" target="schema:run">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e98" source="route:runs" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e99" source="route:saved_views" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e100" source="route:saved_views" target="schema:saved_view">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e101" source="route:search_knowledge" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e102" source="route:search_knowledge" target="schema:search_knowledge">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e103" source="route:search_knowledge" target="model:project_knowledge">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e104" source="route:search_knowledge" target="model:search_knowledge">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e105" source="route:search_knowledge" target="model:project_template">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e106" source="route:streaming" target="service:stream_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e107" source="route:tasks" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e108" source="route:tasks" target="schema:task">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e109" source="route:trust" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e110" source="route:trust" target="schema:trust">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e111" source="route:trust" target="model:trust_score">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e112" source="route:workspaces" target="service:authz_service">
+      <data key="e_kind">CALLS</data>
+    </edge>
+    <edge id="e113" source="route:workspaces" target="schema:workspace">
+      <data key="e_kind">VALIDATES_WITH</data>
+    </edge>
+    <edge id="e114" source="service:activity_service" target="model:activity">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e115" source="service:adaptive_orchestrator" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e116" source="service:adaptive_orchestrator" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e117" source="service:adaptive_orchestrator" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e118" source="service:adaptive_orchestrator" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e119" source="service:adaptive_retry_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e120" source="service:adaptive_retry_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e121" source="service:adaptive_retry_service" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e122" source="service:adr_service" target="model:architecture">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e123" source="service:agent_service" target="model:agent">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e124" source="service:api_key_service" target="model:api_ecosystem">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e125" source="service:approval_enhanced_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e126" source="service:approval_enhanced_service" target="model:membership">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e127" source="service:approval_enhanced_service" target="model:approval_delegation">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e128" source="service:approval_service" target="service:stream_service">
+      <data key="e_kind">DEPENDS_ON</data>
+    </edge>
+    <edge id="e129" source="service:approval_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e130" source="service:approval_service" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e131" source="service:architecture_approval_service" target="model:architecture">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e132" source="service:architecture_approval_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e133" source="service:architecture_rule_service" target="model:architecture">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e134" source="service:architecture_service" target="model:architecture">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e135" source="service:artifact_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e136" source="service:artifact_version_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e137" source="service:audit_export_service" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e138" source="service:audit_log_service" target="model:enterprise_governance">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e139" source="service:authz_service" target="model:enterprise_governance">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e140" source="service:authz_service" target="model:membership">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e141" source="service:background_scheduler" target="model:workspace">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e142" source="service:background_scheduler" target="model:analytics_metrics">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e143" source="service:chat_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e144" source="service:ci_pipeline_service" target="model:github_integration">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e145" source="service:code_graph_service" target="model:code_intelligence">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e146" source="service:code_ops_service" target="model:code_ops">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e147" source="service:code_review_service" target="model:github_integration">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e148" source="service:comment_service" target="model:comment">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e149" source="service:compliance_report_service" target="model:enterprise_governance">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e150" source="service:compliance_report_service" target="model:membership">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e151" source="service:compliance_report_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e152" source="service:compliance_report_service" target="model:project">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e153" source="service:composition_service" target="model:phase_agent_profile">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e154" source="service:composition_service" target="model:agent">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e155" source="service:connector_service" target="model:connector">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e156" source="service:connector_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e157" source="service:connector_service" target="model:project_connector_link">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e158" source="service:constitution_service" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e159" source="service:constitution_service" target="model:project_constitution">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e160" source="service:constitution_suggestion_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e161" source="service:constitution_suggestion_service" target="model:project_knowledge">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e162" source="service:constitution_suggestion_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e163" source="service:constitution_suggestion_service" target="model:constitution_suggestion">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e164" source="service:convention_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e165" source="service:convention_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e166" source="service:convention_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e167" source="service:convention_service" target="model:search_knowledge">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e168" source="service:cost_tracking_service" target="model:cost_record">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e169" source="service:council_service" target="model:council">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e170" source="service:credential_vault_service" target="service:encryption_service">
+      <data key="e_kind">DEPENDS_ON</data>
+    </edge>
+    <edge id="e171" source="service:credential_vault_service" target="model:credential_vault">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e172" source="service:credential_vault_service" target="model:connector">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e173" source="service:dashboard_alert_service" target="model:analytics_metrics">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e174" source="service:delivery_artifact_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e175" source="service:delivery_artifact_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e176" source="service:delivery_artifact_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e177" source="service:delivery_artifact_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e178" source="service:delivery_artifact_service" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e179" source="service:deployment_readiness_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e180" source="service:deployment_readiness_service" target="model:release_ops">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e181" source="service:deployment_readiness_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e182" source="service:deployment_readiness_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e183" source="service:deployment_readiness_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e184" source="service:deployment_readiness_service" target="model:execution_checkpoint">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e185" source="service:design_doc_service" target="model:architecture">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e186" source="service:drift_detection_service" target="model:architecture">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e187" source="service:embedding_service" target="model:search_knowledge">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e188" source="service:environment_service" target="model:release_ops">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e189" source="service:escalation_service" target="model:escalation">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e190" source="service:event_service" target="service:stream_service">
+      <data key="e_kind">DEPENDS_ON</data>
+    </edge>
+    <edge id="e191" source="service:event_service" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e192" source="service:execution_checkpoint_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e193" source="service:execution_checkpoint_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e194" source="service:execution_checkpoint_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e195" source="service:execution_checkpoint_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e196" source="service:execution_checkpoint_service" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e197" source="service:execution_checkpoint_service" target="model:execution_checkpoint">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e198" source="service:execution_health_service" target="model:cost_record">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e199" source="service:execution_health_service" target="model:code_intelligence">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e200" source="service:execution_health_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e201" source="service:execution_health_service" target="model:analytics_metrics">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e202" source="service:execution_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e203" source="service:execution_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e204" source="service:execution_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e205" source="service:execution_service" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e206" source="service:execution_service" target="model:execution_checkpoint">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e207" source="service:flakiness_complexity_service" target="model:code_intelligence">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e208" source="service:github_installation_service" target="service:encryption_service">
+      <data key="e_kind">DEPENDS_ON</data>
+    </edge>
+    <edge id="e209" source="service:github_installation_service" target="model:github_integration">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e210" source="service:governance_engine_service" target="model:enterprise_governance">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e211" source="service:governance_engine_service" target="model:governance_policy">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e212" source="service:governance_engine_service" target="model:project">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e213" source="service:governance_service" target="model:governance_policy">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e214" source="service:impact_analysis_service" target="model:architecture">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e215" source="service:integration_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e216" source="service:integration_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e217" source="service:integration_service" target="model:project">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e218" source="service:ip_allowlist_service" target="model:enterprise_governance">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e219" source="service:issue_sync_service" target="model:github_integration">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e220" source="service:knowledge_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e221" source="service:knowledge_service" target="model:project_knowledge">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e222" source="service:knowledge_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e223" source="service:knowledge_service" target="model:planner_result">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e224" source="service:membership_service" target="model:membership">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e225" source="service:membership_service" target="model:project">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e226" source="service:mention_service" target="model:notification">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e227" source="service:mention_service" target="model:user">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e228" source="service:merge_readiness_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e229" source="service:merge_readiness_service" target="model:github_integration">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e230" source="service:merge_readiness_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e231" source="service:notification_delivery_service" target="model:notification">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e232" source="service:notification_digest_service" target="model:notification">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e233" source="service:notification_service" target="model:notification">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e234" source="service:operational_timeline_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e235" source="service:operational_timeline_service" target="model:release_ops">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e236" source="service:operational_timeline_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e237" source="service:operational_timeline_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e238" source="service:operational_timeline_service" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e239" source="service:operational_timeline_service" target="model:execution_checkpoint">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e240" source="service:pattern_debt_service" target="model:project_knowledge">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e241" source="service:pattern_debt_service" target="model:code_intelligence">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e242" source="service:phase_agent_profile_service" target="model:phase_agent_profile">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e243" source="service:phase_agent_profile_service" target="model:agent">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e244" source="service:plan_artifact_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e245" source="service:plan_artifact_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e246" source="service:plan_artifact_service" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e247" source="service:plan_artifact_service" target="model:project">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e248" source="service:planner_service" target="service:code_graph_service">
+      <data key="e_kind">DEPENDS_ON</data>
+    </edge>
+    <edge id="e249" source="service:planner_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e250" source="service:planner_service" target="model:project">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e251" source="service:planner_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e252" source="service:planner_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e253" source="service:planner_service" target="model:planner_result">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e254" source="service:post_release_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e255" source="service:post_release_service" target="model:release_ops">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e256" source="service:post_release_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e257" source="service:post_release_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e258" source="service:post_release_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e259" source="service:post_release_service" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e260" source="service:post_release_service" target="model:execution_checkpoint">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e261" source="service:pr_service" target="model:github_integration">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e262" source="service:project_overview_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e263" source="service:project_overview_service" target="model:membership">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e264" source="service:project_overview_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e265" source="service:project_overview_service" target="model:project">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e266" source="service:project_overview_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e267" source="service:project_service" target="service:saved_view_service">
+      <data key="e_kind">DEPENDS_ON</data>
+    </edge>
+    <edge id="e268" source="service:project_service" target="model:membership">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e269" source="service:project_service" target="model:project">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e270" source="service:project_template_service" target="model:project_template">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e271" source="service:recommendation_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e272" source="service:recommendation_service" target="model:project_knowledge">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e273" source="service:recommendation_service" target="model:search_knowledge">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e274" source="service:recommendation_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e275" source="service:recommendation_service" target="model:project">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e276" source="service:recommendation_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e277" source="service:refactor_recommendation_service" target="model:architecture">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e278" source="service:release_confidence_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e279" source="service:release_confidence_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e280" source="service:release_confidence_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e281" source="service:release_confidence_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e282" source="service:release_confidence_service" target="model:execution_checkpoint">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e283" source="service:release_gate_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e284" source="service:release_gate_service" target="model:release_ops">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e285" source="service:release_gate_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e286" source="service:release_gate_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e287" source="service:release_gate_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e288" source="service:release_gate_service" target="model:execution_checkpoint">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e289" source="service:release_package_service" target="model:release_ops">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e290" source="service:release_package_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e291" source="service:release_package_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e292" source="service:release_package_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e293" source="service:release_package_service" target="model:execution_checkpoint">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e294" source="service:replay_service" target="model:replay_snapshot">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e295" source="service:repo_service" target="model:repo_connection">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e296" source="service:retention_policy_service" target="model:enterprise_governance">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e297" source="service:retention_policy_service" target="model:notification">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e298" source="service:retention_policy_service" target="model:membership">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e299" source="service:retention_policy_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e300" source="service:retention_policy_service" target="model:project">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e301" source="service:retention_policy_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e302" source="service:rollback_readiness_service" target="model:release_ops">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e303" source="service:rollback_readiness_service" target="model:execution_checkpoint">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e304" source="service:run_annotation_service" target="model:run_annotation">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e305" source="service:run_comparison_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e306" source="service:run_comparison_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e307" source="service:run_comparison_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e308" source="service:run_lifecycle_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e309" source="service:run_lifecycle_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e310" source="service:run_lifecycle_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e311" source="service:run_lifecycle_service" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e312" source="service:run_lifecycle_service" target="model:execution_checkpoint">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e313" source="service:run_memory_enrichment_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e314" source="service:run_memory_enrichment_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e315" source="service:run_memory_enrichment_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e316" source="service:run_memory_enrichment_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e317" source="service:run_memory_enrichment_service" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e318" source="service:run_memory_enrichment_service" target="model:execution_checkpoint">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e319" source="service:run_memory_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e320" source="service:run_memory_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e321" source="service:run_memory_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e322" source="service:run_memory_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e323" source="service:run_memory_service" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e324" source="service:saved_view_service" target="model:saved_view">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e325" source="service:search_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e326" source="service:search_service" target="model:project_knowledge">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e327" source="service:search_service" target="model:search_knowledge">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e328" source="service:search_service" target="model:membership">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e329" source="service:search_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e330" source="service:search_service" target="model:project">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e331" source="service:search_service" target="model:run_annotation">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e332" source="service:search_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e333" source="service:search_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e334" source="service:search_service" target="model:comment">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e335" source="service:slash_command_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e336" source="service:slash_command_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e337" source="service:spec_plan_approval_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e338" source="service:spec_plan_approval_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e339" source="service:spec_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e340" source="service:spec_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e341" source="service:spec_service" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e342" source="service:spec_service" target="model:project">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e343" source="service:sso_configuration_service" target="model:workspace">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e344" source="service:sso_configuration_service" target="model:sso_configuration">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e345" source="service:structural_health_service" target="model:architecture">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e346" source="service:task_assignment_service" target="service:event_service">
+      <data key="e_kind">DEPENDS_ON</data>
+    </edge>
+    <edge id="e347" source="service:task_assignment_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e348" source="service:task_assignment_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e349" source="service:task_assignment_service" target="model:execution_event">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e350" source="service:task_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e351" source="service:task_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e352" source="service:template_inheritance_service" target="model:phase_agent_profile">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e353" source="service:template_inheritance_service" target="model:agent">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e354" source="service:template_inheritance_service" target="model:project">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e355" source="service:template_inheritance_service" target="model:project_template">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e356" source="service:topology_mapper_service" target="model:architecture">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e357" source="service:traceability_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e358" source="service:traceability_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e359" source="service:traceability_service" target="model:artifact">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e360" source="service:traceability_service" target="model:planner_result">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e361" source="service:traceability_service" target="model:execution_checkpoint">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e362" source="service:trust_scoring_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e363" source="service:trust_scoring_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e364" source="service:trust_scoring_service" target="model:trust_score">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e365" source="service:unified_activity_service" target="model:activity">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e366" source="service:user_activity_service" target="model:activity">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e367" source="service:user_activity_service" target="model:membership">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e368" source="service:velocity_quality_service" target="model:approval_request">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e369" source="service:velocity_quality_service" target="model:analytics_metrics">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e370" source="service:velocity_quality_service" target="model:run">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e371" source="service:velocity_quality_service" target="model:task">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e372" source="service:velocity_quality_service" target="model:cost_record">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e373" source="service:velocity_quality_service" target="model:code_intelligence">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e374" source="service:webhook_connector_service" target="model:api_ecosystem">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e375" source="service:webhook_service" target="model:github_integration">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e376" source="service:workspace_service" target="model:workspace">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e377" source="service:workspace_service" target="model:membership">
+      <data key="e_kind">PERSISTS</data>
+    </edge>
+    <edge id="e378" source="page:activity" target="lib:activity">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e379" source="page:activity" target="lib:activity">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e380" source="page:activity" target="lib:activity">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e381" source="page:agents" target="lib:agents">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e382" source="page:agents" target="lib:agents">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e383" source="page:approvals" target="lib:approvals">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e384" source="page:approvals" target="lib:approvals">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e385" source="page:architecture" target="lib:architecture">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e386" source="page:architecture" target="lib:architecture">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e387" source="page:architecture" target="lib:architecture">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e388" source="page:artifacts" target="lib:artifacts">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e389" source="page:artifacts" target="lib:artifacts">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e390" source="page:audit" target="lib:audit">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e391" source="page:audit" target="lib:audit">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e392" source="page:audit" target="lib:audit">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e393" source="page:connectors" target="lib:connectors">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e394" source="page:connectors" target="lib:connectors">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e395" source="page:costs" target="lib:costs">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e396" source="page:costs" target="lib:costs">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e397" source="page:council" target="lib:council">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e398" source="page:council" target="lib:council">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e399" source="page:council" target="lib:council">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e400" source="page:escalations" target="lib:escalations">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e401" source="page:escalations" target="lib:escalations">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e402" source="page:governance" target="lib:governance">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e403" source="page:governance" target="lib:governance">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e404" source="page:governance" target="lib:governance">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e405" source="page:knowledge" target="lib:knowledge">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e406" source="page:knowledge" target="lib:knowledge">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e407" source="page:knowledge" target="lib:knowledge">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e408" source="page:notifications" target="lib:notifications">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e409" source="page:notifications" target="lib:notifications">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e410" source="page:projects" target="lib:projects">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e411" source="page:projects" target="lib:projects">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e412" source="page:replay" target="lib:replay">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e413" source="page:replay" target="lib:replay">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e414" source="page:replay" target="lib:replay">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e415" source="page:runs" target="lib:runs">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e416" source="page:runs" target="lib:runs">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e417" source="page:trust" target="lib:trust">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e418" source="page:trust" target="lib:trust">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e419" source="page:trust" target="lib:trust">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e420" source="page:vault" target="lib:vault">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e421" source="page:vault" target="lib:vault">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e422" source="page:vault" target="lib:vault">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e423" source="page:workspaces" target="lib:workspaces">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e424" source="page:workspaces" target="lib:workspaces">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e461" source="page:dashboard" target="lib:projects">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e462" source="page:dashboard" target="lib:approvals">
+      <data key="e_kind">USES</data>
+    </edge>
+    <edge id="e425" source="lib:activity" target="route:activity">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e426" source="lib:agents" target="route:agents">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e427" source="lib:approvals" target="route:approvals">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e428" source="lib:architecture" target="route:architecture">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e429" source="lib:artifacts" target="route:artifacts">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e430" source="lib:audit" target="route:audit">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e431" source="lib:chat" target="route:chat">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e432" source="lib:connectors" target="route:connectors">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e433" source="lib:constitution-suggestions" target="route:constitution_suggestions">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e434" source="lib:constitution" target="route:constitution">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e435" source="lib:costs" target="route:costs">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e436" source="lib:council" target="route:council">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e437" source="lib:dashboards" target="route:analytics">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e438" source="lib:escalations" target="route:escalation">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e439" source="lib:events" target="route:events">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e440" source="lib:governance" target="route:governance">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e441" source="lib:governance" target="route:enterprise_governance">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e442" source="lib:knowledge" target="route:knowledge">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e443" source="lib:knowledge" target="route:search_knowledge">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e444" source="lib:notifications" target="route:notifications">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e445" source="lib:phase-profiles" target="route:phase_agent_profiles">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e446" source="lib:planner" target="route:planner">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e447" source="lib:planner" target="route:planner_results">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e448" source="lib:project-members" target="route:members">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e449" source="lib:projects" target="route:projects">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e450" source="lib:projects" target="route:project_templates">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e451" source="lib:release-ops" target="route:release_ops">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e452" source="lib:replay" target="route:replay">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e453" source="lib:runs" target="route:runs">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e454" source="lib:runs" target="route:run_lifecycle">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e455" source="lib:stream" target="route:streaming">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e456" source="lib:tasks" target="route:tasks">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e457" source="lib:templates" target="route:project_templates">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e458" source="lib:trust" target="route:trust">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e459" source="lib:vault" target="route:credential_vault">
+      <data key="e_kind">HITS</data>
+    </edge>
+    <edge id="e460" source="lib:workspaces" target="route:workspaces">
+      <data key="e_kind">HITS</data>
+    </edge>
+  </graph>
+</graphml>

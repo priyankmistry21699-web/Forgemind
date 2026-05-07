@@ -45,6 +45,8 @@ class Action(str, Enum):
     PROJECT_MANAGE_KNOWLEDGE = "project:manage_knowledge"
     PROJECT_MANAGE_ESCALATION = "project:manage_escalation"
     PROJECT_MANAGE_ARCHITECTURE = "project:manage_architecture"
+    # H-13: general write/edit action used by knowledge, conventions, recommendations
+    PROJECT_EDIT = "project:edit"
 
 
 # ── Permission matrix ────────────────────────────────────────────
@@ -101,6 +103,7 @@ PROJECT_PERMISSIONS: dict[Action, set[ProjectRole]] = {
     Action.PROJECT_MANAGE_KNOWLEDGE: {ProjectRole.LEAD, ProjectRole.OPERATOR},
     Action.PROJECT_MANAGE_ESCALATION: {ProjectRole.LEAD},
     Action.PROJECT_MANAGE_ARCHITECTURE: {ProjectRole.LEAD, ProjectRole.OPERATOR},
+    Action.PROJECT_EDIT: {ProjectRole.LEAD, ProjectRole.OPERATOR},
 }
 
 

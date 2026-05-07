@@ -34,6 +34,8 @@ async def llm_completion(
     temperature: float | None = None,
     max_tokens: int | None = None,
     response_format: dict[str, Any] | None = None,
+    task_type: str = "default",
+    budget_used_pct: float = 0.0,
 ) -> str | None:
     """Call the LLM and return the assistant message content.
 
@@ -44,7 +46,19 @@ async def llm_completion(
         logger.info("LiteLLM not available, returning None")
         return None
 
-    resolved_model = model or settings.planner_model
+    # FM-221: Use model router when no explicit model is given
+    if model:
+        resolved_model = model
+    else:
+        try:
+            from app.core.model_router import select_model
+            resolved_model = select_model(
+                task_type=task_type,
+                budget_used_pct=budget_used_pct,
+                preferred_model=settings.planner_model if settings.planner_model != "gpt-4o" else None,
+            )
+        except Exception:
+            resolved_model = settings.planner_model
     resolved_temp = (
         temperature if temperature is not None else settings.planner_temperature
     )
@@ -72,6 +86,12 @@ async def llm_completion(
         return content
     except Exception:
         logger.exception("LLM call failed for model=%s", resolved_model)
+        # FM-221: record provider error for routing health tracking
+        try:
+            from app.core.model_router import record_provider_error
+            record_provider_error(resolved_model)
+        except Exception:
+            pass
         return None
 
 

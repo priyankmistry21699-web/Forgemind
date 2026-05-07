@@ -7,7 +7,7 @@ class Settings(BaseSettings):
 
     # General
     app_env: str = Field(default="development", alias="APP_ENV")
-    debug: bool = Field(default=True, alias="DEBUG")
+    debug: bool = Field(default=False, alias="DEBUG")  # H-15: default off
     secret_key: str = Field(default="change-me-to-a-random-secret", alias="SECRET_KEY")
 
     # Server
@@ -60,6 +60,32 @@ class Settings(BaseSettings):
             )
         if not self.redis_url:
             self.redis_url = f"redis://{self.redis_host}:{self.redis_port}/0"
+
+        # M-22: Expanded safety gate — enforce strong secrets in any non-development
+        # environment. "staging" and "test" are internet-accessible in many deployments
+        # and must not start with default credentials.
+        _unsafe_envs = {"production", "staging", "test"}
+        if self.app_env in _unsafe_envs:
+            default_secret = "change-me-to-a-random-secret"
+            if self.secret_key == default_secret:
+                raise RuntimeError(
+                    f"SECRET_KEY is set to the built-in default while "
+                    f"APP_ENV={self.app_env}. Refusing to start. Generate a "
+                    'secure value with: python -c "import secrets; '
+                    'print(secrets.token_urlsafe(48))"'
+                )
+            if len(self.secret_key) < 32:
+                raise RuntimeError(
+                    f"SECRET_KEY must be at least 32 characters in "
+                    f"{self.app_env} (got {len(self.secret_key)}). Refusing "
+                    "to start."
+                )
+            default_db_password = "change-me"
+            if self.postgres_password == default_db_password:
+                raise RuntimeError(
+                    f"POSTGRES_PASSWORD is set to the built-in default "
+                    f"while APP_ENV={self.app_env}. Refusing to start."
+                )
 
     model_config = {
         "env_file": ".env",

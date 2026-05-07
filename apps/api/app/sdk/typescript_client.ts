@@ -60,8 +60,18 @@ export interface TestSelection {
 export interface CodeIntelligenceContext {
   project_id: string;
   dependency_graph: { node_count: number; edge_count: number };
-  coverage: { mapping_count: number; covered_files: number; avg_coverage: number; gap_count: number };
-  complexity_hotspots: Array<{ file: string; function: string; metric_type: string; value: number }>;
+  coverage: {
+    mapping_count: number;
+    covered_files: number;
+    avg_coverage: number;
+    gap_count: number;
+  };
+  complexity_hotspots: Array<{
+    file: string;
+    function: string;
+    metric_type: string;
+    value: number;
+  }>;
   debt: Record<string, unknown>;
   flakiness: Record<string, unknown>;
   impact_analysis?: Record<string, unknown>;
@@ -120,7 +130,11 @@ export class ForgeMindClient {
   private timeout: number;
 
   constructor(config: ForgeMindConfig = {}) {
-    this.baseUrl = (config.baseUrl || process.env.FORGEMIND_BASE_URL || "http://localhost:8000").replace(/\/$/, "");
+    this.baseUrl = (
+      config.baseUrl ||
+      process.env.FORGEMIND_BASE_URL ||
+      "http://localhost:8000"
+    ).replace(/\/$/, "");
     this.apiKey = config.apiKey || process.env.FORGEMIND_API_KEY || "";
     this.timeout = config.timeout || 30000;
   }
@@ -159,7 +173,8 @@ export class ForgeMindClient {
         let detail: string;
         try {
           const errBody = await resp.json();
-          detail = (errBody as Record<string, string>).detail || resp.statusText;
+          detail =
+            (errBody as Record<string, string>).detail || resp.statusText;
         } catch {
           detail = resp.statusText;
         }
@@ -174,7 +189,9 @@ export class ForgeMindClient {
 
   // ── Projects ──────────────────────────────────────────────
 
-  async listProjects(params?: Record<string, string>): Promise<PaginatedResponse<Project>> {
+  async listProjects(
+    params?: Record<string, string>,
+  ): Promise<PaginatedResponse<Project>> {
     return this.request("GET", "/api/v1/projects", { params });
   }
 
@@ -182,33 +199,60 @@ export class ForgeMindClient {
     return this.request("GET", `/api/v1/projects/${projectId}`);
   }
 
-  async createProject(data: { name: string; description?: string }): Promise<Project> {
+  async createProject(data: {
+    name: string;
+    description?: string;
+  }): Promise<Project> {
     return this.request("POST", "/api/v1/projects", { body: data });
   }
 
   // ── Tasks ─────────────────────────────────────────────────
 
-  async listTasks(projectId: string, params?: Record<string, string>): Promise<PaginatedResponse<Task>> {
-    return this.request("GET", `/api/v1/projects/${projectId}/tasks`, { params });
+  async listTasks(
+    projectId: string,
+    params?: Record<string, string>,
+  ): Promise<PaginatedResponse<Task>> {
+    return this.request("GET", `/api/v1/projects/${projectId}/tasks`, {
+      params,
+    });
   }
 
-  async createTask(projectId: string, data: { title: string; description?: string; task_type?: string }): Promise<Task> {
-    return this.request("POST", `/api/v1/projects/${projectId}/tasks`, { body: data });
+  async createTask(
+    projectId: string,
+    data: { title: string; description?: string; task_type?: string },
+  ): Promise<Task> {
+    return this.request("POST", `/api/v1/projects/${projectId}/tasks`, {
+      body: data,
+    });
   }
 
   // ── Code Intelligence ─────────────────────────────────────
 
   async getDependencyGraph(projectId: string): Promise<DependencyGraph> {
-    return this.request("GET", `/api/v1/projects/${projectId}/dependencies/graph`);
+    return this.request(
+      "GET",
+      `/api/v1/projects/${projectId}/dependencies/graph`,
+    );
   }
 
-  async analyzeImpact(projectId: string, changedFiles: string[]): Promise<ImpactAnalysis> {
-    return this.request("POST", `/api/v1/projects/${projectId}/dependencies/impact`, {
-      body: { changed_files: changedFiles },
-    });
+  async analyzeImpact(
+    projectId: string,
+    changedFiles: string[],
+  ): Promise<ImpactAnalysis> {
+    return this.request(
+      "POST",
+      `/api/v1/projects/${projectId}/dependencies/impact`,
+      {
+        body: { changed_files: changedFiles },
+      },
+    );
   }
 
-  async selectTests(projectId: string, changedFiles: string[], mode: string = "standard"): Promise<TestSelection> {
+  async selectTests(
+    projectId: string,
+    changedFiles: string[],
+    mode: string = "standard",
+  ): Promise<TestSelection> {
     return this.request("POST", `/api/v1/projects/${projectId}/select-tests`, {
       body: { changed_files: changedFiles, mode },
     });
@@ -220,13 +264,22 @@ export class ForgeMindClient {
   ): Promise<CodeIntelligenceContext> {
     const body: Record<string, unknown> = {};
     if (changedFiles) body.changed_files = changedFiles;
-    return this.request("POST", `/api/v1/projects/${projectId}/code-intelligence-context`, { body });
+    return this.request(
+      "POST",
+      `/api/v1/projects/${projectId}/code-intelligence-context`,
+      { body },
+    );
   }
 
   // ── Analytics ─────────────────────────────────────────────
 
-  async getCycleTime(projectId: string, params?: Record<string, string>): Promise<CycleTime> {
-    return this.request("GET", `/api/v1/projects/${projectId}/cycle-time`, { params });
+  async getCycleTime(
+    projectId: string,
+    params?: Record<string, string>,
+  ): Promise<CycleTime> {
+    return this.request("GET", `/api/v1/projects/${projectId}/cycle-time`, {
+      params,
+    });
   }
 
   async getQualityScore(projectId: string): Promise<QualityScore> {
@@ -235,7 +288,10 @@ export class ForgeMindClient {
 
   // ── Webhooks ──────────────────────────────────────────────
 
-  async fireWebhook(eventType: string, payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async fireWebhook(
+    eventType: string,
+    payload: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     return this.request("POST", "/api/v1/webhooks/fire", {
       body: { event_type: eventType, payload },
     });

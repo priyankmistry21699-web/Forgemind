@@ -935,7 +935,7 @@ class TestFM175Routes:
 
         resp = await client.get(
             f"/workspaces/{ws.id}/sso-login-url",
-            params={"redirect_uri": "https://app.forgemind.dev/callback"},
+            params={"redirect_uri": "http://localhost:3000/callback"},
         )
         assert resp.status_code == 200
         data = resp.json()
@@ -952,7 +952,7 @@ class TestFM175Routes:
 
         resp = await client.get(
             f"/workspaces/{ws.id}/sso-login-url",
-            params={"redirect_uri": "https://app.forgemind.dev/callback"},
+            params={"redirect_uri": "http://localhost:3000/callback"},
         )
         assert resp.status_code == 200
         data = resp.json()
@@ -967,6 +967,6 @@ class TestFM175Routes:
 
         resp = await client.get(
             f"/workspaces/{ws.id}/sso-login-url",
-            params={"redirect_uri": "https://app.forgemind.dev/callback"},
+            params={"redirect_uri": "http://localhost:3000/callback"},
         )
         assert resp.status_code == 404

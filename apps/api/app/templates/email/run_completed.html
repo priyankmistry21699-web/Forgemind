@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Run {{ status | title }}</h2>
+<p>Run <strong>#{{ run_number }}</strong> in project <strong>{{ project_name }}</strong>
+has {{ status }}.</p>
+{% if status == "completed" %}
+<p>All tasks finished successfully. Review the artifacts to see what was built.</p>
+{% else %}
+<p>The run encountered an error.  Check the run timeline for details.</p>
+{% endif %}
+<a href="{{ action_url }}" class="btn">View Run</a>
+{% endblock %}

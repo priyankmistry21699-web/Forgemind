@@ -44,11 +44,17 @@ async def create_credential(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CredentialVaultRead:
-    """Register a new credential in the vault."""
-    if body.project_id is not None:
-        await check_project_permission(
-            db, body.project_id, user_id, Action.PROJECT_UPDATE
+    """Register a new credential in the vault. project_id is required."""
+    # FM-212: project_id must be present so credentials are always
+    # scoped to a project; null-scoped vault entries bypassed authz.
+    if body.project_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="project_id is required",
         )
+    await check_project_permission(
+        db, body.project_id, user_id, Action.PROJECT_UPDATE
+    )
     credential = await credential_vault_service.create_credential(
         db,
         name=body.name,
@@ -69,13 +75,12 @@ async def create_credential(
 
 @router.get("/vault/credentials", response_model=CredentialVaultList)
 async def list_credentials(
-    project_id: uuid.UUID | None = None,
+    project_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CredentialVaultList:
-    """List all credential vault entries."""
-    if project_id is not None:
-        await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
+    """List credential vault entries for a project. project_id is required."""
+    await check_project_permission(db, project_id, user_id, Action.PROJECT_VIEW)
     credentials, total = await credential_vault_service.list_credentials(
         db, project_id=project_id
     )
@@ -100,15 +105,19 @@ async def get_credential(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CredentialVaultRead:
     """Get a single credential vault entry."""
-    proj_id = await resolve_project_for_entity(db, CredentialVault, credential_id)
-    if proj_id is not None:
-        await check_project_permission(db, proj_id, user_id, Action.PROJECT_VIEW)
     credential = await credential_vault_service.get_credential(db, credential_id)
     if credential is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Credential not found",
         )
+    # FM-212: NULL project_id must never bypass the auth check
+    if credential.project_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot determine project for this credential",
+        )
+    await check_project_permission(db, credential.project_id, user_id, Action.PROJECT_VIEW)
     slug = await _resolve_connector_slug(db, credential.connector_id)
     return CredentialVaultRead(
         **credential_vault_service.build_credential_read(credential, slug)
@@ -126,9 +135,19 @@ async def update_credential(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> CredentialVaultRead:
     """Update credential metadata."""
-    proj_id = await resolve_project_for_entity(db, CredentialVault, credential_id)
-    if proj_id is not None:
-        await check_project_permission(db, proj_id, user_id, Action.PROJECT_UPDATE)
+    existing = await credential_vault_service.get_credential(db, credential_id)
+    if existing is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Credential not found",
+        )
+    # FM-212: NULL project_id must never bypass the auth check
+    if existing.project_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot determine project for this credential",
+        )
+    await check_project_permission(db, existing.project_id, user_id, Action.PROJECT_UPDATE)
     update_data = body.model_dump(exclude_unset=True)
     credential = await credential_vault_service.update_credential(
         db, credential_id, **update_data
@@ -154,9 +173,19 @@ async def delete_credential(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> None:
     """Delete a credential vault entry."""
-    proj_id = await resolve_project_for_entity(db, CredentialVault, credential_id)
-    if proj_id is not None:
-        await check_project_permission(db, proj_id, user_id, Action.PROJECT_UPDATE)
+    existing = await credential_vault_service.get_credential(db, credential_id)
+    if existing is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Credential not found",
+        )
+    # FM-212: NULL project_id must never bypass the auth check
+    if existing.project_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot determine project for this credential",
+        )
+    await check_project_permission(db, existing.project_id, user_id, Action.PROJECT_UPDATE)
     deleted = await credential_vault_service.delete_credential(db, credential_id)
     if not deleted:
         raise HTTPException(

@@ -8,6 +8,7 @@ Transitions ForgeMind from a linear executor to an adaptive system that:
 """
 
 import logging
+import uuid
 from typing import Any
 
 from sqlalchemy import select
@@ -293,3 +294,89 @@ async def run_adaptive_cycle(
         "requeued": requeued,
         "selected_tasks": final_tasks,
     }
+
+
+# ---------------------------------------------------------------------------
+# FM-226: Autonomous re-planning
+# ---------------------------------------------------------------------------
+
+MAX_REPLAN_RETRIES = 3  # before giving up and leaving the task FAILED
+
+
+async def trigger_replan(
+    db: AsyncSession,
+    *,
+    run_id: uuid.UUID,
+    failed_task_id: uuid.UUID,
+    error_context: str = "",
+) -> dict:
+    """Trigger a re-plan when a task fails beyond MAX_AUTO_RETRIES.
+
+    1. Records a PlanRevision audit entry
+    2. Calls planner_service.replan to produce a revised sub-DAG
+    3. Returns a summary of the revised tasks
+
+    Falls back gracefully if the planner is unavailable.
+    """
+    from app.models.agent_intelligence import PlanRevision, PlanRevisionTrigger
+    from app.services import planner_service
+
+    run = await db.get(Run, run_id)
+    if run is None:
+        return {"status": "error", "detail": "run not found"}
+
+    # Fetch current failed task IDs for the run
+    result = await db.execute(
+        select(Task).where(
+            Task.run_id == run_id,
+            Task.status == TaskStatus.FAILED,
+        )
+    )
+    failed_tasks = list(result.scalars().all())
+    original_ids = [str(t.id) for t in failed_tasks]
+
+    # Record plan revision
+    revision = PlanRevision(
+        run_id=run_id,
+        failed_task_id=failed_task_id,
+        trigger=PlanRevisionTrigger.AGENT_FAILURE,
+        error_context=error_context[:1000],
+        original_task_ids=original_ids,
+        retry_count=len(original_ids),
+    )
+    db.add(revision)
+    await db.flush()
+
+    # Emit event
+    await event_service.emit_event(
+        db,
+        event_type=EventType.TASK_CLAIMED,
+        summary=f"Re-plan triggered for run (failed_task={failed_task_id})",
+        project_id=run.project_id,
+        run_id=run_id,
+        metadata={"action": "replan", "revision_id": str(revision.id)},
+    )
+
+    # Attempt LLM re-plan (graceful fallback if unavailable)
+    try:
+        replan_result = await planner_service.replan(
+            db,
+            run_id=run_id,
+            failed_task_id=failed_task_id,
+            error_context=error_context,
+        )
+        revised_ids = [str(t.id) for t in replan_result.get("new_tasks", [])]
+        revision.revised_task_ids = revised_ids
+        await db.flush()
+        return {
+            "status": "replanned",
+            "revision_id": str(revision.id),
+            "new_task_count": len(revised_ids),
+        }
+    except Exception as exc:
+        logger.warning("replan failed (%s) — marking run as degraded", exc)
+        return {
+            "status": "replan_failed",
+            "revision_id": str(revision.id),
+            "error": str(exc),
+        }

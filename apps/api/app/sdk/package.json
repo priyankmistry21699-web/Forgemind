@@ -8,10 +8,18 @@
     "build": "tsc",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["forgemind", "sdk", "api", "client"],
+  "keywords": [
+    "forgemind",
+    "sdk",
+    "api",
+    "client"
+  ],
   "license": "MIT",
   "devDependencies": {
     "typescript": "^5.0.0"
   },
-  "files": ["dist/", "typescript_client.ts"]
+  "files": [
+    "dist/",
+    "typescript_client.ts"
+  ]
 }

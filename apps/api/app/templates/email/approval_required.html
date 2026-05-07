@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Approval Required</h2>
+<p>An action in <strong>{{ project_name }}</strong> requires your approval.</p>
+<p><strong>{{ title }}</strong></p>
+{% if description %}
+<p>{{ description }}</p>
+{% endif %}
+<a href="{{ action_url }}" class="btn">Review &amp; Approve</a>
+{% endblock %}

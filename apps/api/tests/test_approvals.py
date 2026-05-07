@@ -6,22 +6,22 @@ import uuid
 class TestListApprovals:
     """GET /approvals"""
 
-    async def test_list_approvals_empty(self, client):
-        resp = await client.get("/approvals")
+    async def test_list_approvals_empty(self, client, sample_project):
+        resp = await client.get(f"/approvals?project_id={sample_project.id}")
         assert resp.status_code == 200
         data = resp.json()
         assert data["total"] == 0
         assert data["items"] == []
 
-    async def test_list_approvals_with_data(self, client, sample_approval):
-        resp = await client.get("/approvals")
+    async def test_list_approvals_with_data(self, client, sample_project, sample_approval):
+        resp = await client.get(f"/approvals?project_id={sample_project.id}")
         assert resp.status_code == 200
         data = resp.json()
         assert data["total"] >= 1
         assert data["items"][0]["status"] == "pending"
 
-    async def test_list_approvals_filter_by_status(self, client, sample_approval):
-        resp = await client.get("/approvals?status=pending")
+    async def test_list_approvals_filter_by_status(self, client, sample_project, sample_approval):
+        resp = await client.get(f"/approvals?project_id={sample_project.id}&status=pending")
         assert resp.status_code == 200
         data = resp.json()
         assert all(a["status"] == "pending" for a in data["items"])

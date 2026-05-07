@@ -111,14 +111,10 @@ describe("ProjectCreateForm (FM-012)", () => {
     });
 
     await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: /create project/i }),
-      );
+      fireEvent.click(screen.getByRole("button", { name: /create project/i }));
     });
 
-    expect(
-      screen.getByRole("button", { name: /creating/i }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: /creating/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /cancel/i })).toBeDisabled();
     expect(mocks.createProject).toHaveBeenCalledWith({
       name: "Atlas",
@@ -136,9 +132,7 @@ describe("ProjectCreateForm (FM-012)", () => {
     });
 
     await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: /create project/i }),
-      );
+      fireEvent.click(screen.getByRole("button", { name: /create project/i }));
     });
 
     expect(onCreated).toHaveBeenCalledTimes(1);
@@ -154,9 +148,7 @@ describe("ProjectCreateForm (FM-012)", () => {
     });
 
     await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: /create project/i }),
-      );
+      fireEvent.click(screen.getByRole("button", { name: /create project/i }));
     });
 
     expect(screen.getByText("name conflict")).toBeInTheDocument();
@@ -208,9 +200,7 @@ describe("ProjectCreateForm (FM-012)", () => {
     });
 
     await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: /create project/i }),
-      );
+      fireEvent.click(screen.getByRole("button", { name: /create project/i }));
     });
 
     expect(mocks.createProject).toHaveBeenCalledWith({
@@ -233,9 +223,7 @@ describe("ProjectCreateForm (FM-012)", () => {
       target: { value: "Atlas" },
     });
     await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: /create project/i }),
-      );
+      fireEvent.click(screen.getByRole("button", { name: /create project/i }));
     });
     expect(onCreated).toHaveBeenCalledTimes(1);
   });

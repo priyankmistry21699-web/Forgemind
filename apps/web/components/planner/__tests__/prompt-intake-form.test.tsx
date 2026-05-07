@@ -34,9 +34,13 @@ function renderForm() {
 describe("PromptIntakeForm (FM-013)", () => {
   it("renders prompt + optional project name inputs and a disabled submit", () => {
     renderForm();
-    expect(screen.getByLabelText(/what do you want to build/i)).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/what do you want to build/i),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/project name/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /plan project/i })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: /plan project/i }),
+    ).toBeDisabled();
     expect(screen.getByText(/0\/5000/)).toBeInTheDocument();
   });
 
@@ -50,9 +54,7 @@ describe("PromptIntakeForm (FM-013)", () => {
     ).toBeDisabled();
 
     fireEvent.change(ta, { target: { value: "10chars!!!" } });
-    expect(
-      screen.getByRole("button", { name: /plan project/i }),
-    ).toBeEnabled();
+    expect(screen.getByRole("button", { name: /plan project/i })).toBeEnabled();
 
     // character counter updates as we type
     expect(screen.getByText(/10\/5000/)).toBeInTheDocument();

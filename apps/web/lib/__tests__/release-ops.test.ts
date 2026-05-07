@@ -69,9 +69,7 @@ describe("release-ops client", () => {
   it("fetchEnvironments + fetchEnvironment hit expected URLs", async () => {
     mocks.apiFetch.mockResolvedValue({ items: [], total: 0 });
     await fetchEnvironments("p-1");
-    expect(mocks.apiFetch).toHaveBeenCalledWith(
-      "/projects/p-1/environments",
-    );
+    expect(mocks.apiFetch).toHaveBeenCalledWith("/projects/p-1/environments");
     mocks.apiFetch.mockResolvedValue({ id: "env-1" });
     await fetchEnvironment("env-1");
     expect(mocks.apiFetch).toHaveBeenCalledWith("/environments/env-1");

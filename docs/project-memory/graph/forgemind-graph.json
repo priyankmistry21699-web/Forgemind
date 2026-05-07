@@ -1,0 +1,4145 @@
+{
+  "nodes": [
+    {
+      "id": "route:activity",
+      "label": "activity",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/activity.py"
+    },
+    {
+      "id": "route:agents",
+      "label": "agents",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/agents.py"
+    },
+    {
+      "id": "route:analytics",
+      "label": "analytics",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/analytics.py"
+    },
+    {
+      "id": "route:annotations",
+      "label": "annotations",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/annotations.py"
+    },
+    {
+      "id": "route:api_ecosystem",
+      "label": "api_ecosystem",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/api_ecosystem.py"
+    },
+    {
+      "id": "route:approvals",
+      "label": "approvals",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/approvals.py"
+    },
+    {
+      "id": "route:architecture",
+      "label": "architecture",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/architecture.py"
+    },
+    {
+      "id": "route:artifacts",
+      "label": "artifacts",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/artifacts.py"
+    },
+    {
+      "id": "route:audit",
+      "label": "audit",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/audit.py"
+    },
+    {
+      "id": "route:auth",
+      "label": "auth",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/auth.py"
+    },
+    {
+      "id": "route:chat",
+      "label": "chat",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/chat.py"
+    },
+    {
+      "id": "route:checkpoints",
+      "label": "checkpoints",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/checkpoints.py"
+    },
+    {
+      "id": "route:code_intelligence",
+      "label": "code_intelligence",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/code_intelligence.py"
+    },
+    {
+      "id": "route:code_ops",
+      "label": "code_ops",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/code_ops.py"
+    },
+    {
+      "id": "route:collaboration",
+      "label": "collaboration",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/collaboration.py"
+    },
+    {
+      "id": "route:comments",
+      "label": "comments",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/comments.py"
+    },
+    {
+      "id": "route:composition",
+      "label": "composition",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/composition.py"
+    },
+    {
+      "id": "route:connectors",
+      "label": "connectors",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/connectors.py"
+    },
+    {
+      "id": "route:constitution",
+      "label": "constitution",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/constitution.py"
+    },
+    {
+      "id": "route:constitution_suggestions",
+      "label": "constitution_suggestions",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/constitution_suggestions.py"
+    },
+    {
+      "id": "route:costs",
+      "label": "costs",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/costs.py"
+    },
+    {
+      "id": "route:council",
+      "label": "council",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/council.py"
+    },
+    {
+      "id": "route:credential_vault",
+      "label": "credential_vault",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/credential_vault.py"
+    },
+    {
+      "id": "route:delivery",
+      "label": "delivery",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/delivery.py"
+    },
+    {
+      "id": "route:enterprise_governance",
+      "label": "enterprise_governance",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/enterprise_governance.py"
+    },
+    {
+      "id": "route:escalation",
+      "label": "escalation",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/escalation.py"
+    },
+    {
+      "id": "route:events",
+      "label": "events",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/events.py"
+    },
+    {
+      "id": "route:github_integration",
+      "label": "github_integration",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/github_integration.py"
+    },
+    {
+      "id": "route:governance",
+      "label": "governance",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/governance.py"
+    },
+    {
+      "id": "route:health",
+      "label": "health",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/health.py"
+    },
+    {
+      "id": "route:knowledge",
+      "label": "knowledge",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/knowledge.py"
+    },
+    {
+      "id": "route:members",
+      "label": "members",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/members.py"
+    },
+    {
+      "id": "route:memory",
+      "label": "memory",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/memory.py"
+    },
+    {
+      "id": "route:metrics",
+      "label": "metrics",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/metrics.py"
+    },
+    {
+      "id": "route:notifications",
+      "label": "notifications",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/notifications.py"
+    },
+    {
+      "id": "route:phase_agent_profiles",
+      "label": "phase_agent_profiles",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/phase_agent_profiles.py"
+    },
+    {
+      "id": "route:planner",
+      "label": "planner",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/planner.py"
+    },
+    {
+      "id": "route:planner_results",
+      "label": "planner_results",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/planner_results.py"
+    },
+    {
+      "id": "route:project_templates",
+      "label": "project_templates",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/project_templates.py"
+    },
+    {
+      "id": "route:projects",
+      "label": "projects",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/projects.py"
+    },
+    {
+      "id": "route:release_ops",
+      "label": "release_ops",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/release_ops.py"
+    },
+    {
+      "id": "route:replay",
+      "label": "replay",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/replay.py"
+    },
+    {
+      "id": "route:repos",
+      "label": "repos",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/repos.py"
+    },
+    {
+      "id": "route:retry",
+      "label": "retry",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/retry.py"
+    },
+    {
+      "id": "route:run_lifecycle",
+      "label": "run_lifecycle",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/run_lifecycle.py"
+    },
+    {
+      "id": "route:runs",
+      "label": "runs",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/runs.py"
+    },
+    {
+      "id": "route:saved_views",
+      "label": "saved_views",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/saved_views.py"
+    },
+    {
+      "id": "route:search_knowledge",
+      "label": "search_knowledge",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/search_knowledge.py"
+    },
+    {
+      "id": "route:streaming",
+      "label": "streaming",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/streaming.py"
+    },
+    {
+      "id": "route:tasks",
+      "label": "tasks",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/tasks.py"
+    },
+    {
+      "id": "route:trust",
+      "label": "trust",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/trust.py"
+    },
+    {
+      "id": "route:workspaces",
+      "label": "workspaces",
+      "kind": "Route",
+      "path": "apps/api/app/api/routes/workspaces.py"
+    },
+    {
+      "id": "service:activity_service",
+      "label": "activity_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/activity_service.py"
+    },
+    {
+      "id": "service:adaptive_orchestrator",
+      "label": "adaptive_orchestrator",
+      "kind": "Service",
+      "path": "apps/api/app/services/adaptive_orchestrator.py"
+    },
+    {
+      "id": "service:adaptive_retry_service",
+      "label": "adaptive_retry_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/adaptive_retry_service.py"
+    },
+    {
+      "id": "service:adr_service",
+      "label": "adr_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/adr_service.py"
+    },
+    {
+      "id": "service:agent_service",
+      "label": "agent_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/agent_service.py"
+    },
+    {
+      "id": "service:api_key_service",
+      "label": "api_key_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/api_key_service.py"
+    },
+    {
+      "id": "service:approval_enhanced_service",
+      "label": "approval_enhanced_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/approval_enhanced_service.py"
+    },
+    {
+      "id": "service:approval_service",
+      "label": "approval_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/approval_service.py"
+    },
+    {
+      "id": "service:architecture_approval_service",
+      "label": "architecture_approval_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/architecture_approval_service.py"
+    },
+    {
+      "id": "service:architecture_rule_service",
+      "label": "architecture_rule_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/architecture_rule_service.py"
+    },
+    {
+      "id": "service:architecture_service",
+      "label": "architecture_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/architecture_service.py"
+    },
+    {
+      "id": "service:artifact_service",
+      "label": "artifact_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/artifact_service.py"
+    },
+    {
+      "id": "service:artifact_version_service",
+      "label": "artifact_version_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/artifact_version_service.py"
+    },
+    {
+      "id": "service:audit_export_service",
+      "label": "audit_export_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/audit_export_service.py"
+    },
+    {
+      "id": "service:audit_log_service",
+      "label": "audit_log_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/audit_log_service.py"
+    },
+    {
+      "id": "service:authz_service",
+      "label": "authz_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/authz_service.py"
+    },
+    {
+      "id": "service:background_scheduler",
+      "label": "background_scheduler",
+      "kind": "Service",
+      "path": "apps/api/app/services/background_scheduler.py"
+    },
+    {
+      "id": "service:chat_service",
+      "label": "chat_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/chat_service.py"
+    },
+    {
+      "id": "service:ci_pipeline_service",
+      "label": "ci_pipeline_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/ci_pipeline_service.py"
+    },
+    {
+      "id": "service:code_graph_service",
+      "label": "code_graph_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/code_graph_service.py"
+    },
+    {
+      "id": "service:code_ops_service",
+      "label": "code_ops_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/code_ops_service.py"
+    },
+    {
+      "id": "service:code_review_service",
+      "label": "code_review_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/code_review_service.py"
+    },
+    {
+      "id": "service:comment_service",
+      "label": "comment_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/comment_service.py"
+    },
+    {
+      "id": "service:compliance_report_service",
+      "label": "compliance_report_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/compliance_report_service.py"
+    },
+    {
+      "id": "service:composition_service",
+      "label": "composition_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/composition_service.py"
+    },
+    {
+      "id": "service:connector_service",
+      "label": "connector_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/connector_service.py"
+    },
+    {
+      "id": "service:constitution_service",
+      "label": "constitution_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/constitution_service.py"
+    },
+    {
+      "id": "service:constitution_suggestion_service",
+      "label": "constitution_suggestion_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/constitution_suggestion_service.py"
+    },
+    {
+      "id": "service:convention_service",
+      "label": "convention_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/convention_service.py"
+    },
+    {
+      "id": "service:cost_tracking_service",
+      "label": "cost_tracking_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/cost_tracking_service.py"
+    },
+    {
+      "id": "service:council_service",
+      "label": "council_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/council_service.py"
+    },
+    {
+      "id": "service:credential_vault_service",
+      "label": "credential_vault_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/credential_vault_service.py"
+    },
+    {
+      "id": "service:dashboard_alert_service",
+      "label": "dashboard_alert_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/dashboard_alert_service.py"
+    },
+    {
+      "id": "service:delivery_artifact_service",
+      "label": "delivery_artifact_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/delivery_artifact_service.py"
+    },
+    {
+      "id": "service:deployment_readiness_service",
+      "label": "deployment_readiness_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/deployment_readiness_service.py"
+    },
+    {
+      "id": "service:design_doc_service",
+      "label": "design_doc_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/design_doc_service.py"
+    },
+    {
+      "id": "service:diff_intelligence_service",
+      "label": "diff_intelligence_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/diff_intelligence_service.py"
+    },
+    {
+      "id": "service:drift_detection_service",
+      "label": "drift_detection_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/drift_detection_service.py"
+    },
+    {
+      "id": "service:email_service",
+      "label": "email_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/email_service.py"
+    },
+    {
+      "id": "service:embedding_service",
+      "label": "embedding_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/embedding_service.py"
+    },
+    {
+      "id": "service:encryption_service",
+      "label": "encryption_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/encryption_service.py"
+    },
+    {
+      "id": "service:environment_service",
+      "label": "environment_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/environment_service.py"
+    },
+    {
+      "id": "service:escalation_service",
+      "label": "escalation_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/escalation_service.py"
+    },
+    {
+      "id": "service:event_service",
+      "label": "event_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/event_service.py"
+    },
+    {
+      "id": "service:execution_checkpoint_service",
+      "label": "execution_checkpoint_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/execution_checkpoint_service.py"
+    },
+    {
+      "id": "service:execution_health_service",
+      "label": "execution_health_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/execution_health_service.py"
+    },
+    {
+      "id": "service:execution_service",
+      "label": "execution_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/execution_service.py"
+    },
+    {
+      "id": "service:flakiness_complexity_service",
+      "label": "flakiness_complexity_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/flakiness_complexity_service.py"
+    },
+    {
+      "id": "service:github_client",
+      "label": "github_client",
+      "kind": "Service",
+      "path": "apps/api/app/services/github_client.py"
+    },
+    {
+      "id": "service:github_installation_service",
+      "label": "github_installation_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/github_installation_service.py"
+    },
+    {
+      "id": "service:github_rate_limiter",
+      "label": "github_rate_limiter",
+      "kind": "Service",
+      "path": "apps/api/app/services/github_rate_limiter.py"
+    },
+    {
+      "id": "service:governance_engine_service",
+      "label": "governance_engine_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/governance_engine_service.py"
+    },
+    {
+      "id": "service:governance_service",
+      "label": "governance_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/governance_service.py"
+    },
+    {
+      "id": "service:impact_analysis_service",
+      "label": "impact_analysis_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/impact_analysis_service.py"
+    },
+    {
+      "id": "service:integration_service",
+      "label": "integration_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/integration_service.py"
+    },
+    {
+      "id": "service:ip_allowlist_service",
+      "label": "ip_allowlist_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/ip_allowlist_service.py"
+    },
+    {
+      "id": "service:issue_sync_service",
+      "label": "issue_sync_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/issue_sync_service.py"
+    },
+    {
+      "id": "service:knowledge_service",
+      "label": "knowledge_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/knowledge_service.py"
+    },
+    {
+      "id": "service:membership_service",
+      "label": "membership_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/membership_service.py"
+    },
+    {
+      "id": "service:mention_service",
+      "label": "mention_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/mention_service.py"
+    },
+    {
+      "id": "service:merge_readiness_service",
+      "label": "merge_readiness_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/merge_readiness_service.py"
+    },
+    {
+      "id": "service:notification_delivery_service",
+      "label": "notification_delivery_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/notification_delivery_service.py"
+    },
+    {
+      "id": "service:notification_digest_service",
+      "label": "notification_digest_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/notification_digest_service.py"
+    },
+    {
+      "id": "service:notification_service",
+      "label": "notification_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/notification_service.py"
+    },
+    {
+      "id": "service:operational_timeline_service",
+      "label": "operational_timeline_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/operational_timeline_service.py"
+    },
+    {
+      "id": "service:pattern_debt_service",
+      "label": "pattern_debt_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/pattern_debt_service.py"
+    },
+    {
+      "id": "service:phase_agent_profile_service",
+      "label": "phase_agent_profile_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/phase_agent_profile_service.py"
+    },
+    {
+      "id": "service:plan_artifact_service",
+      "label": "plan_artifact_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/plan_artifact_service.py"
+    },
+    {
+      "id": "service:planner_service",
+      "label": "planner_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/planner_service.py"
+    },
+    {
+      "id": "service:post_release_service",
+      "label": "post_release_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/post_release_service.py"
+    },
+    {
+      "id": "service:pr_service",
+      "label": "pr_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/pr_service.py"
+    },
+    {
+      "id": "service:project_overview_service",
+      "label": "project_overview_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/project_overview_service.py"
+    },
+    {
+      "id": "service:project_service",
+      "label": "project_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/project_service.py"
+    },
+    {
+      "id": "service:project_template_service",
+      "label": "project_template_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/project_template_service.py"
+    },
+    {
+      "id": "service:recommendation_service",
+      "label": "recommendation_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/recommendation_service.py"
+    },
+    {
+      "id": "service:refactor_recommendation_service",
+      "label": "refactor_recommendation_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/refactor_recommendation_service.py"
+    },
+    {
+      "id": "service:release_confidence_service",
+      "label": "release_confidence_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/release_confidence_service.py"
+    },
+    {
+      "id": "service:release_gate_service",
+      "label": "release_gate_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/release_gate_service.py"
+    },
+    {
+      "id": "service:release_package_service",
+      "label": "release_package_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/release_package_service.py"
+    },
+    {
+      "id": "service:replay_service",
+      "label": "replay_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/replay_service.py"
+    },
+    {
+      "id": "service:repo_service",
+      "label": "repo_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/repo_service.py"
+    },
+    {
+      "id": "service:retention_policy_service",
+      "label": "retention_policy_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/retention_policy_service.py"
+    },
+    {
+      "id": "service:rollback_readiness_service",
+      "label": "rollback_readiness_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/rollback_readiness_service.py"
+    },
+    {
+      "id": "service:run_annotation_service",
+      "label": "run_annotation_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/run_annotation_service.py"
+    },
+    {
+      "id": "service:run_comparison_service",
+      "label": "run_comparison_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/run_comparison_service.py"
+    },
+    {
+      "id": "service:run_lifecycle_service",
+      "label": "run_lifecycle_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/run_lifecycle_service.py"
+    },
+    {
+      "id": "service:run_memory_enrichment_service",
+      "label": "run_memory_enrichment_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/run_memory_enrichment_service.py"
+    },
+    {
+      "id": "service:run_memory_service",
+      "label": "run_memory_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/run_memory_service.py"
+    },
+    {
+      "id": "service:saved_view_service",
+      "label": "saved_view_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/saved_view_service.py"
+    },
+    {
+      "id": "service:search_service",
+      "label": "search_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/search_service.py"
+    },
+    {
+      "id": "service:slash_command_service",
+      "label": "slash_command_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/slash_command_service.py"
+    },
+    {
+      "id": "service:spec_plan_approval_service",
+      "label": "spec_plan_approval_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/spec_plan_approval_service.py"
+    },
+    {
+      "id": "service:spec_plan_validation_service",
+      "label": "spec_plan_validation_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/spec_plan_validation_service.py"
+    },
+    {
+      "id": "service:spec_service",
+      "label": "spec_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/spec_service.py"
+    },
+    {
+      "id": "service:sso_configuration_service",
+      "label": "sso_configuration_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/sso_configuration_service.py"
+    },
+    {
+      "id": "service:stream_service",
+      "label": "stream_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/stream_service.py"
+    },
+    {
+      "id": "service:structural_health_service",
+      "label": "structural_health_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/structural_health_service.py"
+    },
+    {
+      "id": "service:task_assignment_service",
+      "label": "task_assignment_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/task_assignment_service.py"
+    },
+    {
+      "id": "service:task_service",
+      "label": "task_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/task_service.py"
+    },
+    {
+      "id": "service:template_inheritance_service",
+      "label": "template_inheritance_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/template_inheritance_service.py"
+    },
+    {
+      "id": "service:topology_mapper_service",
+      "label": "topology_mapper_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/topology_mapper_service.py"
+    },
+    {
+      "id": "service:traceability_service",
+      "label": "traceability_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/traceability_service.py"
+    },
+    {
+      "id": "service:trust_scoring_service",
+      "label": "trust_scoring_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/trust_scoring_service.py"
+    },
+    {
+      "id": "service:unified_activity_service",
+      "label": "unified_activity_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/unified_activity_service.py"
+    },
+    {
+      "id": "service:user_activity_service",
+      "label": "user_activity_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/user_activity_service.py"
+    },
+    {
+      "id": "service:velocity_quality_service",
+      "label": "velocity_quality_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/velocity_quality_service.py"
+    },
+    {
+      "id": "service:webhook_connector_service",
+      "label": "webhook_connector_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/webhook_connector_service.py"
+    },
+    {
+      "id": "service:webhook_service",
+      "label": "webhook_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/webhook_service.py"
+    },
+    {
+      "id": "service:workspace_service",
+      "label": "workspace_service",
+      "kind": "Service",
+      "path": "apps/api/app/services/workspace_service.py"
+    },
+    {
+      "id": "model:activity",
+      "label": "activity",
+      "kind": "Model",
+      "path": "apps/api/app/models/activity.py"
+    },
+    {
+      "id": "model:agent",
+      "label": "agent",
+      "kind": "Model",
+      "path": "apps/api/app/models/agent.py"
+    },
+    {
+      "id": "model:analytics_metrics",
+      "label": "analytics_metrics",
+      "kind": "Model",
+      "path": "apps/api/app/models/analytics_metrics.py"
+    },
+    {
+      "id": "model:api_ecosystem",
+      "label": "api_ecosystem",
+      "kind": "Model",
+      "path": "apps/api/app/models/api_ecosystem.py"
+    },
+    {
+      "id": "model:approval_delegation",
+      "label": "approval_delegation",
+      "kind": "Model",
+      "path": "apps/api/app/models/approval_delegation.py"
+    },
+    {
+      "id": "model:approval_request",
+      "label": "approval_request",
+      "kind": "Model",
+      "path": "apps/api/app/models/approval_request.py"
+    },
+    {
+      "id": "model:architecture",
+      "label": "architecture",
+      "kind": "Model",
+      "path": "apps/api/app/models/architecture.py"
+    },
+    {
+      "id": "model:artifact",
+      "label": "artifact",
+      "kind": "Model",
+      "path": "apps/api/app/models/artifact.py"
+    },
+    {
+      "id": "model:code_intelligence",
+      "label": "code_intelligence",
+      "kind": "Model",
+      "path": "apps/api/app/models/code_intelligence.py"
+    },
+    {
+      "id": "model:code_ops",
+      "label": "code_ops",
+      "kind": "Model",
+      "path": "apps/api/app/models/code_ops.py"
+    },
+    {
+      "id": "model:comment",
+      "label": "comment",
+      "kind": "Model",
+      "path": "apps/api/app/models/comment.py"
+    },
+    {
+      "id": "model:connector",
+      "label": "connector",
+      "kind": "Model",
+      "path": "apps/api/app/models/connector.py"
+    },
+    {
+      "id": "model:constitution_suggestion",
+      "label": "constitution_suggestion",
+      "kind": "Model",
+      "path": "apps/api/app/models/constitution_suggestion.py"
+    },
+    {
+      "id": "model:cost_record",
+      "label": "cost_record",
+      "kind": "Model",
+      "path": "apps/api/app/models/cost_record.py"
+    },
+    {
+      "id": "model:council",
+      "label": "council",
+      "kind": "Model",
+      "path": "apps/api/app/models/council.py"
+    },
+    {
+      "id": "model:credential_vault",
+      "label": "credential_vault",
+      "kind": "Model",
+      "path": "apps/api/app/models/credential_vault.py"
+    },
+    {
+      "id": "model:enterprise_governance",
+      "label": "enterprise_governance",
+      "kind": "Model",
+      "path": "apps/api/app/models/enterprise_governance.py"
+    },
+    {
+      "id": "model:escalation",
+      "label": "escalation",
+      "kind": "Model",
+      "path": "apps/api/app/models/escalation.py"
+    },
+    {
+      "id": "model:execution_checkpoint",
+      "label": "execution_checkpoint",
+      "kind": "Model",
+      "path": "apps/api/app/models/execution_checkpoint.py"
+    },
+    {
+      "id": "model:execution_event",
+      "label": "execution_event",
+      "kind": "Model",
+      "path": "apps/api/app/models/execution_event.py"
+    },
+    {
+      "id": "model:github_integration",
+      "label": "github_integration",
+      "kind": "Model",
+      "path": "apps/api/app/models/github_integration.py"
+    },
+    {
+      "id": "model:governance_policy",
+      "label": "governance_policy",
+      "kind": "Model",
+      "path": "apps/api/app/models/governance_policy.py"
+    },
+    {
+      "id": "model:membership",
+      "label": "membership",
+      "kind": "Model",
+      "path": "apps/api/app/models/membership.py"
+    },
+    {
+      "id": "model:notification",
+      "label": "notification",
+      "kind": "Model",
+      "path": "apps/api/app/models/notification.py"
+    },
+    {
+      "id": "model:phase_agent_profile",
+      "label": "phase_agent_profile",
+      "kind": "Model",
+      "path": "apps/api/app/models/phase_agent_profile.py"
+    },
+    {
+      "id": "model:planner_result",
+      "label": "planner_result",
+      "kind": "Model",
+      "path": "apps/api/app/models/planner_result.py"
+    },
+    {
+      "id": "model:project",
+      "label": "project",
+      "kind": "Model",
+      "path": "apps/api/app/models/project.py"
+    },
+    {
+      "id": "model:project_connector_link",
+      "label": "project_connector_link",
+      "kind": "Model",
+      "path": "apps/api/app/models/project_connector_link.py"
+    },
+    {
+      "id": "model:project_constitution",
+      "label": "project_constitution",
+      "kind": "Model",
+      "path": "apps/api/app/models/project_constitution.py"
+    },
+    {
+      "id": "model:project_knowledge",
+      "label": "project_knowledge",
+      "kind": "Model",
+      "path": "apps/api/app/models/project_knowledge.py"
+    },
+    {
+      "id": "model:project_template",
+      "label": "project_template",
+      "kind": "Model",
+      "path": "apps/api/app/models/project_template.py"
+    },
+    {
+      "id": "model:release_ops",
+      "label": "release_ops",
+      "kind": "Model",
+      "path": "apps/api/app/models/release_ops.py"
+    },
+    {
+      "id": "model:replay_snapshot",
+      "label": "replay_snapshot",
+      "kind": "Model",
+      "path": "apps/api/app/models/replay_snapshot.py"
+    },
+    {
+      "id": "model:repo_connection",
+      "label": "repo_connection",
+      "kind": "Model",
+      "path": "apps/api/app/models/repo_connection.py"
+    },
+    {
+      "id": "model:run",
+      "label": "run",
+      "kind": "Model",
+      "path": "apps/api/app/models/run.py"
+    },
+    {
+      "id": "model:run_annotation",
+      "label": "run_annotation",
+      "kind": "Model",
+      "path": "apps/api/app/models/run_annotation.py"
+    },
+    {
+      "id": "model:saved_view",
+      "label": "saved_view",
+      "kind": "Model",
+      "path": "apps/api/app/models/saved_view.py"
+    },
+    {
+      "id": "model:search_knowledge",
+      "label": "search_knowledge",
+      "kind": "Model",
+      "path": "apps/api/app/models/search_knowledge.py"
+    },
+    {
+      "id": "model:sso_configuration",
+      "label": "sso_configuration",
+      "kind": "Model",
+      "path": "apps/api/app/models/sso_configuration.py"
+    },
+    {
+      "id": "model:task",
+      "label": "task",
+      "kind": "Model",
+      "path": "apps/api/app/models/task.py"
+    },
+    {
+      "id": "model:trust_score",
+      "label": "trust_score",
+      "kind": "Model",
+      "path": "apps/api/app/models/trust_score.py"
+    },
+    {
+      "id": "model:user",
+      "label": "user",
+      "kind": "Model",
+      "path": "apps/api/app/models/user.py"
+    },
+    {
+      "id": "model:workspace",
+      "label": "workspace",
+      "kind": "Model",
+      "path": "apps/api/app/models/workspace.py"
+    },
+    {
+      "id": "schema:activity",
+      "label": "activity",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/activity.py"
+    },
+    {
+      "id": "schema:agent",
+      "label": "agent",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/agent.py"
+    },
+    {
+      "id": "schema:approval",
+      "label": "approval",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/approval.py"
+    },
+    {
+      "id": "schema:architecture",
+      "label": "architecture",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/architecture.py"
+    },
+    {
+      "id": "schema:artifact",
+      "label": "artifact",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/artifact.py"
+    },
+    {
+      "id": "schema:auth",
+      "label": "auth",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/auth.py"
+    },
+    {
+      "id": "schema:code_ops",
+      "label": "code_ops",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/code_ops.py"
+    },
+    {
+      "id": "schema:comment",
+      "label": "comment",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/comment.py"
+    },
+    {
+      "id": "schema:connector",
+      "label": "connector",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/connector.py"
+    },
+    {
+      "id": "schema:constitution",
+      "label": "constitution",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/constitution.py"
+    },
+    {
+      "id": "schema:constitution_suggestion",
+      "label": "constitution_suggestion",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/constitution_suggestion.py"
+    },
+    {
+      "id": "schema:cost",
+      "label": "cost",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/cost.py"
+    },
+    {
+      "id": "schema:council",
+      "label": "council",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/council.py"
+    },
+    {
+      "id": "schema:credential_vault",
+      "label": "credential_vault",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/credential_vault.py"
+    },
+    {
+      "id": "schema:enterprise_governance",
+      "label": "enterprise_governance",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/enterprise_governance.py"
+    },
+    {
+      "id": "schema:escalation",
+      "label": "escalation",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/escalation.py"
+    },
+    {
+      "id": "schema:execution_checkpoint",
+      "label": "execution_checkpoint",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/execution_checkpoint.py"
+    },
+    {
+      "id": "schema:execution_event",
+      "label": "execution_event",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/execution_event.py"
+    },
+    {
+      "id": "schema:github_integration",
+      "label": "github_integration",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/github_integration.py"
+    },
+    {
+      "id": "schema:governance",
+      "label": "governance",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/governance.py"
+    },
+    {
+      "id": "schema:knowledge",
+      "label": "knowledge",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/knowledge.py"
+    },
+    {
+      "id": "schema:membership",
+      "label": "membership",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/membership.py"
+    },
+    {
+      "id": "schema:notification",
+      "label": "notification",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/notification.py"
+    },
+    {
+      "id": "schema:phase_agent_profile",
+      "label": "phase_agent_profile",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/phase_agent_profile.py"
+    },
+    {
+      "id": "schema:planner_result",
+      "label": "planner_result",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/planner_result.py"
+    },
+    {
+      "id": "schema:project",
+      "label": "project",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/project.py"
+    },
+    {
+      "id": "schema:project_template",
+      "label": "project_template",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/project_template.py"
+    },
+    {
+      "id": "schema:prompt_intake",
+      "label": "prompt_intake",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/prompt_intake.py"
+    },
+    {
+      "id": "schema:release_ops",
+      "label": "release_ops",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/release_ops.py"
+    },
+    {
+      "id": "schema:replay",
+      "label": "replay",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/replay.py"
+    },
+    {
+      "id": "schema:repo",
+      "label": "repo",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/repo.py"
+    },
+    {
+      "id": "schema:run",
+      "label": "run",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/run.py"
+    },
+    {
+      "id": "schema:run_annotation",
+      "label": "run_annotation",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/run_annotation.py"
+    },
+    {
+      "id": "schema:saved_view",
+      "label": "saved_view",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/saved_view.py"
+    },
+    {
+      "id": "schema:search_knowledge",
+      "label": "search_knowledge",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/search_knowledge.py"
+    },
+    {
+      "id": "schema:task",
+      "label": "task",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/task.py"
+    },
+    {
+      "id": "schema:trust",
+      "label": "trust",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/trust.py"
+    },
+    {
+      "id": "schema:workspace",
+      "label": "workspace",
+      "kind": "Schema",
+      "path": "apps/api/app/schemas/workspace.py"
+    },
+    {
+      "id": "lib:activity",
+      "label": "activity",
+      "kind": "LibClient",
+      "path": "apps/web/lib/activity.ts"
+    },
+    {
+      "id": "lib:agents",
+      "label": "agents",
+      "kind": "LibClient",
+      "path": "apps/web/lib/agents.ts"
+    },
+    {
+      "id": "lib:api",
+      "label": "api",
+      "kind": "LibClient",
+      "path": "apps/web/lib/api.ts"
+    },
+    {
+      "id": "lib:approvals",
+      "label": "approvals",
+      "kind": "LibClient",
+      "path": "apps/web/lib/approvals.ts"
+    },
+    {
+      "id": "lib:architecture",
+      "label": "architecture",
+      "kind": "LibClient",
+      "path": "apps/web/lib/architecture.ts"
+    },
+    {
+      "id": "lib:artifacts",
+      "label": "artifacts",
+      "kind": "LibClient",
+      "path": "apps/web/lib/artifacts.ts"
+    },
+    {
+      "id": "lib:audit",
+      "label": "audit",
+      "kind": "LibClient",
+      "path": "apps/web/lib/audit.ts"
+    },
+    {
+      "id": "lib:auth-context",
+      "label": "auth-context",
+      "kind": "LibClient",
+      "path": "apps/web/lib/auth-context.tsx"
+    },
+    {
+      "id": "lib:chat",
+      "label": "chat",
+      "kind": "LibClient",
+      "path": "apps/web/lib/chat.ts"
+    },
+    {
+      "id": "lib:connectors",
+      "label": "connectors",
+      "kind": "LibClient",
+      "path": "apps/web/lib/connectors.ts"
+    },
+    {
+      "id": "lib:constitution-suggestions",
+      "label": "constitution-suggestions",
+      "kind": "LibClient",
+      "path": "apps/web/lib/constitution-suggestions.ts"
+    },
+    {
+      "id": "lib:constitution",
+      "label": "constitution",
+      "kind": "LibClient",
+      "path": "apps/web/lib/constitution.ts"
+    },
+    {
+      "id": "lib:costs",
+      "label": "costs",
+      "kind": "LibClient",
+      "path": "apps/web/lib/costs.ts"
+    },
+    {
+      "id": "lib:council",
+      "label": "council",
+      "kind": "LibClient",
+      "path": "apps/web/lib/council.ts"
+    },
+    {
+      "id": "lib:dashboards",
+      "label": "dashboards",
+      "kind": "LibClient",
+      "path": "apps/web/lib/dashboards.ts"
+    },
+    {
+      "id": "lib:escalations",
+      "label": "escalations",
+      "kind": "LibClient",
+      "path": "apps/web/lib/escalations.ts"
+    },
+    {
+      "id": "lib:events",
+      "label": "events",
+      "kind": "LibClient",
+      "path": "apps/web/lib/events.ts"
+    },
+    {
+      "id": "lib:governance",
+      "label": "governance",
+      "kind": "LibClient",
+      "path": "apps/web/lib/governance.ts"
+    },
+    {
+      "id": "lib:knowledge",
+      "label": "knowledge",
+      "kind": "LibClient",
+      "path": "apps/web/lib/knowledge.ts"
+    },
+    {
+      "id": "lib:notifications",
+      "label": "notifications",
+      "kind": "LibClient",
+      "path": "apps/web/lib/notifications.ts"
+    },
+    {
+      "id": "lib:phase-profiles",
+      "label": "phase-profiles",
+      "kind": "LibClient",
+      "path": "apps/web/lib/phase-profiles.ts"
+    },
+    {
+      "id": "lib:planner",
+      "label": "planner",
+      "kind": "LibClient",
+      "path": "apps/web/lib/planner.ts"
+    },
+    {
+      "id": "lib:project-members",
+      "label": "project-members",
+      "kind": "LibClient",
+      "path": "apps/web/lib/project-members.ts"
+    },
+    {
+      "id": "lib:projects",
+      "label": "projects",
+      "kind": "LibClient",
+      "path": "apps/web/lib/projects.ts"
+    },
+    {
+      "id": "lib:release-ops",
+      "label": "release-ops",
+      "kind": "LibClient",
+      "path": "apps/web/lib/release-ops.ts"
+    },
+    {
+      "id": "lib:replay",
+      "label": "replay",
+      "kind": "LibClient",
+      "path": "apps/web/lib/replay.ts"
+    },
+    {
+      "id": "lib:runs",
+      "label": "runs",
+      "kind": "LibClient",
+      "path": "apps/web/lib/runs.ts"
+    },
+    {
+      "id": "lib:stream",
+      "label": "stream",
+      "kind": "LibClient",
+      "path": "apps/web/lib/stream.ts"
+    },
+    {
+      "id": "lib:tasks",
+      "label": "tasks",
+      "kind": "LibClient",
+      "path": "apps/web/lib/tasks.ts"
+    },
+    {
+      "id": "lib:templates",
+      "label": "templates",
+      "kind": "LibClient",
+      "path": "apps/web/lib/templates.ts"
+    },
+    {
+      "id": "lib:trust",
+      "label": "trust",
+      "kind": "LibClient",
+      "path": "apps/web/lib/trust.ts"
+    },
+    {
+      "id": "lib:vault",
+      "label": "vault",
+      "kind": "LibClient",
+      "path": "apps/web/lib/vault.ts"
+    },
+    {
+      "id": "lib:workspaces",
+      "label": "workspaces",
+      "kind": "LibClient",
+      "path": "apps/web/lib/workspaces.ts"
+    },
+    {
+      "id": "page:activity",
+      "label": "activity",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/activity"
+    },
+    {
+      "id": "page:agents",
+      "label": "agents",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/agents"
+    },
+    {
+      "id": "page:analytics",
+      "label": "analytics",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/analytics"
+    },
+    {
+      "id": "page:approvals",
+      "label": "approvals",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/approvals"
+    },
+    {
+      "id": "page:architecture",
+      "label": "architecture",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/architecture"
+    },
+    {
+      "id": "page:artifacts",
+      "label": "artifacts",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/artifacts"
+    },
+    {
+      "id": "page:audit",
+      "label": "audit",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/audit"
+    },
+    {
+      "id": "page:code-explorer",
+      "label": "code-explorer",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/code-explorer"
+    },
+    {
+      "id": "page:connectors",
+      "label": "connectors",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/connectors"
+    },
+    {
+      "id": "page:costs",
+      "label": "costs",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/costs"
+    },
+    {
+      "id": "page:council",
+      "label": "council",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/council"
+    },
+    {
+      "id": "page:dashboard",
+      "label": "dashboard",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard"
+    },
+    {
+      "id": "page:escalations",
+      "label": "escalations",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/escalations"
+    },
+    {
+      "id": "page:governance",
+      "label": "governance",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/governance"
+    },
+    {
+      "id": "page:knowledge",
+      "label": "knowledge",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/knowledge"
+    },
+    {
+      "id": "page:notifications",
+      "label": "notifications",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/notifications"
+    },
+    {
+      "id": "page:projects",
+      "label": "projects",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/projects"
+    },
+    {
+      "id": "page:releases",
+      "label": "releases",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/releases"
+    },
+    {
+      "id": "page:replay",
+      "label": "replay",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/replay"
+    },
+    {
+      "id": "page:reviews",
+      "label": "reviews",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/reviews"
+    },
+    {
+      "id": "page:runs",
+      "label": "runs",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/runs"
+    },
+    {
+      "id": "page:sandbox",
+      "label": "sandbox",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/sandbox"
+    },
+    {
+      "id": "page:settings",
+      "label": "settings",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/settings"
+    },
+    {
+      "id": "page:trust",
+      "label": "trust",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/trust"
+    },
+    {
+      "id": "page:vault",
+      "label": "vault",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/vault"
+    },
+    {
+      "id": "page:workspaces",
+      "label": "workspaces",
+      "kind": "Page",
+      "path": "apps/web/app/dashboard/workspaces"
+    }
+  ],
+  "edges": [
+    {
+      "source": "route:activity",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:activity",
+      "target": "schema:activity",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:agents",
+      "target": "schema:agent",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:analytics",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:analytics",
+      "target": "model:analytics_metrics",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:annotations",
+      "target": "schema:run_annotation",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:annotations",
+      "target": "model:run_annotation",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:api_ecosystem",
+      "target": "model:api_ecosystem",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:approvals",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:approvals",
+      "target": "schema:approval",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:approvals",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:architecture",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:architecture",
+      "target": "schema:architecture",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:architecture",
+      "target": "schema:approval",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:architecture",
+      "target": "model:architecture",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:artifacts",
+      "target": "schema:artifact",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:audit",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:audit",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:auth",
+      "target": "schema:auth",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:auth",
+      "target": "model:user",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:checkpoints",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:checkpoints",
+      "target": "schema:execution_checkpoint",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:checkpoints",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:code_intelligence",
+      "target": "service:planner_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:code_intelligence",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:code_intelligence",
+      "target": "model:code_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:code_ops",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:code_ops",
+      "target": "schema:code_ops",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:code_ops",
+      "target": "model:code_ops",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:collaboration",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:comments",
+      "target": "schema:comment",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:comments",
+      "target": "model:comment",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:composition",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:connectors",
+      "target": "schema:connector",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:connectors",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:connectors",
+      "target": "model:planner_result",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:connectors",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:constitution",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:constitution",
+      "target": "schema:constitution",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:constitution_suggestions",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:constitution_suggestions",
+      "target": "schema:constitution_suggestion",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:constitution_suggestions",
+      "target": "model:constitution_suggestion",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:costs",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:costs",
+      "target": "schema:cost",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:council",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:council",
+      "target": "schema:council",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:council",
+      "target": "model:council",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:credential_vault",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:credential_vault",
+      "target": "schema:credential_vault",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:credential_vault",
+      "target": "model:credential_vault",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:credential_vault",
+      "target": "model:connector",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:delivery",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:delivery",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:enterprise_governance",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:enterprise_governance",
+      "target": "schema:enterprise_governance",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:enterprise_governance",
+      "target": "model:enterprise_governance",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:enterprise_governance",
+      "target": "model:workspace",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:escalation",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:escalation",
+      "target": "schema:escalation",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:escalation",
+      "target": "model:escalation",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:events",
+      "target": "schema:execution_event",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:github_integration",
+      "target": "service:github_client",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:github_integration",
+      "target": "schema:github_integration",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:github_integration",
+      "target": "model:github_integration",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:governance",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:governance",
+      "target": "schema:governance",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:governance",
+      "target": "model:governance_policy",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:knowledge",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:knowledge",
+      "target": "schema:knowledge",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:knowledge",
+      "target": "model:project_knowledge",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:members",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:members",
+      "target": "schema:membership",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:notifications",
+      "target": "schema:notification",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:phase_agent_profiles",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:phase_agent_profiles",
+      "target": "schema:phase_agent_profile",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:phase_agent_profiles",
+      "target": "model:phase_agent_profile",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:planner",
+      "target": "service:planner_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:planner",
+      "target": "schema:prompt_intake",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:planner_results",
+      "target": "schema:planner_result",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:planner_results",
+      "target": "model:planner_result",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:project_templates",
+      "target": "schema:project_template",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:projects",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:projects",
+      "target": "schema:project",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:release_ops",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:release_ops",
+      "target": "schema:release_ops",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:release_ops",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:release_ops",
+      "target": "model:release_ops",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:replay",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:replay",
+      "target": "schema:replay",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:replay",
+      "target": "model:replay_snapshot",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:repos",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:repos",
+      "target": "schema:repo",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:repos",
+      "target": "model:repo_connection",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:retry",
+      "target": "service:task_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:run_lifecycle",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:run_lifecycle",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:runs",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:runs",
+      "target": "schema:run",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:runs",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:saved_views",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:saved_views",
+      "target": "schema:saved_view",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:search_knowledge",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:search_knowledge",
+      "target": "schema:search_knowledge",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:search_knowledge",
+      "target": "model:project_knowledge",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:search_knowledge",
+      "target": "model:search_knowledge",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:search_knowledge",
+      "target": "model:project_template",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:streaming",
+      "target": "service:stream_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:tasks",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:tasks",
+      "target": "schema:task",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:trust",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:trust",
+      "target": "schema:trust",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "route:trust",
+      "target": "model:trust_score",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "route:workspaces",
+      "target": "service:authz_service",
+      "kind": "CALLS"
+    },
+    {
+      "source": "route:workspaces",
+      "target": "schema:workspace",
+      "kind": "VALIDATES_WITH"
+    },
+    {
+      "source": "service:activity_service",
+      "target": "model:activity",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:adaptive_orchestrator",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:adaptive_orchestrator",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:adaptive_orchestrator",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:adaptive_orchestrator",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:adaptive_retry_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:adaptive_retry_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:adaptive_retry_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:adr_service",
+      "target": "model:architecture",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:agent_service",
+      "target": "model:agent",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:api_key_service",
+      "target": "model:api_ecosystem",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:approval_enhanced_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:approval_enhanced_service",
+      "target": "model:membership",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:approval_enhanced_service",
+      "target": "model:approval_delegation",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:approval_service",
+      "target": "service:stream_service",
+      "kind": "DEPENDS_ON"
+    },
+    {
+      "source": "service:approval_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:approval_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:architecture_approval_service",
+      "target": "model:architecture",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:architecture_approval_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:architecture_rule_service",
+      "target": "model:architecture",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:architecture_service",
+      "target": "model:architecture",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:artifact_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:artifact_version_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:audit_export_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:audit_log_service",
+      "target": "model:enterprise_governance",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:authz_service",
+      "target": "model:enterprise_governance",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:authz_service",
+      "target": "model:membership",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:background_scheduler",
+      "target": "model:workspace",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:background_scheduler",
+      "target": "model:analytics_metrics",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:chat_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:ci_pipeline_service",
+      "target": "model:github_integration",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:code_graph_service",
+      "target": "model:code_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:code_ops_service",
+      "target": "model:code_ops",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:code_review_service",
+      "target": "model:github_integration",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:comment_service",
+      "target": "model:comment",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:compliance_report_service",
+      "target": "model:enterprise_governance",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:compliance_report_service",
+      "target": "model:membership",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:compliance_report_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:compliance_report_service",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:composition_service",
+      "target": "model:phase_agent_profile",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:composition_service",
+      "target": "model:agent",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:connector_service",
+      "target": "model:connector",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:connector_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:connector_service",
+      "target": "model:project_connector_link",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:constitution_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:constitution_service",
+      "target": "model:project_constitution",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:constitution_suggestion_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:constitution_suggestion_service",
+      "target": "model:project_knowledge",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:constitution_suggestion_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:constitution_suggestion_service",
+      "target": "model:constitution_suggestion",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:convention_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:convention_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:convention_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:convention_service",
+      "target": "model:search_knowledge",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:cost_tracking_service",
+      "target": "model:cost_record",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:council_service",
+      "target": "model:council",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:credential_vault_service",
+      "target": "service:encryption_service",
+      "kind": "DEPENDS_ON"
+    },
+    {
+      "source": "service:credential_vault_service",
+      "target": "model:credential_vault",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:credential_vault_service",
+      "target": "model:connector",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:dashboard_alert_service",
+      "target": "model:analytics_metrics",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:delivery_artifact_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:delivery_artifact_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:delivery_artifact_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:delivery_artifact_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:delivery_artifact_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:deployment_readiness_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:deployment_readiness_service",
+      "target": "model:release_ops",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:deployment_readiness_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:deployment_readiness_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:deployment_readiness_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:deployment_readiness_service",
+      "target": "model:execution_checkpoint",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:design_doc_service",
+      "target": "model:architecture",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:drift_detection_service",
+      "target": "model:architecture",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:embedding_service",
+      "target": "model:search_knowledge",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:environment_service",
+      "target": "model:release_ops",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:escalation_service",
+      "target": "model:escalation",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:event_service",
+      "target": "service:stream_service",
+      "kind": "DEPENDS_ON"
+    },
+    {
+      "source": "service:event_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_checkpoint_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_checkpoint_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_checkpoint_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_checkpoint_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_checkpoint_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_checkpoint_service",
+      "target": "model:execution_checkpoint",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_health_service",
+      "target": "model:cost_record",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_health_service",
+      "target": "model:code_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_health_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_health_service",
+      "target": "model:analytics_metrics",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:execution_service",
+      "target": "model:execution_checkpoint",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:flakiness_complexity_service",
+      "target": "model:code_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:github_installation_service",
+      "target": "service:encryption_service",
+      "kind": "DEPENDS_ON"
+    },
+    {
+      "source": "service:github_installation_service",
+      "target": "model:github_integration",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:governance_engine_service",
+      "target": "model:enterprise_governance",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:governance_engine_service",
+      "target": "model:governance_policy",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:governance_engine_service",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:governance_service",
+      "target": "model:governance_policy",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:impact_analysis_service",
+      "target": "model:architecture",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:integration_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:integration_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:integration_service",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:ip_allowlist_service",
+      "target": "model:enterprise_governance",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:issue_sync_service",
+      "target": "model:github_integration",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:knowledge_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:knowledge_service",
+      "target": "model:project_knowledge",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:knowledge_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:knowledge_service",
+      "target": "model:planner_result",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:membership_service",
+      "target": "model:membership",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:membership_service",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:mention_service",
+      "target": "model:notification",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:mention_service",
+      "target": "model:user",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:merge_readiness_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:merge_readiness_service",
+      "target": "model:github_integration",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:merge_readiness_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:notification_delivery_service",
+      "target": "model:notification",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:notification_digest_service",
+      "target": "model:notification",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:notification_service",
+      "target": "model:notification",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:operational_timeline_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:operational_timeline_service",
+      "target": "model:release_ops",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:operational_timeline_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:operational_timeline_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:operational_timeline_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:operational_timeline_service",
+      "target": "model:execution_checkpoint",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:pattern_debt_service",
+      "target": "model:project_knowledge",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:pattern_debt_service",
+      "target": "model:code_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:phase_agent_profile_service",
+      "target": "model:phase_agent_profile",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:phase_agent_profile_service",
+      "target": "model:agent",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:plan_artifact_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:plan_artifact_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:plan_artifact_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:plan_artifact_service",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:planner_service",
+      "target": "service:code_graph_service",
+      "kind": "DEPENDS_ON"
+    },
+    {
+      "source": "service:planner_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:planner_service",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:planner_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:planner_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:planner_service",
+      "target": "model:planner_result",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:post_release_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:post_release_service",
+      "target": "model:release_ops",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:post_release_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:post_release_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:post_release_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:post_release_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:post_release_service",
+      "target": "model:execution_checkpoint",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:pr_service",
+      "target": "model:github_integration",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:project_overview_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:project_overview_service",
+      "target": "model:membership",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:project_overview_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:project_overview_service",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:project_overview_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:project_service",
+      "target": "service:saved_view_service",
+      "kind": "DEPENDS_ON"
+    },
+    {
+      "source": "service:project_service",
+      "target": "model:membership",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:project_service",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:project_template_service",
+      "target": "model:project_template",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:recommendation_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:recommendation_service",
+      "target": "model:project_knowledge",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:recommendation_service",
+      "target": "model:search_knowledge",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:recommendation_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:recommendation_service",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:recommendation_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:refactor_recommendation_service",
+      "target": "model:architecture",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_confidence_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_confidence_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_confidence_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_confidence_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_confidence_service",
+      "target": "model:execution_checkpoint",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_gate_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_gate_service",
+      "target": "model:release_ops",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_gate_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_gate_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_gate_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_gate_service",
+      "target": "model:execution_checkpoint",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_package_service",
+      "target": "model:release_ops",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_package_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_package_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_package_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:release_package_service",
+      "target": "model:execution_checkpoint",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:replay_service",
+      "target": "model:replay_snapshot",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:repo_service",
+      "target": "model:repo_connection",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:retention_policy_service",
+      "target": "model:enterprise_governance",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:retention_policy_service",
+      "target": "model:notification",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:retention_policy_service",
+      "target": "model:membership",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:retention_policy_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:retention_policy_service",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:retention_policy_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:rollback_readiness_service",
+      "target": "model:release_ops",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:rollback_readiness_service",
+      "target": "model:execution_checkpoint",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_annotation_service",
+      "target": "model:run_annotation",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_comparison_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_comparison_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_comparison_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_lifecycle_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_lifecycle_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_lifecycle_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_lifecycle_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_lifecycle_service",
+      "target": "model:execution_checkpoint",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_memory_enrichment_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_memory_enrichment_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_memory_enrichment_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_memory_enrichment_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_memory_enrichment_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_memory_enrichment_service",
+      "target": "model:execution_checkpoint",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_memory_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_memory_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_memory_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_memory_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:run_memory_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:saved_view_service",
+      "target": "model:saved_view",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:search_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:search_service",
+      "target": "model:project_knowledge",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:search_service",
+      "target": "model:search_knowledge",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:search_service",
+      "target": "model:membership",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:search_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:search_service",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:search_service",
+      "target": "model:run_annotation",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:search_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:search_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:search_service",
+      "target": "model:comment",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:slash_command_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:slash_command_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:spec_plan_approval_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:spec_plan_approval_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:spec_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:spec_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:spec_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:spec_service",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:sso_configuration_service",
+      "target": "model:workspace",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:sso_configuration_service",
+      "target": "model:sso_configuration",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:structural_health_service",
+      "target": "model:architecture",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:task_assignment_service",
+      "target": "service:event_service",
+      "kind": "DEPENDS_ON"
+    },
+    {
+      "source": "service:task_assignment_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:task_assignment_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:task_assignment_service",
+      "target": "model:execution_event",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:task_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:task_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:template_inheritance_service",
+      "target": "model:phase_agent_profile",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:template_inheritance_service",
+      "target": "model:agent",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:template_inheritance_service",
+      "target": "model:project",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:template_inheritance_service",
+      "target": "model:project_template",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:topology_mapper_service",
+      "target": "model:architecture",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:traceability_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:traceability_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:traceability_service",
+      "target": "model:artifact",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:traceability_service",
+      "target": "model:planner_result",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:traceability_service",
+      "target": "model:execution_checkpoint",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:trust_scoring_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:trust_scoring_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:trust_scoring_service",
+      "target": "model:trust_score",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:unified_activity_service",
+      "target": "model:activity",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:user_activity_service",
+      "target": "model:activity",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:user_activity_service",
+      "target": "model:membership",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:velocity_quality_service",
+      "target": "model:approval_request",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:velocity_quality_service",
+      "target": "model:analytics_metrics",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:velocity_quality_service",
+      "target": "model:run",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:velocity_quality_service",
+      "target": "model:task",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:velocity_quality_service",
+      "target": "model:cost_record",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:velocity_quality_service",
+      "target": "model:code_intelligence",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:webhook_connector_service",
+      "target": "model:api_ecosystem",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:webhook_service",
+      "target": "model:github_integration",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:workspace_service",
+      "target": "model:workspace",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "service:workspace_service",
+      "target": "model:membership",
+      "kind": "PERSISTS"
+    },
+    {
+      "source": "page:activity",
+      "target": "lib:activity",
+      "kind": "USES"
+    },
+    {
+      "source": "page:activity",
+      "target": "lib:activity",
+      "kind": "USES"
+    },
+    {
+      "source": "page:activity",
+      "target": "lib:activity",
+      "kind": "USES"
+    },
+    {
+      "source": "page:agents",
+      "target": "lib:agents",
+      "kind": "USES"
+    },
+    {
+      "source": "page:agents",
+      "target": "lib:agents",
+      "kind": "USES"
+    },
+    {
+      "source": "page:approvals",
+      "target": "lib:approvals",
+      "kind": "USES"
+    },
+    {
+      "source": "page:approvals",
+      "target": "lib:approvals",
+      "kind": "USES"
+    },
+    {
+      "source": "page:architecture",
+      "target": "lib:architecture",
+      "kind": "USES"
+    },
+    {
+      "source": "page:architecture",
+      "target": "lib:architecture",
+      "kind": "USES"
+    },
+    {
+      "source": "page:architecture",
+      "target": "lib:architecture",
+      "kind": "USES"
+    },
+    {
+      "source": "page:artifacts",
+      "target": "lib:artifacts",
+      "kind": "USES"
+    },
+    {
+      "source": "page:artifacts",
+      "target": "lib:artifacts",
+      "kind": "USES"
+    },
+    {
+      "source": "page:audit",
+      "target": "lib:audit",
+      "kind": "USES"
+    },
+    {
+      "source": "page:audit",
+      "target": "lib:audit",
+      "kind": "USES"
+    },
+    {
+      "source": "page:audit",
+      "target": "lib:audit",
+      "kind": "USES"
+    },
+    {
+      "source": "page:connectors",
+      "target": "lib:connectors",
+      "kind": "USES"
+    },
+    {
+      "source": "page:connectors",
+      "target": "lib:connectors",
+      "kind": "USES"
+    },
+    {
+      "source": "page:costs",
+      "target": "lib:costs",
+      "kind": "USES"
+    },
+    {
+      "source": "page:costs",
+      "target": "lib:costs",
+      "kind": "USES"
+    },
+    {
+      "source": "page:council",
+      "target": "lib:council",
+      "kind": "USES"
+    },
+    {
+      "source": "page:council",
+      "target": "lib:council",
+      "kind": "USES"
+    },
+    {
+      "source": "page:council",
+      "target": "lib:council",
+      "kind": "USES"
+    },
+    {
+      "source": "page:escalations",
+      "target": "lib:escalations",
+      "kind": "USES"
+    },
+    {
+      "source": "page:escalations",
+      "target": "lib:escalations",
+      "kind": "USES"
+    },
+    {
+      "source": "page:governance",
+      "target": "lib:governance",
+      "kind": "USES"
+    },
+    {
+      "source": "page:governance",
+      "target": "lib:governance",
+      "kind": "USES"
+    },
+    {
+      "source": "page:governance",
+      "target": "lib:governance",
+      "kind": "USES"
+    },
+    {
+      "source": "page:knowledge",
+      "target": "lib:knowledge",
+      "kind": "USES"
+    },
+    {
+      "source": "page:knowledge",
+      "target": "lib:knowledge",
+      "kind": "USES"
+    },
+    {
+      "source": "page:knowledge",
+      "target": "lib:knowledge",
+      "kind": "USES"
+    },
+    {
+      "source": "page:notifications",
+      "target": "lib:notifications",
+      "kind": "USES"
+    },
+    {
+      "source": "page:notifications",
+      "target": "lib:notifications",
+      "kind": "USES"
+    },
+    {
+      "source": "page:projects",
+      "target": "lib:projects",
+      "kind": "USES"
+    },
+    {
+      "source": "page:projects",
+      "target": "lib:projects",
+      "kind": "USES"
+    },
+    {
+      "source": "page:replay",
+      "target": "lib:replay",
+      "kind": "USES"
+    },
+    {
+      "source": "page:replay",
+      "target": "lib:replay",
+      "kind": "USES"
+    },
+    {
+      "source": "page:replay",
+      "target": "lib:replay",
+      "kind": "USES"
+    },
+    {
+      "source": "page:runs",
+      "target": "lib:runs",
+      "kind": "USES"
+    },
+    {
+      "source": "page:runs",
+      "target": "lib:runs",
+      "kind": "USES"
+    },
+    {
+      "source": "page:trust",
+      "target": "lib:trust",
+      "kind": "USES"
+    },
+    {
+      "source": "page:trust",
+      "target": "lib:trust",
+      "kind": "USES"
+    },
+    {
+      "source": "page:trust",
+      "target": "lib:trust",
+      "kind": "USES"
+    },
+    {
+      "source": "page:vault",
+      "target": "lib:vault",
+      "kind": "USES"
+    },
+    {
+      "source": "page:vault",
+      "target": "lib:vault",
+      "kind": "USES"
+    },
+    {
+      "source": "page:vault",
+      "target": "lib:vault",
+      "kind": "USES"
+    },
+    {
+      "source": "page:workspaces",
+      "target": "lib:workspaces",
+      "kind": "USES"
+    },
+    {
+      "source": "page:workspaces",
+      "target": "lib:workspaces",
+      "kind": "USES"
+    },
+    {
+      "source": "page:dashboard",
+      "target": "lib:projects",
+      "kind": "USES"
+    },
+    {
+      "source": "page:dashboard",
+      "target": "lib:approvals",
+      "kind": "USES"
+    },
+    {
+      "source": "lib:activity",
+      "target": "route:activity",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:agents",
+      "target": "route:agents",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:approvals",
+      "target": "route:approvals",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:architecture",
+      "target": "route:architecture",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:artifacts",
+      "target": "route:artifacts",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:audit",
+      "target": "route:audit",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:chat",
+      "target": "route:chat",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:connectors",
+      "target": "route:connectors",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:constitution-suggestions",
+      "target": "route:constitution_suggestions",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:constitution",
+      "target": "route:constitution",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:costs",
+      "target": "route:costs",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:council",
+      "target": "route:council",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:dashboards",
+      "target": "route:analytics",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:escalations",
+      "target": "route:escalation",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:events",
+      "target": "route:events",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:governance",
+      "target": "route:governance",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:governance",
+      "target": "route:enterprise_governance",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:knowledge",
+      "target": "route:knowledge",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:knowledge",
+      "target": "route:search_knowledge",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:notifications",
+      "target": "route:notifications",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:phase-profiles",
+      "target": "route:phase_agent_profiles",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:planner",
+      "target": "route:planner",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:planner",
+      "target": "route:planner_results",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:project-members",
+      "target": "route:members",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:projects",
+      "target": "route:projects",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:projects",
+      "target": "route:project_templates",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:release-ops",
+      "target": "route:release_ops",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:replay",
+      "target": "route:replay",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:runs",
+      "target": "route:runs",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:runs",
+      "target": "route:run_lifecycle",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:stream",
+      "target": "route:streaming",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:tasks",
+      "target": "route:tasks",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:templates",
+      "target": "route:project_templates",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:trust",
+      "target": "route:trust",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:vault",
+      "target": "route:credential_vault",
+      "kind": "HITS"
+    },
+    {
+      "source": "lib:workspaces",
+      "target": "route:workspaces",
+      "kind": "HITS"
+    }
+  ],
+  "counts": {
+    "nodes": 300,
+    "edges": 461,
+    "by_kind": {
+      "LibClient": 33,
+      "Model": 43,
+      "Page": 25,
+      "Route": 52,
+      "Schema": 38,
+      "Service": 109,
+      "edge:CALLS": 37,
+      "edge:DEPENDS_ON": 7,
+      "edge:HITS": 36,
+      "edge:PERSISTS": 295,
+      "edge:USES": 47,
+      "edge:VALIDATES_WITH": 39
+    }
+  }
+}

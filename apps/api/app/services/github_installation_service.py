@@ -52,12 +52,17 @@ async def get_installation_by_gh_id(
 
 async def list_installations(
     db: AsyncSession,
+    *,
+    connected_by: uuid.UUID | None = None,
 ) -> list[GitHubInstallation]:
-    result = await db.execute(
+    query = (
         select(GitHubInstallation)
         .where(GitHubInstallation.is_active.is_(True))
         .options(selectinload(GitHubInstallation.repos))
     )
+    if connected_by is not None:
+        query = query.where(GitHubInstallation.connected_by == connected_by)
+    result = await db.execute(query)
     return list(result.scalars().all())
 
 

@@ -29,10 +29,7 @@ export function DataTable({ columns, rows }: DataTableProps) {
         </thead>
         <tbody>
           {rows.map((row, ri) => (
-            <tr
-              key={ri}
-              className="hover:bg-[var(--color-bg-card-hover)]"
-            >
+            <tr key={ri} className="hover:bg-[var(--color-bg-card-hover)]">
               {columns.map((_, ci) => (
                 <td
                   key={ci}
