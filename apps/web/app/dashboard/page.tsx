@@ -70,7 +70,7 @@ export default function DashboardPage() {
   }, [loadProjects]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       {/* Page header */}
       <div className="flex items-end justify-between gap-6">
         <div>
@@ -122,8 +122,8 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5 transition-all hover:border-[var(--color-border-subtle)] hover:bg-[var(--color-bg-card-hover)]">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6 transition-all hover:border-[var(--color-border-subtle)] hover:bg-[var(--color-bg-card-hover)]">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-dim)]">
               Projects
@@ -150,7 +150,7 @@ export default function DashboardPage() {
               : `${total} total`}
           </p>
         </div>
-        <div className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5 transition-all hover:border-[var(--color-border-subtle)] hover:bg-[var(--color-bg-card-hover)]">
+        <div className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6 transition-all hover:border-[var(--color-border-subtle)] hover:bg-[var(--color-bg-card-hover)]">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-dim)]">
               Running Agents
@@ -176,7 +176,7 @@ export default function DashboardPage() {
         </div>
         <Link
           href="/dashboard/approvals"
-          className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5 transition-all hover:border-[var(--color-warning)]/30 hover:bg-[var(--color-bg-card-hover)]"
+          className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6 transition-all hover:border-[var(--color-warning)]/30 hover:bg-[var(--color-bg-card-hover)]"
         >
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-dim)]">
@@ -203,7 +203,7 @@ export default function DashboardPage() {
             {pendingApprovals > 0 ? "Needs attention →" : "All clear"}
           </p>
         </Link>
-        <div className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-5 transition-all hover:border-[var(--color-border-subtle)] hover:bg-[var(--color-bg-card-hover)]">
+        <div className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6 transition-all hover:border-[var(--color-border-subtle)] hover:bg-[var(--color-bg-card-hover)]">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-dim)]">
               Health

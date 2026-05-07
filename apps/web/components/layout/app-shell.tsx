@@ -9,7 +9,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopNav />
-        <main className="flex-1 overflow-y-auto bg-[var(--color-bg)] px-6 py-6">
+        <main className="flex-1 overflow-y-auto bg-[var(--color-bg)] px-8 py-8">
           {children}
         </main>
       </div>

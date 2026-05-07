@@ -294,15 +294,16 @@ export function Sidebar() {
       </div>
 
       {/* Navigation groups */}
-      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
         {NAV_GROUPS.map((group) => (
           <div key={group.label}>
             {!collapsed && (
-              <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-dim)]">
+              <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-dim)]">
                 {group.label}
               </p>
             )}
-            <div className="space-y-0.5">
+            {collapsed && <div className="mb-2 h-px bg-[var(--color-border)]" />}
+            <div className="space-y-1">
               {group.items.map((item) => {
                 const active = isActive(item.href);
                 return (
@@ -310,7 +311,7 @@ export function Sidebar() {
                     key={item.href}
                     href={item.href}
                     title={collapsed ? item.label : undefined}
-                    className={`flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] transition-all ${
+                    className={`flex items-center gap-3 rounded-md px-2.5 py-2 text-[13px] transition-all ${
                       active
                         ? "bg-[var(--color-accent-glow)] text-[var(--color-accent-hover)] font-medium"
                         : "text-[var(--color-text-muted)] hover:bg-[var(--color-bg-card)] hover:text-[var(--color-text)]"
@@ -329,27 +330,27 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-[var(--color-border)] px-2 py-3">
+      <div className="border-t border-[var(--color-border)] px-3 py-4">
         {user && !collapsed && (
-          <div className="mb-2 flex items-center gap-2 rounded-md px-2 py-1.5">
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent)]/20 text-[10px] font-semibold text-[var(--color-accent)]">
+          <div className="mb-3 flex items-center gap-2.5 rounded-md px-2.5 py-2">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent)]/20 text-[10px] font-semibold text-[var(--color-accent)]">
               {user.display_name.charAt(0).toUpperCase()}
             </div>
-            <span className="min-w-0 flex-1 truncate text-[11px] text-[var(--color-text-muted)]">
+            <span className="min-w-0 flex-1 truncate text-[12px] text-[var(--color-text-muted)]">
               {user.display_name}
             </span>
             <button
               onClick={() => { logout(); router.push("/login"); }}
-              className="shrink-0 text-[10px] text-[var(--color-text-dim)] hover:text-red-400 transition-colors"
+              className="shrink-0 text-[11px] text-[var(--color-text-dim)] hover:text-red-400 transition-colors"
             >
-              Out
+              Sign out
             </button>
           </div>
         )}
-        <div className={`flex items-center gap-1.5 px-2 ${collapsed ? "justify-center" : ""}`}>
-          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-success)]" />
+        <div className={`flex items-center gap-2 px-2.5 ${collapsed ? "justify-center" : ""}`}>
+          <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--color-success)]" />
           {!collapsed && (
-            <p className="text-[10px] text-[var(--color-text-dim)]">v0.3.0</p>
+            <p className="text-[11px] text-[var(--color-text-dim)]">v0.3.0</p>
           )}
         </div>
       </div>
