@@ -354,7 +354,9 @@ async def plan_from_prompt(
     db.add(project)
     await db.flush()
     # Auto-enroll the creator as project lead (mirrors project_service.create_project)
-    db.add(ProjectMember(project_id=project.id, user_id=owner_id, role=ProjectRole.LEAD))
+    db.add(
+        ProjectMember(project_id=project.id, user_id=owner_id, role=ProjectRole.LEAD)
+    )
 
     # 2. Create the first run — starts in SPECIFYING (FM-101)
     run = Run(

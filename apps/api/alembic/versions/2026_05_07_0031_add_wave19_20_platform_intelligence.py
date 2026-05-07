@@ -267,9 +267,7 @@ def upgrade() -> None:
         sa.Column("period_end", sa.DateTime(timezone=True), nullable=False),
         sa.Column("total_events", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("compliant_events", sa.Integer(), nullable=False, server_default="0"),
-        sa.Column(
-            "attainment_pct", sa.Float(), nullable=False, server_default="0.0"
-        ),
+        sa.Column("attainment_pct", sa.Float(), nullable=False, server_default="0.0"),
         sa.Column("met", sa.Boolean(), nullable=False, server_default="false"),
         sa.Column("p50", sa.Float(), nullable=True),
         sa.Column("p95", sa.Float(), nullable=True),
@@ -358,9 +356,7 @@ def upgrade() -> None:
     )
 
     # --- FM-246: digest_schedules ---
-    digest_freq_enum = sa.Enum(
-        "daily", "weekly", "disabled", name="digest_frequency"
-    )
+    digest_freq_enum = sa.Enum("daily", "weekly", "disabled", name="digest_frequency")
     op.create_table(
         "digest_schedules",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
@@ -375,9 +371,7 @@ def upgrade() -> None:
             "frequency", digest_freq_enum, nullable=False, server_default="daily"
         ),
         sa.Column("hour_utc", sa.Integer(), nullable=False, server_default="8"),
-        sa.Column(
-            "include_costs", sa.Boolean(), nullable=False, server_default="true"
-        ),
+        sa.Column("include_costs", sa.Boolean(), nullable=False, server_default="true"),
         sa.Column(
             "include_approvals", sa.Boolean(), nullable=False, server_default="true"
         ),
@@ -408,9 +402,7 @@ def upgrade() -> None:
         sa.Column("pattern_type", pii_type_enum, nullable=False),
         sa.Column("pattern", sa.Text(), nullable=False),
         sa.Column("category", sa.String(100), nullable=False),
-        sa.Column(
-            "severity", sa.String(20), nullable=False, server_default="high"
-        ),
+        sa.Column("severity", sa.String(20), nullable=False, server_default="high"),
         sa.Column("enabled", sa.Boolean(), nullable=False, server_default="true"),
         sa.Column(
             "created_at",

@@ -142,11 +142,11 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
     expect(screen.getByText("No projects yet")).toBeInTheDocument();
     expect(screen.getByText("All clear")).toBeInTheDocument();
     expect(screen.getByText("Create your first project")).toBeInTheDocument();
-    // both fetches were made, with fetchApprovals scoped to pending
-    expect(mocks.fetchApprovals).toHaveBeenCalledWith({ status: "pending" });
+    // fetchApprovals is no longer called from the dashboard (requires project_id scoping)
+    expect(mocks.fetchApprovals).not.toHaveBeenCalled();
   });
 
-  it("renders populated projects grid + pending-approvals stat + 'Needs attention →' copy", async () => {
+  it("renders populated projects grid + pending-approvals stat card showing 'All clear'", async () => {
     mocks.fetchProjects.mockResolvedValue({
       items: [
         makeProject({ id: "p1", name: "Atlas" }),
@@ -154,7 +154,6 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
       ],
       total: 2,
     });
-    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 4 });
 
     await act(async () => {
       render(<DashboardPage />);
@@ -165,12 +164,12 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
     expect(screen.getByText("Helios")).toBeInTheDocument();
     // projects count badge
     expect(screen.getByText("2 projects")).toBeInTheDocument();
-    // pending approvals stat card shows the 4 + call-to-action; scope to the card
+    // pending approvals stat card — count is always 0 (requires per-project scoping)
     const approvalsLabel = screen.getByText("Pending Approvals");
     const approvalsCard = approvalsLabel.closest("a");
     expect(approvalsCard).not.toBeNull();
-    expect(approvalsCard?.textContent).toContain("4");
-    expect(screen.getByText(/Needs attention/i)).toBeInTheDocument();
+    expect(approvalsCard?.textContent).toContain("0");
+    expect(screen.getByText("All clear")).toBeInTheDocument();
     expect(approvalsCard).toHaveAttribute("href", "/dashboard/approvals");
   });
 
@@ -271,16 +270,16 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
     expect(healthCard?.textContent).toContain("All systems operational");
   });
 
-  it("refetches projects + approvals after the create form fires onCreated", async () => {
+  it("refetches projects after the create form fires onCreated", async () => {
     mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
-    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 0 });
 
     await act(async () => {
       render(<DashboardPage />);
     });
 
     expect(mocks.fetchProjects).toHaveBeenCalledTimes(1);
-    expect(mocks.fetchApprovals).toHaveBeenCalledTimes(1);
+    // fetchApprovals is not called from the dashboard
+    expect(mocks.fetchApprovals).not.toHaveBeenCalled();
 
     // Open create form via header button
     const newProjectButtons = screen.getAllByRole("button", {
@@ -297,12 +296,11 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
     });
     expect(screen.queryByTestId("project-create-form")).toBeNull();
     expect(mocks.fetchProjects).toHaveBeenCalledTimes(2);
-    expect(mocks.fetchApprovals).toHaveBeenCalledTimes(2);
+    expect(mocks.fetchApprovals).not.toHaveBeenCalled();
   });
 
-  it("shows the Quick Actions 'Review Approvals' pill badge when pendingApprovals > 0", async () => {
+  it("never shows the Quick Actions pill badge because pendingApprovals is always 0", async () => {
     mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
-    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 3 });
 
     await act(async () => {
       render(<DashboardPage />);
@@ -318,8 +316,9 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
       a.textContent?.includes("Review Approvals"),
     );
     expect(quickActionsLink).toBeDefined();
-    // Pill badge on the quick-actions link shows the count.
-    expect(quickActionsLink?.textContent).toContain("3");
+    // No pill badge — pendingApprovals is always 0 (requires per-project scoping)
+    const badge = quickActionsLink?.querySelector("span.rounded-full");
+    expect(badge).toBeNull();
   });
 
   it("hides the quick-actions approval pill badge when pendingApprovals is 0", async () => {
