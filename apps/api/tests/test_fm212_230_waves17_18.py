@@ -116,8 +116,6 @@ async def test_cache_stats():
 
 
 def test_cache_disabled_returns_none():
-    import os
-
     os.environ["CACHE_ENABLED"] = "false"
     import importlib
     import app.core.cache as cache_mod
@@ -174,8 +172,6 @@ def test_storage_service_should_offload():
 
 @pytest.mark.asyncio
 async def test_storage_service_local_fallback():
-    import os
-
     os.environ["STORAGE_ENABLED"] = "false"
     from app.services import storage_service
     import importlib
@@ -204,7 +200,7 @@ def test_model_router_select_default():
 def test_model_router_downgrade_on_budget():
     from app.core.model_router import select_model
 
-    model_normal = select_model(task_type="codegen", budget_used_pct=0.5)
+    select_model(task_type="codegen", budget_used_pct=0.5)
     model_tight = select_model(task_type="codegen", budget_used_pct=0.95)
     # At 95% budget the router should pick a cheaper model or downgrade
     assert isinstance(model_tight, str)

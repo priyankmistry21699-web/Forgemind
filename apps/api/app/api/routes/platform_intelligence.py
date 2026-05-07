@@ -21,7 +21,6 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import get_current_user_id
@@ -221,7 +220,7 @@ async def bulk_archive_runs(
     db: AsyncSession = Depends(get_db),
     _: str = Depends(get_current_user_id),
 ) -> dict:
-    from app.models.run import Run, RunStatus
+    from app.models.run import Run
     from datetime import datetime, timezone
 
     archived = 0
