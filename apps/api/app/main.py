@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 
@@ -12,6 +13,8 @@ from app.core.metrics_middleware import MetricsMiddleware
 from app.core.ip_allowlist_middleware import IPAllowlistMiddleware
 from app.core.error_handlers import register_error_handlers
 
+_startup_logger = logging.getLogger("forgemind.startup")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
@@ -21,6 +24,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     from app.core.structured_logging import configure_logging
 
     configure_logging()
+
+    # Dev-mode safety banner — visible in logs so operators can't miss it
+    if settings.app_env == "development":
+        _startup_logger.warning(
+            "\n"
+            "╔══════════════════════════════════════════════════════════╗\n"
+            "║  ⚠  DEVELOPMENT MODE — AUTHENTICATION IS DISABLED  ⚠   ║\n"
+            "║  All API endpoints accept requests without a valid JWT.  ║\n"
+            "║  Set APP_ENV=production before any internet-facing       ║\n"
+            "║  deployment.  Never run this config in staging/prod.     ║\n"
+            "╚══════════════════════════════════════════════════════════╝"
+        )
 
     # M-21: fail fast when encryption key is missing or malformed
     if settings.app_env not in ("development", "test"):

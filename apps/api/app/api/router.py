@@ -57,6 +57,7 @@ from app.api.routes.agent_intelligence import router as agent_intelligence_route
 from app.api.routes.scheduling import router as scheduling_router
 from app.api.routes.platform_intelligence import router as platform_intelligence_router
 from app.api.routes.platform_ops import router as platform_ops_router
+from app.api.routes.stats import router as stats_router
 from app.services import api_key_service
 
 api_router = APIRouter()
@@ -293,3 +294,6 @@ api_router.include_router(platform_intelligence_router, tags=["platform-intellig
 
 # Platform ops: quotas, audit export, PII, admin stats (FM-241–248)
 api_router.include_router(platform_ops_router, tags=["platform-ops"])
+
+# Dashboard stats overview (live counts for UI stat cards)
+api_router.include_router(stats_router, tags=["stats"])

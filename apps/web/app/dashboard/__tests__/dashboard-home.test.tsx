@@ -2,7 +2,7 @@
  * FM-003 / FM-015 / FM-030 — dashboard home page orchestration tests.
  *
  * Covers the page-level behaviour of apps/web/app/dashboard/page.tsx:
- *   - initial loading (both fetchProjects + fetchApprovals in-flight)
+ *   - initial loading (fetchProjects + fetchStatsOverview in-flight)
  *   - empty state
  *   - populated state with stat-card counts
  *   - pending-approvals "Needs attention" vs. "All clear" copy
@@ -15,13 +15,22 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { Project } from "@/types/project";
 
+const STATS_DEFAULT = {
+  running_tasks: 0,
+  pending_approvals: 0,
+  healthy: true,
+  db_latency_ms: 1,
+};
+
 const mocks = vi.hoisted(() => ({
   fetchProjects: vi.fn(),
   fetchApprovals: vi.fn(),
+  fetchStatsOverview: vi.fn(),
 }));
 
 vi.mock("@/lib/projects", () => ({ fetchProjects: mocks.fetchProjects }));
 vi.mock("@/lib/approvals", () => ({ fetchApprovals: mocks.fetchApprovals }));
+vi.mock("@/lib/stats", () => ({ fetchStatsOverview: mocks.fetchStatsOverview }));
 vi.mock("next/link", () => ({
   __esModule: true,
   default: ({
@@ -112,16 +121,18 @@ function makeProject(overrides: Partial<Project> = {}): Project {
 beforeEach(() => {
   mocks.fetchProjects.mockReset();
   mocks.fetchApprovals.mockReset();
-  // Provide a stable scrollIntoView since the page calls it on form open
+  mocks.fetchStatsOverview.mockReset();
+  // Default stats stub — individual tests may override
+  mocks.fetchStatsOverview.mockResolvedValue(STATS_DEFAULT);
   (
     Element.prototype as unknown as { scrollIntoView: () => void }
   ).scrollIntoView = () => {};
 });
 
 describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
-  it("renders the loading skeleton while projects + approvals resolve", () => {
+  it("renders the loading skeleton while projects + stats resolve", () => {
     mocks.fetchProjects.mockReturnValue(new Promise(() => {}));
-    mocks.fetchApprovals.mockReturnValue(new Promise(() => {}));
+    mocks.fetchStatsOverview.mockReturnValue(new Promise(() => {}));
 
     const { container } = render(<DashboardPage />);
     // stat cards show "—" while loading
@@ -131,9 +142,9 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
     expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(2);
   });
 
-  it("renders empty-state + 'All clear' approvals note when both fetches return nothing", async () => {
+  it("renders empty-state + 'All clear' approvals note when fetches return nothing", async () => {
     mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
-    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 0 });
+    // fetchStatsOverview default stub returns pending_approvals:0 (set in beforeEach)
 
     await act(async () => {
       render(<DashboardPage />);
@@ -142,11 +153,11 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
     expect(screen.getByText("No projects yet")).toBeInTheDocument();
     expect(screen.getByText("All clear")).toBeInTheDocument();
     expect(screen.getByText("Create your first project")).toBeInTheDocument();
-    // fetchApprovals is no longer called from the dashboard (requires project_id scoping)
     expect(mocks.fetchApprovals).not.toHaveBeenCalled();
+    expect(mocks.fetchStatsOverview).toHaveBeenCalled();
   });
 
-  it("renders populated projects grid + pending-approvals stat card showing 'All clear'", async () => {
+  it("renders populated projects grid + pending-approvals stat card showing live count", async () => {
     mocks.fetchProjects.mockResolvedValue({
       items: [
         makeProject({ id: "p1", name: "Atlas" }),
@@ -154,28 +165,28 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
       ],
       total: 2,
     });
+    mocks.fetchStatsOverview.mockResolvedValue({
+      ...STATS_DEFAULT,
+      pending_approvals: 3,
+    });
 
     await act(async () => {
       render(<DashboardPage />);
     });
 
-    // projects grid
     expect(screen.getByText("Atlas")).toBeInTheDocument();
     expect(screen.getByText("Helios")).toBeInTheDocument();
-    // projects count badge
     expect(screen.getByText("2 projects")).toBeInTheDocument();
-    // pending approvals stat card — count is always 0 (requires per-project scoping)
     const approvalsLabel = screen.getByText("Pending Approvals");
     const approvalsCard = approvalsLabel.closest("a");
     expect(approvalsCard).not.toBeNull();
-    expect(approvalsCard?.textContent).toContain("0");
-    expect(screen.getByText("All clear")).toBeInTheDocument();
+    expect(approvalsCard?.textContent).toContain("3");
+    expect(screen.getByText("Needs attention →")).toBeInTheDocument();
     expect(approvalsCard).toHaveAttribute("href", "/dashboard/approvals");
   });
 
   it("shows the error state when fetchProjects rejects (promise.all branch)", async () => {
     mocks.fetchProjects.mockRejectedValue(new Error("backend offline"));
-    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 0 });
 
     await act(async () => {
       render(<DashboardPage />);
@@ -187,7 +198,6 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
 
   it("toggles forms with mutual exclusivity via the header + quick actions buttons", async () => {
     mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
-    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 0 });
 
     await act(async () => {
       render(<DashboardPage />);
@@ -226,7 +236,7 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
 
   it("surfaces planning-result + RunTaskList wired with the returned run_id after a plan", async () => {
     mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
-    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 0 });
+    // fetchStatsOverview stub set in beforeEach
 
     await act(async () => {
       render(<DashboardPage />);
@@ -247,22 +257,27 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
     expect(screen.getByTestId("run-task-list")).toHaveTextContent("r-99");
   });
 
-  it("renders the static 'Running Agents' and 'Health' stat cards with their copy", async () => {
+  it("renders Running Agents and Health stat cards from live stats", async () => {
     mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
-    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 0 });
+    mocks.fetchStatsOverview.mockResolvedValue({
+      running_tasks: 0,
+      pending_approvals: 0,
+      healthy: true,
+      db_latency_ms: 2,
+    });
 
     await act(async () => {
       render(<DashboardPage />);
     });
 
-    // Running Agents → 0 / Idle
+    // Running Agents — live count from stats.running_tasks
     const agentsLabel = screen.getByText("Running Agents");
     const agentsCard = agentsLabel.closest("div.group");
     expect(agentsCard).not.toBeNull();
     expect(agentsCard?.textContent).toContain("0");
     expect(agentsCard?.textContent).toContain("Idle");
 
-    // Health → OK / All systems operational
+    // Health — live healthy flag from stats.healthy
     const healthLabel = screen.getByText("Health");
     const healthCard = healthLabel.closest("div.group");
     expect(healthCard).not.toBeNull();
@@ -278,8 +293,8 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
     });
 
     expect(mocks.fetchProjects).toHaveBeenCalledTimes(1);
-    // fetchApprovals is not called from the dashboard
     expect(mocks.fetchApprovals).not.toHaveBeenCalled();
+    expect(mocks.fetchStatsOverview).toHaveBeenCalled();
 
     // Open create form via header button
     const newProjectButtons = screen.getAllByRole("button", {
@@ -296,6 +311,7 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
     });
     expect(screen.queryByTestId("project-create-form")).toBeNull();
     expect(mocks.fetchProjects).toHaveBeenCalledTimes(2);
+    expect(mocks.fetchStatsOverview).toHaveBeenCalledTimes(2);
     expect(mocks.fetchApprovals).not.toHaveBeenCalled();
   });
 
@@ -323,7 +339,7 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
 
   it("approvals stat card shows 'All clear' when pendingApprovals is 0", async () => {
     mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
-    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 0 });
+    // fetchStatsOverview stub set in beforeEach
 
     await act(async () => {
       render(<DashboardPage />);
@@ -345,7 +361,7 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
 
   it("clears stale planning-result when the prompt form is re-opened", async () => {
     mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
-    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 0 });
+    // fetchStatsOverview stub set in beforeEach
 
     await act(async () => {
       render(<DashboardPage />);
@@ -374,7 +390,7 @@ describe("DashboardPage (FM-003 / FM-015 / FM-030)", () => {
 
   it("dismisses the planning-result-card via its onDismiss callback", async () => {
     mocks.fetchProjects.mockResolvedValue({ items: [], total: 0 });
-    mocks.fetchApprovals.mockResolvedValue({ items: [], total: 0 });
+    // fetchStatsOverview stub set in beforeEach
 
     await act(async () => {
       render(<DashboardPage />);

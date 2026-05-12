@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { submitPromptIntake } from "@/lib/planner";
+import { ApiError } from "@/lib/api";
 import type { PromptIntakeResponse } from "@/types/planner";
 
 interface PromptIntakeFormProps {
@@ -33,7 +34,13 @@ export function PromptIntakeForm({
       });
       onPlanned(result);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to plan project");
+      if (err instanceof ApiError && (err.status === 500 || err.status === 503)) {
+        setError(
+          "AI planner is offline. Make sure Ollama is running (port 11435) and PLANNER_MODEL is set correctly.",
+        );
+      } else {
+        setError(err instanceof Error ? err.message : "Failed to plan project");
+      }
     } finally {
       setSubmitting(false);
     }

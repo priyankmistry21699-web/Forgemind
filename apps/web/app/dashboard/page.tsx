@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { fetchProjects } from "@/lib/projects";
+import { fetchStatsOverview } from "@/lib/stats";
 import type { Project } from "@/types/project";
 import {
   ProjectCard,
@@ -27,13 +28,13 @@ export default function DashboardPage() {
   const [planningResult, setPlanningResult] =
     useState<PromptIntakeResponse | null>(null);
   const [pendingApprovals, setPendingApprovals] = useState(0);
+  const [runningAgents, setRunningAgents] = useState(0);
+  const [healthy, setHealthy] = useState<boolean | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
   const openForm = useCallback((form: ActiveForm) => {
     setActiveForm(form);
-    // Clear stale planning result when re-opening prompt form
     if (form === "prompt") setPlanningResult(null);
-    // Scroll form area into view after a tick (for Quick Actions at bottom)
     setTimeout(
       () =>
         formRef.current?.scrollIntoView({
@@ -48,10 +49,13 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
 
-    fetchProjects()
-      .then((projectData) => {
+    Promise.all([fetchProjects(), fetchStatsOverview()])
+      .then(([projectData, stats]) => {
         setProjects(projectData.items);
         setTotal(projectData.total);
+        setPendingApprovals(stats.pending_approvals);
+        setRunningAgents(stats.running_tasks);
+        setHealthy(stats.healthy);
       })
       .catch((err: unknown) => {
         setError(err instanceof Error ? err.message : "Unknown error");
@@ -59,10 +63,6 @@ export default function DashboardPage() {
       .finally(() => {
         setLoading(false);
       });
-
-    // Pending approvals count requires a project_id — fetch per-project
-    // after projects load; for now keep count at 0 (shown on /approvals page).
-    setPendingApprovals(0);
   }, []);
 
   useEffect(() => {
@@ -171,8 +171,12 @@ export default function DashboardPage() {
               </svg>
             </div>
           </div>
-          <p className="mt-2 text-3xl font-bold tracking-tight">0</p>
-          <p className="mt-1 text-xs text-[var(--color-text-muted)]">Idle</p>
+          <p className="mt-2 text-3xl font-bold tracking-tight">
+            {loading ? "—" : String(runningAgents)}
+          </p>
+          <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+            {runningAgents > 0 ? `${runningAgents} active` : "Idle"}
+          </p>
         </div>
         <Link
           href="/dashboard/approvals"
@@ -221,11 +225,17 @@ export default function DashboardPage() {
               </svg>
             </div>
           </div>
-          <p className="mt-2 text-3xl font-bold tracking-tight text-[var(--color-success)]">
-            OK
+          <p
+            className={`mt-2 text-3xl font-bold tracking-tight ${
+              healthy === false
+                ? "text-red-400"
+                : "text-[var(--color-success)]"
+            }`}
+          >
+            {loading ? "—" : healthy === false ? "ERR" : "OK"}
           </p>
           <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-            All systems operational
+            {healthy === false ? "DB unreachable" : "All systems operational"}
           </p>
         </div>
       </div>

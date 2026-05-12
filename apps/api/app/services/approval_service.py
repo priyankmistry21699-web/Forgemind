@@ -243,3 +243,18 @@ async def resolve_approval(
 
     await db.refresh(approval)
     return approval
+
+
+async def count_pending_for_user(db: AsyncSession, user_id: uuid.UUID) -> int:
+    """Count pending approvals across all projects the user is a member of."""
+    from app.models.membership import ProjectMember
+
+    member_sub = select(ProjectMember.project_id).where(
+        ProjectMember.user_id == user_id
+    )
+    result = await db.execute(
+        select(sa_func.count())
+        .where(ApprovalRequest.status == ApprovalStatus.PENDING)
+        .where(ApprovalRequest.project_id.in_(member_sub))
+    )
+    return result.scalar_one()

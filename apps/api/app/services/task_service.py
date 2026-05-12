@@ -181,3 +181,11 @@ async def _emit_execution_metric(
             new_status.value,
             exc_info=True,
         )
+
+
+async def count_running_tasks(db: AsyncSession) -> int:
+    """Return the number of tasks currently in RUNNING state across all runs."""
+    result = await db.execute(
+        select(sa_func.count()).where(Task.status == TaskStatus.RUNNING)
+    )
+    return result.scalar_one()
